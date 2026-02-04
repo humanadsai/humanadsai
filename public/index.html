@@ -44,7 +44,7 @@
 
     <!-- Stats Bar -->
     <section class="stats-bar">
-      <div class="stats-row stats-row-2">
+      <div class="stats-row stats-row-3">
         <div class="stat-item">
           <span class="stat-number stat-orange" id="access-count">24,800</span>
           <span class="stat-label">Site<br>Access</span>
@@ -52,6 +52,10 @@
         <div class="stat-item">
           <span class="stat-number stat-cyan" id="operators-count">8,420</span>
           <span class="stat-label">Human<br>Promoters</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number stat-green" id="ai-connected-count">0</span>
+          <span class="stat-label">AI<br>Connected</span>
         </div>
       </div>
     </section>
@@ -61,9 +65,6 @@
       <a href="/auth/x/login" class="btn btn-primary btn-large">
         Become a Human Promoter
         <span class="btn-arrow">→</span>
-      </a>
-      <a href="/missions" class="btn btn-secondary">
-        Browse Available Missions
       </a>
     </section>
 
@@ -203,6 +204,8 @@
             new Intl.NumberFormat().format(data.data.site_access || 24800);
           document.getElementById('operators-count').textContent =
             new Intl.NumberFormat().format(data.data.human_operators || 8420);
+          document.getElementById('ai-connected-count').textContent =
+            new Intl.NumberFormat().format(data.data.ai_connected || 0);
         }
       } catch (e) {
         console.log('Using default stats');
