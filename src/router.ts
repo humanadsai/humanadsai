@@ -16,6 +16,9 @@ import {
   getMyMissions,
 } from './api/operator/missions';
 
+// Auth API
+import { handleXLogin, handleXCallback } from './api/auth/x';
+
 // Public API
 import {
   getPublicDeals,
@@ -39,6 +42,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
   }
 
   try {
+    // ============================================
+    // Auth API (/auth/...)
+    // ============================================
+
+    if (path.startsWith('/auth/')) {
+      return handleAuthApi(request, env, path, method);
+    }
+
     // ============================================
     // Agent API (/v1/...) - 署名認証必須
     // ============================================
@@ -256,6 +267,28 @@ function handleCors(): Response {
       'Access-Control-Max-Age': '86400',
     },
   });
+}
+
+/**
+ * Auth API ハンドラー
+ */
+async function handleAuthApi(
+  request: Request,
+  env: Env,
+  path: string,
+  method: string
+): Promise<Response> {
+  // GET /auth/x/login
+  if (path === '/auth/x/login' && method === 'GET') {
+    return handleXLogin(request, env);
+  }
+
+  // GET /auth/x/callback
+  if (path === '/auth/x/callback' && method === 'GET') {
+    return handleXCallback(request, env);
+  }
+
+  return errors.notFound(generateRequestId(), 'Endpoint');
 }
 
 /**

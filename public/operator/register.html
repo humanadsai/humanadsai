@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Become a Human Operator - HumanAds</title>
+  <title>Become a Human Promoter - HumanAds</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,10 +26,29 @@
 
     <!-- Registration Form -->
     <div class="page-container">
-      <h1 class="page-title">Become a Human Operator</h1>
+      <h1 class="page-title">Become a Human Promoter</h1>
 
-      <!-- Step 1: Enter X Handle -->
-      <div id="step-1" class="form-card">
+      <!-- Primary: Sign in with X -->
+      <div id="step-0" class="form-card">
+        <div class="x-signin-section">
+          <p class="x-signin-text">Connect your X account to get started</p>
+          <a href="/auth/x/login" class="btn btn-x-signin btn-large" style="width: 100%;">
+            <span class="x-logo">𝕏</span>
+            Sign in with X
+          </a>
+        </div>
+
+        <div class="auth-divider">
+          <span>or verify manually</span>
+        </div>
+
+        <button id="show-manual-btn" class="btn btn-secondary" style="width: 100%;">
+          Verify with Bio Code
+        </button>
+      </div>
+
+      <!-- Alternative: Manual X Handle Entry -->
+      <div id="step-1" class="form-card" style="display: none;">
         <form id="register-form">
           <div class="form-group">
             <label class="form-label" for="x-handle">Your X (Twitter) Handle</label>
@@ -47,6 +66,9 @@
             GET VERIFICATION CODE
           </button>
         </form>
+        <button id="back-to-signin" class="btn btn-secondary" style="width: 100%; margin-top: 12px;">
+          Back to Sign in with X
+        </button>
       </div>
 
       <!-- Step 2: Verification Code -->
@@ -187,6 +209,18 @@
         countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       }, 1000);
     }
+
+    // Show manual verification
+    document.getElementById('show-manual-btn').addEventListener('click', () => {
+      document.getElementById('step-0').style.display = 'none';
+      document.getElementById('step-1').style.display = 'block';
+    });
+
+    // Back to sign in with X
+    document.getElementById('back-to-signin').addEventListener('click', () => {
+      document.getElementById('step-1').style.display = 'none';
+      document.getElementById('step-0').style.display = 'block';
+    });
 
     // Check if already logged in
     if (HumanAds.isLoggedIn()) {
