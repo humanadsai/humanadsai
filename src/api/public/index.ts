@@ -120,8 +120,9 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
     }
 
     const operators = await env.DB.prepare(
-      `SELECT id, x_handle, display_name, avatar_url,
-        total_missions_completed, total_earnings, verified_at
+      `SELECT id, x_handle, display_name, avatar_url, x_profile_image_url,
+        total_missions_completed, total_earnings, verified_at,
+        x_verified, x_followers_count
        FROM operators
        WHERE status = 'verified'
        ORDER BY ${orderBy}
@@ -136,10 +137,12 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
           id: op.id,
           x_handle: op.x_handle,
           display_name: op.display_name,
-          avatar_url: op.avatar_url,
+          avatar_url: op.x_profile_image_url || op.avatar_url,
           total_missions_completed: op.total_missions_completed,
           total_earnings: op.total_earnings,
           verified_at: op.verified_at,
+          x_verified: op.x_verified === 1,
+          x_followers_count: op.x_followers_count,
         })),
         pagination: {
           limit,

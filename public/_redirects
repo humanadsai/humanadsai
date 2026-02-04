@@ -1,0 +1,2 @@
+# Operator detail pages - redirect dynamic IDs to detail page
+/operators/:id /operators/detail.html 200
