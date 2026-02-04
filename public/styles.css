@@ -326,6 +326,13 @@ body {
   margin-left: var(--spacing-xs);
 }
 
+.btn-x-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
 /* ============================================
    Section Divider
    ============================================ */
