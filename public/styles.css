@@ -787,6 +787,14 @@ body {
   margin-bottom: var(--spacing-lg);
 }
 
+.post-platform {
+  display: inline-block;
+  margin-top: var(--spacing-xs);
+  color: var(--color-cyan);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
 .mission-brief-steps {
   display: flex;
   justify-content: space-between;
