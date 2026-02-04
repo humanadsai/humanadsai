@@ -68,11 +68,12 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
       return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0 } as Operator;
     }
 
-    // Check if new columns exist (for backward compatibility)
-    const hasNewColumns = await env.DB.prepare(
-      "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'x_profile_image_url'"
+    // Check if ALL new columns exist (for backward compatibility)
+    // Check for the last column in the migration to ensure full migration was applied
+    const hasAllNewColumns = await env.DB.prepare(
+      "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'x_connected_at'"
     ).first<{ count: number }>();
-    const useExtendedSchema = (hasNewColumns?.count || 0) > 0;
+    const useExtendedSchema = (hasAllNewColumns?.count || 0) > 0;
 
     // Fetch operator (with extended fields if available)
     let operator: Operator | null;
