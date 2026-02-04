@@ -209,12 +209,15 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
     console.log('[X Callback] Login successful! Redirecting to dashboard...');
     const sessionCookie = `session=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
 
+    // Use Headers API to properly set multiple Set-Cookie headers
+    const headers = new Headers();
+    headers.set('Location', '/dashboard');
+    headers.append('Set-Cookie', deleteAuthCookie());
+    headers.append('Set-Cookie', sessionCookie);
+
     return new Response(null, {
       status: 302,
-      headers: {
-        Location: '/dashboard',
-        'Set-Cookie': [deleteAuthCookie(), sessionCookie].join(', '),
-      },
+      headers,
     });
   } catch (e) {
     console.error('[X Callback] Database error:', e);
