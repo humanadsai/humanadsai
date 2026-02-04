@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS operators (
     x_user_id TEXT UNIQUE,
     -- 表示名
     display_name TEXT,
-    -- プロフィール画像URL
+    -- プロフィール画像URL (legacy, use x_profile_image_url)
     avatar_url TEXT,
     -- 認証ステータス: unverified, pending, verified, suspended
     status TEXT NOT NULL DEFAULT 'unverified',
@@ -98,6 +98,34 @@ CREATE TABLE IF NOT EXISTS operators (
     -- メタデータ
     bio TEXT,
     metadata TEXT, -- JSON
+
+    -- ============================================
+    -- Extended X Profile Data (fetched from /2/users/me)
+    -- ============================================
+    x_profile_image_url TEXT,
+    x_description TEXT,
+    x_url TEXT,
+    x_location TEXT,
+    x_created_at TEXT,
+    x_protected INTEGER DEFAULT 0,
+
+    -- X Verification
+    x_verified INTEGER DEFAULT 0,
+    x_verified_type TEXT,
+
+    -- X Public Metrics
+    x_followers_count INTEGER DEFAULT 0,
+    x_following_count INTEGER DEFAULT 0,
+    x_tweet_count INTEGER DEFAULT 0,
+    x_listed_count INTEGER DEFAULT 0,
+
+    -- Raw JSON from /2/users/me (for future use)
+    x_raw_json TEXT,
+    -- Last X profile fetch timestamp (Unix ms)
+    x_fetched_at INTEGER,
+    -- First X connection timestamp (Unix ms)
+    x_connected_at INTEGER,
+
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
