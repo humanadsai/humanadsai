@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bio Code Verification | HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <a href="/dashboard" class="btn btn-secondary btn-small">Back to Dashboard</a>
+    </header>
+
+    <!-- Bio Code Content -->
+    <main class="legal-page">
+      <h1 class="legal-title">Bio Code Verification</h1>
+
+      <div class="legal-content">
+        <p>Use Bio Code to verify friends and boost your viral reach.</p>
+
+        <h2>How it works</h2>
+        <ol>
+          <li>Share your unique Bio Code with friends</li>
+          <li>They add it to their X bio</li>
+          <li>Once verified, they join HumanAds with your referral</li>
+        </ol>
+
+        <h2>Your Bio Code</h2>
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; margin: 16px 0; text-align: center;">
+          <p style="font-family: 'IBM Plex Mono', monospace; font-size: 1.5rem; color: #00d4ff; letter-spacing: 2px;">
+            HUMANADS_XXXX
+          </p>
+          <p style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 8px;">
+            (Sign in to generate your personal code)
+          </p>
+        </div>
+
+        <p style="font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-top: 24px;">
+          This feature is coming soon. For now, connect via X OAuth for instant verification.
+        </p>
+
+        <div style="margin-top: 24px;">
+          <a href="/auth/x/login" class="btn btn-primary" style="display: inline-flex;">
+            Connect with X
+            <span style="margin-left: 8px;">→</span>
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms.html">Terms</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy.html">Privacy</a>
+        <span class="footer-divider">|</span>
+        <a href="/contact.html">Contact</a>
+      </div>
+      <p>© 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+</body>
+</html>

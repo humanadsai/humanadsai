@@ -18,6 +18,7 @@ import {
 
 // Auth API
 import { handleXLogin, handleXCallback } from './api/auth/x';
+import { handleDashboard } from './api/auth/dashboard';
 
 // Public API
 import {
@@ -72,6 +73,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
     if (path.startsWith('/api/')) {
       return handlePublicApi(request, env, path, method);
+    }
+
+    // ============================================
+    // Dashboard (authenticated users)
+    // ============================================
+
+    if (path === '/dashboard') {
+      return handleDashboard(request, env);
     }
 
     // ============================================
@@ -286,6 +295,17 @@ async function handleAuthApi(
   // GET /auth/x/callback
   if (path === '/auth/x/callback' && method === 'GET') {
     return handleXCallback(request, env);
+  }
+
+  // GET /auth/logout
+  if (path === '/auth/logout' && method === 'GET') {
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: '/',
+        'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+      },
+    });
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');
