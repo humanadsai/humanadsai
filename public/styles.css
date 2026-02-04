@@ -1,0 +1,624 @@
+/* ============================================
+   HumanAds - Global Styles
+   ============================================ */
+
+:root {
+  --color-primary: #FF6B35;
+  --color-primary-dark: #E55A2B;
+  --color-background: #1A1A2E;
+  --color-background-light: #252540;
+  --color-text: #FFFFFF;
+  --color-text-muted: #A0A0B0;
+  --color-border: #3A3A5A;
+  --color-success: #4CAF50;
+
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --border-radius: 12px;
+  --border-radius-sm: 8px;
+  --border-radius-lg: 16px;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--color-background);
+  color: var(--color-text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ============================================
+   App Container
+   ============================================ */
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--spacing-md);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   Header
+   ============================================ */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-background-light);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: var(--color-border);
+}
+
+.close-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   Hero Section
+   ============================================ */
+
+.hero {
+  text-align: center;
+  padding: var(--spacing-xl) 0;
+}
+
+.hero-title {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+}
+
+.hero-title .highlight {
+  color: var(--color-primary);
+}
+
+.hero-subtitle {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   Network Visualization
+   ============================================ */
+
+.network-visual {
+  padding: var(--spacing-xl) 0;
+}
+
+.network-container {
+  position: relative;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.connections {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.human, .ai-node {
+  position: absolute;
+  z-index: 1;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.avatar-orange {
+  background: var(--color-primary);
+}
+
+.avatar-orange-light {
+  background: #FF9F6B;
+}
+
+.avatar-dark {
+  background: var(--color-background-light);
+  border: 2px solid var(--color-border);
+}
+
+.avatar-outline {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+}
+
+.ai-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-background);
+  border: 2px solid var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-primary);
+}
+
+/* Position humans and AI nodes */
+.human-1 { left: 5%; top: 10%; }
+.human-2 { left: 0%; top: 40%; }
+.human-3 { left: 5%; top: 70%; }
+.ai-node-1 { left: 30%; top: 35%; }
+.ai-node-2 { left: 55%; top: 35%; }
+.human-4 { right: 5%; top: 10%; }
+.human-5 { right: 0%; top: 40%; }
+.human-6 { right: 5%; top: 70%; }
+
+/* ============================================
+   CTA Buttons
+   ============================================ */
+
+.cta-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
+.btn-large {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  font-size: 1rem;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-outline:hover {
+  background: var(--color-primary);
+  color: var(--color-text);
+}
+
+.btn-arrow {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   Stats Section
+   ============================================ */
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg) 0;
+}
+
+.stat-card {
+  background: var(--color-background);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+  margin-bottom: var(--spacing-sm);
+}
+
+.stat-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.stat-icon {
+  width: 16px;
+  height: 16px;
+  stroke: var(--color-primary);
+}
+
+.stat-trend {
+  width: 16px;
+  height: 16px;
+}
+
+.stat-icon-user {
+  width: 20px;
+  height: 20px;
+}
+
+.trophy-icon {
+  width: 32px;
+  height: 32px;
+}
+
+/* ============================================
+   Mission Card
+   ============================================ */
+
+.mission-section {
+  padding: var(--spacing-lg) 0;
+  flex: 1;
+}
+
+.mission-card {
+  background: var(--color-background-light);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.mission-header {
+  margin-bottom: var(--spacing-md);
+}
+
+.mission-from {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.mission-text {
+  font-size: 1.125rem;
+  line-height: 1.5;
+  margin-bottom: var(--spacing-lg);
+}
+
+.mission-card .btn {
+  width: 100%;
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+
+.footer {
+  padding: var(--spacing-lg) 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (min-width: 768px) {
+  .app {
+    padding: var(--spacing-xl);
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .stats-section {
+    gap: var(--spacing-md);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+}
+
+/* ============================================
+   Operator Registration Page
+   ============================================ */
+
+.page-container {
+  padding: var(--spacing-xl) 0;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.form-card {
+  background: var(--color-background-light);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-muted);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  border: 2px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.verification-code {
+  background: var(--color-background);
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  text-align: center;
+  margin: var(--spacing-lg) 0;
+}
+
+.verification-code-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.verification-instructions {
+  list-style: none;
+  text-align: left;
+  margin: var(--spacing-lg) 0;
+}
+
+.verification-instructions li {
+  padding: var(--spacing-sm) 0;
+  padding-left: var(--spacing-lg);
+  position: relative;
+  color: var(--color-text-muted);
+}
+
+.verification-instructions li::before {
+  content: attr(data-step);
+  position: absolute;
+  left: 0;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* ============================================
+   Missions List Page
+   ============================================ */
+
+.missions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.mission-item {
+  background: var(--color-background-light);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  transition: border-color 0.2s;
+}
+
+.mission-item:hover {
+  border-color: var(--color-primary);
+}
+
+.mission-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+}
+
+.mission-item-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.mission-item-reward {
+  background: var(--color-primary);
+  color: var(--color-text);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.mission-item-agent {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.mission-item-description {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.mission-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mission-item-slots {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.mission-item-slots strong {
+  color: var(--color-primary);
+}
+
+/* ============================================
+   Alert / Message
+   ============================================ */
+
+.alert {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.alert-success {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
+}
+
+.alert-error {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid #F44336;
+  color: #F44336;
+}
+
+/* ============================================
+   Loading Spinner
+   ============================================ */
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn.loading .spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}

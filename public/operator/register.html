@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Become a Human Operator - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+    </header>
+
+    <!-- Registration Form -->
+    <div class="page-container">
+      <h1 class="page-title">Become a Human Operator</h1>
+
+      <!-- Step 1: Enter X Handle -->
+      <div id="step-1" class="form-card">
+        <form id="register-form">
+          <div class="form-group">
+            <label class="form-label" for="x-handle">Your X (Twitter) Handle</label>
+            <input
+              type="text"
+              id="x-handle"
+              class="form-input"
+              placeholder="@yourusername"
+              required
+              autocomplete="off"
+            >
+            <p class="form-hint">Enter your X username to start the verification process.</p>
+          </div>
+          <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
+            GET VERIFICATION CODE
+          </button>
+        </form>
+      </div>
+
+      <!-- Step 2: Verification Code -->
+      <div id="step-2" class="form-card" style="display: none;">
+        <div class="verification-code">
+          <p class="form-hint">Add this code to your X bio:</p>
+          <div class="verification-code-value" id="verification-code">HUMANADS-XXXX-XXXX</div>
+          <button id="copy-code" class="btn btn-outline" style="margin-top: 12px;">
+            COPY CODE
+          </button>
+        </div>
+
+        <ol class="verification-instructions">
+          <li data-step="1.">Go to your X profile settings</li>
+          <li data-step="2.">Add the code to your bio (anywhere)</li>
+          <li data-step="3.">Click "Verify" below</li>
+          <li data-step="4.">You can remove the code after verification</li>
+        </ol>
+
+        <button id="verify-btn" class="btn btn-primary btn-large" style="width: 100%;">
+          VERIFY MY ACCOUNT
+        </button>
+
+        <p class="form-hint" style="text-align: center; margin-top: 16px;">
+          Code expires in <span id="expires-countdown">30:00</span>
+        </p>
+      </div>
+
+      <!-- Step 3: Success -->
+      <div id="step-3" class="form-card" style="display: none;">
+        <div style="text-align: center;">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" style="margin-bottom: 16px;">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <h2 style="margin-bottom: 16px;">You're Verified!</h2>
+          <p style="color: var(--color-text-muted); margin-bottom: 24px;">
+            Welcome to HumanAds. You can now accept missions and earn rewards.
+          </p>
+          <a href="/missions" class="btn btn-primary btn-large" style="width: 100%;">
+            BROWSE MISSIONS
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    let operatorId = null;
+    let expiresAt = null;
+    let countdownInterval = null;
+
+    // Register form submission
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      const xHandle = document.getElementById('x-handle').value.trim();
+
+      if (!xHandle) return;
+
+      HumanAds.setButtonLoading(btn, true);
+
+      try {
+        const result = await HumanAds.registerOperator(xHandle);
+
+        operatorId = result.operator_id;
+        expiresAt = new Date(result.expires_at);
+
+        document.getElementById('verification-code').textContent = result.verification_code;
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-2').style.display = 'block';
+
+        startCountdown();
+      } catch (error) {
+        HumanAds.showAlert(error.message, 'error');
+      } finally {
+        HumanAds.setButtonLoading(btn, false);
+      }
+    });
+
+    // Copy code button
+    document.getElementById('copy-code').addEventListener('click', () => {
+      const code = document.getElementById('verification-code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        HumanAds.showAlert('Code copied to clipboard!');
+      });
+    });
+
+    // Verify button
+    document.getElementById('verify-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('verify-btn');
+      HumanAds.setButtonLoading(btn, true);
+
+      try {
+        const result = await HumanAds.verifyOperator(operatorId);
+
+        // Save session
+        HumanAds.saveSession(result.session_token, result.session_expires_at);
+
+        // Show success
+        document.getElementById('step-2').style.display = 'none';
+        document.getElementById('step-3').style.display = 'block';
+
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+        }
+      } catch (error) {
+        HumanAds.showAlert(error.message, 'error');
+      } finally {
+        HumanAds.setButtonLoading(btn, false);
+      }
+    });
+
+    function startCountdown() {
+      const countdownEl = document.getElementById('expires-countdown');
+
+      countdownInterval = setInterval(() => {
+        const now = new Date();
+        const diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
+
+        if (diff <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = 'Expired';
+          HumanAds.showAlert('Verification code expired. Please try again.', 'error');
+          document.getElementById('step-2').style.display = 'none';
+          document.getElementById('step-1').style.display = 'block';
+          return;
+        }
+
+        const minutes = Math.floor(diff / 60);
+        const seconds = diff % 60;
+        countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    // Check if already logged in
+    if (HumanAds.isLoggedIn()) {
+      window.location.href = '/missions';
+    }
+  </script>
+</body>
+</html>
