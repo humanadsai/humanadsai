@@ -308,7 +308,118 @@ async function handleAuthApi(
     });
   }
 
+  // GET /auth/error
+  if (path === '/auth/error' && method === 'GET') {
+    const url = new URL(request.url);
+    const message = url.searchParams.get('message') || 'An error occurred';
+    return new Response(generateAuthErrorHTML(message), {
+      status: 400,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+      },
+    });
+  }
+
   return errors.notFound(generateRequestId(), 'Endpoint');
+}
+
+/**
+ * Generate auth error HTML
+ */
+function generateAuthErrorHTML(message: string): string {
+  // Escape HTML to prevent XSS
+  const escapedMessage = message
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authentication Error | HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --color-bg: #0a0a0f;
+      --color-surface: rgba(255, 255, 255, 0.05);
+      --color-border: rgba(255, 255, 255, 0.1);
+      --color-primary: #FF6B35;
+      --color-text: #ffffff;
+      --color-text-muted: rgba(255, 255, 255, 0.6);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      min-height: 100vh;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .error-container {
+      max-width: 400px;
+      padding: 40px 24px;
+      text-align: center;
+    }
+    .error-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 24px;
+    }
+    .error-title {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+      color: var(--color-primary);
+    }
+    .error-message {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      background: var(--color-primary);
+      color: #fff;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+    <svg class="error-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="32" cy="32" r="28" stroke="#FF6B35" stroke-width="3"/>
+      <path d="M24 24L40 40M40 24L24 40" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <h1 class="error-title">Authentication Error</h1>
+    <p class="error-message">${escapedMessage}</p>
+    <a href="/" class="btn">Back to Home</a>
+  </div>
+</body>
+</html>`;
 }
 
 /**
