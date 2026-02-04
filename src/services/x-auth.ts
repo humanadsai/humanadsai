@@ -160,8 +160,8 @@ function base64UrlDecode(str: string): Uint8Array {
 // ============================================
 
 const X_AUTH_URL = 'https://twitter.com/i/oauth2/authorize';
-const X_TOKEN_URL = 'https://api.x.com/2/oauth2/token';
-const X_USER_URL = 'https://api.x.com/2/users/me';
+const X_TOKEN_URL = 'https://api.twitter.com/2/oauth2/token';
+const X_USER_URL = 'https://api.twitter.com/2/users/me';
 
 export interface XAuthConfig {
   clientId: string;
@@ -247,26 +247,42 @@ export async function exchangeCodeForToken(
 export async function getXUserInfo(
   accessToken: string
 ): Promise<{ id: string; name: string; username: string } | null> {
-  const response = await fetch(`${X_USER_URL}?user.fields=username`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  try {
+    const response = await fetch(X_USER_URL, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-  if (!response.ok) {
-    console.error('User info fetch failed:', await response.text());
+    const responseText = await response.text();
+    console.log('X User API response status:', response.status);
+    console.log('X User API response:', responseText);
+
+    if (!response.ok) {
+      console.error('User info fetch failed:', response.status, responseText);
+      return null;
+    }
+
+    const parsed = data as {
+      data?: {
+        id: string;
+        name: string;
+        username: string;
+      };
+      errors?: Array<{ message: string }>;
+    };
+
+    if (!parsed.data) {
+      console.error('No data in response:', parsed);
+      return null;
+    }
+
+    return parsed.data;
+  } catch (error) {
+    console.error('Error fetching user info:', error);
     return null;
   }
-
-  const data = (await response.json()) as {
-    data: {
-      id: string;
-      name: string;
-      username: string;
-    };
-  };
-
-  return data.data;
 }
 
 // ============================================
