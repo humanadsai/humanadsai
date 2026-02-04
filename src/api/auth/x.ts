@@ -163,35 +163,15 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
     ).all<{ name: string }>();
     console.log('[X Callback] D1 tables:', tables.results?.map(t => t.name).join(', ') || 'NONE');
 
-    // If operators table doesn't exist, create it
+    // Check if operators table exists
     const hasOperators = tables.results?.some(t => t.name === 'operators');
     if (!hasOperators) {
-      console.log('[X Callback] operators table not found, creating...');
-      await env.DB.exec(`
-        CREATE TABLE IF NOT EXISTS operators (
-          id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-          x_handle TEXT UNIQUE,
-          x_user_id TEXT UNIQUE,
-          display_name TEXT,
-          avatar_url TEXT,
-          status TEXT NOT NULL DEFAULT 'unverified',
-          verified_at TEXT,
-          total_missions_completed INTEGER DEFAULT 0,
-          total_earnings INTEGER DEFAULT 0,
-          session_token_hash TEXT,
-          session_expires_at TEXT,
-          bio TEXT,
-          metadata TEXT,
-          created_at TEXT NOT NULL DEFAULT (datetime('now')),
-          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-        )
-      `);
-      console.log('[X Callback] operators table created successfully');
+      console.error('[X Callback] FATAL: operators table not found in D1. Run migration first.');
+      return createErrorRedirect('Database not initialized. Please contact support.');
     }
 
     // Check if operator exists by x_user_id
     console.log('[X Callback] Checking database for existing operator...');
-    console.log('[X Callback] SQL: SELECT id FROM operators WHERE x_user_id = ?', '[x_user_id]');
     const existing = await env.DB.prepare(
       'SELECT id FROM operators WHERE x_user_id = ?'
     )
