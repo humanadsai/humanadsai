@@ -27,13 +27,13 @@
   },
 
   // Durable Object migrations
-  "migrations": [
-    {
-      "tag": "v1",
-      "new_classes": ["NonceStore", "RateLimiter"]
-    }
-  ],
-
+// Durable Object migrations
+"migrations": [
+  {
+    "tag": "v1",
+    "new_sqlite_classes": ["NonceStore", "RateLimiter"]
+  }
+],
   // KV Namespace (optional, for sessions fallback)
   "kv_namespaces": [
     {
