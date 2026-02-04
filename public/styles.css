@@ -201,6 +201,16 @@ body {
   color: var(--color-primary);
 }
 
+.stat-number.stat-green {
+  color: #00ff88;
+}
+
+.stats-row-3 {
+  justify-content: space-around;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
 .stat-label {
   font-size: 0.625rem;
   color: var(--color-text-muted);
