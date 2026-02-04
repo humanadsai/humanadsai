@@ -18,7 +18,6 @@ import {
 
 // Auth API
 import { handleXLogin, handleXCallback } from './api/auth/x';
-import { handleConnect, handleDashboard } from './api/auth/connect';
 
 // Public API
 import {
@@ -73,18 +72,6 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
     if (path.startsWith('/api/')) {
       return handlePublicApi(request, env, path, method);
-    }
-
-    // ============================================
-    // Connect & Dashboard (user-facing pages)
-    // ============================================
-
-    if (path === '/connect') {
-      return handleConnect(request, env);
-    }
-
-    if (path === '/dashboard') {
-      return handleDashboard(request, env);
     }
 
     // ============================================
@@ -291,16 +278,6 @@ async function handleAuthApi(
   path: string,
   method: string
 ): Promise<Response> {
-  // GET /connect - immediate redirect to X OAuth
-  if (path === '/connect' && method === 'GET') {
-    return handleConnect(request, env);
-  }
-
-  // GET /dashboard - authenticated user dashboard
-  if (path === '/dashboard' && method === 'GET') {
-    return handleDashboard(request, env);
-  }
-
   // GET /auth/x/login
   if (path === '/auth/x/login' && method === 'GET') {
     return handleXLogin(request, env);
