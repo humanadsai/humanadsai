@@ -205,14 +205,14 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
         .run();
     }
 
-    // Create session cookie and redirect to dashboard
-    console.log('[X Callback] Login successful! Redirecting to dashboard...');
+    // Create session cookie and redirect to success page
+    console.log('[X Callback] Login successful! Redirecting to success page...');
     const sessionCookie = `session=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
 
     return new Response(null, {
       status: 302,
       headers: {
-        Location: '/dashboard',
+        Location: `/auth/success?username=${encodeURIComponent(userInfo.username!)}`,
         'Set-Cookie': [deleteAuthCookie(), sessionCookie].join(', '),
       },
     });
