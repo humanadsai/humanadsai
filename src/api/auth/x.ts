@@ -178,11 +178,12 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
       .bind(userInfo.id!)
       .first<{ id: string }>();
 
-    // Check if new columns exist (for backward compatibility)
-    const hasNewColumns = await env.DB.prepare(
-      "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'x_profile_image_url'"
+    // Check if ALL new columns exist (for backward compatibility)
+    // Check for the last column in the migration to ensure full migration was applied
+    const hasAllNewColumns = await env.DB.prepare(
+      "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'x_connected_at'"
     ).first<{ count: number }>();
-    const useExtendedSchema = (hasNewColumns?.count || 0) > 0;
+    const useExtendedSchema = (hasAllNewColumns?.count || 0) > 0;
     console.log('[X Callback] Using extended schema:', useExtendedSchema);
 
     // Prepare extended user data for storage
