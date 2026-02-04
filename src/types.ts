@@ -10,6 +10,9 @@ export interface Env {
   SESSIONS?: KVNamespace;
   // Environment variables
   ENVIRONMENT: string;
+  // X (Twitter) OAuth2
+  X_CLIENT_ID: string;
+  X_CLIENT_SECRET: string;
 }
 
 // ============================================

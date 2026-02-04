@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Success - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+    </header>
+
+    <!-- Success Content -->
+    <main class="auth-result-page">
+      <div class="auth-result-card auth-success">
+        <div class="auth-result-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </div>
+        <h1 class="auth-result-title">Welcome, Human Promoter!</h1>
+        <p class="auth-result-username" id="username">@username</p>
+        <p class="auth-result-message">You've successfully connected your X account.</p>
+        <div class="auth-result-actions">
+          <a href="/missions" class="btn btn-primary">
+            Browse Missions
+            <span class="btn-arrow">→</span>
+          </a>
+          <a href="/" class="btn btn-secondary">
+            Back to Home
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms.html">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy.html">Privacy Policy</a>
+      </div>
+      <p>© 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Get username from URL params
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('username');
+    if (username) {
+      document.getElementById('username').textContent = '@' + username;
+    }
+  </script>
+</body>
+</html>
