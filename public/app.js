@@ -43,6 +43,19 @@ function formatNumber(num) {
   return new Intl.NumberFormat().format(num);
 }
 
+function formatFollowerCount(count) {
+  if (count === null || count === undefined || count === 0) {
+    return null;
+  }
+  if (count >= 1000000) {
+    return (count / 1000000).toFixed(2) + 'M';
+  }
+  if (count >= 1000) {
+    return (count / 1000).toFixed(1) + 'K';
+  }
+  return count.toString();
+}
+
 // ============================================
 // Stats Loading
 // ============================================
