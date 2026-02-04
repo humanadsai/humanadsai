@@ -2,8 +2,6 @@
  * X (Twitter) OAuth2 PKCE Authentication Service
  */
 
-import type { Env } from '../types';
-
 // ============================================
 // PKCE Utilities
 // ============================================
@@ -132,7 +130,8 @@ export async function decryptCookieData(
 
     const decoder = new TextDecoder();
     return JSON.parse(decoder.decode(plaintext));
-  } catch {
+  } catch (e) {
+    console.error('[X Auth] Cookie decrypt failed:', e);
     return null;
   }
 }
@@ -169,6 +168,23 @@ export interface XAuthConfig {
   redirectUri: string;
 }
 
+export interface TokenExchangeResult {
+  success: boolean;
+  accessToken?: string;
+  expiresIn?: number;
+  error?: string;
+  httpStatus?: number;
+}
+
+export interface UserInfoResult {
+  success: boolean;
+  id?: string;
+  name?: string;
+  username?: string;
+  error?: string;
+  httpStatus?: number;
+}
+
 /**
  * Build the authorization URL for X OAuth2
  */
@@ -179,15 +195,18 @@ export async function buildAuthUrl(
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await generateCodeChallenge(codeVerifier);
 
+  // Request minimal scopes
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: config.clientId,
     redirect_uri: config.redirectUri,
-    scope: 'users.read',
+    scope: 'users.read tweet.read',
     state: state,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
   });
+
+  console.log('[X Auth] Building auth URL with redirect_uri:', config.redirectUri);
 
   return {
     url: `${X_AUTH_URL}?${params.toString()}`,
@@ -203,7 +222,12 @@ export async function exchangeCodeForToken(
   code: string,
   codeVerifier: string,
   config: XAuthConfig
-): Promise<{ accessToken: string; expiresIn: number } | null> {
+): Promise<TokenExchangeResult> {
+  console.log('[X Auth] Starting token exchange');
+  console.log('[X Auth] redirect_uri:', config.redirectUri);
+  console.log('[X Auth] code present:', !!code);
+  console.log('[X Auth] code_verifier present:', !!codeVerifier);
+
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
     client_id: config.clientId,
@@ -215,56 +239,94 @@ export async function exchangeCodeForToken(
   // X requires Basic auth with client_id:client_secret for confidential clients
   const credentials = btoa(`${config.clientId}:${config.clientSecret}`);
 
-  const response = await fetch(X_TOKEN_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${credentials}`,
-    },
-    body: params.toString(),
-  });
+  try {
+    const response = await fetch(X_TOKEN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${credentials}`,
+      },
+      body: params.toString(),
+    });
 
-  if (!response.ok) {
-    console.error('Token exchange failed:', await response.text());
-    return null;
+    console.log('[X Auth] Token exchange status:', response.status);
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      // Mask sensitive data in error log
+      const maskedError = responseText.replace(
+        /"access_token"\s*:\s*"[^"]+"/g,
+        '"access_token":"[MASKED]"'
+      );
+      console.error('[X Auth] Token exchange failed:', response.status, maskedError);
+      return {
+        success: false,
+        error: `Token exchange failed: ${response.status}`,
+        httpStatus: response.status,
+      };
+    }
+
+    const data = JSON.parse(responseText) as {
+      access_token: string;
+      token_type: string;
+      expires_in: number;
+      scope?: string;
+    };
+
+    console.log('[X Auth] Token exchange successful, scope:', data.scope);
+
+    return {
+      success: true,
+      accessToken: data.access_token,
+      expiresIn: data.expires_in,
+    };
+  } catch (error) {
+    console.error('[X Auth] Token exchange error:', error);
+    return {
+      success: false,
+      error: 'Token exchange network error',
+    };
   }
-
-  const data = (await response.json()) as {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-  };
-
-  return {
-    accessToken: data.access_token,
-    expiresIn: data.expires_in,
-  };
 }
 
 /**
  * Get user info from X API
  */
-export async function getXUserInfo(
-  accessToken: string
-): Promise<{ id: string; name: string; username: string } | null> {
+export async function getXUserInfo(accessToken: string): Promise<UserInfoResult> {
+  console.log('[X Auth] Fetching user info from /2/users/me');
+
   try {
     const response = await fetch(X_USER_URL, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
       },
     });
 
+    console.log('[X Auth] User info status:', response.status);
+
     const responseText = await response.text();
-    console.log('X User API response status:', response.status);
-    console.log('X User API response:', responseText);
 
     if (!response.ok) {
-      console.error('User info fetch failed:', response.status, responseText);
-      return null;
+      console.error('[X Auth] User info failed:', response.status, responseText);
+
+      // Parse error details
+      let errorDetail = 'Unknown error';
+      try {
+        const errorData = JSON.parse(responseText);
+        errorDetail = errorData.detail || errorData.title || errorData.error || responseText;
+      } catch {
+        errorDetail = responseText;
+      }
+
+      return {
+        success: false,
+        error: errorDetail,
+        httpStatus: response.status,
+      };
     }
 
-    const parsed = data as {
+    const data = JSON.parse(responseText) as {
       data?: {
         id: string;
         name: string;
@@ -273,15 +335,32 @@ export async function getXUserInfo(
       errors?: Array<{ message: string }>;
     };
 
-    if (!parsed.data) {
-      console.error('No data in response:', parsed);
-      return null;
+    console.log('[X Auth] User info response parsed, has data:', !!data.data);
+
+    if (!data.data) {
+      const errorMsg = data.errors?.[0]?.message || 'No user data in response';
+      console.error('[X Auth] No user data:', errorMsg);
+      return {
+        success: false,
+        error: errorMsg,
+        httpStatus: response.status,
+      };
     }
 
-    return parsed.data;
+    console.log('[X Auth] User info success, username:', data.data.username);
+
+    return {
+      success: true,
+      id: data.data.id,
+      name: data.data.name,
+      username: data.data.username,
+    };
   } catch (error) {
-    console.error('Error fetching user info:', error);
-    return null;
+    console.error('[X Auth] User info error:', error);
+    return {
+      success: false,
+      error: 'User info network error',
+    };
   }
 }
 
@@ -298,7 +377,8 @@ export async function createAuthCookie(
   secret: string
 ): Promise<string> {
   const encrypted = await encryptCookieData({ state, codeVerifier }, secret);
-  return `${COOKIE_NAME}=${encrypted}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}`;
+  // Path=/auth/x ensures cookie is only sent to auth endpoints
+  return `${COOKIE_NAME}=${encrypted}; Path=/auth/x; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}`;
 }
 
 /**
@@ -306,14 +386,19 @@ export async function createAuthCookie(
  */
 export function getAuthCookie(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie');
+  console.log('[X Auth] Cookie header present:', !!cookieHeader);
+
   if (!cookieHeader) return null;
 
   const cookies = cookieHeader.split(';').map((c) => c.trim());
   for (const cookie of cookies) {
     if (cookie.startsWith(`${COOKIE_NAME}=`)) {
+      console.log('[X Auth] Found auth cookie');
       return cookie.substring(COOKIE_NAME.length + 1);
     }
   }
+
+  console.log('[X Auth] Auth cookie not found in:', cookies.map((c) => c.split('=')[0]));
   return null;
 }
 
@@ -321,5 +406,5 @@ export function getAuthCookie(request: Request): string | null {
  * Create cookie deletion header
  */
 export function deleteAuthCookie(): string {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+  return `${COOKIE_NAME}=; Path=/auth/x; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 }
