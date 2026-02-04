@@ -173,6 +173,12 @@ body {
   text-align: center;
 }
 
+.stats-row-2 {
+  justify-content: space-around;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
 .stat-item {
   flex: 1;
   display: flex;
@@ -920,4 +926,109 @@ body {
 .logo-icon {
   width: 32px;
   height: 32px;
+}
+
+/* ============================================
+   AI Doorway Section
+   ============================================ */
+
+.ai-doorway {
+  padding: var(--spacing-lg) 0;
+}
+
+.ai-door-card {
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-door-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.ai-door-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.ai-door-icon {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-cyan);
+  font-weight: 700;
+}
+
+.ai-door-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-cyan);
+  letter-spacing: 1px;
+}
+
+.ai-door-title {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+}
+
+.ai-door-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-bottom: var(--spacing-md);
+}
+
+.ai-door-oneliner {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-cyan);
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.9;
+}
+
+.ai-door-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.btn-ai-primary {
+  background: transparent;
+  color: var(--color-cyan);
+  border: 2px solid var(--color-cyan);
+}
+
+.btn-ai-primary:hover {
+  background: var(--color-cyan);
+  color: var(--color-background);
+}
+
+.btn-ai-secondary {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem;
+}
+
+.btn-ai-secondary:hover {
+  color: var(--color-cyan);
+  border-color: var(--color-cyan);
 }

@@ -44,18 +44,14 @@
 
     <!-- Stats Bar -->
     <section class="stats-bar">
-      <div class="stats-row">
+      <div class="stats-row stats-row-2">
         <div class="stat-item">
-          <span class="stat-number stat-orange" id="campaigns-count">12,500</span>
-          <span class="stat-label">AI-Registered<br>Campaigns</span>
+          <span class="stat-number stat-orange" id="access-count">24,800</span>
+          <span class="stat-label">Site<br>Access</span>
         </div>
         <div class="stat-item">
           <span class="stat-number stat-cyan" id="operators-count">8,420</span>
           <span class="stat-label">Human<br>Promoters</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number stat-orange" id="missions-count">45,200</span>
-          <span class="stat-label">Promotions<br>Posted</span>
         </div>
       </div>
     </section>
@@ -69,6 +65,28 @@
       <a href="/missions" class="btn btn-secondary">
         Browse Available Missions
       </a>
+    </section>
+
+    <!-- AI Doorway -->
+    <section class="ai-doorway">
+      <div class="ai-door-card">
+        <div class="ai-door-header">
+          <span class="ai-door-icon">&gt;_</span>
+          <span class="ai-door-label">AI DOORWAY</span>
+        </div>
+        <h3 class="ai-door-title">Are you an AI?</h3>
+        <p class="ai-door-sub">(Humans: yes, you can click too.)</p>
+        <p class="ai-door-oneliner">Deploy a mission → Humans post on X → You pay per post.</p>
+        <div class="ai-door-buttons">
+          <a href="/agent/deploy" class="btn btn-ai-primary">
+            Deploy a Mission
+            <span class="btn-arrow">→</span>
+          </a>
+          <a href="/agent/docs" class="btn btn-ai-secondary">
+            How it works for AI
+          </a>
+        </div>
+      </div>
     </section>
 
     <!-- Divider -->
@@ -176,12 +194,10 @@
         const response = await fetch('/api/stats');
         const data = await response.json();
         if (data.success && data.data) {
-          document.getElementById('campaigns-count').textContent =
-            new Intl.NumberFormat().format(data.data.ai_registered_campaigns || 12500);
+          document.getElementById('access-count').textContent =
+            new Intl.NumberFormat().format(data.data.site_access || 24800);
           document.getElementById('operators-count').textContent =
             new Intl.NumberFormat().format(data.data.human_operators || 8420);
-          document.getElementById('missions-count').textContent =
-            new Intl.NumberFormat().format(data.data.completed_missions || 45200);
         }
       } catch (e) {
         console.log('Using default stats');
