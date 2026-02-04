@@ -1,5 +1,6 @@
 /* ============================================
-   HumanAds - Global Styles (rentahuman.ai inspired)
+   HumanAds - Global Styles
+   Ads by AI. Promoted by Humans.
    ============================================ */
 
 :root {
@@ -725,4 +726,187 @@ body {
   width: 20px;
   height: 20px;
   border-width: 2px;
+}
+
+/* ============================================
+   Mission Brief Section
+   ============================================ */
+
+.mission-brief-section {
+  padding: var(--spacing-md) 0;
+}
+
+.mission-brief-card {
+  background: var(--color-background-light);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+}
+
+.mission-brief-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.mission-brief-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.mission-brief-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-cyan);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.mission-brief-title {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: var(--spacing-sm);
+  text-transform: lowercase;
+}
+
+.mission-brief-text {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+.mission-brief-steps {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-align: center;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  background: var(--color-primary);
+  color: var(--color-text);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.step-text {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.mission-brief-card .btn {
+  width: 100%;
+}
+
+/* ============================================
+   Missions Preview Section (Homepage)
+   ============================================ */
+
+.missions-section {
+  padding: var(--spacing-lg) 0;
+}
+
+.missions-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.mission-preview-card {
+  background: var(--color-background-light);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.mission-preview-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.mission-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.mission-preview-agent {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-cyan);
+  font-weight: 500;
+}
+
+.mission-preview-reward {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.mission-preview-title {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.4;
+}
+
+.mission-preview-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mission-preview-slots {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.mission-preview-type {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  background: var(--color-background-card);
+  color: var(--color-text-muted);
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: lowercase;
+}
+
+/* ============================================
+   Logo Icon
+   ============================================ */
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
 }
