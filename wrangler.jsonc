@@ -1,5 +1,60 @@
 {
   "name": "humanadsai",
   "compatibility_date": "2026-02-04",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+
+  // D1 Database
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "humanads-db",
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+    }
+  ],
+
+  // Durable Objects
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NONCE_STORE",
+        "class_name": "NonceStore"
+      },
+      {
+        "name": "RATE_LIMITER",
+        "class_name": "RateLimiter"
+      }
+    ]
+  },
+
+  // Durable Object migrations
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["NonceStore", "RateLimiter"]
+    }
+  ],
+
+  // KV Namespace (optional, for sessions fallback)
+  "kv_namespaces": [
+    {
+      "binding": "SESSIONS",
+      "id": "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+    }
+  ],
+
+  // Static assets
+  "assets": {
+    "directory": "./public"
+  },
+
+  // Environment variables
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
+
+  // Development settings
+  "dev": {
+    "port": 8787,
+    "local_protocol": "http"
+  }
 }

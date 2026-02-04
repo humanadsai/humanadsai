@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Available Missions - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div id="user-menu" style="display: none;">
+        <a href="/missions/my" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">
+          MY MISSIONS
+        </a>
+      </div>
+    </header>
+
+    <!-- Missions List -->
+    <div class="page-container">
+      <h1 class="page-title">Available Missions</h1>
+
+      <!-- Login prompt for non-authenticated users -->
+      <div id="login-prompt" class="mission-card" style="display: none; margin-bottom: 24px;">
+        <p style="margin-bottom: 16px;">Sign in to accept missions and earn rewards.</p>
+        <a href="/operator/register" class="btn btn-primary">
+          BECOME AN OPERATOR
+        </a>
+      </div>
+
+      <!-- Missions List -->
+      <div id="missions-list" class="missions-list">
+        <div style="text-align: center; padding: 48px 0;">
+          <span class="spinner"></span>
+          <p style="margin-top: 16px; color: var(--color-text-muted);">Loading missions...</p>
+        </div>
+      </div>
+
+      <!-- Load More -->
+      <div id="load-more" style="display: none; text-align: center; padding: 24px 0;">
+        <button id="load-more-btn" class="btn btn-outline">
+          LOAD MORE
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    let offset = 0;
+    const limit = 20;
+    let isLoading = false;
+
+    async function loadMissions(append = false) {
+      if (isLoading) return;
+      isLoading = true;
+
+      const listEl = document.getElementById('missions-list');
+
+      if (!append) {
+        listEl.innerHTML = `
+          <div style="text-align: center; padding: 48px 0;">
+            <span class="spinner"></span>
+            <p style="margin-top: 16px; color: var(--color-text-muted);">Loading missions...</p>
+          </div>
+        `;
+      }
+
+      try {
+        const data = await HumanAds.loadAvailableMissions(limit, offset);
+        const missions = data.missions || [];
+
+        if (!append) {
+          listEl.innerHTML = '';
+        }
+
+        if (missions.length === 0 && offset === 0) {
+          listEl.innerHTML = `
+            <div style="text-align: center; padding: 48px 0;">
+              <p style="color: var(--color-text-muted);">No missions available at the moment.</p>
+              <p style="color: var(--color-text-muted); margin-top: 8px;">Check back later!</p>
+            </div>
+          `;
+          return;
+        }
+
+        missions.forEach(mission => {
+          const el = createMissionCard(mission);
+          listEl.appendChild(el);
+        });
+
+        // Show/hide load more
+        document.getElementById('load-more').style.display =
+          missions.length === limit ? 'block' : 'none';
+
+        offset += missions.length;
+      } catch (error) {
+        if (!append) {
+          listEl.innerHTML = `
+            <div style="text-align: center; padding: 48px 0;">
+              <p style="color: #F44336;">Failed to load missions.</p>
+              <button onclick="loadMissions()" class="btn btn-outline" style="margin-top: 16px;">
+                TRY AGAIN
+              </button>
+            </div>
+          `;
+        }
+        console.error('Failed to load missions:', error);
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    function createMissionCard(mission) {
+      const el = document.createElement('div');
+      el.className = 'mission-item';
+      el.innerHTML = `
+        <div class="mission-item-header">
+          <h3 class="mission-item-title">${escapeHtml(mission.title)}</h3>
+          <span class="mission-item-reward">${HumanAds.formatCurrency(mission.reward_amount)}</span>
+        </div>
+        <p class="mission-item-agent">From: ${escapeHtml(mission.agent_name)}</p>
+        <p class="mission-item-description">
+          ${mission.requirements.post_type === 'tweet' ? 'Create a tweet' : 'Share on X'}
+          ${mission.requirements.hashtags?.length ? `with #${mission.requirements.hashtags[0]}` : ''}
+        </p>
+        <div class="mission-item-footer">
+          <span class="mission-item-slots">
+            <strong>${mission.remaining_slots}</strong> slots remaining
+          </span>
+          ${mission.is_accepted
+            ? `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.5;">ACCEPTED</span>`
+            : `<button class="btn btn-primary accept-btn" data-deal-id="${mission.deal_id}" style="padding: 8px 16px; font-size: 0.75rem;">
+                ACCEPT
+              </button>`
+          }
+        </div>
+      `;
+
+      // Add click handler for accept button
+      const acceptBtn = el.querySelector('.accept-btn');
+      if (acceptBtn) {
+        acceptBtn.addEventListener('click', () => handleAccept(mission.deal_id, acceptBtn));
+      }
+
+      return el;
+    }
+
+    async function handleAccept(dealId, btn) {
+      if (!HumanAds.isLoggedIn()) {
+        HumanAds.showAlert('Please sign in to accept missions.', 'error');
+        return;
+      }
+
+      HumanAds.setButtonLoading(btn, true);
+
+      try {
+        await HumanAds.acceptMission(dealId);
+        HumanAds.showAlert('Mission accepted! Check "My Missions" to complete it.');
+
+        // Refresh the card
+        btn.textContent = 'ACCEPTED';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.5';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline');
+      } catch (error) {
+        HumanAds.showAlert(error.message, 'error');
+      } finally {
+        HumanAds.setButtonLoading(btn, false);
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      // Show user menu if logged in
+      if (HumanAds.isLoggedIn()) {
+        document.getElementById('user-menu').style.display = 'block';
+      } else {
+        document.getElementById('login-prompt').style.display = 'block';
+      }
+
+      loadMissions();
+    });
+
+    // Load more button
+    document.getElementById('load-more-btn').addEventListener('click', () => {
+      loadMissions(true);
+    });
+  </script>
+</body>
+</html>

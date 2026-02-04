@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Missions - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: var(--color-background-light);
+      color: var(--color-text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab.active {
+      background: var(--color-primary);
+      color: var(--color-text);
+    }
+    .tab:hover:not(.active) {
+      background: var(--color-border);
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-accepted { background: #2196F3; color: white; }
+    .status-submitted { background: #FF9800; color: white; }
+    .status-verified, .status-paid { background: #4CAF50; color: white; }
+    .status-rejected { background: #F44336; color: white; }
+    .status-expired { background: #9E9E9E; color: white; }
+
+    .submit-form {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border);
+    }
+    .submit-form input {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <a href="/missions" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">
+        BROWSE MISSIONS
+      </a>
+    </header>
+
+    <!-- My Missions -->
+    <div class="page-container">
+      <h1 class="page-title">My Missions</h1>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-status="">All</button>
+        <button class="tab" data-status="accepted">Accepted</button>
+        <button class="tab" data-status="submitted">Submitted</button>
+        <button class="tab" data-status="paid">Completed</button>
+        <button class="tab" data-status="rejected">Rejected</button>
+      </div>
+
+      <!-- Missions List -->
+      <div id="missions-list" class="missions-list">
+        <div style="text-align: center; padding: 48px 0;">
+          <span class="spinner"></span>
+          <p style="margin-top: 16px; color: var(--color-text-muted);">Loading your missions...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    let currentStatus = '';
+
+    async function loadMyMissions(status = '') {
+      const listEl = document.getElementById('missions-list');
+      listEl.innerHTML = `
+        <div style="text-align: center; padding: 48px 0;">
+          <span class="spinner"></span>
+          <p style="margin-top: 16px; color: var(--color-text-muted);">Loading your missions...</p>
+        </div>
+      `;
+
+      try {
+        const data = await HumanAds.loadMyMissions(status || null);
+        const missions = data.missions || [];
+
+        if (missions.length === 0) {
+          listEl.innerHTML = `
+            <div style="text-align: center; padding: 48px 0;">
+              <p style="color: var(--color-text-muted);">No missions found.</p>
+              <a href="/missions" class="btn btn-primary" style="margin-top: 16px;">
+                BROWSE MISSIONS
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        listEl.innerHTML = '';
+        missions.forEach(mission => {
+          const el = createMissionCard(mission);
+          listEl.appendChild(el);
+        });
+      } catch (error) {
+        listEl.innerHTML = `
+          <div style="text-align: center; padding: 48px 0;">
+            <p style="color: #F44336;">Failed to load missions.</p>
+            <button onclick="loadMyMissions('${status}')" class="btn btn-outline" style="margin-top: 16px;">
+              TRY AGAIN
+            </button>
+          </div>
+        `;
+        console.error('Failed to load missions:', error);
+      }
+    }
+
+    function createMissionCard(mission) {
+      const el = document.createElement('div');
+      el.className = 'mission-item';
+
+      let statusClass = `status-${mission.status}`;
+      let actionHtml = '';
+
+      if (mission.status === 'accepted') {
+        actionHtml = `
+          <div class="submit-form">
+            <input
+              type="url"
+              class="form-input"
+              placeholder="Paste your X post URL here"
+              id="url-${mission.id}"
+            >
+            <button class="btn btn-primary submit-btn" data-mission-id="${mission.id}" style="width: 100%;">
+              SUBMIT FOR VERIFICATION
+            </button>
+          </div>
+        `;
+      } else if (mission.status === 'paid') {
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; text-align: center;">
+            <p style="color: #4CAF50; font-weight: 600;">
+              Earned: ${HumanAds.formatCurrency(mission.reward_amount)}
+            </p>
+          </div>
+        `;
+      } else if (mission.status === 'rejected') {
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(244, 67, 54, 0.1); border-radius: 8px;">
+            <p style="color: #F44336; font-size: 0.875rem;">
+              Your submission didn't meet the requirements. Please try again with a new mission.
+            </p>
+          </div>
+        `;
+      }
+
+      el.innerHTML = `
+        <div class="mission-item-header">
+          <h3 class="mission-item-title">${escapeHtml(mission.deal_title)}</h3>
+          <span class="status-badge ${statusClass}">${mission.status}</span>
+        </div>
+        <p class="mission-item-description" style="margin-bottom: 8px;">
+          Reward: <strong>${HumanAds.formatCurrency(mission.reward_amount)}</strong>
+        </p>
+        ${mission.submission_url ? `
+          <p style="font-size: 0.75rem; color: var(--color-text-muted);">
+            Submitted: <a href="${escapeHtml(mission.submission_url)}" target="_blank" style="color: var(--color-primary);">${escapeHtml(mission.submission_url)}</a>
+          </p>
+        ` : ''}
+        ${actionHtml}
+      `;
+
+      // Add submit handler
+      const submitBtn = el.querySelector('.submit-btn');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', () => handleSubmit(mission.id, submitBtn));
+      }
+
+      return el;
+    }
+
+    async function handleSubmit(missionId, btn) {
+      const urlInput = document.getElementById(`url-${missionId}`);
+      const url = urlInput.value.trim();
+
+      if (!url) {
+        HumanAds.showAlert('Please enter your X post URL.', 'error');
+        return;
+      }
+
+      if (!isValidXUrl(url)) {
+        HumanAds.showAlert('Please enter a valid X post URL.', 'error');
+        return;
+      }
+
+      HumanAds.setButtonLoading(btn, true);
+
+      try {
+        const result = await HumanAds.submitMission(missionId, url);
+
+        if (result.status === 'paid') {
+          HumanAds.showAlert(`Mission completed! You earned ${HumanAds.formatCurrency(result.reward_amount)}`);
+        } else if (result.status === 'rejected') {
+          HumanAds.showAlert('Verification failed. Please check the requirements.', 'error');
+        } else {
+          HumanAds.showAlert('Submitted! Waiting for verification.');
+        }
+
+        // Reload missions
+        loadMyMissions(currentStatus);
+      } catch (error) {
+        HumanAds.showAlert(error.message, 'error');
+      } finally {
+        HumanAds.setButtonLoading(btn, false);
+      }
+    }
+
+    function isValidXUrl(url) {
+      try {
+        const parsed = new URL(url);
+        return (
+          (parsed.hostname === 'twitter.com' || parsed.hostname === 'x.com') &&
+          /^\/[a-zA-Z0-9_]+\/status\/\d+/.test(parsed.pathname)
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Tab clicks
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentStatus = tab.dataset.status;
+        loadMyMissions(currentStatus);
+      });
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!HumanAds.isLoggedIn()) {
+        window.location.href = '/operator/register';
+        return;
+      }
+      loadMyMissions();
+    });
+  </script>
+</body>
+</html>

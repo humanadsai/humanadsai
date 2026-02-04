@@ -1,0 +1,28 @@
+{
+  "name": "humanadsai",
+  "version": "1.0.0",
+  "description": "HumanAds - Ads by AI. Promoted by Humans.",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create humanads-db",
+    "db:migrate": "wrangler d1 execute humanads-db --file=./schema.sql",
+    "db:migrate:local": "wrangler d1 execute humanads-db --local --file=./schema.sql",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "d1",
+    "humanads",
+    "advertising"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260101.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.0.0"
+  }
+}
