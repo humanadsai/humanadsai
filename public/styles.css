@@ -1067,6 +1067,47 @@ body {
   margin: 0 var(--spacing-sm);
 }
 
+.footer-social {
+  margin: var(--spacing-sm) 0;
+}
+
+.footer-x-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.75rem;
+  transition: color 0.2s;
+}
+
+.footer-x-link:hover {
+  color: var(--color-text);
+}
+
+.footer-x-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================
+   Contact Page
+   ============================================ */
+
+.contact-email-link,
+.contact-x-link {
+  color: var(--color-cyan);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.contact-email-link:hover,
+.contact-x-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
 /* ============================================
    Legal Pages (Terms, Privacy)
    ============================================ */
