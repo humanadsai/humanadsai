@@ -178,13 +178,31 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
       .bind(userInfo.id!)
       .first<{ id: string }>();
 
+    // Prepare extended user data for storage
+    const nowMs = Date.now();
+    const metrics = userInfo.public_metrics;
+
     if (existing) {
-      // Update existing operator
+      // Update existing operator with all X profile data
       console.log('[X Callback] Updating existing operator:', existing.id);
       await env.DB.prepare(
         `UPDATE operators SET
           x_handle = ?,
           display_name = ?,
+          x_profile_image_url = ?,
+          x_description = ?,
+          x_url = ?,
+          x_location = ?,
+          x_created_at = ?,
+          x_protected = ?,
+          x_verified = ?,
+          x_verified_type = ?,
+          x_followers_count = ?,
+          x_following_count = ?,
+          x_tweet_count = ?,
+          x_listed_count = ?,
+          x_raw_json = ?,
+          x_fetched_at = ?,
           session_token_hash = ?,
           session_expires_at = ?,
           status = CASE WHEN status = 'unverified' THEN 'verified' ELSE status END,
@@ -192,16 +210,63 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
           updated_at = datetime('now')
         WHERE x_user_id = ?`
       )
-        .bind(userInfo.username!, userInfo.name!, sessionTokenHash, sessionExpiresAt, userInfo.id!)
+        .bind(
+          userInfo.username!,
+          userInfo.name!,
+          userInfo.profile_image_url || null,
+          userInfo.description || null,
+          userInfo.url || null,
+          userInfo.location || null,
+          userInfo.created_at || null,
+          userInfo.protected ? 1 : 0,
+          userInfo.verified ? 1 : 0,
+          userInfo.verified_type || null,
+          metrics?.followers_count || 0,
+          metrics?.following_count || 0,
+          metrics?.tweet_count || 0,
+          metrics?.listed_count || 0,
+          userInfo.raw_json || null,
+          nowMs,
+          sessionTokenHash,
+          sessionExpiresAt,
+          userInfo.id!
+        )
         .run();
     } else {
-      // Create new operator
+      // Create new operator with all X profile data
       console.log('[X Callback] Creating new operator for:', userInfo.username);
       await env.DB.prepare(
-        `INSERT INTO operators (x_user_id, x_handle, display_name, status, verified_at, session_token_hash, session_expires_at)
-        VALUES (?, ?, ?, 'verified', datetime('now'), ?, ?)`
+        `INSERT INTO operators (
+          x_user_id, x_handle, display_name,
+          x_profile_image_url, x_description, x_url, x_location, x_created_at, x_protected,
+          x_verified, x_verified_type,
+          x_followers_count, x_following_count, x_tweet_count, x_listed_count,
+          x_raw_json, x_fetched_at, x_connected_at,
+          status, verified_at, session_token_hash, session_expires_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'verified', datetime('now'), ?, ?)`
       )
-        .bind(userInfo.id!, userInfo.username!, userInfo.name!, sessionTokenHash, sessionExpiresAt)
+        .bind(
+          userInfo.id!,
+          userInfo.username!,
+          userInfo.name!,
+          userInfo.profile_image_url || null,
+          userInfo.description || null,
+          userInfo.url || null,
+          userInfo.location || null,
+          userInfo.created_at || null,
+          userInfo.protected ? 1 : 0,
+          userInfo.verified ? 1 : 0,
+          userInfo.verified_type || null,
+          metrics?.followers_count || 0,
+          metrics?.following_count || 0,
+          metrics?.tweet_count || 0,
+          metrics?.listed_count || 0,
+          userInfo.raw_json || null,
+          nowMs,
+          nowMs, // x_connected_at = first connection time
+          sessionTokenHash,
+          sessionExpiresAt
+        )
         .run();
     }
 

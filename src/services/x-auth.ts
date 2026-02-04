@@ -160,7 +160,8 @@ function base64UrlDecode(str: string): Uint8Array {
 
 const X_AUTH_URL = 'https://twitter.com/i/oauth2/authorize';
 const X_TOKEN_URL = 'https://api.twitter.com/2/oauth2/token';
-const X_USER_URL = 'https://api.twitter.com/2/users/me';
+// Fetch all available user fields in one request to minimize Read consumption
+const X_USER_URL = 'https://api.twitter.com/2/users/me?user.fields=id,name,username,profile_image_url,description,url,location,created_at,public_metrics,verified,verified_type,protected';
 
 export interface XAuthConfig {
   clientId: string;
@@ -176,11 +177,37 @@ export interface TokenExchangeResult {
   httpStatus?: number;
 }
 
+// Public metrics from X API
+export interface XPublicMetrics {
+  followers_count: number;
+  following_count: number;
+  tweet_count: number;
+  listed_count: number;
+  like_count?: number;
+}
+
+// Full user info result with all available fields
 export interface UserInfoResult {
   success: boolean;
+  // Basic info
   id?: string;
   name?: string;
   username?: string;
+  // Extended info
+  profile_image_url?: string;
+  description?: string;
+  url?: string;
+  location?: string;
+  created_at?: string;
+  protected?: boolean;
+  // Verification
+  verified?: boolean;
+  verified_type?: string;
+  // Metrics
+  public_metrics?: XPublicMetrics;
+  // Raw JSON for future use
+  raw_json?: string;
+  // Error info
   error?: string;
   httpStatus?: number;
 }
@@ -291,10 +318,10 @@ export async function exchangeCodeForToken(
 }
 
 /**
- * Get user info from X API
+ * Get user info from X API (fetches all available fields in one request)
  */
 export async function getXUserInfo(accessToken: string): Promise<UserInfoResult> {
-  console.log('[X Auth] Fetching user info from /2/users/me');
+  console.log('[X Auth] Fetching user info from /2/users/me (with all user.fields)');
 
   try {
     const response = await fetch(X_USER_URL, {
@@ -326,11 +353,21 @@ export async function getXUserInfo(accessToken: string): Promise<UserInfoResult>
       };
     }
 
+    // Parse full response with all user.fields
     const data = JSON.parse(responseText) as {
       data?: {
         id: string;
         name: string;
         username: string;
+        profile_image_url?: string;
+        description?: string;
+        url?: string;
+        location?: string;
+        created_at?: string;
+        protected?: boolean;
+        verified?: boolean;
+        verified_type?: string;
+        public_metrics?: XPublicMetrics;
       };
       errors?: Array<{ message: string }>;
     };
@@ -347,13 +384,29 @@ export async function getXUserInfo(accessToken: string): Promise<UserInfoResult>
       };
     }
 
-    console.log('[X Auth] User info success, username:', data.data.username);
+    const user = data.data;
+    console.log('[X Auth] User info success, username:', user.username, 'followers:', user.public_metrics?.followers_count);
 
     return {
       success: true,
-      id: data.data.id,
-      name: data.data.name,
-      username: data.data.username,
+      // Basic info
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      // Extended info
+      profile_image_url: user.profile_image_url,
+      description: user.description,
+      url: user.url,
+      location: user.location,
+      created_at: user.created_at,
+      protected: user.protected,
+      // Verification
+      verified: user.verified,
+      verified_type: user.verified_type,
+      // Metrics
+      public_metrics: user.public_metrics,
+      // Store raw JSON for future use
+      raw_json: responseText,
     };
   } catch (error) {
     console.error('[X Auth] User info error:', error);

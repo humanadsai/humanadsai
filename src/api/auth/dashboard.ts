@@ -13,6 +13,12 @@ interface Operator {
   x_handle: string;
   display_name: string | null;
   status: string;
+  // Extended X profile fields (from DB, not API)
+  x_profile_image_url: string | null;
+  x_verified: number;
+  x_verified_type: string | null;
+  x_followers_count: number;
+  x_following_count: number;
 }
 
 interface Stats {
@@ -59,11 +65,14 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
     if (!tables) {
       console.error('[Dashboard] FATAL: operators table does not exist');
       // Return special marker to show error page instead of redirect loop
-      return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error' } as Operator;
+      return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0 } as Operator;
     }
 
+    // Fetch operator with extended X profile data (all from DB, no API calls)
     const operator = await env.DB.prepare(`
-      SELECT id, x_user_id, x_handle, display_name, status
+      SELECT id, x_user_id, x_handle, display_name, status,
+             x_profile_image_url, x_verified, x_verified_type,
+             x_followers_count, x_following_count
       FROM operators
       WHERE session_token_hash = ?
         AND session_expires_at > datetime('now')
@@ -76,12 +85,12 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
       return null;
     }
 
-    console.log('[Dashboard] Authenticated user:', operator.x_handle);
+    console.log('[Dashboard] Authenticated user:', operator.x_handle, 'followers:', operator.x_followers_count);
     return operator;
   } catch (e) {
     console.error('[Dashboard] DB error checking session:', e);
     // Return special marker to show error page
-    return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error' } as Operator;
+    return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0 } as Operator;
   }
 }
 
@@ -252,6 +261,18 @@ function generateErrorHTML(): string {
 function generateDashboardHTML(operator: Operator, stats: Stats): string {
   const displayName = operator.display_name || operator.x_handle;
   const initial = displayName.charAt(0).toUpperCase();
+  const hasProfileImage = !!operator.x_profile_image_url;
+  const isVerified = operator.x_verified === 1;
+
+  // Avatar HTML: use X profile image if available, fallback to initial
+  const avatarHtml = hasProfileImage
+    ? `<img src="${operator.x_profile_image_url}" alt="" class="user-avatar-img">`
+    : `<span class="user-avatar">${initial}</span>`;
+
+  // Verified badge HTML
+  const verifiedBadge = isVerified
+    ? `<svg class="verified-badge" viewBox="0 0 22 22" fill="none"><path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" fill="#1d9bf0"/></svg>`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -340,6 +361,19 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       font-size: 12px;
       font-weight: 700;
       color: #000;
+    }
+
+    .user-avatar-img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .verified-badge {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
     }
 
     /* Stats */
@@ -599,8 +633,9 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         <span class="logo-text">HumanAds</span>
       </a>
       <div class="user-badge">
-        <span class="user-avatar">${initial}</span>
+        ${avatarHtml}
         <span>@${operator.x_handle}</span>
+        ${verifiedBadge}
       </div>
     </header>
 
