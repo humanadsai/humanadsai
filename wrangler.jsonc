@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "humanads-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+      "database_id": "aa6684e0-903d-45c6-a2f5-bbf2cbd3e0b5"
     }
   ],
 
@@ -38,7 +38,7 @@
   "kv_namespaces": [
     {
       "binding": "SESSIONS",
-      "id": "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+      "id": "80f8a38e38dd4c9ab5cd0a7e52441d07"
     }
   ],
 
