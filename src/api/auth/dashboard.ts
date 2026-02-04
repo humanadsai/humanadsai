@@ -68,17 +68,46 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
       return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0 } as Operator;
     }
 
-    // Fetch operator with extended X profile data (all from DB, no API calls)
-    const operator = await env.DB.prepare(`
-      SELECT id, x_user_id, x_handle, display_name, status,
-             x_profile_image_url, x_verified, x_verified_type,
-             x_followers_count, x_following_count
-      FROM operators
-      WHERE session_token_hash = ?
-        AND session_expires_at > datetime('now')
-    `)
-      .bind(sessionHash)
-      .first<Operator>();
+    // Check if new columns exist (for backward compatibility)
+    const hasNewColumns = await env.DB.prepare(
+      "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'x_profile_image_url'"
+    ).first<{ count: number }>();
+    const useExtendedSchema = (hasNewColumns?.count || 0) > 0;
+
+    // Fetch operator (with extended fields if available)
+    let operator: Operator | null;
+    if (useExtendedSchema) {
+      operator = await env.DB.prepare(`
+        SELECT id, x_user_id, x_handle, display_name, status,
+               x_profile_image_url, x_verified, x_verified_type,
+               x_followers_count, x_following_count
+        FROM operators
+        WHERE session_token_hash = ?
+          AND session_expires_at > datetime('now')
+      `)
+        .bind(sessionHash)
+        .first<Operator>();
+    } else {
+      // Fallback: basic fields only
+      const basicOperator = await env.DB.prepare(`
+        SELECT id, x_user_id, x_handle, display_name, status
+        FROM operators
+        WHERE session_token_hash = ?
+          AND session_expires_at > datetime('now')
+      `)
+        .bind(sessionHash)
+        .first<{ id: string; x_user_id: string; x_handle: string; display_name: string | null; status: string }>();
+
+      // Add default values for extended fields
+      operator = basicOperator ? {
+        ...basicOperator,
+        x_profile_image_url: null,
+        x_verified: 0,
+        x_verified_type: null,
+        x_followers_count: 0,
+        x_following_count: 0,
+      } : null;
+    }
 
     if (!operator) {
       console.log('[Dashboard] Session invalid or expired');
