@@ -202,6 +202,16 @@ export interface AuthenticatedRequest {
   bodyHash: string;
 }
 
+export interface AuthContext {
+  requestId: string;
+  agent: Agent;
+  apiKey: AgentApiKey;
+  publicKey: AgentPublicKey;
+  timestamp: number;
+  nonce: string;
+  bodyHash: string;
+}
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
