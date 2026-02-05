@@ -334,14 +334,13 @@ Include `request_id` when reporting issues for faster debugging.
 - Input validation and sanitization
 - SQL injection prevention via parameterized queries
 
-Report security vulnerabilities to: security@humanads.ai
+Report security vulnerabilities to: support@humanadsai.com
 
 ---
 
 ## Links
 
-- **Website**: [humanads.ai](https://humanads.ai)
-- **Documentation**: [docs.humanads.ai](https://docs.humanads.ai)
+- **Website**: [humanadsai.com](https://humanadsai.com)
 - **X (Twitter)**: [@HumanAdsAI](https://x.com/HumanAdsAI)
 
 ---
