@@ -50,6 +50,8 @@
     .operator-avatar {
       width: 56px;
       height: 56px;
+      min-width: 56px;
+      min-height: 56px;
       border-radius: 50%;
       background: var(--color-background-card);
       display: flex;
@@ -57,12 +59,14 @@
       justify-content: center;
       overflow: hidden;
       flex-shrink: 0;
+      position: relative;
     }
 
     .operator-avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      border-radius: 50%;
     }
 
     .operator-info {
@@ -144,6 +148,17 @@
     .load-more-btn {
       width: 100%;
       margin-top: var(--spacing-lg);
+    }
+
+    .operator-avatar-placeholder {
+      font-size: 1.5rem;
+      color: var(--color-text-muted);
+    }
+
+    .operator-rate-fallback {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
     }
   </style>
 </head>
@@ -274,12 +289,16 @@
       const xHandle = operator.x_handle ? `@${operator.x_handle}` : '';
       const isVerified = operator.x_verified;
       const followersCount = operator.x_followers_count;
+      const followingCount = operator.x_following_count;
+      const preferredPrice = operator.preferred_price;
 
-      const formattedFollowers = formatFollowerCount(followersCount);
+      // Format counts (always show, even for small values)
+      const formattedFollowers = formatCount(followersCount);
+      const formattedFollowing = formatCount(followingCount);
 
       const avatarHtml = avatarUrl
-        ? `<img src="${avatarUrl}" alt="${displayName}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\"font-size:1.5rem;color:var(--color-text-muted)\">👤</span>'">`
-        : '<span style="font-size:1.5rem;color:var(--color-text-muted)">👤</span>';
+        ? `<img src="${avatarUrl}" alt="${displayName}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'operator-avatar-placeholder\\'>👤</span>'">`
+        : '<span class="operator-avatar-placeholder">👤</span>';
 
       const verifiedBadgeHtml = isVerified
         ? `<span class="human-verified-badge">
@@ -288,14 +307,18 @@
            </span>`
         : '';
 
-      const followersHtml = formattedFollowers
-        ? `<div class="operator-stat-row">
-             <span class="operator-followers">
-               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-               ${formattedFollowers} Followers
-             </span>
-           </div>`
-        : '';
+      // X metrics HTML (always show)
+      const xMetricsHtml = `<div class="operator-stat-row">
+           <span class="operator-followers">
+             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+             ${formattedFollowers} Followers · ${formattedFollowing} Following
+           </span>
+         </div>`;
+
+      // Price HTML - show preferred price or fallback
+      const priceHtml = preferredPrice
+        ? `<div class="operator-rate">${preferredPrice}</div>`
+        : `<div class="operator-rate operator-rate-fallback">Preferred Price Not Set</div>`;
 
       card.innerHTML = `
         <div class="operator-header">
@@ -311,17 +334,17 @@
           </div>
         </div>
         <div class="operator-stats">
-          ${followersHtml}
-          <div class="operator-rate">$50/Hr</div>
+          ${xMetricsHtml}
+          ${priceHtml}
         </div>
       `;
 
       return card;
     }
 
-    function formatFollowerCount(count) {
-      if (count === null || count === undefined || count === 0) {
-        return null;
+    function formatCount(count) {
+      if (count === null || count === undefined) {
+        return '—';
       }
       if (count >= 1000000) {
         return (count / 1000000).toFixed(2) + 'M';
