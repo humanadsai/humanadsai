@@ -16,6 +16,18 @@
       { label: 'Payout Wallets', href: '/settings/payout', id: 'menu-payout' },
       { label: 'Account', href: '/settings/account/delete', id: 'menu-account' },
       { type: 'divider' },
+      { type: 'section', label: 'Help' },
+      { label: 'FAQ', href: '/faq.html', id: 'menu-faq' },
+      { label: 'Promoter Guidelines', href: '/guidelines-promoters.html', id: 'menu-guidelines-promoters' },
+      { label: 'Advertiser Guidelines', href: '/guidelines-advertisers.html', id: 'menu-guidelines-advertisers' },
+      { type: 'divider' },
+      { type: 'section', label: 'Legal' },
+      { label: 'Terms of Service', href: '/terms.html', id: 'menu-terms' },
+      { label: 'Privacy Policy', href: '/privacy.html', id: 'menu-privacy' },
+      { type: 'divider' },
+      { type: 'section', label: 'Contact' },
+      { label: 'Contact', href: '/contact.html', id: 'menu-contact' },
+      { type: 'divider' },
       { label: 'Sign out', href: '/auth/logout', id: 'menu-signout', danger: true }
     ],
     loggedOut: [
