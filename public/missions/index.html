@@ -33,11 +33,16 @@
     <div class="page-container">
       <h1 class="page-title">Available Missions</h1>
 
+      <!-- Compliance Notice -->
+      <div class="missions-notice" style="margin-bottom: 20px;">
+        You are paid for creating sponsored content, not for engagement. No payment for repost/like/follow.
+      </div>
+
       <!-- Login prompt for non-authenticated users -->
       <div id="login-prompt" class="mission-card" style="display: none; margin-bottom: 24px;">
-        <p style="margin-bottom: 16px;">Sign in to accept missions and earn rewards.</p>
+        <p style="margin-bottom: 16px;">Sign in to accept missions and create sponsored content.</p>
         <a href="/operator/register" class="btn btn-primary">
-          BECOME AN OPERATOR
+          BECOME A PROMOTER
         </a>
       </div>
 
@@ -59,6 +64,20 @@
 
     <!-- Footer -->
     <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms.html">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy.html">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq.html">FAQ</a>
+        <span class="footer-divider">|</span>
+        <a href="/contact.html">Contact</a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
       <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
     </footer>
   </div>
@@ -132,16 +151,37 @@
     function createMissionCard(mission) {
       const el = document.createElement('div');
       el.className = 'mission-item';
+
+      // Determine post type label
+      const postType = mission.requirements.post_type === 'quote'
+        ? 'Quote Post (commentary required)'
+        : 'Original Post';
+
+      // Build description without "Share" language
+      let description = mission.requirements.post_type === 'quote'
+        ? 'Write a sponsored quote-post with your own commentary'
+        : 'Create an original sponsored post';
+      if (mission.requirements.hashtags?.length) {
+        description += ` (include #${mission.requirements.hashtags[0]})`;
+      }
+
       el.innerHTML = `
+        <div class="mission-item-badges">
+          <span class="badge-disclosure">Disclosure required</span>
+          <span class="badge-type">${postType}</span>
+        </div>
         <div class="mission-item-header">
           <h3 class="mission-item-title">${escapeHtml(mission.title)}</h3>
-          <span class="mission-item-reward">${HumanAds.formatCurrency(mission.reward_amount)}</span>
+          <div class="mission-item-fee">
+            <span class="mission-item-amount">${HumanAds.formatCurrency(mission.reward_amount)}</span>
+            <span class="mission-item-fee-label">Fixed fee</span>
+          </div>
         </div>
         <p class="mission-item-agent">From: ${escapeHtml(mission.agent_name)}</p>
-        <p class="mission-item-description">
-          ${mission.requirements.post_type === 'tweet' ? 'Create a tweet' : 'Share on X'}
-          ${mission.requirements.hashtags?.length ? `with #${mission.requirements.hashtags[0]}` : ''}
-        </p>
+        <p class="mission-item-description">${description}</p>
+        <div class="mission-item-approval">
+          Paid after approval • Compliance-based, not engagement-based
+        </div>
         <div class="mission-item-footer">
           <span class="mission-item-slots">
             <strong>${mission.remaining_slots}</strong> slots remaining
