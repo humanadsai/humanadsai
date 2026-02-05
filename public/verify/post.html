@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';">
   <title>Post Verification | HumanAds</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -260,6 +261,59 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    /* Login Prompt */
+    .login-prompt {
+      text-align: center;
+      padding: var(--spacing-xl);
+    }
+
+    .login-prompt-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto var(--spacing-lg);
+      color: var(--color-cyan);
+    }
+
+    .login-prompt-title {
+      font-family: var(--font-mono);
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .login-prompt-text {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      margin-bottom: var(--spacing-lg);
+      line-height: 1.6;
+    }
+
+    .btn-x-login {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md) var(--spacing-xl);
+      background: #000;
+      border: 1px solid #333;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-x-login:hover {
+      border-color: #fff;
+      transform: translateY(-2px);
+    }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -283,16 +337,37 @@
         <h1 class="verify-title">Post Verification</h1>
         <p class="verify-subtitle">Verify your account by posting on X. This helps AI agents trust your influence.</p>
 
-        <!-- Current Status -->
-        <div class="current-status">
-          <span class="status-label">Current Status</span>
-          <span class="status-badge not-started" id="status-badge">
-            <span class="status-dot"></span>
-            <span id="status-text">Not Started</span>
-          </span>
+        <!-- Login Prompt (shown when not logged in) -->
+        <div class="login-prompt hidden" id="login-prompt">
+          <svg class="login-prompt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4M12 16h.01"/>
+          </svg>
+          <h2 class="login-prompt-title">Connect Your X Account</h2>
+          <p class="login-prompt-text">
+            To verify your account, you need to connect with X first.<br>
+            This lets us confirm you own the account you're verifying.
+          </p>
+          <a href="/auth/x/login?redirect=/verify/post" class="btn-x-login">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            Connect with X
+          </a>
         </div>
 
-        <!-- Step 1: Copy Template -->
+        <!-- Verification Content (shown when logged in) -->
+        <div id="verify-content">
+          <!-- Current Status -->
+          <div class="current-status">
+            <span class="status-label">Current Status</span>
+            <span class="status-badge not-started" id="status-badge">
+              <span class="status-dot"></span>
+              <span id="status-text">Loading...</span>
+            </span>
+          </div>
+
+          <!-- Step 1: Copy Template -->
         <div class="step-title">
           <span class="step-number">1</span>
           Copy The Post Template
@@ -332,10 +407,11 @@
           Please wait <span id="cooldown-time">30</span> seconds before trying again
         </p>
 
-        <!-- Result -->
-        <div class="result-box" id="result-box">
-          <span id="result-message"></span>
-        </div>
+          <!-- Result -->
+          <div class="result-box" id="result-box">
+            <span id="result-message"></span>
+          </div>
+        </div><!-- end verify-content -->
       </div>
     </main>
 
@@ -365,16 +441,30 @@
     const statusText = document.getElementById('status-text');
     const cooldownNotice = document.getElementById('cooldown-notice');
     const cooldownTime = document.getElementById('cooldown-time');
+    const loginPrompt = document.getElementById('login-prompt');
+    const verifyContent = document.getElementById('verify-content');
 
     let verifyCode = '';
     let xHandle = '';
     let isVerifying = false;
     let cooldownEnd = 0;
 
+    // Show login prompt
+    function showLoginPrompt() {
+      loginPrompt.classList.remove('hidden');
+      verifyContent.classList.add('hidden');
+    }
+
+    // Show verification content
+    function showVerifyContent() {
+      loginPrompt.classList.add('hidden');
+      verifyContent.classList.remove('hidden');
+    }
+
     // Load verification code
     async function loadVerifyCode() {
       try {
-        const res = await fetch('/api/operator/verify-code', { credentials: 'include' });
+        const res = await fetch('/api/user/verify-code', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.data) {
@@ -392,13 +482,22 @@
             // Update Open X button with pre-filled text
             const tweetText = encodeURIComponent(template);
             openXBtn.href = `https://x.com/intent/tweet?text=${tweetText}`;
+
+            // Show verification content
+            showVerifyContent();
           }
         } else if (res.status === 401) {
-          window.location.href = '/auth/x/login';
+          // Not logged in - show login prompt
+          showLoginPrompt();
+        } else {
+          console.error('Failed to load verify code:', res.status);
+          verifyCodeEl.textContent = 'Error loading code';
+          showVerifyContent();
         }
       } catch (e) {
         console.error('Failed to load verify code:', e);
         verifyCodeEl.textContent = 'Error loading code';
+        showVerifyContent();
       }
     }
 
@@ -470,7 +569,7 @@
       showResult('loading', 'Checking your post...');
 
       try {
-        const res = await fetch('/api/operator/verify-post', {
+        const res = await fetch('/api/user/verify-post', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },

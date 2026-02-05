@@ -23,12 +23,41 @@ const getRedirectUri = (request: Request): string => {
   return `${url.protocol}//${url.host}/auth/x/callback`;
 };
 
+// Get redirect URL from cookie
+const getRedirectCookie = (request: Request): string | null => {
+  const cookieHeader = request.headers.get('Cookie');
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(';').map(c => c.trim());
+  for (const cookie of cookies) {
+    const [name, value] = cookie.split('=');
+    if (name === 'x_auth_redirect' && value) {
+      try {
+        const decoded = decodeURIComponent(value);
+        // Only allow relative paths for security
+        return decoded.startsWith('/') ? decoded : null;
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+};
+
 /**
  * GET /auth/x/login
  * Initiates X OAuth2 PKCE flow
  */
 export async function handleXLogin(request: Request, env: Env): Promise<Response> {
   console.log('[X Login] Starting OAuth2 PKCE flow...');
+
+  // Get optional redirect URL from query parameter
+  const requestUrl = new URL(request.url);
+  const redirectAfterLogin = requestUrl.searchParams.get('redirect') || '/dashboard';
+
+  // Only allow relative paths for security
+  const safeRedirect = redirectAfterLogin.startsWith('/') ? redirectAfterLogin : '/dashboard';
+  console.log('[X Login] Will redirect to after login:', safeRedirect);
 
   const config: XAuthConfig = {
     clientId: env.X_CLIENT_ID,
@@ -45,15 +74,20 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
   // Create encrypted cookie with state and code_verifier
   const cookie = await createAuthCookie(state, codeVerifier, env.X_CLIENT_SECRET);
 
+  // Create separate cookie for redirect URL (simple, non-encrypted)
+  const redirectCookie = `x_auth_redirect=${encodeURIComponent(safeRedirect)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`;
+
   console.log('[X Login] Redirecting to X authorization page...');
 
   // Redirect to X authorization page
+  const headers = new Headers();
+  headers.set('Location', url);
+  headers.append('Set-Cookie', cookie);
+  headers.append('Set-Cookie', redirectCookie);
+
   return new Response(null, {
     status: 302,
-    headers: {
-      Location: url,
-      'Set-Cookie': cookie,
-    },
+    headers,
   });
 }
 
@@ -307,15 +341,19 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
       }
     }
 
-    // Create session cookie and redirect to dashboard
-    console.log('[X Callback] Login successful! Redirecting to dashboard...');
+    // Get redirect URL from cookie (if set during login)
+    const redirectUrl = getRedirectCookie(request) || '/dashboard';
+    console.log('[X Callback] Login successful! Redirecting to:', redirectUrl);
+
     const sessionCookie = `session=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
+    const clearRedirectCookie = 'x_auth_redirect=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
 
     // Use Headers API to properly set multiple Set-Cookie headers
     const headers = new Headers();
-    headers.set('Location', '/dashboard');
+    headers.set('Location', redirectUrl);
     headers.append('Set-Cookie', deleteAuthCookie());
     headers.append('Set-Cookie', sessionCookie);
+    headers.append('Set-Cookie', clearRedirectCookie);
 
     return new Response(null, {
       status: 302,
