@@ -29,6 +29,7 @@ import {
   getPublicOperators,
   getPublicOperator,
   getStats,
+  trackVisit,
 } from './api/public/index';
 
 /**
@@ -310,6 +311,11 @@ async function handlePublicApi(
   // GET /api/stats
   if (path === '/api/stats' && method === 'GET') {
     return getStats(request, env);
+  }
+
+  // POST /api/track-visit
+  if (path === '/api/track-visit' && method === 'POST') {
+    return trackVisit(request, env);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

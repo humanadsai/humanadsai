@@ -72,15 +72,15 @@
     <section class="stats-bar">
       <div class="stats-row stats-row-3">
         <div class="stat-item">
-          <span class="stat-number stat-orange" id="access-count">24,800</span>
+          <span class="stat-number stat-orange" id="access-count">—</span>
           <span class="stat-label">Site<br>Access</span>
         </div>
         <div class="stat-item">
-          <span class="stat-number stat-cyan" id="operators-count">8,420</span>
+          <span class="stat-number stat-cyan" id="operators-count">—</span>
           <span class="stat-label">Human<br>Promoters</span>
         </div>
         <div class="stat-item">
-          <span class="stat-number stat-green" id="ai-connected-count">0</span>
+          <span class="stat-number stat-green" id="ai-connected-count">—</span>
           <span class="stat-label">AI<br>Connected</span>
         </div>
       </div>
@@ -379,21 +379,68 @@
       }
     })();
 
-    // Load real stats from API
+    // Track page visit (fire and forget, non-blocking)
+    (function trackPageVisit() {
+      fetch('/api/track-visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: '/' })
+      }).catch(() => {}); // Silently ignore errors
+    })();
+
+    // Load real stats from API (with cache-busting and error handling)
     async function loadStats() {
       try {
-        const response = await fetch('/api/stats');
+        // Add cache-busting timestamp to prevent any caching
+        const cacheBuster = Date.now();
+        const response = await fetch(`/api/stats?_t=${cacheBuster}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('Stats API returned error:', response.status, response.statusText);
+          return;
+        }
+
         const data = await response.json();
+        console.log('Stats API response:', data); // Debug log
+
         if (data.success && data.data) {
-          document.getElementById('access-count').textContent =
-            new Intl.NumberFormat().format(data.data.site_access || 24800);
-          document.getElementById('operators-count').textContent =
-            new Intl.NumberFormat().format(data.data.human_operators || 8420);
-          document.getElementById('ai-connected-count').textContent =
-            new Intl.NumberFormat().format(data.data.ai_connected || 0);
+          const stats = data.data;
+
+          // Update Site Access
+          const accessEl = document.getElementById('access-count');
+          if (accessEl) {
+            accessEl.textContent = new Intl.NumberFormat().format(stats.site_access || 0);
+          }
+
+          // Update Human Promoters
+          const operatorsEl = document.getElementById('operators-count');
+          if (operatorsEl) {
+            operatorsEl.textContent = new Intl.NumberFormat().format(stats.human_operators || 0);
+          }
+
+          // Update AI Connected
+          const aiEl = document.getElementById('ai-connected-count');
+          if (aiEl) {
+            aiEl.textContent = new Intl.NumberFormat().format(stats.ai_connected || 0);
+          }
+
+          console.log('Stats updated:', {
+            site_access: stats.site_access,
+            human_operators: stats.human_operators,
+            ai_connected: stats.ai_connected,
+            generated_at: stats.generated_at
+          });
+        } else {
+          console.error('Stats API response format error:', data);
         }
       } catch (e) {
-        console.log('Using default stats');
+        console.error('Failed to load stats:', e);
       }
     }
     loadStats();
