@@ -1592,9 +1592,9 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
               <div class="modal-warning-title">This action cannot be undone</div>
               <ul class="modal-warning-list">
                 <li>Your profile will be removed from Available Humans</li>
-                <li>You won't be able to log in with this X account again</li>
+                <li>You won't be able to log in to HumanAds with this X account again</li>
                 <li>Mission history will be anonymized</li>
-                <li>Wallet addresses will be deleted</li>
+                <li>Wallet addresses linked to this account will be deleted</li>
               </ul>
             </div>
             <div id="delete-blockers" style="display: none;">
@@ -1633,6 +1633,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
         let currentStep = 1;
         let canDelete = false;
+        let statusCheckFailed = false;
 
         // Helper to update button state
         function updateActionButton(disabled, text) {
@@ -1646,24 +1647,21 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         function resetModal() {
           currentStep = 1;
           canDelete = false;
+          statusCheckFailed = false;
           step1.style.display = 'block';
           step2.style.display = 'none';
           blockersDiv.style.display = 'none';
           blockersDiv.innerHTML = '';
           confirmInput.value = '';
           deleteError.style.display = 'none';
-          updateActionButton(true, 'Loading...');
+          updateActionButton(true, 'Checking...');
         }
 
-        // Open modal
-        async function openDeleteModal(e) {
-          e.preventDefault();
-          e.stopPropagation();
+        // Check delete status
+        async function checkDeleteStatus() {
+          updateActionButton(true, 'Checking...');
+          blockersDiv.style.display = 'none';
 
-          deleteModal.classList.add('active');
-          resetModal();
-
-          // Check if account can be deleted
           try {
             const res = await fetch('/api/account/delete/check', { credentials: 'include' });
 
@@ -1675,22 +1673,28 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
             console.log('[Delete Check] Response:', data);
 
             if (data.success && data.data) {
+              statusCheckFailed = false;
               canDelete = data.data.can_delete;
               const blockers = data.data.blockers || {};
 
               if (!canDelete) {
-                let blockerHtml = '<div class="modal-blocker">';
-                blockerHtml += '<div class="modal-blocker-title">Cannot delete account yet</div>';
+                let blockerHtml = '';
 
                 if (blockers.active_missions > 0) {
-                  blockerHtml += '<div class="modal-blocker-text">You have ' + blockers.active_missions + ' active mission(s). Please complete or cancel them first.</div>';
-                  blockerHtml += '<a href="/missions/my" style="display: inline-block; margin-top: 8px; font-size: 0.75rem; color: var(--color-cyan);">View active missions →</a>';
+                  blockerHtml += '<div class="modal-blocker">';
+                  blockerHtml += '<div class="modal-blocker-title">You have active missions</div>';
+                  blockerHtml += '<div class="modal-blocker-text">Please complete or cancel your ' + blockers.active_missions + ' active mission(s) before deleting your account.</div>';
+                  blockerHtml += '<a href="/missions/my" style="display: inline-block; margin-top: 12px; padding: 8px 16px; background: var(--color-cyan); color: #000; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-decoration: none;">Go to missions</a>';
+                  blockerHtml += '</div>';
                 }
                 if (blockers.pending_payout > 0) {
-                  blockerHtml += '<div class="modal-blocker-text" style="margin-top: 8px;">You have a pending payout of $' + (blockers.pending_payout / 100).toFixed(2) + '. Please wait for it to complete.</div>';
+                  blockerHtml += '<div class="modal-blocker" style="margin-top: 12px;">';
+                  blockerHtml += '<div class="modal-blocker-title">Pending payout</div>';
+                  blockerHtml += '<div class="modal-blocker-text">You have a pending payout of $' + (blockers.pending_payout / 100).toFixed(2) + '. Please wait for it to complete or contact support.</div>';
+                  blockerHtml += '<a href="/contact.html" style="display: inline-block; margin-top: 8px; font-size: 0.75rem; color: var(--color-cyan);">Contact support →</a>';
+                  blockerHtml += '</div>';
                 }
 
-                blockerHtml += '</div>';
                 blockersDiv.innerHTML = blockerHtml;
                 blockersDiv.style.display = 'block';
                 updateActionButton(true, 'Cannot Delete');
@@ -1700,21 +1704,48 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
                 console.log('[Delete Check] canDelete=true, button enabled');
               }
             } else {
-              // API returned but no valid data - allow deletion by default
-              console.log('[Delete Check] No valid data, allowing deletion');
-              canDelete = true;
-              blockersDiv.style.display = 'none';
-              updateActionButton(false, 'Continue');
+              // API returned but no valid data - treat as check failed
+              throw new Error('Invalid API response');
             }
           } catch (err) {
             console.error('[Delete Check] Error:', err);
-            // On error, show retry option but also allow proceeding
-            blockersDiv.innerHTML = '<div class="modal-blocker"><div class="modal-blocker-title">Status Check Failed</div><div class="modal-blocker-text">Could not verify account status. You may proceed, but please ensure you have no active missions.</div></div>';
+            statusCheckFailed = true;
+            canDelete = false;
+
+            // Show error with Retry and Contact Support options (block deletion)
+            let errorHtml = '<div class="modal-blocker" style="background: rgba(255, 68, 68, 0.1); border-color: rgba(255, 68, 68, 0.3);">';
+            errorHtml += '<div class="modal-blocker-title" style="color: #FF4444;">We couldn\'t verify your account status</div>';
+            errorHtml += '<div class="modal-blocker-text">To protect your missions and payouts, we need to confirm your account status before deletion. Please try again.</div>';
+            errorHtml += '<div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">';
+            errorHtml += '<button type="button" id="retry-check-btn" style="padding: 8px 16px; background: var(--color-primary); color: #fff; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">Retry</button>';
+            errorHtml += '<a href="/contact.html" style="padding: 8px 16px; background: transparent; border: 1px solid var(--color-border); color: var(--color-text); border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-decoration: none;">Contact support</a>';
+            errorHtml += '</div>';
+            errorHtml += '</div>';
+
+            blockersDiv.innerHTML = errorHtml;
             blockersDiv.style.display = 'block';
-            // Allow proceeding even on error (server will validate again)
-            canDelete = true;
-            updateActionButton(false, 'Continue Anyway');
+            updateActionButton(true, 'Cannot Delete');
+
+            // Add retry button handler
+            const retryBtn = document.getElementById('retry-check-btn');
+            if (retryBtn) {
+              retryBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                checkDeleteStatus();
+              });
+            }
           }
+        }
+
+        // Open modal
+        async function openDeleteModal(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          deleteModal.classList.add('active');
+          resetModal();
+          await checkDeleteStatus();
         }
 
         // Close modal
@@ -1728,10 +1759,10 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
           e.preventDefault();
           e.stopPropagation();
 
-          console.log('[Delete Action] currentStep=' + currentStep + ', canDelete=' + canDelete);
+          console.log('[Delete Action] currentStep=' + currentStep + ', canDelete=' + canDelete + ', statusCheckFailed=' + statusCheckFailed);
 
           if (currentStep === 1) {
-            if (!canDelete) {
+            if (!canDelete || statusCheckFailed) {
               console.log('[Delete Action] Cannot delete, button should be disabled');
               return;
             }
@@ -1769,7 +1800,14 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
                 // Redirect to home (session is cleared)
                 window.location.href = '/?deleted=1';
               } else {
-                const errorMsg = data.error?.message || 'Failed to delete account. Please try again.';
+                let errorMsg = 'Failed to delete account. Please try again.';
+                if (data.error?.code === 'ACTIVE_MISSIONS') {
+                  errorMsg = 'You have active missions. Please complete or cancel them first.';
+                } else if (data.error?.code === 'PENDING_PAYOUT') {
+                  errorMsg = 'You have pending payouts. Please wait for them to complete.';
+                } else if (data.error?.message) {
+                  errorMsg = data.error.message;
+                }
                 deleteError.textContent = errorMsg;
                 deleteError.style.display = 'block';
                 updateActionButton(false, 'Permanently Delete');
