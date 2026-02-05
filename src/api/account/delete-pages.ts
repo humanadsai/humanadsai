@@ -354,7 +354,7 @@ export async function handleDeletePage(request: Request, env: Env): Promise<Resp
           <div class="blocker-item">
             <strong>Active missions (${status.activeMissions})</strong><br>
             Complete or cancel your active missions first.<br>
-            <a href="/dashboard">View your missions</a>
+            <a href="/missions/my">View your missions</a>
           </div>
         ` : ''}
         ${status.pendingPayouts > 0 ? `
@@ -398,7 +398,7 @@ export async function handleDeletePage(request: Request, env: Env): Promise<Resp
       ${statusHtml}
 
       <div class="btn-group">
-        <a href="/dashboard" class="btn btn-secondary">Back</a>
+        <a href="/missions/my" class="btn btn-secondary">Back</a>
         ${status.canDelete
           ? `<a href="/settings/account/delete/confirm" class="btn btn-danger">Continue</a>`
           : `<span class="btn btn-danger" style="pointer-events: none; opacity: 0.5;">Continue</span>`

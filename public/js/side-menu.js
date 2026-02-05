@@ -9,9 +9,8 @@
   // Menu configuration - single source of truth
   const MENU_CONFIG = {
     loggedIn: [
-      { label: 'Dashboard', href: '/dashboard', id: 'menu-dashboard' },
-      { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
       { label: 'My Missions', href: '/missions/my', id: 'menu-my-missions' },
+      { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
       { type: 'divider' },
       { type: 'section', label: 'Settings' },
       { label: 'Payout Wallets', href: '/settings/payout', id: 'menu-payout' },
@@ -31,7 +30,6 @@
 
   // Path to menu item mapping for active state
   const PATH_MAPPING = {
-    '/dashboard': 'menu-dashboard',
     '/missions': 'menu-explore',
     '/missions/index.html': 'menu-explore',
     '/missions/my': 'menu-my-missions',

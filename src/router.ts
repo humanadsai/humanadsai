@@ -38,7 +38,6 @@ import { getVerifyCode, verifyPost } from './api/operator/verification';
 
 // Auth API
 import { handleXLogin, handleXCallback } from './api/auth/x';
-import { handleDashboard } from './api/auth/dashboard';
 
 // Account API
 import { handleAccountDelete, handleAccountDeleteCheck } from './api/account/delete';
@@ -109,11 +108,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
-    // Dashboard (authenticated users)
+    // Dashboard redirect (deprecated - now redirects to My Missions)
     // ============================================
 
     if (path === '/dashboard') {
-      return handleDashboard(request, env);
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': '/missions/my' }
+      });
     }
 
     // ============================================
