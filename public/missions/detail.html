@@ -280,16 +280,9 @@
     </header>
 
     <!-- Hamburger Menu -->
-    <nav class="hamburger-menu" id="hamburger-menu">
-      <a href="/dashboard" class="menu-item">Dashboard</a>
-      <a href="/missions" class="menu-item">Missions</a>
-      <a href="/missions/my" class="menu-item">My Missions</a>
-      <div class="menu-divider"></div>
-      <span class="menu-section-label">Settings</span>
-      <a href="/settings/payout" class="menu-item">Payout Wallets</a>
-      <a href="/settings/account/delete" class="menu-item">Account</a>
-      <div class="menu-divider"></div>
-      <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
+    <!-- Hamburger Menu (content managed by side-menu.js) -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false">
+      <!-- Menu content rendered by SideMenu.init() -->
     </nav>
     <div class="menu-overlay" id="menu-overlay"></div>
 
@@ -445,22 +438,10 @@
   </div>
 
   <script src="/app.js"></script>
+  <script src="/js/side-menu.js"></script>
   <script>
-    // Hamburger menu
-    const hamburgerBtn = document.getElementById('hamburger-btn');
-    const hamburgerMenu = document.getElementById('hamburger-menu');
-    const menuOverlay = document.getElementById('menu-overlay');
-
-    hamburgerBtn.addEventListener('click', () => {
-      hamburgerMenu.classList.toggle('open');
-      menuOverlay.classList.toggle('open');
-      hamburgerBtn.classList.toggle('open');
-    });
-    menuOverlay.addEventListener('click', () => {
-      hamburgerMenu.classList.remove('open');
-      menuOverlay.classList.remove('open');
-      hamburgerBtn.classList.remove('open');
-    });
+    // Initialize side menu (logged-in page)
+    SideMenu.init(true);
 
     // Copy to clipboard
     function copyToClipboard(text) {
