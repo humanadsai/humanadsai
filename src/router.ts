@@ -247,7 +247,7 @@ async function handleAgentApi(
   }
 
   // GET /v1/deals/:id
-  const dealMatch = path.match(/^\/v1\/deals\/([a-f0-9]+)$/);
+  const dealMatch = path.match(/^\/v1\/deals\/([a-zA-Z0-9_]+)$/);
   if (dealMatch && method === 'GET') {
     return getDeal(request, env, context!, dealMatch[1]);
   }
@@ -267,31 +267,31 @@ async function handleAgentApi(
   // ============================================
 
   // GET /v1/deals/:dealId/applications - List applications for a deal
-  const applicationsMatch = path.match(/^\/v1\/deals\/([a-f0-9]+)\/applications$/);
+  const applicationsMatch = path.match(/^\/v1\/deals\/([a-zA-Z0-9_]+)\/applications$/);
   if (applicationsMatch && method === 'GET') {
     return getApplicationsForMission(request, env, context!, applicationsMatch[1]);
   }
 
   // POST /v1/deals/:dealId/applications/bulk - Bulk update applications
-  const bulkMatch = path.match(/^\/v1\/deals\/([a-f0-9]+)\/applications\/bulk$/);
+  const bulkMatch = path.match(/^\/v1\/deals\/([a-zA-Z0-9_]+)\/applications\/bulk$/);
   if (bulkMatch && method === 'POST') {
     return bulkUpdateApplications(request, env, context!, bulkMatch[1]);
   }
 
   // POST /v1/applications/:id/shortlist - Shortlist an application
-  const shortlistMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/shortlist$/);
+  const shortlistMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/shortlist$/);
   if (shortlistMatch && method === 'POST') {
     return shortlistApplication(request, env, context!, shortlistMatch[1]);
   }
 
   // POST /v1/applications/:id/select - Select an application (creates mission, consumes slot)
-  const selectMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/select$/);
+  const selectMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/select$/);
   if (selectMatch && method === 'POST') {
     return selectApplication(request, env, context!, selectMatch[1]);
   }
 
   // POST /v1/applications/:id/reject - Reject an application
-  const rejectMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/reject$/);
+  const rejectMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/reject$/);
   if (rejectMatch && method === 'POST') {
     return rejectApplication(request, env, context!, rejectMatch[1]);
   }
@@ -301,19 +301,19 @@ async function handleAgentApi(
   // ============================================
 
   // POST /v1/applications/:id/approve - Approve mission for payment (VERIFIED → APPROVED)
-  const approveMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/approve$/);
+  const approveMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/approve$/);
   if (approveMatch && method === 'POST') {
     return approveMission(request, env, context!, approveMatch[1]);
   }
 
   // POST /v1/applications/:id/unlock-address - Submit AUF tx and get wallet address
-  const unlockMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/unlock-address$/);
+  const unlockMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/unlock-address$/);
   if (unlockMatch && method === 'POST') {
     return unlockAddress(request, env, context!, unlockMatch[1]);
   }
 
   // POST /v1/applications/:id/confirm-payout - Confirm 90% payout completion
-  const confirmMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/confirm-payout$/);
+  const confirmMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/confirm-payout$/);
   if (confirmMatch && method === 'POST') {
     return confirmPayout(request, env, context!, confirmMatch[1]);
   }
@@ -381,7 +381,7 @@ async function handleOperatorApi(
   }
 
   // POST /api/missions/:id/cancel - Cancel a mission (before submission)
-  const cancelMatch = path.match(/^\/api\/missions\/([a-f0-9]+)\/cancel$/);
+  const cancelMatch = path.match(/^\/api\/missions\/([a-zA-Z0-9_]+)\/cancel$/);
   if (cancelMatch && method === 'POST') {
     return cancelMission(request, env, cancelMatch[1]);
   }
@@ -396,7 +396,7 @@ async function handleOperatorApi(
   // ============================================
 
   // POST /api/missions/:dealId/apply - Apply for a mission
-  const applyMatch = path.match(/^\/api\/missions\/([a-f0-9]+)\/apply$/);
+  const applyMatch = path.match(/^\/api\/missions\/([a-zA-Z0-9_]+)\/apply$/);
   if (applyMatch && method === 'POST') {
     return applyForMission(request, env, applyMatch[1]);
   }
@@ -407,13 +407,13 @@ async function handleOperatorApi(
   }
 
   // GET /api/applications/:id - Get application details
-  const appDetailMatch = path.match(/^\/api\/applications\/([a-f0-9]+)$/);
+  const appDetailMatch = path.match(/^\/api\/applications\/([a-zA-Z0-9_]+)$/);
   if (appDetailMatch && method === 'GET') {
     return getApplication(request, env, appDetailMatch[1]);
   }
 
   // POST /api/applications/:id/withdraw - Withdraw an application
-  const withdrawMatch = path.match(/^\/api\/applications\/([a-f0-9]+)\/withdraw$/);
+  const withdrawMatch = path.match(/^\/api\/applications\/([a-zA-Z0-9_]+)\/withdraw$/);
   if (withdrawMatch && method === 'POST') {
     return withdrawApplication(request, env, withdrawMatch[1]);
   }
@@ -469,7 +469,7 @@ async function handlePublicApi(
   }
 
   // GET /api/deals/:id
-  const dealMatch = path.match(/^\/api\/deals\/([a-f0-9]+)$/);
+  const dealMatch = path.match(/^\/api\/deals\/([a-zA-Z0-9_]+)$/);
   if (dealMatch && method === 'GET') {
     return getPublicDeal(request, env, dealMatch[1]);
   }
@@ -480,7 +480,7 @@ async function handlePublicApi(
   }
 
   // GET /api/operators/:id
-  const operatorMatch = path.match(/^\/api\/operators\/([a-f0-9]+)$/);
+  const operatorMatch = path.match(/^\/api\/operators\/([a-zA-Z0-9_]+)$/);
   if (operatorMatch && method === 'GET') {
     return getPublicOperator(request, env, operatorMatch[1]);
   }
@@ -515,7 +515,7 @@ async function handlePublicApi(
   // ============================================
 
   // GET /api/agents/:id/trust-score - Public agent trust score
-  const trustScoreMatch = path.match(/^\/api\/agents\/([a-f0-9]+)\/trust-score$/);
+  const trustScoreMatch = path.match(/^\/api\/agents\/([a-zA-Z0-9_]+)\/trust-score$/);
   if (trustScoreMatch && method === 'GET') {
     return getAgentTrustScore(request, env, trustScoreMatch[1]);
   }
