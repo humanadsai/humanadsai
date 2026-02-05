@@ -403,30 +403,33 @@
           </div>
         `;
       } else if (mission.status === 'submitted') {
-        // Check if within 30-minute cancel window
-        const submittedAt = mission.submitted_at ? new Date(mission.submitted_at) : null;
-        const now = new Date();
-        const minutesSinceSubmission = submittedAt ? (now.getTime() - submittedAt.getTime()) / (1000 * 60) : Infinity;
-        const canCancel = minutesSinceSubmission <= 30;
-        const remainingMinutes = Math.max(0, Math.ceil(30 - minutesSinceSubmission));
-
+        // Can cancel submitted missions anytime (before AI review starts)
         actionHtml = `
           <div style="margin-top: 16px; padding: 12px; background: rgba(255, 152, 0, 0.1); border-radius: 8px;">
             <p style="color: #FF9800; font-size: 0.875rem; margin-bottom: 8px;">
               Submitted and awaiting verification...
             </p>
-            ${canCancel ? `
-              <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 8px;">
-                You can cancel within ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}.
-              </p>
-              <button class="btn btn-outline cancel-mission-btn" data-mission-id="${mission.id}" style="font-size: 0.75rem; padding: 6px 12px;">
-                Cancel Submission
-              </button>
-            ` : `
-              <p style="font-size: 0.75rem; color: var(--color-text-muted);">
-                Cancel window expired. Your submission is now under review.
-              </p>
-            `}
+            <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 8px;">
+              You can cancel before AI review starts. Note: 24-hour cooldown applies for re-applying.
+            </p>
+            <button class="btn btn-outline cancel-mission-btn" data-mission-id="${mission.id}" style="font-size: 0.75rem; padding: 6px 12px;">
+              Cancel Submission
+            </button>
+          </div>
+        `;
+      } else if (mission.status === 'verified') {
+        // Can cancel verified missions anytime (before AI approval)
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(76, 175, 80, 0.1); border-radius: 8px;">
+            <p style="color: #4CAF50; font-size: 0.875rem; margin-bottom: 8px;">
+              Verified! Awaiting final approval...
+            </p>
+            <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 8px;">
+              You can still cancel before AI approval. Note: 24-hour cooldown applies for re-applying.
+            </p>
+            <button class="btn btn-outline cancel-mission-btn" data-mission-id="${mission.id}" style="font-size: 0.75rem; padding: 6px 12px;">
+              Cancel Submission
+            </button>
           </div>
         `;
       }
@@ -502,14 +505,13 @@
           method: 'POST',
           body: JSON.stringify(body),
         });
-        const successMessage = isSubmitted ? 'Submission cancelled.' : 'Mission cancelled successfully.';
+        const successMessage = isSubmitted
+          ? 'Submission cancelled. You can re-apply after 24 hours.'
+          : 'Mission cancelled successfully.';
         HumanAds.showAlert(successMessage);
         loadData(currentStatus, currentType);
       } catch (error) {
-        // Show specific error message for cancel window expired
-        const errorMsg = error.code === 'cancel_window_expired'
-          ? 'Cannot cancel: the 30-minute window has expired.'
-          : (error.message || 'Failed to cancel mission');
+        const errorMsg = error.message || 'Failed to cancel mission';
         HumanAds.showAlert(errorMsg, 'error');
       } finally {
         HumanAds.setButtonLoading(btn, false);
