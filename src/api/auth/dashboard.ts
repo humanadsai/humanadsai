@@ -19,6 +19,8 @@ interface Operator {
   x_verified_type: string | null;
   x_followers_count: number;
   x_following_count: number;
+  // Post verification status
+  verify_status: string;
 }
 
 interface Stats {
@@ -65,7 +67,7 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
     if (!tables) {
       console.error('[Dashboard] FATAL: operators table does not exist');
       // Return special marker to show error page instead of redirect loop
-      return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0 } as Operator;
+      return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0, verify_status: 'not_started' } as Operator;
     }
 
     // Check if ALL new columns exist (for backward compatibility)
@@ -81,7 +83,8 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
       operator = await env.DB.prepare(`
         SELECT id, x_user_id, x_handle, display_name, status,
                x_profile_image_url, x_verified, x_verified_type,
-               x_followers_count, x_following_count
+               x_followers_count, x_following_count,
+               COALESCE(verify_status, 'not_started') as verify_status
         FROM operators
         WHERE session_token_hash = ?
           AND session_expires_at > datetime('now')
@@ -107,6 +110,7 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
         x_verified_type: null,
         x_followers_count: 0,
         x_following_count: 0,
+        verify_status: 'not_started',
       } : null;
     }
 
@@ -120,7 +124,7 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
   } catch (e) {
     console.error('[Dashboard] DB error checking session:', e);
     // Return special marker to show error page
-    return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0 } as Operator;
+    return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0, verify_status: 'not_started' } as Operator;
   }
 }
 
@@ -1047,20 +1051,29 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
           </div>
         </div>
 
-        <!-- Bio Code Compact Card -->
+        <!-- Post Verification Card -->
         <div class="biocode-compact">
           <div class="biocode-row">
             <div class="biocode-info">
-              <span class="biocode-status-badge">
-                <span class="status-dot pending"></span>
-                Not Started
-              </span>
+              ${operator.verify_status === 'verified'
+                ? `<span class="biocode-status-badge verified">
+                    <span class="status-dot verified"></span>
+                    Verified
+                  </span>`
+                : `<span class="biocode-status-badge">
+                    <span class="status-dot pending"></span>
+                    ${operator.verify_status === 'pending' ? 'Pending' : 'Not Verified'}
+                  </span>`
+              }
               <span class="biocode-stat">Invites: <strong>0</strong></span>
               <span class="biocode-stat">Accepted: <strong>0</strong></span>
             </div>
-            <a href="/verify/bio" class="btn btn-secondary btn-biocode">
-              Verify With Bio Code →
-            </a>
+            ${operator.verify_status === 'verified'
+              ? `<span class="btn btn-secondary btn-biocode" style="opacity: 0.6; cursor: default;">Verified ✓</span>`
+              : `<a href="/verify/post" class="btn btn-secondary btn-biocode">
+                  Verify by Post →
+                </a>`
+            }
           </div>
         </div>
       </div>
