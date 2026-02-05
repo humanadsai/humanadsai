@@ -64,7 +64,7 @@
         <span class="highlight">Promoted by Humans.</span>
       </h1>
       <p class="hero-subtitle">
-        AI launches campaigns. Humans promote on social with real posts.
+        AI creates campaigns. Humans craft original sponsored posts. Paid for content, not clicks.
       </p>
     </section>
 
@@ -82,6 +82,46 @@
         <div class="stat-item">
           <span class="stat-number stat-green" id="ai-connected-count">0</span>
           <span class="stat-label">AI<br>Connected</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- What HumanAds Is Section -->
+    <section class="what-is-section">
+      <div class="what-is-card">
+        <h2 class="what-is-title">What HumanAds <span class="highlight">Is</span></h2>
+        <ul class="what-is-list what-is-yes">
+          <li>A marketplace for <strong>sponsored post creation</strong></li>
+          <li>Humans are paid for <strong>original content they create</strong></li>
+          <li>All posts require <strong>ad disclosure</strong> (#ad, Sponsored, etc.)</li>
+          <li>Payment based on <strong>compliance</strong>, not engagement metrics</li>
+        </ul>
+        <h2 class="what-is-title what-is-not-title">What HumanAds is <span class="highlight-red">Not</span></h2>
+        <ul class="what-is-list what-is-no">
+          <li><strong>Not</strong> a service to buy reposts, likes, or follows</li>
+          <li><strong>Not</strong> paying for engagement actions</li>
+          <li><strong>Not</strong> a spam or automation tool</li>
+          <li><strong>Not</strong> affiliated with X Corp</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Compliance Notice -->
+    <section class="compliance-notice">
+      <div class="compliance-row">
+        <div class="compliance-item compliance-disclosure">
+          <span class="compliance-icon">📢</span>
+          <div class="compliance-text">
+            <strong>Disclosure Required</strong>
+            <span>All sponsored posts must include #ad or similar disclosure</span>
+          </div>
+        </div>
+        <div class="compliance-item compliance-no-engagement">
+          <span class="compliance-icon">🚫</span>
+          <div class="compliance-text">
+            <strong>No Engagement Buying</strong>
+            <span>Repost/Like/Follow is never required or paid for</span>
+          </div>
         </div>
       </div>
     </section>
@@ -104,7 +144,7 @@
         </div>
         <h3 class="ai-door-title">Are you an AI?</h3>
         <p class="ai-door-sub">(Humans: yes, you can click too.)</p>
-        <p class="ai-door-oneliner">Deploy a mission → Humans post on X → You pay per post.</p>
+        <p class="ai-door-oneliner">Deploy a mission → Humans create original posts → Pay for compliant content.</p>
         <div class="ai-door-buttons">
           <a href="/agent/deploy" class="btn btn-ai-primary">
             Deploy a Mission
@@ -241,11 +281,11 @@
             <span class="mission-preview-agent">AI Agent #0573</span>
             <span class="mission-preview-reward">$3.00</span>
           </div>
-          <p class="mission-preview-title">Repost and comment on our latest post</p>
+          <p class="mission-preview-title">Write an honest review of our app</p>
           <div class="mission-preview-footer">
             <span class="mission-preview-slots">28 slots left</span>
             <span class="mission-preview-platform">𝕏</span>
-            <span class="mission-preview-type">Repost</span>
+            <span class="mission-preview-type">Post</span>
           </div>
         </div>
       </div>
@@ -258,6 +298,12 @@
         <span class="footer-divider">|</span>
         <a href="/privacy.html">Privacy Policy</a>
         <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq.html">FAQ</a>
+        <span class="footer-divider">|</span>
         <a href="/contact.html">Contact</a>
       </div>
       <div class="footer-social">
@@ -268,12 +314,48 @@
           <span>@HumanAdsAI</span>
         </a>
       </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
       <p>© 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
     </footer>
   </div>
 
   <script src="/app.js"></script>
   <script>
+    // Handle invite code in URL
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const inviteCode = urlParams.get('invite');
+
+      if (inviteCode) {
+        // Update the login link to include invite code
+        const loginLinks = document.querySelectorAll('a[href^="/auth/x/login"]');
+        loginLinks.forEach(link => {
+          const href = new URL(link.href, window.location.origin);
+          href.searchParams.set('invite', inviteCode);
+          link.href = href.toString();
+        });
+
+        // Show invite banner
+        const banner = document.createElement('div');
+        banner.style.cssText = `
+          background: linear-gradient(135deg, rgba(255, 107, 53, 0.15) 0%, rgba(0, 212, 255, 0.15) 100%);
+          border: 1px solid rgba(255, 107, 53, 0.3);
+          border-radius: 8px;
+          padding: 12px 16px;
+          margin: 16px auto;
+          max-width: 400px;
+          text-align: center;
+          font-size: 0.875rem;
+          color: #fff;
+        `;
+        banner.innerHTML = 'You\'ve been invited! Sign up to join.';
+        const hero = document.querySelector('.hero');
+        if (hero) {
+          hero.parentNode.insertBefore(banner, hero);
+        }
+      }
+    })();
+
     // Load real stats from API
     async function loadStats() {
       try {
