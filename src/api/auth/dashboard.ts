@@ -19,8 +19,11 @@ interface Operator {
   x_verified_type: string | null;
   x_followers_count: number;
   x_following_count: number;
-  // Post verification status
+  // Post verification status (legacy)
   verify_status: string;
+  // Invite system
+  invite_code: string | null;
+  invite_count: number;
 }
 
 interface Stats {
@@ -67,7 +70,7 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
     if (!tables) {
       console.error('[Dashboard] FATAL: operators table does not exist');
       // Return special marker to show error page instead of redirect loop
-      return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0, verify_status: 'not_started' } as Operator;
+      return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0, verify_status: 'not_started', invite_code: null, invite_count: 0 } as Operator;
     }
 
     // Check if ALL new columns exist (for backward compatibility)
@@ -83,19 +86,30 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
     ).first<{ count: number }>();
     const hasVerifyColumn = (hasVerifyStatus?.count || 0) > 0;
 
+    // Check if invite_code column exists (invite system migration)
+    const hasInviteCode = await env.DB.prepare(
+      "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'invite_code'"
+    ).first<{ count: number }>();
+    const hasInviteColumn = (hasInviteCode?.count || 0) > 0;
+
     // Fetch operator (with extended fields if available)
     let operator: Operator | null;
     if (useExtendedSchema) {
-      // Build query dynamically based on verify_status column existence
+      // Build query dynamically based on column existence
       const verifySelect = hasVerifyColumn
         ? "COALESCE(verify_status, 'not_started') as verify_status"
         : "'not_started' as verify_status";
+
+      const inviteSelect = hasInviteColumn
+        ? "invite_code, COALESCE(invite_count, 0) as invite_count"
+        : "NULL as invite_code, 0 as invite_count";
 
       operator = await env.DB.prepare(`
         SELECT id, x_user_id, x_handle, display_name, status,
                x_profile_image_url, x_verified, x_verified_type,
                x_followers_count, x_following_count,
-               ${verifySelect}
+               ${verifySelect},
+               ${inviteSelect}
         FROM operators
         WHERE session_token_hash = ?
           AND session_expires_at > datetime('now')
@@ -122,6 +136,8 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
         x_followers_count: 0,
         x_following_count: 0,
         verify_status: 'not_started',
+        invite_code: null,
+        invite_count: 0,
       } : null;
     }
 
@@ -135,7 +151,7 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
   } catch (e) {
     console.error('[Dashboard] DB error checking session:', e);
     // Return special marker to show error page
-    return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0, verify_status: 'not_started' } as Operator;
+    return { id: '__DB_ERROR__', x_user_id: '', x_handle: '', display_name: null, status: 'error', x_profile_image_url: null, x_verified: 0, x_verified_type: null, x_followers_count: 0, x_following_count: 0, verify_status: 'not_started', invite_code: null, invite_count: 0 } as Operator;
   }
 }
 
@@ -1011,6 +1027,197 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
     }
 
     .logout-link:hover { color: var(--color-primary); }
+
+    .delete-link {
+      display: block;
+      text-align: center;
+      color: var(--color-text-muted);
+      font-size: 0.7rem;
+      margin-top: 8px;
+      text-decoration: none;
+      opacity: 0.6;
+    }
+
+    .delete-link:hover { color: #FF4444; opacity: 1; }
+
+    /* Delete Account Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: #1a1a2e;
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      max-width: 400px;
+      width: 100%;
+      padding: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .modal-icon {
+      width: 40px;
+      height: 40px;
+      color: #FF4444;
+    }
+
+    .modal-title {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: #FF4444;
+    }
+
+    .modal-body {
+      margin-bottom: 20px;
+    }
+
+    .modal-warning {
+      background: rgba(255, 68, 68, 0.1);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .modal-warning-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #FF4444;
+      margin-bottom: 8px;
+    }
+
+    .modal-warning-list {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      padding-left: 16px;
+      margin: 0;
+    }
+
+    .modal-warning-list li {
+      margin-bottom: 4px;
+    }
+
+    .modal-confirm-section {
+      margin-top: 16px;
+    }
+
+    .modal-confirm-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+
+    .modal-confirm-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    .modal-confirm-input:focus {
+      outline: none;
+      border-color: #FF4444;
+    }
+
+    .modal-error {
+      color: #FF4444;
+      font-size: 0.75rem;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .modal-blocker {
+      background: rgba(255, 165, 0, 0.1);
+      border: 1px solid rgba(255, 165, 0, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .modal-blocker-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #FFA500;
+      margin-bottom: 4px;
+    }
+
+    .modal-blocker-text {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: var(--color-surface);
+      border-color: var(--color-primary);
+    }
+
+    .btn-delete {
+      flex: 1;
+      padding: 12px;
+      background: #FF4444;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: #FF2222;
+    }
+
+    .btn-delete:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -1062,30 +1269,33 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
           </div>
         </div>
 
-        <!-- Post Verification Card -->
+        <!-- Invite Code Card -->
         <div class="biocode-compact">
           <div class="biocode-row">
             <div class="biocode-info">
-              ${operator.verify_status === 'verified'
-                ? `<span class="biocode-status-badge verified">
-                    <span class="status-dot verified"></span>
-                    Verified
-                  </span>`
-                : `<span class="biocode-status-badge">
-                    <span class="status-dot pending"></span>
-                    ${operator.verify_status === 'pending' ? 'Pending' : 'Not Verified'}
-                  </span>`
-              }
-              <span class="biocode-stat">Invites: <strong>0</strong></span>
-              <span class="biocode-stat">Accepted: <strong>0</strong></span>
+              <span class="biocode-status-badge ${operator.invite_count > 0 ? 'verified' : ''}">
+                <span class="status-dot ${operator.invite_count > 0 ? 'verified' : 'pending'}"></span>
+                ${operator.invite_count > 0 ? 'Active Inviter' : 'New Member'}
+              </span>
+              <span class="biocode-stat">Invited: <strong>${operator.invite_count}</strong></span>
             </div>
-            ${operator.verify_status === 'verified'
-              ? `<span class="btn btn-secondary btn-biocode" style="opacity: 0.6; cursor: default;">Verified ✓</span>`
-              : `<a href="/verify/post" class="btn btn-secondary btn-biocode">
-                  Verify by Post →
-                </a>`
-            }
           </div>
+          ${operator.invite_code ? `
+            <div class="invite-code-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border);">
+              <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-bottom: 6px;">Your Invite Code</div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <code id="invite-code" style="font-family: var(--font-mono); font-size: 0.85rem; padding: 8px 12px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 6px; flex: 1;">${operator.invite_code}</code>
+                <button id="copy-invite-btn" class="btn btn-secondary btn-biocode" onclick="copyInviteCode()">Copy</button>
+              </div>
+              <div style="font-size: 0.65rem; color: var(--color-text-muted); margin-top: 8px;">
+                Share this link: <a href="https://humanadsai.com/?invite=${operator.invite_code}" style="color: var(--color-cyan);">humanadsai.com/?invite=${operator.invite_code}</a>
+              </div>
+            </div>
+          ` : `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); font-size: 0.7rem; color: var(--color-text-muted);">
+              Your invite code will be generated soon.
+            </div>
+          `}
         </div>
       </div>
     </section>
@@ -1294,6 +1504,30 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
       // Load on page load
       loadWallets();
+
+      // Copy invite code
+      function copyInviteCode() {
+        const code = document.getElementById('invite-code');
+        const btn = document.getElementById('copy-invite-btn');
+        if (code && btn) {
+          navigator.clipboard.writeText(code.textContent || '').then(() => {
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+          }).catch(() => {
+            // Fallback for older browsers
+            const range = document.createRange();
+            range.selectNode(code);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+          });
+        }
+      }
+      // Make copyInviteCode globally available
+      window.copyInviteCode = copyInviteCode;
     </script>
 
     <!-- Footer -->
@@ -1307,7 +1541,189 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       </div>
       <p>© 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
       <a href="/auth/logout" class="logout-link">Sign out</a>
+      <a href="#" class="delete-link" id="delete-account-link">Delete my account</a>
     </footer>
+
+    <!-- Delete Account Modal -->
+    <div class="modal-overlay" id="delete-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <h2 class="modal-title">Delete Account</h2>
+        </div>
+        <div class="modal-body">
+          <!-- Step 1: Impact explanation -->
+          <div id="delete-step-1">
+            <div class="modal-warning">
+              <div class="modal-warning-title">This action cannot be undone</div>
+              <ul class="modal-warning-list">
+                <li>Your profile will be removed from Available Humans</li>
+                <li>You won't be able to log in with this X account again</li>
+                <li>Mission history will be anonymized</li>
+                <li>Wallet addresses will be deleted</li>
+              </ul>
+            </div>
+            <div id="delete-blockers" style="display: none;">
+              <!-- Blockers will be shown here if any -->
+            </div>
+          </div>
+
+          <!-- Step 2: Confirmation -->
+          <div id="delete-step-2" style="display: none;">
+            <div class="modal-confirm-section">
+              <div class="modal-confirm-label">Type <strong>DELETE</strong> to confirm:</div>
+              <input type="text" id="delete-confirm-input" class="modal-confirm-input" placeholder="DELETE" autocomplete="off">
+              <div class="modal-error" id="delete-error" style="display: none;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" id="delete-cancel-btn">Cancel</button>
+          <button class="btn-delete" id="delete-action-btn" disabled>Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Delete account functionality
+      const deleteModal = document.getElementById('delete-modal');
+      const deleteLink = document.getElementById('delete-account-link');
+      const cancelBtn = document.getElementById('delete-cancel-btn');
+      const actionBtn = document.getElementById('delete-action-btn');
+      const step1 = document.getElementById('delete-step-1');
+      const step2 = document.getElementById('delete-step-2');
+      const blockersDiv = document.getElementById('delete-blockers');
+      const confirmInput = document.getElementById('delete-confirm-input');
+      const deleteError = document.getElementById('delete-error');
+
+      let currentStep = 1;
+      let canDelete = false;
+
+      // Open modal
+      deleteLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        deleteModal.classList.add('active');
+        currentStep = 1;
+        step1.style.display = 'block';
+        step2.style.display = 'none';
+        actionBtn.textContent = 'Continue';
+        actionBtn.disabled = true;
+        confirmInput.value = '';
+        deleteError.style.display = 'none';
+
+        // Check if account can be deleted
+        try {
+          const res = await fetch('/api/account/delete/check', { credentials: 'include' });
+          const data = await res.json();
+
+          if (data.success && data.data) {
+            canDelete = data.data.can_delete;
+            const blockers = data.data.blockers;
+
+            if (!canDelete) {
+              let blockerHtml = '<div class="modal-blocker">';
+              blockerHtml += '<div class="modal-blocker-title">Cannot delete account</div>';
+
+              if (blockers.active_missions > 0) {
+                blockerHtml += '<div class="modal-blocker-text">You have ' + blockers.active_missions + ' active mission(s). Please complete or cancel them first.</div>';
+              }
+              if (blockers.pending_payout > 0) {
+                blockerHtml += '<div class="modal-blocker-text">You have a pending payout of $' + (blockers.pending_payout / 100).toFixed(2) + '. Please wait for it to complete.</div>';
+              }
+
+              blockerHtml += '</div>';
+              blockersDiv.innerHTML = blockerHtml;
+              blockersDiv.style.display = 'block';
+              actionBtn.disabled = true;
+              actionBtn.textContent = 'Cannot Delete';
+            } else {
+              blockersDiv.style.display = 'none';
+              actionBtn.disabled = false;
+              actionBtn.textContent = 'Continue';
+            }
+          }
+        } catch (err) {
+          console.error('Failed to check delete status:', err);
+          blockersDiv.innerHTML = '<div class="modal-blocker"><div class="modal-blocker-title">Error</div><div class="modal-blocker-text">Failed to check account status. Please try again.</div></div>';
+          blockersDiv.style.display = 'block';
+          actionBtn.disabled = true;
+        }
+      });
+
+      // Close modal
+      cancelBtn.addEventListener('click', () => {
+        deleteModal.classList.remove('active');
+        currentStep = 1;
+      });
+
+      // Close on overlay click
+      deleteModal.addEventListener('click', (e) => {
+        if (e.target === deleteModal) {
+          deleteModal.classList.remove('active');
+          currentStep = 1;
+        }
+      });
+
+      // Enable delete button when input matches
+      confirmInput.addEventListener('input', () => {
+        actionBtn.disabled = confirmInput.value !== 'DELETE';
+        deleteError.style.display = 'none';
+      });
+
+      // Action button (Continue or Delete)
+      actionBtn.addEventListener('click', async () => {
+        if (currentStep === 1 && canDelete) {
+          // Move to step 2
+          currentStep = 2;
+          step1.style.display = 'none';
+          step2.style.display = 'block';
+          actionBtn.textContent = 'Delete Account';
+          actionBtn.disabled = true;
+          confirmInput.focus();
+        } else if (currentStep === 2) {
+          // Perform deletion
+          if (confirmInput.value !== 'DELETE') {
+            deleteError.textContent = 'Please type DELETE to confirm';
+            deleteError.style.display = 'block';
+            return;
+          }
+
+          actionBtn.disabled = true;
+          actionBtn.textContent = 'Deleting...';
+          deleteError.style.display = 'none';
+
+          try {
+            const res = await fetch('/api/account/delete', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ confirmText: 'DELETE' })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+              // Redirect to home (session is cleared)
+              window.location.href = '/?deleted=1';
+            } else {
+              deleteError.textContent = data.error?.message || 'Failed to delete account';
+              deleteError.style.display = 'block';
+              actionBtn.disabled = false;
+              actionBtn.textContent = 'Delete Account';
+            }
+          } catch (err) {
+            deleteError.textContent = 'Network error. Please try again.';
+            deleteError.style.display = 'block';
+            actionBtn.disabled = false;
+            actionBtn.textContent = 'Delete Account';
+          }
+        }
+      });
+    </script>
   </div>
 </body>
 </html>`;
