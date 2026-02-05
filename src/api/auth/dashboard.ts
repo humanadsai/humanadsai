@@ -1621,6 +1621,8 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
     <script>
       // Delete account functionality
       (function() {
+        console.log('[Delete Modal] Initializing...');
+
         const deleteModal = document.getElementById('delete-modal');
         const deleteLink = document.getElementById('delete-account-link');
         const cancelBtn = document.getElementById('delete-cancel-btn');
@@ -1630,6 +1632,25 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         const blockersDiv = document.getElementById('delete-blockers');
         const confirmInput = document.getElementById('delete-confirm-input');
         const deleteError = document.getElementById('delete-error');
+
+        // Debug: Check if all elements are found
+        console.log('[Delete Modal] Elements:', {
+          deleteModal: !!deleteModal,
+          deleteLink: !!deleteLink,
+          cancelBtn: !!cancelBtn,
+          actionBtn: !!actionBtn,
+          step1: !!step1,
+          step2: !!step2,
+          blockersDiv: !!blockersDiv,
+          confirmInput: !!confirmInput,
+          deleteError: !!deleteError
+        });
+
+        // Exit if critical elements are missing
+        if (!deleteModal || !deleteLink) {
+          console.error('[Delete Modal] Critical elements missing, aborting initialization');
+          return;
+        }
 
         let currentStep = 1;
         let canDelete = false;
@@ -1740,10 +1761,14 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
         // Open modal
         async function openDeleteModal(e) {
+          console.log('[Delete Modal] openDeleteModal called');
           e.preventDefault();
           e.stopPropagation();
 
+          console.log('[Delete Modal] Adding active class to modal');
           deleteModal.classList.add('active');
+          console.log('[Delete Modal] Modal classList:', deleteModal.classList.toString());
+
           resetModal();
           await checkDeleteStatus();
         }
