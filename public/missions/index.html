@@ -23,6 +23,9 @@
         <span class="logo-text">HumanAds</span>
       </a>
       <div id="user-menu" style="display: none;">
+        <a href="/dashboard" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; margin-right: 8px;">
+          DASHBOARD
+        </a>
         <a href="/missions/my" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">
           MY MISSIONS
         </a>
@@ -33,18 +36,26 @@
     <div class="page-container">
       <h1 class="page-title">Available Missions</h1>
 
-      <!-- Compliance Notice -->
+      <!-- Compliance Notice (always visible) -->
       <div class="missions-notice" style="margin-bottom: 20px;">
         You are paid for creating sponsored content, not for engagement. No payment for repost/like/follow.
       </div>
 
-      <!-- Login prompt for non-authenticated users -->
-      <div id="login-prompt" class="mission-card" style="display: none; margin-bottom: 24px;">
-        <p style="margin-bottom: 16px;">Sign in to accept missions and create sponsored content.</p>
-        <a href="/operator/register" class="btn btn-primary">
-          BECOME A PROMOTER
+      <!-- Login CTA for non-authenticated users (info only, not error) -->
+      <div id="login-cta" class="mission-card" style="display: none; margin-bottom: 24px; border-left: 3px solid var(--color-primary);">
+        <p style="margin-bottom: 12px; font-size: 0.9rem;">
+          <strong>Want to accept missions?</strong>
+        </p>
+        <p style="margin-bottom: 16px; color: var(--color-text-muted); font-size: 0.85rem;">
+          Sign in with X to accept missions and earn fixed fees for creating sponsored content.
+        </p>
+        <a href="/auth/x/login?redirect=/missions" class="btn btn-primary" style="padding: 10px 20px;">
+          <span style="margin-right: 8px;">𝕏</span> Sign in with X
         </a>
       </div>
+
+      <!-- Alert container (single location for all alerts) -->
+      <div id="alert-container"></div>
 
       <!-- Missions List -->
       <div id="missions-list" class="missions-list">
@@ -87,6 +98,28 @@
     let offset = 0;
     const limit = 20;
     let isLoading = false;
+    let pendingAcceptDealId = null;
+
+    // Custom alert function that uses the single alert container
+    function showPageAlert(message, type = 'success') {
+      const container = document.getElementById('alert-container');
+      // Clear any existing alerts first (prevents duplicates)
+      container.innerHTML = '';
+
+      const alertEl = document.createElement('div');
+      alertEl.className = `alert alert-${type}`;
+      alertEl.style.marginBottom = '16px';
+      alertEl.textContent = message;
+
+      container.appendChild(alertEl);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        if (alertEl.parentNode) {
+          alertEl.remove();
+        }
+      }, 5000);
+    }
 
     async function loadMissions(append = false) {
       if (isLoading) return;
@@ -131,6 +164,21 @@
           missions.length === limit ? 'block' : 'none';
 
         offset += missions.length;
+
+        // Check if we need to auto-accept a mission (from login redirect)
+        if (pendingAcceptDealId) {
+          const dealIdToAccept = pendingAcceptDealId;
+          pendingAcceptDealId = null; // Clear to prevent re-triggering
+
+          // Find the accept button for this deal and click it
+          const btn = document.querySelector(`[data-deal-id="${dealIdToAccept}"]`);
+          if (btn && !btn.disabled) {
+            // Small delay to let user see the page first
+            setTimeout(() => {
+              handleAccept(dealIdToAccept, btn);
+            }, 500);
+          }
+        }
       } catch (error) {
         if (!append) {
           listEl.innerHTML = `
@@ -152,17 +200,18 @@
       const el = document.createElement('div');
       el.className = 'mission-item';
 
-      // Determine post type label
-      const postType = mission.requirements.post_type === 'quote'
-        ? 'Quote Post (commentary required)'
+      // Determine content type from requirements
+      const contentType = mission.requirements.content_type || 'original_post';
+      const postType = contentType === 'quote_post_commentary'
+        ? 'Quote Post'
         : 'Original Post';
 
-      // Build description without "Share" language
-      let description = mission.requirements.post_type === 'quote'
-        ? 'Write a sponsored quote-post with your own commentary'
-        : 'Create an original sponsored post';
-      if (mission.requirements.hashtags?.length) {
-        description += ` (include #${mission.requirements.hashtags[0]})`;
+      // Build description
+      let description = mission.description || '';
+      if (!description) {
+        description = contentType === 'quote_post_commentary'
+          ? 'Write a sponsored quote-post with your own commentary'
+          : 'Create an original sponsored post';
       }
 
       el.innerHTML = `
@@ -178,7 +227,7 @@
           </div>
         </div>
         <p class="mission-item-agent">From: ${escapeHtml(mission.agent_name)}</p>
-        <p class="mission-item-description">${description}</p>
+        <p class="mission-item-description">${escapeHtml(description)}</p>
         <div class="mission-item-approval">
           Paid after approval • Compliance-based, not engagement-based
         </div>
@@ -198,38 +247,88 @@
       // Add click handler for accept button
       const acceptBtn = el.querySelector('.accept-btn');
       if (acceptBtn) {
-        acceptBtn.addEventListener('click', () => handleAccept(mission.deal_id, acceptBtn));
+        acceptBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          handleAccept(mission.deal_id, acceptBtn);
+        });
       }
 
       return el;
     }
 
     async function handleAccept(dealId, btn) {
+      // If not logged in, redirect to login with return parameters (NO ERROR ALERT)
       if (!HumanAds.isLoggedIn()) {
-        HumanAds.showAlert('Please sign in to accept missions.', 'error');
+        // Build login URL with redirect back to this page with accept parameter
+        const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?accept=' + dealId)}`;
+        window.location.href = loginUrl;
         return;
       }
+
+      // Prevent double-click
+      if (btn.disabled) return;
 
       HumanAds.setButtonLoading(btn, true);
 
       try {
-        await HumanAds.acceptMission(dealId);
-        HumanAds.showAlert('Mission accepted! Check "My Missions" to complete it.');
+        const result = await HumanAds.acceptMission(dealId);
+        showPageAlert('Mission accepted! Check "My Missions" to complete it.', 'success');
 
-        // Refresh the card
+        // Update button to show accepted state
         btn.textContent = 'ACCEPTED';
         btn.style.pointerEvents = 'none';
         btn.style.opacity = '0.5';
         btn.classList.remove('btn-primary');
         btn.classList.add('btn-outline');
+        btn.disabled = true;
+
+        // Optional: redirect to my missions after short delay
+        setTimeout(() => {
+          window.location.href = '/missions/my';
+        }, 1500);
       } catch (error) {
-        HumanAds.showAlert(error.message, 'error');
+        // Handle specific error cases
+        const errorMessage = error.message || 'Failed to accept mission';
+
+        if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
+          // Session expired - redirect to login
+          HumanAds.clearSession();
+          const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?accept=' + dealId)}`;
+          window.location.href = loginUrl;
+          return;
+        }
+
+        if (errorMessage.includes('Already accepted') || errorMessage.includes('conflict')) {
+          showPageAlert('You have already accepted this mission.', 'error');
+          btn.textContent = 'ACCEPTED';
+          btn.style.pointerEvents = 'none';
+          btn.style.opacity = '0.5';
+          btn.classList.remove('btn-primary');
+          btn.classList.add('btn-outline');
+          btn.disabled = true;
+          return;
+        }
+
+        if (errorMessage.includes('No slots') || errorMessage.includes('sold_out')) {
+          showPageAlert('Sorry, all slots for this mission have been filled.', 'error');
+          return;
+        }
+
+        // Server error - include request ID for support
+        if (error.status === 500 && error.requestId) {
+          showPageAlert(`Server error. Reference: ${error.requestId}`, 'error');
+          return;
+        }
+
+        // Generic error
+        showPageAlert(errorMessage, 'error');
       } finally {
         HumanAds.setButtonLoading(btn, false);
       }
     }
 
     function escapeHtml(str) {
+      if (!str) return '';
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
@@ -237,11 +336,24 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
+      const isLoggedIn = HumanAds.isLoggedIn();
+
       // Show user menu if logged in
-      if (HumanAds.isLoggedIn()) {
-        document.getElementById('user-menu').style.display = 'block';
+      if (isLoggedIn) {
+        document.getElementById('user-menu').style.display = 'flex';
       } else {
-        document.getElementById('login-prompt').style.display = 'block';
+        // Show login CTA (not error, just info)
+        document.getElementById('login-cta').style.display = 'block';
+      }
+
+      // Check for accept parameter in URL (from login redirect)
+      const urlParams = new URLSearchParams(window.location.search);
+      const acceptDealId = urlParams.get('accept');
+
+      if (acceptDealId && isLoggedIn) {
+        pendingAcceptDealId = acceptDealId;
+        // Clean up URL
+        window.history.replaceState({}, '', '/missions');
       }
 
       loadMissions();

@@ -29,7 +29,14 @@ async function fetchApi(endpoint, options = {}) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error?.message || 'Request failed');
+    // Create error with detailed information
+    const errorMessage = data.error?.message || 'Request failed';
+    const error = new Error(errorMessage);
+    error.code = data.error?.code || 'UNKNOWN_ERROR';
+    error.status = response.status;
+    error.requestId = data.request_id;
+    error.details = data.error?.details;
+    throw error;
   }
 
   return data;
