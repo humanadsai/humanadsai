@@ -24,6 +24,7 @@ import { handleDashboard } from './api/auth/dashboard';
 
 // Account API
 import { handleAccountDelete, handleAccountDeleteCheck } from './api/account/delete';
+import { handleDeletePage, handleDeleteConfirmPage, handleDeletedPage } from './api/account/delete-pages';
 
 // Public API
 import {
@@ -95,6 +96,22 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
     if (path === '/dashboard') {
       return handleDashboard(request, env);
+    }
+
+    // ============================================
+    // Settings Pages (authenticated users)
+    // ============================================
+
+    if (path === '/settings/account/delete' && method === 'GET') {
+      return handleDeletePage(request, env);
+    }
+
+    if (path === '/settings/account/delete/confirm' && method === 'GET') {
+      return handleDeleteConfirmPage(request, env);
+    }
+
+    if (path === '/settings/account/deleted' && method === 'GET') {
+      return handleDeletedPage(request, env);
     }
 
     // ============================================
