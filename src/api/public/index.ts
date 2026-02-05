@@ -235,33 +235,190 @@ export async function getPublicOperator(
  * 統計情報
  *
  * GET /api/stats
+ *
+ * Query params:
+ * - debug=1: Include detailed debug information
+ *
+ * Returns:
+ * - site_access: Unique visitors in the last 30 days
+ * - human_operators: Total verified human promoters
+ * - ai_connected: Total approved AI agents
+ * - generated_at: Timestamp of when the stats were generated
+ * - cache: "miss" (always fresh from DB)
  */
 export async function getStats(request: Request, env: Env): Promise<Response> {
   const requestId = generateRequestId();
+  const url = new URL(request.url);
+  const debug = url.searchParams.get('debug') === '1';
 
   try {
-    const [campaigns, operators, completedMissions] = await Promise.all([
-      env.DB.prepare(
-        `SELECT COUNT(*) as count FROM deals WHERE status IN ('active', 'completed')`
-      ).first<{ count: number }>(),
-      env.DB.prepare(
-        `SELECT COUNT(*) as count FROM operators WHERE status = 'verified'`
-      ).first<{ count: number }>(),
-      env.DB.prepare(
-        `SELECT COUNT(*) as count FROM missions WHERE status = 'paid'`
-      ).first<{ count: number }>(),
-    ]);
+    // Calculate date 30 days ago in YYYY-MM-DD format
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
 
-    return success(
-      {
-        ai_registered_campaigns: campaigns?.count || 0,
-        human_operators: operators?.count || 0,
-        completed_missions: completedMissions?.count || 0,
-      },
-      requestId
-    );
+    // Query each stat separately to avoid one failure breaking all stats
+    let siteAccessCount = 0;
+    let operatorsCount = 0;
+    let agentsCount = 0;
+
+    // Debug info
+    const debugInfo: Record<string, unknown> = {};
+
+    // Site Access - may fail if table doesn't exist yet
+    try {
+      const siteAccess = await env.DB.prepare(
+        `SELECT COUNT(DISTINCT visitor_hash) as count
+         FROM site_visits
+         WHERE visit_date >= ?`
+      ).bind(thirtyDaysAgoStr).first<{ count: number }>();
+      siteAccessCount = siteAccess?.count || 0;
+      if (debug) {
+        debugInfo.site_access_query = 'success';
+        debugInfo.site_access_date_from = thirtyDaysAgoStr;
+      }
+    } catch (e) {
+      console.warn('Site visits query failed (table may not exist):', e);
+      if (debug) {
+        debugInfo.site_access_query = 'failed';
+        debugInfo.site_access_error = String(e);
+      }
+    }
+
+    // Human Promoters - verified operators
+    try {
+      const operators = await env.DB.prepare(
+        `SELECT COUNT(*) as count FROM operators WHERE status = 'verified'`
+      ).first<{ count: number }>();
+      operatorsCount = operators?.count || 0;
+      if (debug) {
+        debugInfo.operators_query = 'success';
+      }
+    } catch (e) {
+      console.error('Operators count query failed:', e);
+      if (debug) {
+        debugInfo.operators_query = 'failed';
+        debugInfo.operators_error = String(e);
+      }
+    }
+
+    // AI Connected - approved agents
+    try {
+      const agents = await env.DB.prepare(
+        `SELECT COUNT(*) as count FROM agents WHERE status = 'approved'`
+      ).first<{ count: number }>();
+      agentsCount = agents?.count || 0;
+      if (debug) {
+        debugInfo.agents_query = 'success';
+      }
+    } catch (e) {
+      console.error('Agents count query failed:', e);
+      if (debug) {
+        debugInfo.agents_query = 'failed';
+        debugInfo.agents_error = String(e);
+      }
+    }
+
+    // Build response with no-cache headers to prevent CDN/browser caching
+    const responseData: Record<string, unknown> = {
+      site_access: siteAccessCount,
+      human_operators: operatorsCount,
+      ai_connected: agentsCount,
+      generated_at: new Date().toISOString(),
+      cache: 'miss',
+    };
+
+    // Include debug info if requested
+    if (debug) {
+      responseData._debug = {
+        ...debugInfo,
+        request_id: requestId,
+        timestamp: Date.now(),
+      };
+    }
+
+    const response = success(responseData, requestId);
+
+    // Clone response to add cache-control headers
+    const headers = new Headers(response.headers);
+    headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    headers.set('Pragma', 'no-cache');
+    headers.set('Expires', '0');
+
+    return new Response(response.body, {
+      status: response.status,
+      headers,
+    });
   } catch (e) {
     console.error('Get stats error:', e);
     return errors.internalError(requestId);
+  }
+}
+
+/**
+ * 訪問追跡
+ *
+ * POST /api/track-visit
+ *
+ * Tracks a page visit for statistics.
+ * Uses hashed IP + User-Agent for unique visitor identification (privacy-friendly).
+ */
+export async function trackVisit(request: Request, env: Env): Promise<Response> {
+  const requestId = generateRequestId();
+
+  try {
+    // Get visitor identification from headers
+    const ip = request.headers.get('CF-Connecting-IP') ||
+               request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+               'unknown';
+    const userAgent = request.headers.get('User-Agent') || 'unknown';
+    const referer = request.headers.get('Referer');
+
+    // Parse request body for page path
+    let pagePath = '/';
+    try {
+      const body = await request.json() as { page?: string };
+      pagePath = body.page || '/';
+    } catch {
+      // Default to root path if no body
+    }
+
+    // Create a privacy-friendly visitor hash (not storing raw IP)
+    const visitorData = `${ip}:${userAgent}`;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(visitorData);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const visitorHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+
+    // Extract referrer domain if present
+    let referrerDomain: string | null = null;
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        // Don't track self-referrals
+        const requestUrl = new URL(request.url);
+        if (refererUrl.hostname !== requestUrl.hostname) {
+          referrerDomain = refererUrl.hostname;
+        }
+      } catch {
+        // Invalid referrer URL, ignore
+      }
+    }
+
+    // Insert or ignore (unique constraint handles duplicates)
+    await env.DB.prepare(
+      `INSERT OR IGNORE INTO site_visits (visit_date, visitor_hash, page_path, referrer_domain)
+       VALUES (?, ?, ?, ?)`
+    ).bind(today, visitorHash, pagePath, referrerDomain).run();
+
+    return success({ tracked: true }, requestId);
+  } catch (e) {
+    console.error('Track visit error:', e);
+    // Don't fail the request for tracking errors
+    return success({ tracked: false }, requestId);
   }
 }

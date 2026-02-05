@@ -130,10 +130,15 @@ CREATE TABLE IF NOT EXISTS operators (
     evm_wallet_address TEXT,
     solana_wallet_address TEXT,
 
-    -- Post Verification
+    -- Invite System (replaces Post Verification)
+    invite_code TEXT UNIQUE, -- User's unique invite code (e.g., HADS_ABC123)
+    invited_by TEXT, -- operator_id of who invited this user
+    invite_count INTEGER DEFAULT 0, -- Number of users invited by this user
+
+    -- Legacy Post Verification (deprecated, kept for backward compatibility)
     verify_code TEXT UNIQUE,
-    verify_status TEXT NOT NULL DEFAULT 'not_started', -- not_started, pending, verified, failed
-    verify_post_id TEXT, -- Tweet ID used for verification
+    verify_status TEXT NOT NULL DEFAULT 'not_started',
+    verify_post_id TEXT,
     verify_completed_at TEXT,
 
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -142,6 +147,8 @@ CREATE TABLE IF NOT EXISTS operators (
 
 CREATE INDEX idx_operators_x_handle ON operators(x_handle);
 CREATE INDEX idx_operators_status ON operators(status);
+CREATE INDEX idx_operators_invite_code ON operators(invite_code);
+CREATE INDEX idx_operators_invited_by ON operators(invited_by);
 CREATE INDEX idx_operators_verify_code ON operators(verify_code);
 
 -- ============================================
@@ -380,3 +387,27 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 );
 
 CREATE INDEX idx_rate_limits_key ON rate_limits(limit_key);
+
+-- ============================================
+-- Site Visits Tracking (for public stats)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS site_visits (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    -- 訪問日 (YYYY-MM-DD)
+    visit_date TEXT NOT NULL,
+    -- ビジター識別子 (hashed IP + User-Agent for uniqueness, not stored raw)
+    visitor_hash TEXT NOT NULL,
+    -- ページパス
+    page_path TEXT NOT NULL DEFAULT '/',
+    -- リファラードメイン (optional)
+    referrer_domain TEXT,
+    -- 作成日時
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+
+    -- ユニーク訪問者を日別で追跡
+    UNIQUE(visit_date, visitor_hash, page_path)
+);
+
+CREATE INDEX idx_site_visits_date ON site_visits(visit_date);
+CREATE INDEX idx_site_visits_created ON site_visits(created_at);
