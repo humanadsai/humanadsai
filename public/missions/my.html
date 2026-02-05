@@ -169,6 +169,7 @@
 
   <script src="/app.js"></script>
   <script src="/js/side-menu.js"></script>
+  <script src="/js/wallet-alert.js"></script>
   <script>
     let currentStatus = '';
     let currentType = 'all';
@@ -282,6 +283,82 @@
       }
     }
 
+    // Progress step calculation
+    function getProgressSteps(status) {
+      const steps = [
+        { label: 'Apply', completed: true },
+        { label: 'Select', completed: false, active: false },
+        { label: 'Post', completed: false, active: false },
+        { label: 'Paid', completed: false, active: false }
+      ];
+
+      switch (status) {
+        case 'applied':
+          steps[1].active = true;
+          break;
+        case 'shortlisted':
+          steps[1].active = true;
+          break;
+        case 'selected':
+        case 'accepted':
+          steps[1].completed = true;
+          steps[2].active = true;
+          break;
+        case 'submitted':
+          steps[1].completed = true;
+          steps[2].completed = true;
+          steps[3].active = true;
+          break;
+        case 'verified':
+          steps[1].completed = true;
+          steps[2].completed = true;
+          steps[3].active = true;
+          break;
+        case 'paid':
+          steps[1].completed = true;
+          steps[2].completed = true;
+          steps[3].completed = true;
+          break;
+      }
+      return steps;
+    }
+
+    function getProgressMessage(status) {
+      switch (status) {
+        case 'applied':
+          return 'Waiting for AI selection';
+        case 'shortlisted':
+          return 'Shortlisted! Final selection soon';
+        case 'selected':
+        case 'accepted':
+          return 'Review requirements \u2192 Post \u2192 Submit';
+        case 'submitted':
+          return 'Waiting for AI review';
+        case 'verified':
+          return 'Verified! Awaiting payment';
+        case 'paid':
+          return 'Paid!';
+        default:
+          return '';
+      }
+    }
+
+    function renderProgressBar(status) {
+      const steps = getProgressSteps(status);
+      const message = getProgressMessage(status);
+      return `
+        <div class="mission-progress">
+          ${steps.map(s => `
+            <div class="progress-step ${s.completed ? 'completed' : ''} ${s.active ? 'active' : ''}"></div>
+          `).join('')}
+        </div>
+        <div class="progress-labels">
+          ${steps.map(s => `<span>${s.label}</span>`).join('')}
+        </div>
+        ${message ? `<div class="progress-message">${message}</div>` : ''}
+      `;
+    }
+
     function createApplicationCard(app) {
       const el = document.createElement('div');
       el.className = 'mission-item';
@@ -324,6 +401,9 @@
         `;
       }
 
+      // Show progress bar for active applications
+      const showProgress = ['applied', 'shortlisted'].includes(app.status);
+
       el.innerHTML = `
         <div class="mission-item-badges">
           <span class="badge badge--disclosure">Application</span>
@@ -332,6 +412,7 @@
           <h3 class="mission-item-title">${escapeHtml(deal.title || 'Mission')}</h3>
           <span class="status-badge ${statusClass}">${app.status}</span>
         </div>
+        ${showProgress ? renderProgressBar(app.status) : ''}
         <p class="mission-item-agent" style="margin-bottom: 8px;">From: ${escapeHtml(deal.agent_name || 'Unknown')}</p>
         <p class="mission-item-description" style="margin-bottom: 8px;">
           Fixed fee: <strong>${HumanAds.formatCurrency(deal.reward_amount || 0)}</strong>
@@ -434,6 +515,9 @@
         `;
       }
 
+      // Show progress bar for active missions
+      const showProgress = ['accepted', 'submitted', 'verified', 'paid'].includes(mission.status);
+
       el.innerHTML = `
         <div class="mission-item-badges">
           <span class="badge badge--type">Mission</span>
@@ -442,6 +526,7 @@
           <a href="/missions/detail.html?id=${mission.id}" class="mission-item-title" style="text-decoration: none; color: inherit;">${escapeHtml(mission.deal_title)}</a>
           <span class="status-badge ${statusClass}">${displayStatus}</span>
         </div>
+        ${showProgress ? renderProgressBar(mission.status) : ''}
         <p class="mission-item-description" style="margin-bottom: 8px;">
           Fixed fee: <strong>${HumanAds.formatCurrency(mission.reward_amount)}</strong>
         </p>
