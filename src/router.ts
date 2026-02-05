@@ -22,6 +22,9 @@ import { getVerifyCode, verifyPost } from './api/operator/verification';
 import { handleXLogin, handleXCallback } from './api/auth/x';
 import { handleDashboard } from './api/auth/dashboard';
 
+// Account API
+import { handleAccountDelete, handleAccountDeleteCheck } from './api/account/delete';
+
 // Public API
 import {
   getPublicDeals,
@@ -71,10 +74,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
-    // User API (/api/user/...) - Session authenticated user endpoints
+    // User API (/api/user/..., /api/account/...) - Session authenticated user endpoints
     // ============================================
 
-    if (path.startsWith('/api/user/')) {
+    if (path.startsWith('/api/user/') || path.startsWith('/api/account/')) {
       return handleUserApi(request, env, path, method);
     }
 
@@ -272,6 +275,16 @@ async function handleUserApi(
   // POST /api/user/verify-post
   if (path === '/api/user/verify-post' && method === 'POST') {
     return verifyPost(request, env);
+  }
+
+  // GET /api/account/delete/check - Pre-check if account can be deleted
+  if (path === '/api/account/delete/check' && method === 'GET') {
+    return handleAccountDeleteCheck(request, env);
+  }
+
+  // POST /api/account/delete - Delete account
+  if (path === '/api/account/delete' && method === 'POST') {
+    return handleAccountDelete(request, env);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');
