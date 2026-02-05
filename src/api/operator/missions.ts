@@ -594,3 +594,89 @@ async function verifySubmission(
     message: 'Verification passed (URL check only)',
   };
 }
+
+/**
+ * Cancel a mission
+ *
+ * POST /api/missions/:id/cancel
+ *
+ * Allows operator to cancel their mission before submission.
+ * Only missions with status 'accepted' can be cancelled.
+ */
+export async function cancelMission(
+  request: Request,
+  env: Env,
+  missionId: string
+): Promise<Response> {
+  const requestId = generateRequestId();
+
+  try {
+    // Authenticate
+    const authResult = await authenticateOperator(request, env);
+    if (!authResult.success) {
+      return authResult.error!;
+    }
+
+    const operator = authResult.operator!;
+
+    // Get mission with deal info
+    const mission = await env.DB.prepare(
+      `SELECT m.*, d.id as deal_id
+       FROM missions m
+       JOIN deals d ON m.deal_id = d.id
+       WHERE m.id = ? AND m.operator_id = ?`
+    )
+      .bind(missionId, operator.id)
+      .first<Mission & { deal_id: string }>();
+
+    if (!mission) {
+      return errors.notFound(requestId, 'Mission');
+    }
+
+    // Can only cancel missions with status 'accepted' (not yet submitted)
+    if (mission.status !== 'accepted') {
+      return errors.invalidRequest(requestId, {
+        message: `Cannot cancel mission with status '${mission.status}'. Only missions in 'accepted' status can be cancelled.`,
+        code: 'not_cancelable',
+      });
+    }
+
+    // Update mission status and release slot
+    await env.DB.batch([
+      // Update mission status to cancelled
+      env.DB.prepare(
+        `UPDATE missions SET
+          status = 'expired',
+          updated_at = datetime('now')
+         WHERE id = ?`
+      ).bind(missionId),
+      // Update application status to cancelled if exists
+      env.DB.prepare(
+        `UPDATE applications SET
+          status = 'cancelled',
+          updated_at = datetime('now')
+         WHERE deal_id = ? AND operator_id = ?`
+      ).bind(mission.deal_id, operator.id),
+      // Release slot on deal
+      env.DB.prepare(
+        `UPDATE deals SET
+          current_participants = MAX(0, current_participants - 1),
+          slots_selected = MAX(0, COALESCE(slots_selected, current_participants) - 1),
+          updated_at = datetime('now')
+         WHERE id = ?`
+      ).bind(mission.deal_id),
+    ]);
+
+    return success(
+      {
+        mission_id: missionId,
+        status: 'cancelled',
+        message: 'Mission cancelled successfully. The slot has been released.',
+      },
+      requestId
+    );
+  } catch (e) {
+    console.error('Cancel mission error:', e);
+    return errors.internalError(requestId);
+  }
+}

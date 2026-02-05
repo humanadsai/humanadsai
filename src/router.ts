@@ -32,6 +32,7 @@ import {
   acceptMission,
   submitMission,
   getMyMissions,
+  cancelMission,
 } from './api/operator/missions';
 import { getOperatorWallets, updateOperatorWallets } from './api/operator/wallets';
 import { getVerifyCode, verifyPost } from './api/operator/verification';
@@ -347,6 +348,12 @@ async function handleOperatorApi(
   // POST /api/missions/submit
   if (path === '/api/missions/submit' && method === 'POST') {
     return submitMission(request, env);
+  }
+
+  // POST /api/missions/:id/cancel - Cancel a mission (before submission)
+  const cancelMatch = path.match(/^\/api\/missions\/([a-f0-9]+)\/cancel$/);
+  if (cancelMatch && method === 'POST') {
+    return cancelMission(request, env, cancelMatch[1]);
   }
 
   // GET /api/missions/my
