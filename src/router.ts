@@ -16,6 +16,7 @@ import {
   getMyMissions,
 } from './api/operator/missions';
 import { getOperatorWallets, updateOperatorWallets } from './api/operator/wallets';
+import { getVerifyCode, verifyPost } from './api/operator/verification';
 
 // Auth API
 import { handleXLogin, handleXCallback } from './api/auth/x';
@@ -209,6 +210,16 @@ async function handleOperatorApi(
   // POST /api/operator/wallets
   if (path === '/api/operator/wallets' && method === 'POST') {
     return updateOperatorWallets(request, env);
+  }
+
+  // GET /api/operator/verify-code
+  if (path === '/api/operator/verify-code' && method === 'GET') {
+    return getVerifyCode(request, env);
+  }
+
+  // POST /api/operator/verify-post
+  if (path === '/api/operator/verify-post' && method === 'POST') {
+    return verifyPost(request, env);
   }
 
   // GET /api/missions/available

@@ -130,15 +130,40 @@ CREATE TABLE IF NOT EXISTS operators (
     evm_wallet_address TEXT,
     solana_wallet_address TEXT,
 
+    -- Post Verification
+    verify_code TEXT UNIQUE,
+    verify_status TEXT NOT NULL DEFAULT 'not_started', -- not_started, pending, verified, failed
+    verify_post_id TEXT, -- Tweet ID used for verification
+    verify_completed_at TEXT,
+
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX idx_operators_x_handle ON operators(x_handle);
 CREATE INDEX idx_operators_status ON operators(status);
+CREATE INDEX idx_operators_verify_code ON operators(verify_code);
 
 -- ============================================
--- Operator Verification Codes (X Bio認証)
+-- Verification Posts (tracking used posts)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS verification_posts (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    operator_id TEXT NOT NULL REFERENCES operators(id) ON DELETE CASCADE,
+    tweet_id TEXT NOT NULL UNIQUE,
+    tweet_url TEXT NOT NULL,
+    tweet_text TEXT,
+    tweet_author_id TEXT,
+    status TEXT NOT NULL DEFAULT 'verified', -- verified, rejected
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_verification_posts_operator ON verification_posts(operator_id);
+CREATE INDEX idx_verification_posts_tweet ON verification_posts(tweet_id);
+
+-- ============================================
+-- Operator Verification Codes (X Bio認証 - Legacy)
 -- ============================================
 
 CREATE TABLE IF NOT EXISTS operator_verifications (

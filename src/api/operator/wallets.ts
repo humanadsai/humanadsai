@@ -109,19 +109,19 @@ export async function updateOperatorWallets(request: Request, env: Env): Promise
   try {
     body = await request.json();
   } catch (e) {
-    return errors.badRequest(requestId, 'Invalid JSON body');
+    return errors.invalidRequest(requestId, 'Invalid JSON body');
   }
 
   const { evm_wallet_address, solana_wallet_address } = body;
 
   // Validate EVM address
   if (evm_wallet_address && !/^0x[a-fA-F0-9]{40}$/.test(evm_wallet_address)) {
-    return errors.badRequest(requestId, 'Invalid EVM address format');
+    return errors.invalidRequest(requestId, 'Invalid EVM address format');
   }
 
   // Validate Solana address (basic check)
   if (solana_wallet_address && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(solana_wallet_address)) {
-    return errors.badRequest(requestId, 'Invalid Solana address format');
+    return errors.invalidRequest(requestId, 'Invalid Solana address format');
   }
 
   try {

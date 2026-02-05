@@ -13,6 +13,8 @@ export interface Env {
   // X (Twitter) OAuth2
   X_CLIENT_ID: string;
   X_CLIENT_SECRET: string;
+  // X (Twitter) API v2 Bearer Token
+  X_BEARER_TOKEN?: string;
 }
 
 // ============================================
