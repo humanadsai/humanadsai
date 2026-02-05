@@ -884,8 +884,8 @@ async function handleAdminApi(
   // Logging & Debug
   // ============================================
 
-  // GET /api/admin/logs/audit - Get audit logs
-  if (path === '/api/admin/logs/audit' && method === 'GET') {
+  // GET /api/admin/logs - Get audit logs
+  if ((path === '/api/admin/logs' || path === '/api/admin/logs/audit') && method === 'GET') {
     return getAuditLogs(request, env);
   }
 

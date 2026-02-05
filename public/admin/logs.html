@@ -53,33 +53,58 @@
   <script src="/js/side-menu.js"></script>
   <script src="/js/humanads.js"></script>
   <script>
+    let currentEndpoint = null;
+    let lastError = null;
+
     async function loadLogs(endpoint = null) {
+      currentEndpoint = endpoint;
       const content = document.getElementById('content');
-      content.innerHTML = '<div class="loading">Loading logs...</div>';
+
+      // Always show header and search, even during loading/error
+      const headerHtml = `
+        <div class="admin-header">
+          <h1>Audit Logs</h1>
+        </div>
+        <div class="search-box">
+          <input type="text" id="search-endpoint" placeholder="Filter by endpoint (e.g. /v1/deals)" value="${endpoint || ''}">
+          <button onclick="searchLogs()">Search</button>
+          <button onclick="loadLogs(currentEndpoint)" style="background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border);">Refresh</button>
+        </div>
+      `;
+
+      content.innerHTML = headerHtml + '<div class="loading">Loading logs...</div>';
 
       try {
-        let url = '/admin/logs/audit?limit=100';
+        // Correct API path: /api/admin/logs (not /admin/logs/audit)
+        let url = '/admin/logs?limit=100';
         if (endpoint) url += `&endpoint=${encodeURIComponent(endpoint)}`;
 
         const res = await HumanAds.fetchApi(url);
 
         if (!res.success) {
-          content.innerHTML = `<div class="empty">Error: ${res.error?.message || 'Failed to load'}</div>`;
+          lastError = res.error;
+          const errorCode = res.error?.code || 'UNKNOWN';
+          const errorMessage = res.error?.message || 'Failed to load logs';
+          const requestId = res.request_id || 'N/A';
+
+          content.innerHTML = headerHtml + `
+            <div class="error-box" style="background: rgba(255,59,48,0.1); border: 1px solid rgba(255,59,48,0.3); border-radius: 8px; padding: 20px; text-align: center;">
+              <p style="color: #ff3b30; margin-bottom: 12px;">Error: ${HumanAds.escapeHtml(errorMessage)}</p>
+              <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 16px;">
+                Code: ${errorCode}<br>Request ID: ${requestId}
+              </p>
+              <button onclick="loadLogs(currentEndpoint)" style="padding: 8px 16px; background: var(--color-primary); border: none; border-radius: 6px; color: white; font-family: var(--font-mono); cursor: pointer;">Retry</button>
+            </div>
+          `;
           return;
         }
 
         const logs = res.data.logs || [];
 
-        content.innerHTML = `
-          <div class="admin-header">
-            <h1>Audit Logs (${logs.length})</h1>
-          </div>
-          <div class="search-box">
-            <input type="text" id="search-endpoint" placeholder="Filter by endpoint (e.g. /v1/deals)" value="${endpoint || ''}">
-            <button onclick="searchLogs()">Search</button>
-          </div>
+        content.innerHTML = headerHtml + `
+          <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 16px;">${logs.length} log entries</p>
           <div class="table-container">
-            ${logs.length === 0 ? '<div class="empty">No logs found</div>' : `
+            ${logs.length === 0 ? '<div class="empty">No logs found. Logs are recorded when AI agents make API requests.</div>' : `
               <table class="data-table">
                 <thead>
                   <tr><th>Request ID</th><th>Endpoint</th><th>Method</th><th>Decision</th><th>Agent</th><th>Time</th><th></th></tr>
@@ -87,13 +112,13 @@
                 <tbody>
                   ${logs.map(l => `
                     <tr>
-                      <td class="id-cell">${l.request_id.substring(0,8)}...<button class="copy-btn" onclick="copyId('${l.request_id}')">copy</button></td>
-                      <td>${HumanAds.escapeHtml(l.endpoint)}</td>
-                      <td>${l.method}</td>
-                      <td><span class="decision-badge ${l.decision}">${l.decision}</span></td>
+                      <td class="id-cell">${(l.request_id || 'N/A').substring(0,8)}...<button class="copy-btn" onclick="copyId('${l.request_id || ''}')">copy</button></td>
+                      <td>${HumanAds.escapeHtml(l.endpoint || '-')}</td>
+                      <td>${l.method || '-'}</td>
+                      <td><span class="decision-badge ${l.decision || 'unknown'}">${l.decision || '-'}</span></td>
                       <td class="id-cell">${l.agent_id ? l.agent_id.substring(0,8) + '...' : '-'}</td>
-                      <td>${HumanAds.formatRelativeTime(l.created_at)}</td>
-                      <td><button class="copy-btn" onclick="showDetails('${l.request_id}')">details</button></td>
+                      <td>${l.created_at ? HumanAds.formatRelativeTime(l.created_at) : '-'}</td>
+                      <td><button class="copy-btn" onclick="showDetails('${l.request_id || ''}')">details</button></td>
                     </tr>
                   `).join('')}
                 </tbody>
@@ -102,7 +127,13 @@
           </div>
         `;
       } catch (e) {
-        content.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+        console.error('Load logs error:', e);
+        content.innerHTML = headerHtml + `
+          <div class="error-box" style="background: rgba(255,59,48,0.1); border: 1px solid rgba(255,59,48,0.3); border-radius: 8px; padding: 20px; text-align: center;">
+            <p style="color: #ff3b30; margin-bottom: 12px;">Error: ${HumanAds.escapeHtml(e.message)}</p>
+            <button onclick="loadLogs(currentEndpoint)" style="padding: 8px 16px; background: var(--color-primary); border: none; border-radius: 6px; color: white; font-family: var(--font-mono); cursor: pointer;">Retry</button>
+          </div>
+        `;
       }
     }
 
@@ -112,11 +143,13 @@
     }
 
     function copyId(id) {
+      if (!id) return;
       HumanAds.copyToClipboard(id);
       HumanAds.showAlert('Copied!');
     }
 
     function showDetails(requestId) {
+      if (!requestId) return;
       alert('Request ID: ' + requestId + '\n\nFull log viewer coming soon.');
     }
 
