@@ -582,7 +582,9 @@
           showResult('success', 'Verification successful! Your account is now verified.');
           updateStatus('verified');
         } else {
-          showResult('error', data.error?.message || 'Verification failed');
+          // Details contains the specific error message, message is generic
+          const errorMsg = data.error?.details || data.error?.message || 'Verification failed';
+          showResult('error', errorMsg);
           // Start cooldown
           startCooldown(30);
         }
