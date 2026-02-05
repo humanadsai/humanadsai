@@ -82,11 +82,11 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
 
   // Get optional redirect URL and invite code from query parameters
   const requestUrl = new URL(request.url);
-  const redirectAfterLogin = requestUrl.searchParams.get('redirect') || '/dashboard';
+  const redirectAfterLogin = requestUrl.searchParams.get('redirect') || '/missions/my';
   const inviteCode = requestUrl.searchParams.get('invite') || '';
 
   // Only allow relative paths for security
-  const safeRedirect = redirectAfterLogin.startsWith('/') ? redirectAfterLogin : '/dashboard';
+  const safeRedirect = redirectAfterLogin.startsWith('/') ? redirectAfterLogin : '/missions/my';
   console.log('[X Login] Will redirect to after login:', safeRedirect);
   if (inviteCode) {
     console.log('[X Login] Invite code:', inviteCode);
@@ -461,7 +461,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
     }
 
     // Get redirect URL from cookie (if set during login)
-    const redirectUrl = getRedirectCookie(request) || '/dashboard';
+    const redirectUrl = getRedirectCookie(request) || '/missions/my';
     console.log('[X Callback] Login successful! Redirecting to:', redirectUrl);
 
     const sessionCookie = `session=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
