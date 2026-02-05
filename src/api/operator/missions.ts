@@ -595,13 +595,20 @@ async function verifySubmission(
   };
 }
 
+// Cancel reason codes
+type CancelReasonCode = 'WRONG_LINK' | 'POST_DELETED' | 'CANNOT_MEET_REQUIREMENTS' | 'NO_LONGER_INTERESTED' | 'OTHER';
+
+// Cancel window for submitted missions (30 minutes)
+const SUBMITTED_CANCEL_WINDOW_MINUTES = 30;
+
 /**
  * Cancel a mission
  *
  * POST /api/missions/:id/cancel
  *
- * Allows operator to cancel their mission before submission.
- * Only missions with status 'accepted' can be cancelled.
+ * Allows operator to cancel their mission.
+ * - 'accepted' status: can always cancel
+ * - 'submitted' status: can cancel within 30 minutes of submission
  */
 export async function cancelMission(
   request: Request,
@@ -619,6 +626,17 @@ export async function cancelMission(
 
     const operator = authResult.operator!;
 
+    // Parse request body for reason (optional for accepted, recommended for submitted)
+    let reasonCode: CancelReasonCode | null = null;
+    let reasonNote: string | null = null;
+    try {
+      const body = await request.json<{ reasonCode?: CancelReasonCode; note?: string }>();
+      reasonCode = body.reasonCode || null;
+      reasonNote = body.note || null;
+    } catch {
+      // Body is optional
+    }
+
     // Get mission with deal info
     const mission = await env.DB.prepare(
       `SELECT m.*, d.id as deal_id
@@ -633,23 +651,53 @@ export async function cancelMission(
       return errors.notFound(requestId, 'Mission');
     }
 
-    // Can only cancel missions with status 'accepted' (not yet submitted)
-    if (mission.status !== 'accepted') {
+    // Check if mission can be cancelled based on status
+    const cancelableStatuses = ['accepted', 'submitted'];
+    if (!cancelableStatuses.includes(mission.status)) {
       return errors.invalidRequest(requestId, {
-        message: `Cannot cancel mission with status '${mission.status}'. Only missions in 'accepted' status can be cancelled.`,
+        message: `Cannot cancel mission with status '${mission.status}'. Only missions in 'accepted' or 'submitted' status can be cancelled.`,
         code: 'not_cancelable',
       });
     }
 
+    // For submitted missions, check the 30-minute window
+    if (mission.status === 'submitted') {
+      if (!mission.submitted_at) {
+        return errors.invalidRequest(requestId, {
+          message: 'Mission submission time not recorded.',
+          code: 'not_cancelable',
+        });
+      }
+
+      const submittedAt = new Date(mission.submitted_at);
+      const now = new Date();
+      const minutesSinceSubmission = (now.getTime() - submittedAt.getTime()) / (1000 * 60);
+
+      if (minutesSinceSubmission > SUBMITTED_CANCEL_WINDOW_MINUTES) {
+        return errors.invalidRequest(requestId, {
+          message: `Cannot cancel submitted mission after ${SUBMITTED_CANCEL_WINDOW_MINUTES} minutes. Your submission is now under review.`,
+          code: 'cancel_window_expired',
+        });
+      }
+    }
+
     // Update mission status and release slot
+    const cancelMetadata = JSON.stringify({
+      cancelled_at: new Date().toISOString(),
+      reason_code: reasonCode,
+      reason_note: reasonNote,
+      previous_status: mission.status,
+    });
+
     await env.DB.batch([
-      // Update mission status to cancelled
+      // Update mission status to expired (cancelled)
       env.DB.prepare(
         `UPDATE missions SET
           status = 'expired',
+          metadata = ?,
           updated_at = datetime('now')
          WHERE id = ?`
-      ).bind(missionId),
+      ).bind(cancelMetadata, missionId),
       // Update application status to cancelled if exists
       env.DB.prepare(
         `UPDATE applications SET
@@ -665,13 +713,29 @@ export async function cancelMission(
           updated_at = datetime('now')
          WHERE id = ?`
       ).bind(mission.deal_id),
+      // Track cancellation count on operator (for abuse prevention)
+      env.DB.prepare(
+        `UPDATE operators SET
+          metadata = json_set(
+            COALESCE(metadata, '{}'),
+            '$.cancel_count',
+            COALESCE(json_extract(metadata, '$.cancel_count'), 0) + 1,
+            '$.last_cancel_at',
+            datetime('now')
+          ),
+          updated_at = datetime('now')
+         WHERE id = ?`
+      ).bind(operator.id),
     ]);
 
+    const wasSubmitted = mission.status === 'submitted';
     return success(
       {
         mission_id: missionId,
         status: 'cancelled',
-        message: 'Mission cancelled successfully. The slot has been released.',
+        message: wasSubmitted
+          ? 'Submission cancelled successfully. The slot has been released.'
+          : 'Mission cancelled successfully. The slot has been released.',
       },
       requestId
     );
