@@ -77,14 +77,25 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
     ).first<{ count: number }>();
     const useExtendedSchema = (hasAllNewColumns?.count || 0) > 0;
 
+    // Check if verify_status column exists (separate migration)
+    const hasVerifyStatus = await env.DB.prepare(
+      "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'verify_status'"
+    ).first<{ count: number }>();
+    const hasVerifyColumn = (hasVerifyStatus?.count || 0) > 0;
+
     // Fetch operator (with extended fields if available)
     let operator: Operator | null;
     if (useExtendedSchema) {
+      // Build query dynamically based on verify_status column existence
+      const verifySelect = hasVerifyColumn
+        ? "COALESCE(verify_status, 'not_started') as verify_status"
+        : "'not_started' as verify_status";
+
       operator = await env.DB.prepare(`
         SELECT id, x_user_id, x_handle, display_name, status,
                x_profile_image_url, x_verified, x_verified_type,
                x_followers_count, x_following_count,
-               COALESCE(verify_status, 'not_started') as verify_status
+               ${verifySelect}
         FROM operators
         WHERE session_token_hash = ?
           AND session_expires_at > datetime('now')
