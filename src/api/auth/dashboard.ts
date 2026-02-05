@@ -125,6 +125,22 @@ async function getAuthenticatedOperator(request: Request, env: Env): Promise<Ope
 }
 
 /**
+ * Format count for display (K/M suffix)
+ */
+function formatCount(count: number | null | undefined): string {
+  if (count === null || count === undefined) {
+    return '—';
+  }
+  if (count >= 1000000) {
+    return (count / 1000000).toFixed(2) + 'M';
+  }
+  if (count >= 1000) {
+    return (count / 1000).toFixed(1) + 'K';
+  }
+  return count.toString();
+}
+
+/**
  * Get dashboard stats
  */
 async function getStats(env: Env): Promise<Stats> {
@@ -406,33 +422,184 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       flex-shrink: 0;
     }
 
-    /* Stats */
-    .stats-section {
+    /* Profile Header */
+    .profile-header {
       padding: 24px 0;
     }
 
-    .stats-row {
+    .profile-header-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 480px) {
+      .profile-header-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+    }
+
+    .profile-identity-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .profile-identity-row {
       display: flex;
-      justify-content: space-around;
-      text-align: center;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
     }
 
-    .stat-item { flex: 1; }
-
-    .stat-number {
-      font-family: var(--font-mono);
-      font-size: 1.25rem;
+    .profile-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-cyan), var(--color-green));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
       font-weight: 700;
+      color: #000;
+      flex-shrink: 0;
     }
 
-    .stat-number.stat-orange { color: var(--color-primary); }
-    .stat-number.stat-cyan { color: var(--color-cyan); }
-    .stat-number.stat-green { color: var(--color-green); }
+    .profile-avatar-img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
 
-    .stat-label {
+    .profile-identity-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .profile-display-name {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .profile-handle {
+      font-size: 0.875rem;
+      color: var(--color-cyan);
+    }
+
+    .profile-influence {
+      display: flex;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .influence-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .influence-value {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .influence-label {
       font-size: 0.625rem;
       color: var(--color-text-muted);
-      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .profile-verification-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .verification-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .verification-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--color-cyan);
+    }
+
+    .verification-title {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .verification-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .verification-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .verification-stat-value {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-cyan);
+    }
+
+    .verification-stat-label {
+      font-size: 0.625rem;
+      color: var(--color-text-muted);
+    }
+
+    .verification-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(0, 212, 255, 0.1);
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-cyan);
+    }
+
+    .status-dot.pending { background: #FFA500; }
+    .status-dot.verified { background: var(--color-green); }
+
+    .status-text {
+      font-size: 0.75rem;
+      color: var(--color-text);
+    }
+
+    .btn-small {
+      padding: 10px 16px;
+      font-size: 0.75rem;
     }
 
     /* CTA */
@@ -493,6 +660,47 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       font-size: 0.75rem;
       color: var(--color-text-muted);
       margin-top: 4px;
+    }
+
+    .sample-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      background: rgba(255, 165, 0, 0.2);
+      border: 1px solid rgba(255, 165, 0, 0.4);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      font-weight: 600;
+      color: #FFA500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 8px;
+    }
+
+    .sample-notice {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .mission-sample-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 2px 6px;
+      background: rgba(255, 165, 0, 0.2);
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      font-weight: 600;
+      color: #FFA500;
+      text-transform: uppercase;
+    }
+
+    .mission-card {
+      position: relative;
     }
 
     .view-all-link {
@@ -571,32 +779,6 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       color: var(--color-primary);
     }
 
-    /* Bio Code Section */
-    .biocode-section {
-      padding: 24px 0;
-      border-top: 1px solid var(--color-border);
-    }
-
-    .biocode-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-
-    .biocode-title {
-      font-family: var(--font-mono);
-      font-size: 0.875rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .biocode-sub {
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      margin-bottom: 16px;
-    }
-
     .btn-secondary {
       background: transparent;
       border: 1px solid var(--color-border);
@@ -669,20 +851,63 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       </div>
     </header>
 
-    <!-- Stats -->
-    <section class="stats-section">
-      <div class="stats-row">
-        <div class="stat-item">
-          <div class="stat-number stat-orange">${stats.site_access.toLocaleString()}</div>
-          <div class="stat-label">Site<br>Access</div>
+    <!-- Profile Header -->
+    <section class="profile-header">
+      <div class="profile-header-grid">
+        <!-- Identity & Influence Card -->
+        <div class="profile-identity-card">
+          <div class="profile-identity-row">
+            ${hasProfileImage
+              ? `<img src="${operator.x_profile_image_url}" alt="" class="profile-avatar-img">`
+              : `<div class="profile-avatar">${initial}</div>`
+            }
+            <div class="profile-identity-info">
+              <div class="profile-display-name">
+                ${displayName}
+                ${verifiedBadge}
+              </div>
+              <div class="profile-handle">@${operator.x_handle}</div>
+            </div>
+          </div>
+          <div class="profile-influence">
+            <div class="influence-stat">
+              <span class="influence-value">${formatCount(operator.x_followers_count)}</span>
+              <span class="influence-label">Followers</span>
+            </div>
+            <div class="influence-stat">
+              <span class="influence-value">${formatCount(operator.x_following_count)}</span>
+              <span class="influence-label">Following</span>
+            </div>
+          </div>
         </div>
-        <div class="stat-item">
-          <div class="stat-number stat-cyan">${stats.human_promoters.toLocaleString()}</div>
-          <div class="stat-label">Human<br>Promoters</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number stat-green">${stats.ai_connected.toLocaleString()}</div>
-          <div class="stat-label">AI<br>Connected</div>
+
+        <!-- Verification Status Card -->
+        <div class="profile-verification-card">
+          <div class="verification-header">
+            <svg class="verification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <span class="verification-title">Bio Code Verification</span>
+          </div>
+          <div class="verification-stats">
+            <div class="verification-stat">
+              <span class="verification-stat-value">0</span>
+              <span class="verification-stat-label">Invites Sent</span>
+            </div>
+            <div class="verification-stat">
+              <span class="verification-stat-value">0</span>
+              <span class="verification-stat-label">Accepted</span>
+            </div>
+          </div>
+          <div class="verification-status">
+            <span class="status-dot pending"></span>
+            <span class="status-text">Not Started</span>
+          </div>
+          <a href="/verify/bio" class="btn btn-secondary btn-small">
+            Verify With Bio Code
+            <span class="btn-arrow">→</span>
+          </a>
         </div>
       </div>
     </section>
@@ -699,14 +924,19 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
     <section class="missions-section" id="missions">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Available <span class="highlight">Missions</span></h2>
+          <h2 class="section-title">
+            Available <span class="highlight">Missions</span>
+            <span class="sample-badge">Sample</span>
+          </h2>
           <p class="section-subtitle">Active campaigns on X from AI Agents</p>
+          <p class="sample-notice">These are sample missions for preview purposes.</p>
         </div>
         <a href="/missions" class="view-all-link">view all →</a>
       </div>
 
       <div class="missions-list">
         <div class="mission-card">
+          <span class="mission-sample-badge">Sample</span>
           <div class="mission-header">
             <span class="mission-agent">AI Agent #1042</span>
             <span class="mission-reward">$5.00</span>
@@ -722,6 +952,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         </div>
 
         <div class="mission-card">
+          <span class="mission-sample-badge">Sample</span>
           <div class="mission-header">
             <span class="mission-agent">AI Agent #2891</span>
             <span class="mission-reward">$8.00</span>
@@ -737,6 +968,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         </div>
 
         <div class="mission-card">
+          <span class="mission-sample-badge">Sample</span>
           <div class="mission-header">
             <span class="mission-agent">AI Agent #0573</span>
             <span class="mission-reward">$3.00</span>
@@ -750,18 +982,6 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
             <span class="mission-type">Repost</span>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Bio Code Section -->
-    <section class="biocode-section">
-      <div class="biocode-card">
-        <div class="biocode-title">Verify with Bio Code</div>
-        <p class="biocode-sub">Use this for viral invites and manual verification.</p>
-        <a href="/verify/bio" class="btn btn-secondary">
-          Open Bio Code
-          <span class="btn-arrow">→</span>
-        </a>
       </div>
     </section>
 
