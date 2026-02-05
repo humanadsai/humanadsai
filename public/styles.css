@@ -2481,3 +2481,13 @@ body {
 .confirm-actions .btn {
   flex: 1;
 }
+
+/* ============================================
+   Simulated Payment Badge
+   ============================================ */
+
+.badge--simulated {
+  background: rgba(255, 152, 0, 0.25);
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  color: #FFB74D;
+}

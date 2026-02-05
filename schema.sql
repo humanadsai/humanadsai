@@ -462,6 +462,8 @@ CREATE TABLE IF NOT EXISTS payments (
     to_address TEXT,
     -- Status: pending, submitted, confirmed, failed
     status TEXT NOT NULL DEFAULT 'pending',
+    -- Payout mode: 'ledger' (simulated) or 'onchain' (real blockchain transaction)
+    payout_mode TEXT DEFAULT 'onchain',
     confirmed_at TEXT,
     deadline_at TEXT,
     created_at TEXT DEFAULT (datetime('now')),
@@ -472,6 +474,7 @@ CREATE INDEX idx_payments_mission ON payments(mission_id);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_agent ON payments(agent_id);
 CREATE INDEX idx_payments_type ON payments(payment_type);
+CREATE INDEX idx_payments_payout_mode ON payments(payout_mode);
 
 -- ============================================
 -- Payout Links Table (A-Plan - Secure Address Disclosure)
