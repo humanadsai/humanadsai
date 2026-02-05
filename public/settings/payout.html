@@ -227,6 +227,7 @@
   </div>
 
   <script src="/js/side-menu.js"></script>
+  <script src="/js/wallet-alert.js"></script>
   <script>
     // Initialize side menu (logged-in page)
     SideMenu.init(true);
@@ -367,6 +368,20 @@
         }
 
         showAlert('Wallet addresses saved successfully!', 'success');
+
+        // Refresh wallet alert banner (removes it if wallet is now set)
+        if (window.WalletAlert) {
+          window.WalletAlert.refresh();
+        }
+
+        // Check if we should redirect back
+        const urlParams = new URLSearchParams(window.location.search);
+        const nextUrl = urlParams.get('next');
+        if (nextUrl) {
+          setTimeout(() => {
+            window.location.href = nextUrl;
+          }, 1500);
+        }
       } catch (error) {
         console.error('Failed to save wallets:', error);
         showAlert('Failed to save wallet settings. Please try again.', 'error');

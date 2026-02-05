@@ -43,6 +43,8 @@ export async function getMe(request: Request, env: Env): Promise<Response> {
           avatar_url: avatarUrl,
           x_profile_image_url: operator.x_profile_image_url,
           status: operator.status,
+          role: operator.role || 'user',
+          is_admin: operator.role === 'admin',
         },
       },
       requestId

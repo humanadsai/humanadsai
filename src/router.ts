@@ -35,6 +35,7 @@ import {
 
 // User API
 import { getMe } from './api/user/me';
+import { getPendingRewards } from './api/user/pending-rewards';
 import {
   getAvailableMissions,
   acceptMission,
@@ -50,6 +51,7 @@ import { handleXLogin, handleXCallback } from './api/auth/x';
 
 // Account API
 import { handleAccountDelete, handleAccountDeleteCheck } from './api/account/delete';
+import { getAccountMe } from './api/account/me';
 import { handleDeletePage, handleDeleteConfirmPage, handleDeletedPage } from './api/account/delete-pages';
 
 // Public API
@@ -61,6 +63,30 @@ import {
   getStats,
   trackVisit,
 } from './api/public/index';
+
+// Admin API
+import {
+  getAdminDashboardStats,
+  listAgents,
+  getAgent,
+  createAgent,
+  updateAgent,
+  listDeals as adminListDeals,
+  createDeal as adminCreateDeal,
+  updateDealStatus,
+  listOperators,
+  updateOperatorRole,
+  listApplications,
+  seedApplication,
+  listMissions,
+  createSubmission,
+  reviewMission,
+  testPayout,
+  runScenario,
+  getAuditLogs,
+  getPayments,
+  getFeeRecipients,
+} from './api/admin/index';
 
 /**
  * メインルーター
@@ -96,7 +122,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // Operator API (/api/operator/..., /api/missions/...)
     // ============================================
 
-    if (path.startsWith('/api/operator/') || path.startsWith('/api/missions/')) {
+    if (path.startsWith('/api/operator/') || path.startsWith('/api/missions/') || path.startsWith('/api/my/') || path.startsWith('/api/applications/')) {
       return handleOperatorApi(request, env, path, method);
     }
 
@@ -106,6 +132,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
     if (path.startsWith('/api/user/') || path.startsWith('/api/account/')) {
       return handleUserApi(request, env, path, method);
+    }
+
+    // ============================================
+    // Admin API (/api/admin/...) - Admin-only endpoints
+    // ============================================
+
+    if (path.startsWith('/api/admin/')) {
+      return handleAdminApi(request, env, path, method);
     }
 
     // ============================================
@@ -128,19 +162,34 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
-    // Settings Pages (authenticated users)
+    // Settings Pages - Redirects from old paths
     // ============================================
 
+    // Redirect old delete paths to new /account/delete
     if (path === '/settings/account/delete' && method === 'GET') {
-      return handleDeletePage(request, env);
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': '/account/delete' }
+      });
     }
 
     if (path === '/settings/account/delete/confirm' && method === 'GET') {
-      return handleDeleteConfirmPage(request, env);
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': '/account/delete' }
+      });
     }
 
     if (path === '/settings/account/deleted' && method === 'GET') {
       return handleDeletedPage(request, env);
+    }
+
+    // Redirect /settings/account to /account
+    if (path === '/settings/account' && method === 'GET') {
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': '/account' }
+      });
     }
 
     // ============================================
@@ -441,6 +490,11 @@ async function handleUserApi(
     return verifyPost(request, env);
   }
 
+  // GET /api/account/me - Get account info
+  if (path === '/api/account/me' && method === 'GET') {
+    return getAccountMe(request, env);
+  }
+
   // GET /api/account/delete/check - Pre-check if account can be deleted
   if (path === '/api/account/delete/check' && method === 'GET') {
     return handleAccountDeleteCheck(request, env);
@@ -493,6 +547,11 @@ async function handlePublicApi(
   // GET /api/me - Current user info
   if (path === '/api/me' && method === 'GET') {
     return getMe(request, env);
+  }
+
+  // GET /api/me/pending-rewards - Pending rewards and wallet status
+  if (path === '/api/me/pending-rewards' && method === 'GET') {
+    return getPendingRewards(request, env);
   }
 
   // POST /api/track-visit
@@ -681,6 +740,154 @@ function generateAuthErrorHTML(message: string): string {
   </div>
 </body>
 </html>`;
+}
+
+/**
+ * Admin API ハンドラー
+ */
+async function handleAdminApi(
+  request: Request,
+  env: Env,
+  path: string,
+  method: string
+): Promise<Response> {
+  // GET /api/admin/dashboard - Dashboard stats
+  if (path === '/api/admin/dashboard' && method === 'GET') {
+    return getAdminDashboardStats(request, env);
+  }
+
+  // ============================================
+  // Agent Management
+  // ============================================
+
+  // GET /api/admin/agents - List agents
+  if (path === '/api/admin/agents' && method === 'GET') {
+    return listAgents(request, env);
+  }
+
+  // POST /api/admin/agents - Create agent
+  if (path === '/api/admin/agents' && method === 'POST') {
+    return createAgent(request, env);
+  }
+
+  // GET /api/admin/agents/:id - Get agent details
+  const agentMatch = path.match(/^\/api\/admin\/agents\/([a-zA-Z0-9_]+)$/);
+  if (agentMatch && method === 'GET') {
+    return getAgent(request, env, agentMatch[1]);
+  }
+
+  // PUT /api/admin/agents/:id - Update agent
+  if (agentMatch && method === 'PUT') {
+    return updateAgent(request, env, agentMatch[1]);
+  }
+
+  // ============================================
+  // Deal Management
+  // ============================================
+
+  // GET /api/admin/deals - List deals
+  if (path === '/api/admin/deals' && method === 'GET') {
+    return adminListDeals(request, env);
+  }
+
+  // POST /api/admin/deals - Create deal
+  if (path === '/api/admin/deals' && method === 'POST') {
+    return adminCreateDeal(request, env);
+  }
+
+  // PUT /api/admin/deals/:id/status - Update deal status
+  const dealStatusMatch = path.match(/^\/api\/admin\/deals\/([a-zA-Z0-9_]+)\/status$/);
+  if (dealStatusMatch && method === 'PUT') {
+    return updateDealStatus(request, env, dealStatusMatch[1]);
+  }
+
+  // ============================================
+  // Operator Management
+  // ============================================
+
+  // GET /api/admin/operators - List operators
+  if (path === '/api/admin/operators' && method === 'GET') {
+    return listOperators(request, env);
+  }
+
+  // PUT /api/admin/operators/:id/role - Update operator role
+  const operatorRoleMatch = path.match(/^\/api\/admin\/operators\/([a-zA-Z0-9_]+)\/role$/);
+  if (operatorRoleMatch && method === 'PUT') {
+    return updateOperatorRole(request, env, operatorRoleMatch[1]);
+  }
+
+  // ============================================
+  // Application Management
+  // ============================================
+
+  // GET /api/admin/applications - List applications
+  if (path === '/api/admin/applications' && method === 'GET') {
+    return listApplications(request, env);
+  }
+
+  // POST /api/admin/applications/seed - Seed application
+  if (path === '/api/admin/applications/seed' && method === 'POST') {
+    return seedApplication(request, env);
+  }
+
+  // ============================================
+  // Mission Management
+  // ============================================
+
+  // GET /api/admin/missions - List missions
+  if (path === '/api/admin/missions' && method === 'GET') {
+    return listMissions(request, env);
+  }
+
+  // POST /api/admin/missions/submit - Create submission
+  if (path === '/api/admin/missions/submit' && method === 'POST') {
+    return createSubmission(request, env);
+  }
+
+  // POST /api/admin/missions/:id/review - Review mission
+  const reviewMatch = path.match(/^\/api\/admin\/missions\/([a-zA-Z0-9_]+)\/review$/);
+  if (reviewMatch && method === 'POST') {
+    return reviewMission(request, env, reviewMatch[1]);
+  }
+
+  // ============================================
+  // Payout Testing
+  // ============================================
+
+  // POST /api/admin/payout/test - Test payout
+  if (path === '/api/admin/payout/test' && method === 'POST') {
+    return testPayout(request, env);
+  }
+
+  // GET /api/admin/payout/fee-recipients - Get fee recipients
+  if (path === '/api/admin/payout/fee-recipients' && method === 'GET') {
+    return getFeeRecipients(request, env);
+  }
+
+  // ============================================
+  // Scenario Runner
+  // ============================================
+
+  // POST /api/admin/scenarios/run - Run scenario
+  if (path === '/api/admin/scenarios/run' && method === 'POST') {
+    return runScenario(request, env);
+  }
+
+  // ============================================
+  // Logging & Debug
+  // ============================================
+
+  // GET /api/admin/logs/audit - Get audit logs
+  if (path === '/api/admin/logs/audit' && method === 'GET') {
+    return getAuditLogs(request, env);
+  }
+
+  // GET /api/admin/payments - Get payments
+  if (path === '/api/admin/payments' && method === 'GET') {
+    return getPayments(request, env);
+  }
+
+  return errors.notFound(generateRequestId(), 'Endpoint');
 }
 
 /**

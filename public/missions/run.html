@@ -629,7 +629,7 @@
               <div class="required-elements-title">Required Elements (cannot be removed)</div>
               <div class="required-element" id="disclosure-status">
                 <span class="status-icon missing">!</span>
-                <span>Disclosure: <span class="disclosure-chip" onclick="insertDisclosure('#ad')">#ad</span></span>
+                <span>Disclosure: <span class="disclosure-chip" onclick="insertDisclosure('[PR] by HumanAds')">[PR] by HumanAds</span></span>
               </div>
               <div class="required-element" id="link-status">
                 <span class="status-icon missing">!</span>
@@ -728,6 +728,7 @@
 
   <script src="/app.js"></script>
   <script src="/js/side-menu.js"></script>
+  <script src="/js/wallet-alert.js"></script>
   <script>
     let missionData = null;
     let userData = null;
@@ -735,7 +736,7 @@
     const MAX_CHARS = 280;
 
     // Required disclosure tags
-    const DISCLOSURE_TAGS = ['#ad', '#sponsored', '#advertisement', 'Sponsored', 'Ad'];
+    const DISCLOSURE_TAGS = ['[PR]', '#ad', '#sponsored', '#advertisement', 'Sponsored', 'Ad', 'by HumanAds'];
 
     // Initialize side menu (logged-in page)
     SideMenu.init(true);
@@ -873,7 +874,7 @@
           missing.push('Write your post');
         } else {
           if (!withinLimit) missing.push(`${text.length - MAX_CHARS} chars over limit`);
-          if (!hasDisc) missing.push('Add #ad disclosure');
+          if (!hasDisc) missing.push('Add [PR] disclosure');
           if (!hasLink) missing.push('Add required link');
         }
         missingHint.textContent = missing.length > 0 ? missing.join(' · ') : 'Complete all required elements';
@@ -907,12 +908,12 @@
           if (checkedPoints.length > 0) {
             draft = checkedPoints.join('\n') + '\n\n';
           }
-          draft += `${link}\n\n#ad`;
+          draft += `${link}\n\n[PR] by HumanAds`;
         } else {
           if (checkedPoints.length > 0) {
             draft = checkedPoints.join('. ') + '.\n\n';
           }
-          draft += `Check it out: ${link}\n\n#ad`;
+          draft += `Check it out: ${link}\n\n[PR] by HumanAds`;
         }
 
         // Add any required hashtags
@@ -1095,7 +1096,7 @@
               Your submission didn't meet the requirements. Check that your post includes:
             </p>
             <ul style="font-size: 0.85rem; color: var(--color-text-muted); margin: 12px 0; padding-left: 20px;">
-              <li>Required disclosure (#ad or #sponsored)</li>
+              <li>Required disclosure ([PR] by HumanAds)</li>
               <li>Required link (${escapeHtml(getRequiredLink())})</li>
               <li>Content that matches your submitted draft</li>
             </ul>
@@ -1109,7 +1110,7 @@
     function buildRequirementsList(requirements) {
       const items = [];
 
-      items.push('Include disclosure: #ad or #sponsored (Required)');
+      items.push('Include disclosure: [PR] by HumanAds (Required)');
 
       const contentType = requirements.content_type || 'original_post';
       if (contentType === 'quote_post_commentary') {

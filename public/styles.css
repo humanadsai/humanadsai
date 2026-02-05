@@ -2305,6 +2305,22 @@ body {
   background: rgba(255, 68, 68, 0.15);
 }
 
+/* Admin Menu Items */
+.menu-item.admin-item {
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+}
+
+.menu-item.admin-item::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
 .menu-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.1);

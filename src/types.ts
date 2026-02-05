@@ -70,6 +70,8 @@ export interface AgentPublicKey {
   revoked_at?: string;
 }
 
+export type OperatorRole = 'user' | 'admin';
+
 export interface Operator {
   id: string;
   x_handle?: string;
@@ -77,7 +79,8 @@ export interface Operator {
   display_name?: string;
   avatar_url?: string;
   x_profile_image_url?: string;
-  status: 'unverified' | 'pending' | 'verified' | 'suspended';
+  status: 'unverified' | 'pending' | 'verified' | 'suspended' | 'deleted';
+  role?: OperatorRole;
   verified_at?: string;
   total_missions_completed: number;
   total_earnings: number;
@@ -85,6 +88,7 @@ export interface Operator {
   session_expires_at?: string;
   bio?: string;
   metadata?: string;
+  deleted_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -480,4 +484,95 @@ export interface ConfirmPayoutResponse {
   // Payout mode info
   payout_mode?: PayoutMode;
   is_simulated?: boolean;
+}
+
+// ============================================
+// Admin API Types
+// ============================================
+
+export interface AdminContext {
+  requestId: string;
+  operator: Operator;
+}
+
+// Agent Management
+export interface AdminCreateAgentRequest {
+  name: string;
+  email: string;
+  description?: string;
+  status?: 'pending_review' | 'approved' | 'suspended' | 'revoked';
+}
+
+export interface AdminUpdateAgentRequest {
+  name?: string;
+  email?: string;
+  description?: string;
+  status?: 'pending_review' | 'approved' | 'suspended' | 'revoked';
+  max_deal_amount?: number;
+  daily_volume_limit?: number;
+  open_deals_limit?: number;
+}
+
+// Mission Management (Admin Deploy Test)
+export interface AdminCreateDealRequest {
+  agent_id: string;
+  title: string;
+  description?: string;
+  requirements: DealRequirements;
+  reward_amount: number;
+  max_participants: number;
+  payment_model?: PaymentModel;
+  auf_percentage?: number;
+  starts_at?: string;
+  expires_at?: string;
+}
+
+// Application Seeding
+export interface AdminSeedApplicationRequest {
+  deal_id: string;
+  operator_id: string;
+  status?: ApplicationStatus;
+  proposed_angle?: string;
+  draft_copy?: string;
+}
+
+// Submission Testing
+export interface AdminCreateSubmissionRequest {
+  mission_id: string;
+  submission_url: string;
+  submission_content?: string;
+}
+
+// Review Actions
+export interface AdminReviewActionRequest {
+  action: 'verify' | 'reject';
+  verification_result?: string;
+}
+
+// Payout Testing
+export interface AdminPayoutTestRequest {
+  mission_id: string;
+  mode: 'ledger' | 'testnet' | 'mainnet';
+  chain?: string;
+  token?: string;
+}
+
+// Fee Recipient Configuration
+export interface FeeRecipientConfig {
+  solana: string;
+  evm: string;
+}
+
+// Admin Dashboard Stats
+export interface AdminDashboardStats {
+  total_agents: number;
+  active_agents: number;
+  total_operators: number;
+  verified_operators: number;
+  total_deals: number;
+  active_deals: number;
+  total_missions: number;
+  total_applications: number;
+  pending_submissions: number;
+  pending_payouts: number;
 }

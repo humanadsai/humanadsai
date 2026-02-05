@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Start - Admin - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .admin-page { padding: 24px 16px; max-width: 900px; margin: 0 auto; }
+    .admin-header { margin-bottom: 32px; }
+    .admin-header h1 { font-family: var(--font-mono); font-size: 1.5rem; margin-bottom: 8px; }
+    .admin-header p { color: var(--color-text-muted); font-size: 0.875rem; }
+    .step-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .step-card.completed { border-color: rgba(52, 199, 89, 0.5); }
+    .step-card.active { border-color: var(--color-primary); }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.875rem;
+    }
+    .step-card.completed .step-number { background: #34c759; color: white; }
+    .step-card.active .step-number { background: var(--color-primary); color: white; }
+    .step-title { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; }
+    .step-description { color: var(--color-text-muted); font-size: 0.875rem; margin-bottom: 16px; }
+    .step-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .step-result {
+      background: var(--color-background-light);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      margin-top: 12px;
+      display: none;
+    }
+    .step-result.show { display: block; }
+    .step-result.error { background: rgba(255, 59, 48, 0.1); color: #ff3b30; }
+    .step-result.success { background: rgba(52, 199, 89, 0.1); color: #34c759; }
+    .step-result pre { margin: 8px 0 0; white-space: pre-wrap; word-break: break-all; }
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.8125rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid var(--color-border);
+      background: var(--color-background-light);
+      color: var(--color-text);
+    }
+    .btn-sm:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
+    .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm.primary { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+    .btn-sm.primary:hover:not(:disabled) { background: #e55a2b; }
+    .btn-sm.success { background: #34c759; border-color: #34c759; color: white; }
+    .btn-sm.danger { background: #ff3b30; border-color: #ff3b30; color: white; }
+    .input-group { margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 4px; }
+    .input-group input, .input-group select {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+    }
+    .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--color-primary); }
+    .id-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--color-background-light);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      margin: 2px;
+    }
+    .id-display button {
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 2px;
+    }
+    .id-display button:hover { color: var(--color-primary); }
+    .loading { text-align: center; padding: 40px; color: var(--color-text-muted); }
+    .error-box { background: rgba(255,59,48,0.1); border: 1px solid rgba(255,59,48,0.3); border-radius: 8px; padding: 16px; color: #ff3b30; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="admin-page" id="content">
+      <div class="loading">Loading...</div>
+    </main>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script src="/js/humanads.js"></script>
+  <script>
+    const state = {
+      agentId: null,
+      operatorId: null,
+      dealId: null,
+      missionId: null,
+      applicationId: null,
+    };
+
+    async function checkAdmin() {
+      const res = await HumanAds.fetchApi('/me');
+      if (!res.success || !res.data?.xConnected || !res.data?.user?.is_admin) {
+        window.location.href = '/admin';
+        return false;
+      }
+      return true;
+    }
+
+    function renderPage() {
+      document.getElementById('content').innerHTML = `
+        <div class="admin-header">
+          <h1>Quick Start - E2E Test</h1>
+          <p>Complete the full mission lifecycle in 5 steps</p>
+        </div>
+
+        <!-- Step 1: Seed Data -->
+        <div class="step-card" id="step1">
+          <div class="step-header">
+            <div class="step-number">1</div>
+            <div class="step-title">Seed Test Data</div>
+          </div>
+          <div class="step-description">Create demo agent, operator, and deal for testing.</div>
+          <div class="step-actions">
+            <button class="btn-sm" onclick="seedAgent()">Seed Agent</button>
+            <button class="btn-sm" onclick="seedOperator()">Seed Operator</button>
+            <button class="btn-sm" onclick="seedDeal()">Seed Deal</button>
+            <button class="btn-sm primary" onclick="seedAll()">Seed All</button>
+          </div>
+          <div class="step-result" id="step1-result"></div>
+        </div>
+
+        <!-- Step 2: Create Application & Mission -->
+        <div class="step-card" id="step2">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <div class="step-title">Create Application & Select</div>
+          </div>
+          <div class="step-description">Apply for the deal and get selected to create a mission.</div>
+          <div class="input-group">
+            <label>Deal ID</label>
+            <input type="text" id="step2-deal" placeholder="From Step 1">
+          </div>
+          <div class="input-group">
+            <label>Operator ID</label>
+            <input type="text" id="step2-operator" placeholder="From Step 1">
+          </div>
+          <div class="step-actions">
+            <button class="btn-sm primary" onclick="createMission()">Create Application & Select</button>
+          </div>
+          <div class="step-result" id="step2-result"></div>
+        </div>
+
+        <!-- Step 3: Submit -->
+        <div class="step-card" id="step3">
+          <div class="step-header">
+            <div class="step-number">3</div>
+            <div class="step-title">Create Submission</div>
+          </div>
+          <div class="step-description">Submit a post URL for the mission.</div>
+          <div class="input-group">
+            <label>Mission ID</label>
+            <input type="text" id="step3-mission" placeholder="From Step 2">
+          </div>
+          <div class="input-group">
+            <label>Submission URL</label>
+            <input type="text" id="step3-url" value="https://x.com/demo/status/123456789" placeholder="X post URL">
+          </div>
+          <div class="step-actions">
+            <button class="btn-sm primary" onclick="createSubmission()">Submit</button>
+          </div>
+          <div class="step-result" id="step3-result"></div>
+        </div>
+
+        <!-- Step 4: Review -->
+        <div class="step-card" id="step4">
+          <div class="step-header">
+            <div class="step-number">4</div>
+            <div class="step-title">Review Submission</div>
+          </div>
+          <div class="step-description">Approve or reject the submission.</div>
+          <div class="input-group">
+            <label>Mission ID</label>
+            <input type="text" id="step4-mission" placeholder="From Step 2">
+          </div>
+          <div class="step-actions">
+            <button class="btn-sm success" onclick="reviewMission('verify')">Verify</button>
+            <button class="btn-sm danger" onclick="reviewMission('reject')">Reject</button>
+          </div>
+          <div class="step-result" id="step4-result"></div>
+        </div>
+
+        <!-- Step 5: Payout -->
+        <div class="step-card" id="step5">
+          <div class="step-header">
+            <div class="step-number">5</div>
+            <div class="step-title">Test Payout</div>
+          </div>
+          <div class="step-description">Simulate payout process.</div>
+          <div class="input-group">
+            <label>Mission ID</label>
+            <input type="text" id="step5-mission" placeholder="From Step 2">
+          </div>
+          <div class="input-group">
+            <label>Mode</label>
+            <select id="step5-mode">
+              <option value="ledger">Ledger (Simulated)</option>
+              <option value="testnet">Testnet</option>
+              <option value="mainnet">Mainnet (Real!)</option>
+            </select>
+          </div>
+          <div class="step-actions">
+            <button class="btn-sm primary" onclick="testPayout()">Run Payout Test</button>
+          </div>
+          <div class="step-result" id="step5-result"></div>
+        </div>
+      `;
+    }
+
+    function showResult(stepId, success, data) {
+      const el = document.getElementById(`${stepId}-result`);
+      el.className = `step-result show ${success ? 'success' : 'error'}`;
+      el.innerHTML = success
+        ? `<strong>Success!</strong><pre>${JSON.stringify(data, null, 2)}</pre>`
+        : `<strong>Error:</strong> ${data.message || JSON.stringify(data)}`;
+    }
+
+    function updateInput(id, value) {
+      const el = document.getElementById(id);
+      if (el && value) el.value = value;
+    }
+
+    async function seedAgent() {
+      try {
+        const res = await HumanAds.fetchApi('/admin/agents', {
+          method: 'POST',
+          body: JSON.stringify({ name: 'Demo Agent', email: 'demo@agent.test', description: 'Test agent for QA', status: 'approved' })
+        });
+        if (res.success) {
+          state.agentId = res.data.agent.id;
+          showResult('step1', true, { agent_id: state.agentId });
+        } else {
+          showResult('step1', false, res.error);
+        }
+      } catch (e) { showResult('step1', false, { message: e.message }); }
+    }
+
+    async function seedOperator() {
+      try {
+        // Use current logged-in user as operator
+        const meRes = await HumanAds.fetchApi('/me');
+        if (meRes.success && meRes.data?.user?.id) {
+          state.operatorId = meRes.data.user.id;
+          showResult('step1', true, { operator_id: state.operatorId, note: 'Using current user as operator' });
+          updateInput('step2-operator', state.operatorId);
+        } else {
+          showResult('step1', false, { message: 'Could not get current user' });
+        }
+      } catch (e) { showResult('step1', false, { message: e.message }); }
+    }
+
+    async function seedDeal() {
+      try {
+        if (!state.agentId) {
+          showResult('step1', false, { message: 'Create agent first' });
+          return;
+        }
+        const res = await HumanAds.fetchApi('/admin/deals', {
+          method: 'POST',
+          body: JSON.stringify({
+            agent_id: state.agentId,
+            title: 'Demo Deal - Test Post',
+            description: 'Create a test post with #HumanAds',
+            requirements: { post_type: 'tweet', hashtags: ['HumanAds'], disclosure: '#ad', verification_method: 'manual' },
+            reward_amount: 1000,
+            max_participants: 10,
+            payment_model: 'a_plan',
+            auf_percentage: 10
+          })
+        });
+        if (res.success) {
+          state.dealId = res.data.deal.id;
+          showResult('step1', true, { deal_id: state.dealId });
+          updateInput('step2-deal', state.dealId);
+        } else {
+          showResult('step1', false, res.error);
+        }
+      } catch (e) { showResult('step1', false, { message: e.message }); }
+    }
+
+    async function seedAll() {
+      await seedAgent();
+      await seedOperator();
+      await seedDeal();
+    }
+
+    async function createMission() {
+      try {
+        const dealId = document.getElementById('step2-deal').value || state.dealId;
+        const operatorId = document.getElementById('step2-operator').value || state.operatorId;
+        if (!dealId || !operatorId) {
+          showResult('step2', false, { message: 'Deal ID and Operator ID required' });
+          return;
+        }
+        const res = await HumanAds.fetchApi('/admin/applications/seed', {
+          method: 'POST',
+          body: JSON.stringify({ deal_id: dealId, operator_id: operatorId, status: 'selected', proposed_angle: 'Test application' })
+        });
+        if (res.success) {
+          state.applicationId = res.data.application.id;
+          // Create mission from selected application
+          const missionRes = await HumanAds.fetchApi('/admin/scenarios/run', {
+            method: 'POST',
+            body: JSON.stringify({ scenario: 'create-mission-from-app', params: { application_id: state.applicationId, deal_id: dealId, operator_id: operatorId } })
+          });
+          if (missionRes.success && missionRes.data?.created?.mission_id) {
+            state.missionId = missionRes.data.created.mission_id;
+          } else {
+            // Fallback: check missions
+            const missionsRes = await HumanAds.fetchApi(`/admin/missions?deal_id=${dealId}`);
+            if (missionsRes.success && missionsRes.data?.missions?.length > 0) {
+              state.missionId = missionsRes.data.missions[0].id;
+            }
+          }
+          showResult('step2', true, { application_id: state.applicationId, mission_id: state.missionId || 'Check missions list' });
+          updateInput('step3-mission', state.missionId);
+          updateInput('step4-mission', state.missionId);
+          updateInput('step5-mission', state.missionId);
+        } else {
+          showResult('step2', false, res.error);
+        }
+      } catch (e) { showResult('step2', false, { message: e.message }); }
+    }
+
+    async function createSubmission() {
+      try {
+        const missionId = document.getElementById('step3-mission').value || state.missionId;
+        const url = document.getElementById('step3-url').value;
+        if (!missionId || !url) {
+          showResult('step3', false, { message: 'Mission ID and URL required' });
+          return;
+        }
+        const res = await HumanAds.fetchApi('/admin/missions/submit', {
+          method: 'POST',
+          body: JSON.stringify({ mission_id: missionId, submission_url: url, submission_content: 'Test submission' })
+        });
+        if (res.success) {
+          showResult('step3', true, res.data);
+        } else {
+          showResult('step3', false, res.error);
+        }
+      } catch (e) { showResult('step3', false, { message: e.message }); }
+    }
+
+    async function reviewMission(action) {
+      try {
+        const missionId = document.getElementById('step4-mission').value || state.missionId;
+        if (!missionId) {
+          showResult('step4', false, { message: 'Mission ID required' });
+          return;
+        }
+        const res = await HumanAds.fetchApi(`/admin/missions/${missionId}/review`, {
+          method: 'POST',
+          body: JSON.stringify({ action, verification_result: action === 'verify' ? 'Approved by admin' : 'Rejected by admin' })
+        });
+        if (res.success) {
+          showResult('step4', true, res.data);
+        } else {
+          showResult('step4', false, res.error);
+        }
+      } catch (e) { showResult('step4', false, { message: e.message }); }
+    }
+
+    async function testPayout() {
+      try {
+        const missionId = document.getElementById('step5-mission').value || state.missionId;
+        const mode = document.getElementById('step5-mode').value;
+        if (!missionId) {
+          showResult('step5', false, { message: 'Mission ID required' });
+          return;
+        }
+        const res = await HumanAds.fetchApi('/admin/payout/test', {
+          method: 'POST',
+          body: JSON.stringify({ mission_id: missionId, mode })
+        });
+        if (res.success) {
+          showResult('step5', true, res.data);
+        } else {
+          showResult('step5', false, res.error);
+        }
+      } catch (e) { showResult('step5', false, { message: e.message }); }
+    }
+
+    (async function() {
+      if (await checkAdmin()) {
+        renderPage();
+        SideMenu.init(true, true);
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Account - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .delete-page {
+      padding: 24px 16px;
+      max-width: 500px;
+      margin: 0 auto;
+      min-height: calc(100vh - 80px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .delete-card {
+      background: var(--color-surface);
+      border: 1px solid rgba(255, 59, 48, 0.3);
+      border-radius: 12px;
+      padding: 32px 24px;
+    }
+    .delete-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 24px;
+      background: rgba(255, 59, 48, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .delete-icon svg {
+      width: 32px;
+      height: 32px;
+      color: #ff3b30;
+    }
+    .delete-card h1 {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      text-align: center;
+      margin-bottom: 16px;
+      color: #ff3b30;
+    }
+    .delete-card p {
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .delete-card p strong {
+      color: var(--color-text);
+    }
+    .profile-summary {
+      background: var(--color-background-light);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .profile-summary img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+    .profile-summary .info {
+      flex: 1;
+    }
+    .profile-summary .name {
+      font-weight: 600;
+      font-size: 0.9375rem;
+    }
+    .profile-summary .handle {
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+    }
+    .confirm-input-group {
+      margin-bottom: 24px;
+    }
+    .confirm-input-group label {
+      display: block;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+    .confirm-input-group label strong {
+      color: #ff3b30;
+      font-family: var(--font-mono);
+    }
+    .confirm-input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .confirm-input-group input:focus {
+      outline: none;
+      border-color: #ff3b30;
+    }
+    .confirm-input-group input::placeholder {
+      color: var(--color-text-muted);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+    .btn-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn-delete {
+      width: 100%;
+      padding: 14px 24px;
+      background: #ff3b30;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-family: var(--font-mono);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-delete:hover:not(:disabled) {
+      background: #e63329;
+      transform: translateY(-1px);
+    }
+    .btn-delete:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-cancel {
+      width: 100%;
+      padding: 14px 24px;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      text-align: center;
+    }
+    .btn-cancel:hover {
+      background: var(--color-background-light);
+    }
+    .error-message {
+      background: rgba(255, 59, 48, 0.1);
+      border: 1px solid rgba(255, 59, 48, 0.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      color: #ff3b30;
+      font-size: 0.875rem;
+      text-align: center;
+    }
+    .blocker-message {
+      background: rgba(255, 59, 48, 0.1);
+      border: 1px solid rgba(255, 59, 48, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      color: #ff3b30;
+      font-size: 0.875rem;
+    }
+    .blocker-message a {
+      color: inherit;
+      text-decoration: underline;
+    }
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--color-text-muted);
+    }
+    .processing {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hamburger Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Delete Page Content -->
+    <main class="delete-page" id="delete-content">
+      <div class="loading">Loading...</div>
+    </main>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script src="/js/humanads.js"></script>
+  <script>
+    (async function() {
+      const content = document.getElementById('delete-content');
+
+      try {
+        // Check auth
+        const meRes = await HumanAds.fetchApi('/me');
+        if (!meRes.success || !meRes.data?.xConnected) {
+          window.location.href = '/auth/x/login?redirect=/account';
+          return;
+        }
+
+        const user = meRes.data.user;
+
+        // Check deletion eligibility
+        const checkRes = await HumanAds.fetchApi('/account/delete/check');
+        if (!checkRes.success) {
+          throw new Error(checkRes.error?.message || 'Failed to check deletion status');
+        }
+
+        const { can_delete, blockers } = checkRes.data;
+
+        // Render page
+        content.innerHTML = `
+          <div class="delete-card">
+            <div class="delete-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <h1>Delete Account</h1>
+            <p>This will <strong>permanently delete</strong> your HumanAds account and cannot be undone.</p>
+
+            <div class="profile-summary">
+              ${user.x_profile_image_url || user.avatar_url
+                ? `<img src="${user.x_profile_image_url || user.avatar_url}" alt="Avatar">`
+                : ''
+              }
+              <div class="info">
+                <div class="name">${user.display_name || 'Unknown'}</div>
+                <div class="handle">@${user.x_handle || 'unknown'}</div>
+              </div>
+            </div>
+
+            ${!can_delete ? `
+              <div class="blocker-message">
+                <strong>Cannot delete account</strong><br><br>
+                ${blockers.active_missions > 0
+                  ? `You have <strong>${blockers.active_missions} active mission(s)</strong>. Please complete or cancel them first.<br><a href="/missions/my">View My Missions</a>`
+                  : ''
+                }
+                ${blockers.pending_payout > 0
+                  ? `You have <strong>$${(blockers.pending_payout / 100).toFixed(2)}</strong> in pending payouts. Please wait for payout completion.`
+                  : ''
+                }
+              </div>
+              <div class="btn-actions">
+                <a href="/account" class="btn-cancel">Back to Account</a>
+              </div>
+            ` : `
+              <div id="error-container"></div>
+
+              <div class="confirm-input-group">
+                <label>Type <strong>DELETE</strong> to confirm</label>
+                <input
+                  type="text"
+                  id="confirm-input"
+                  placeholder="Type DELETE here"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                >
+              </div>
+
+              <div class="btn-actions">
+                <button id="delete-btn" class="btn-delete" disabled>
+                  Permanently Delete Account
+                </button>
+                <a href="/account" class="btn-cancel">Cancel</a>
+              </div>
+            `}
+          </div>
+        `;
+
+        // Initialize side menu
+        const isAdmin = user.is_admin === true;
+        SideMenu.init(true, isAdmin);
+
+        // Only setup delete flow if can delete
+        if (can_delete) {
+          const confirmInput = document.getElementById('confirm-input');
+          const deleteBtn = document.getElementById('delete-btn');
+          const errorContainer = document.getElementById('error-container');
+
+          // Enable button when DELETE is typed
+          confirmInput.addEventListener('input', () => {
+            const value = confirmInput.value.trim().toUpperCase();
+            deleteBtn.disabled = value !== 'DELETE';
+          });
+
+          // Handle delete
+          deleteBtn.addEventListener('click', async () => {
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="processing"><span class="spinner"></span> Deleting...</span>';
+            errorContainer.innerHTML = '';
+
+            try {
+              const res = await fetch('/api/account/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ confirmText: 'DELETE' })
+              });
+
+              const data = await res.json();
+
+              if (data.ok) {
+                // Success - redirect to deleted page
+                window.location.href = '/settings/account/deleted';
+              } else {
+                // Error
+                let errorMsg = 'Failed to delete account.';
+                if (data.error === 'active_missions') {
+                  errorMsg = `You have ${data.activeMissions} active mission(s). Please complete them first.`;
+                } else if (data.error === 'pending_payouts') {
+                  errorMsg = `You have pending payouts. Please wait for completion.`;
+                }
+                errorContainer.innerHTML = `<div class="error-message">${errorMsg}</div>`;
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Permanently Delete Account';
+              }
+            } catch (e) {
+              console.error('Delete error:', e);
+              errorContainer.innerHTML = `<div class="error-message">An error occurred. Please try again.</div>`;
+              deleteBtn.disabled = false;
+              deleteBtn.textContent = 'Permanently Delete Account';
+            }
+          });
+        }
+
+      } catch (e) {
+        console.error('Delete page error:', e);
+        content.innerHTML = `
+          <div class="delete-card">
+            <div class="error-message">${e.message}</div>
+            <a href="/account" class="btn-cancel" style="margin-top: 16px;">Back to Account</a>
+          </div>
+        `;
+        SideMenu.init(true);
+      }
+    })();
+  </script>
+</body>
+</html>

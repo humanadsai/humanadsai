@@ -14,7 +14,7 @@
       { type: 'divider' },
       { type: 'section', label: 'Settings' },
       { label: 'Payout Wallets', href: '/settings/payout', id: 'menu-payout' },
-      { label: 'Account', href: '/settings/account/delete', id: 'menu-account' },
+      { label: 'Account', href: '/account', id: 'menu-account' },
       { type: 'divider' },
       { type: 'section', label: 'Help' },
       { label: 'FAQ', href: '/faq.html', id: 'menu-faq' },
@@ -29,6 +29,19 @@
       { label: 'Contact', href: '/contact.html', id: 'menu-contact' },
       { type: 'divider' },
       { label: 'Sign out', href: '/auth/logout', id: 'menu-signout', danger: true }
+    ],
+    // Admin menu items (added dynamically when user is admin)
+    admin: [
+      { type: 'divider' },
+      { type: 'section', label: 'Admin' },
+      { label: 'Admin Dashboard', href: '/admin', id: 'menu-admin-dashboard', admin: true },
+      { label: 'Agents', href: '/admin/agents', id: 'menu-admin-agents', admin: true },
+      { label: 'Deals', href: '/admin/deals', id: 'menu-admin-deals', admin: true },
+      { label: 'Operators', href: '/admin/operators', id: 'menu-admin-operators', admin: true },
+      { label: 'Applications', href: '/admin/applications', id: 'menu-admin-applications', admin: true },
+      { label: 'Missions', href: '/admin/missions', id: 'menu-admin-missions', admin: true },
+      { label: 'Payments', href: '/admin/payments', id: 'menu-admin-payments', admin: true },
+      { label: 'Logs', href: '/admin/logs', id: 'menu-admin-logs', admin: true },
     ],
     loggedOut: [
       { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
@@ -55,7 +68,9 @@
     '/missions/detail.html': 'menu-explore',   // Detail is part of Explore flow
     '/settings/payout': 'menu-payout',
     '/settings/payout.html': 'menu-payout',
-    '/settings/account/delete': 'menu-account',
+    '/account': 'menu-account',
+    '/account/index.html': 'menu-account',
+    '/account/delete': 'menu-account',
     '/faq.html': 'menu-faq',
     '/guidelines-promoters.html': 'menu-guidelines-promoters',
     '/guidelines-advertisers.html': 'menu-guidelines-advertisers',
@@ -63,7 +78,17 @@
     '/privacy.html': 'menu-privacy',
     '/contact.html': 'menu-contact',
     '/ai/how-it-works': 'menu-ai',
-    '/ai/how-it-works.html': 'menu-ai'
+    '/ai/how-it-works.html': 'menu-ai',
+    // Admin paths
+    '/admin': 'menu-admin-dashboard',
+    '/admin/index.html': 'menu-admin-dashboard',
+    '/admin/agents': 'menu-admin-agents',
+    '/admin/deals': 'menu-admin-deals',
+    '/admin/operators': 'menu-admin-operators',
+    '/admin/applications': 'menu-admin-applications',
+    '/admin/missions': 'menu-admin-missions',
+    '/admin/payments': 'menu-admin-payments',
+    '/admin/logs': 'menu-admin-logs'
   };
 
   /**
@@ -96,13 +121,15 @@
         return '<div class="menu-divider"></div>';
       }
       if (item.type === 'section') {
-        return `<span class="menu-section-label">${item.label}</span>`;
+        const adminClass = item.label === 'Admin' ? ' admin-section' : '';
+        return `<span class="menu-section-label${adminClass}">${item.label}</span>`;
       }
 
       const isActive = item.id === activeId;
       const classes = ['menu-item'];
       if (isActive) classes.push('active');
       if (item.danger) classes.push('menu-item-danger');
+      if (item.admin) classes.push('admin-item');
 
       return `<a href="${item.href}" class="${classes.join(' ')}" id="${item.id}">${item.label}</a>`;
     }).join('\n      ');
@@ -110,13 +137,28 @@
 
   /**
    * Render the side menu
+   * @param {boolean} isLoggedIn - Whether user is logged in
+   * @param {boolean} isAdmin - Whether user has admin role
    */
-  function renderSideMenu(isLoggedIn) {
+  function renderSideMenu(isLoggedIn, isAdmin = false) {
     const menuContainer = document.getElementById('hamburger-menu');
     if (!menuContainer) return;
 
     const activeId = getActiveMenuId();
-    const menuItems = isLoggedIn ? MENU_CONFIG.loggedIn : MENU_CONFIG.loggedOut;
+    let menuItems = isLoggedIn ? [...MENU_CONFIG.loggedIn] : MENU_CONFIG.loggedOut;
+
+    // Add admin items if user is admin
+    if (isLoggedIn && isAdmin) {
+      // Find the index of the sign out item
+      const signOutIndex = menuItems.findIndex(item => item.id === 'menu-signout');
+      if (signOutIndex !== -1) {
+        // Insert admin items before sign out
+        menuItems.splice(signOutIndex, 0, ...MENU_CONFIG.admin);
+      } else {
+        // Append at the end if no sign out found
+        menuItems = [...menuItems, ...MENU_CONFIG.admin];
+      }
+    }
 
     menuContainer.innerHTML = generateMenuHTML(menuItems, activeId);
   }
@@ -146,28 +188,38 @@
 
   /**
    * Check if user is logged in via /api/me
+   * @returns {Promise<{isLoggedIn: boolean, isAdmin: boolean}>}
    */
   async function checkAuthStatus() {
     try {
       const res = await fetch('/api/me', { credentials: 'include' });
       const data = await res.json();
-      return data.success && data.data && data.data.xConnected;
+      const isLoggedIn = data.success && data.data && data.data.xConnected;
+      const isAdmin = isLoggedIn && data.data.user && data.data.user.is_admin === true;
+      return { isLoggedIn, isAdmin };
     } catch (e) {
-      return false;
+      return { isLoggedIn: false, isAdmin: false };
     }
   }
 
   /**
    * Initialize side menu
    * @param {boolean|null} isLoggedIn - Pass true/false if known, null to auto-detect
+   * @param {boolean|null} isAdmin - Pass true/false if known, null to auto-detect
    */
-  async function initSideMenu(isLoggedIn = null) {
-    // If auth status not provided, check it
-    if (isLoggedIn === null) {
-      isLoggedIn = await checkAuthStatus();
+  async function initSideMenu(isLoggedIn = null, isAdmin = null) {
+    // If auth status not provided, or isAdmin not provided, check it
+    if (isLoggedIn === null || isAdmin === null) {
+      const authStatus = await checkAuthStatus();
+      if (isLoggedIn === null) {
+        isLoggedIn = authStatus.isLoggedIn;
+      }
+      if (isAdmin === null) {
+        isAdmin = authStatus.isAdmin;
+      }
     }
 
-    renderSideMenu(isLoggedIn);
+    renderSideMenu(isLoggedIn, isAdmin || false);
     initMenuToggle();
   }
 
@@ -185,8 +237,9 @@
     if (menuContainer && menuContainer.dataset.autoInit !== 'false') {
       // Check for explicit auth state attribute
       const explicitAuth = menuContainer.dataset.loggedIn;
+      const explicitAdmin = menuContainer.dataset.admin;
       if (explicitAuth !== undefined) {
-        initSideMenu(explicitAuth === 'true');
+        initSideMenu(explicitAuth === 'true', explicitAdmin === 'true');
       }
       // Otherwise auto-detect is handled by individual pages
     }

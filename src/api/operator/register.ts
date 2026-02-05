@@ -315,7 +315,8 @@ export async function authenticateOperator(
     `SELECT * FROM operators
      WHERE session_token_hash = ?
      AND session_expires_at > datetime('now')
-     AND status = 'verified'`
+     AND status = 'verified'
+     AND deleted_at IS NULL`
   )
     .bind(sessionHash)
     .first<Operator>();

@@ -68,6 +68,7 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       WHERE session_token_hash = ?
         AND session_expires_at > datetime('now')
         AND status != 'deleted'
+        AND deleted_at IS NULL
     `).bind(sessionHash).first<{
       id: string;
       x_handle: string | null;
@@ -173,6 +174,7 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
         UPDATE operators SET
           display_name = ?,
           status = 'deleted',
+          deleted_at = ?,
           metadata = ?,
           updated_at = ?,
           session_token_hash = NULL,
@@ -183,6 +185,7 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
         WHERE id = ?
       `).bind(
         deletedUserId,
+        deletedAt,
         metadata,
         deletedAt,
         operator.id
@@ -196,11 +199,12 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       await env.DB.prepare(`
         UPDATE operators SET
           status = 'deleted',
+          deleted_at = ?,
           session_token_hash = NULL,
           session_expires_at = NULL,
           updated_at = ?
         WHERE id = ?
-      `).bind(deletedAt, operator.id).run();
+      `).bind(deletedAt, deletedAt, operator.id).run();
     }
 
     // Stage 8: Clear extended profile data (optional, non-blocking)
@@ -335,6 +339,7 @@ export async function handleAccountDeleteCheck(request: Request, env: Env): Prom
       WHERE session_token_hash = ?
         AND session_expires_at > datetime('now')
         AND status != 'deleted'
+        AND deleted_at IS NULL
     `).bind(sessionHash).first<{ id: string }>();
 
     if (!operator) {

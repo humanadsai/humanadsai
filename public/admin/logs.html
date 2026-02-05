@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Logs - Admin - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .admin-page { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .admin-header h1 { font-family: var(--font-mono); font-size: 1.5rem; }
+    .search-box { display: flex; gap: 8px; margin-bottom: 16px; }
+    .search-box input { flex: 1; padding: 8px 12px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text); font-family: var(--font-mono); font-size: 0.875rem; }
+    .search-box input:focus { outline: none; border-color: var(--color-primary); }
+    .search-box button { padding: 8px 16px; background: var(--color-primary); border: none; border-radius: 6px; color: white; font-family: var(--font-mono); cursor: pointer; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.8rem; }
+    .data-table th { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; }
+    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .decision-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.65rem; font-family: var(--font-mono); font-weight: 600; }
+    .decision-badge.allow { background: rgba(52,199,89,0.2); color: #34c759; }
+    .decision-badge.deny { background: rgba(255,59,48,0.2); color: #ff3b30; }
+    .loading, .empty { text-align: center; padding: 40px; color: var(--color-text-muted); }
+    .id-cell { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); }
+    .table-container { overflow-x: auto; }
+    .copy-btn { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 0.7rem; }
+    .copy-btn:hover { color: var(--color-primary); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/><circle cx="14" cy="20" r="4" fill="#FF6B35"/><path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="admin-page" id="content">
+      <div class="loading">Loading logs...</div>
+    </main>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script src="/js/humanads.js"></script>
+  <script>
+    async function loadLogs(endpoint = null) {
+      const content = document.getElementById('content');
+      content.innerHTML = '<div class="loading">Loading logs...</div>';
+
+      try {
+        let url = '/admin/logs/audit?limit=100';
+        if (endpoint) url += `&endpoint=${encodeURIComponent(endpoint)}`;
+
+        const res = await HumanAds.fetchApi(url);
+
+        if (!res.success) {
+          content.innerHTML = `<div class="empty">Error: ${res.error?.message || 'Failed to load'}</div>`;
+          return;
+        }
+
+        const logs = res.data.logs || [];
+
+        content.innerHTML = `
+          <div class="admin-header">
+            <h1>Audit Logs (${logs.length})</h1>
+          </div>
+          <div class="search-box">
+            <input type="text" id="search-endpoint" placeholder="Filter by endpoint (e.g. /v1/deals)" value="${endpoint || ''}">
+            <button onclick="searchLogs()">Search</button>
+          </div>
+          <div class="table-container">
+            ${logs.length === 0 ? '<div class="empty">No logs found</div>' : `
+              <table class="data-table">
+                <thead>
+                  <tr><th>Request ID</th><th>Endpoint</th><th>Method</th><th>Decision</th><th>Agent</th><th>Time</th><th></th></tr>
+                </thead>
+                <tbody>
+                  ${logs.map(l => `
+                    <tr>
+                      <td class="id-cell">${l.request_id.substring(0,8)}...<button class="copy-btn" onclick="copyId('${l.request_id}')">copy</button></td>
+                      <td>${HumanAds.escapeHtml(l.endpoint)}</td>
+                      <td>${l.method}</td>
+                      <td><span class="decision-badge ${l.decision}">${l.decision}</span></td>
+                      <td class="id-cell">${l.agent_id ? l.agent_id.substring(0,8) + '...' : '-'}</td>
+                      <td>${HumanAds.formatRelativeTime(l.created_at)}</td>
+                      <td><button class="copy-btn" onclick="showDetails('${l.request_id}')">details</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `}
+          </div>
+        `;
+      } catch (e) {
+        content.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+      }
+    }
+
+    function searchLogs() {
+      const endpoint = document.getElementById('search-endpoint').value;
+      loadLogs(endpoint || null);
+    }
+
+    function copyId(id) {
+      HumanAds.copyToClipboard(id);
+      HumanAds.showAlert('Copied!');
+    }
+
+    function showDetails(requestId) {
+      alert('Request ID: ' + requestId + '\n\nFull log viewer coming soon.');
+    }
+
+    (async function() {
+      const meRes = await HumanAds.fetchApi('/me');
+      if (!meRes.success || !meRes.data?.user?.is_admin) {
+        window.location.href = '/admin';
+        return;
+      }
+      loadLogs();
+      SideMenu.init(true, true);
+    })();
+  </script>
+</body>
+</html>

@@ -56,129 +56,6 @@
       color: var(--color-text-muted);
       background: #1a1a1a;
     }
-    /* Modal Root - container */
-    .dialog-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 10000;
-      display: grid;
-      place-items: center;
-      visibility: hidden;
-      pointer-events: none;
-    }
-    .dialog-overlay.active {
-      visibility: visible;
-      pointer-events: auto;
-    }
-    /* Modal Backdrop - semi-transparent overlay */
-    .dialog-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      opacity: 0;
-      transition: opacity 0.2s ease-out;
-    }
-    .dialog-overlay.active .dialog-backdrop {
-      opacity: 1;
-    }
-    /* Modal Panel - FULLY OPAQUE */
-    .dialog {
-      position: relative;
-      background: #0b0b0b !important;   /* Solid opaque background */
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 520px;
-      width: min(92vw, 520px);
-      max-height: min(86vh, 720px);
-      overflow-y: auto;
-      color: #fff;
-      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.65);
-      transform: scale(0.95);
-      opacity: 0;
-      transition: transform 0.2s ease-out, opacity 0.2s ease-out;
-    }
-    .dialog-overlay.active .dialog {
-      transform: scale(1);
-      opacity: 1;
-    }
-    /* Ensure no transparency leaks */
-    .dialog,
-    .dialog * {
-      opacity: 1 !important;
-    }
-    .dialog-overlay.active .dialog,
-    .dialog-overlay.active .dialog * {
-      opacity: 1 !important;
-    }
-    /* Form inputs inside dialog - also opaque */
-    .dialog .form-input,
-    .dialog textarea,
-    .dialog select {
-      background: #121212 !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      color: #fff !important;
-    }
-    .dialog .form-input:focus,
-    .dialog textarea:focus,
-    .dialog select:focus {
-      border-color: var(--color-primary) !important;
-      outline: none;
-    }
-    .dialog-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-    .dialog-requirements {
-      background: rgba(255, 107, 53, 0.1);
-      border: 1px solid rgba(255, 107, 53, 0.3);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-    .dialog-requirements h4 {
-      font-size: 0.85rem;
-      color: var(--color-primary);
-      margin-bottom: 8px;
-    }
-    .dialog-requirements ul {
-      margin: 0;
-      padding-left: 20px;
-      font-size: 0.85rem;
-      color: var(--color-text-muted);
-    }
-    .dialog-requirements li {
-      margin-bottom: 4px;
-    }
-    .dialog-fee {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-top: 1px solid var(--color-border);
-      border-bottom: 1px solid var(--color-border);
-      margin-bottom: 16px;
-    }
-    .dialog-fee-label {
-      color: var(--color-text-muted);
-      font-size: 0.85rem;
-    }
-    .dialog-fee-amount {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--color-primary);
-    }
-    .dialog-actions {
-      display: flex;
-      gap: 12px;
-    }
-    .dialog-actions .btn {
-      flex: 1;
-      padding: 12px 16px;
-    }
   </style>
 </head>
 <body>
@@ -275,95 +152,13 @@
     </footer>
   </div>
 
-  <!-- Application Form Dialog -->
-  <div id="apply-dialog" class="dialog-overlay">
-    <!-- Backdrop (semi-transparent overlay) -->
-    <div class="dialog-backdrop" id="dialog-backdrop"></div>
-    <!-- Panel (fully opaque) -->
-    <div class="dialog">
-      <h3 class="dialog-title" id="dialog-title">Apply for Mission</h3>
-      <div class="dialog-requirements">
-        <h4>Requirements</h4>
-        <ul id="dialog-requirements-list">
-          <li>Include required disclosure (e.g., #Ad)</li>
-          <li>Follow content guidelines</li>
-        </ul>
-      </div>
-      <div class="dialog-fee">
-        <span class="dialog-fee-label">Fixed fee upon approval</span>
-        <span class="dialog-fee-amount" id="dialog-fee">$0.00</span>
-      </div>
-
-      <!-- Application Form Fields -->
-      <div class="application-form" style="margin-top: 16px;">
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 4px;">
-            Your angle/approach (optional)
-          </label>
-          <textarea
-            id="apply-proposed-angle"
-            class="form-input"
-            placeholder="How will you approach this post? What makes your perspective unique?"
-            style="width: 100%; min-height: 60px; resize: vertical;"
-          ></textarea>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 4px;">
-            When can you post?
-          </label>
-          <select id="apply-post-time" class="form-input" style="width: 100%;">
-            <option value="">Select timeframe...</option>
-            <option value="today">Today</option>
-            <option value="tomorrow">Tomorrow</option>
-            <option value="within_48h">Within 48 hours</option>
-            <option value="this_week">This week</option>
-          </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 4px;">
-            Draft copy (optional)
-          </label>
-          <textarea
-            id="apply-draft-copy"
-            class="form-input"
-            placeholder="Share a draft of what you plan to post..."
-            style="width: 100%; min-height: 60px; resize: vertical;"
-          ></textarea>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px; padding: 12px; background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
-          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.8rem;">
-            <input type="checkbox" id="apply-accept-disclosure" style="margin-top: 3px; accent-color: var(--color-primary);">
-            <span>I will include proper disclosure (e.g., #Ad, #Sponsored) as required by platform guidelines and regulations</span>
-          </label>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px; padding: 12px; background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
-          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.8rem;">
-            <input type="checkbox" id="apply-no-engagement-buying" style="margin-top: 3px; accent-color: var(--color-primary);">
-            <span>I confirm I will not purchase engagement (likes, retweets, followers) for this post</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="dialog-actions">
-        <button class="btn btn-outline" id="dialog-cancel">Cancel</button>
-        <button class="btn btn-primary" id="dialog-confirm">Submit Application</button>
-      </div>
-    </div>
-  </div>
-
   <script src="/app.js"></script>
   <script src="/js/side-menu.js"></script>
+  <script src="/js/wallet-alert.js"></script>
   <script>
     let offset = 0;
     const limit = 20;
     let isLoading = false;
-    let pendingApplyDealId = null;
-    let currentMissionData = null; // Store mission data for dialog
-    let currentApplyBtn = null; // Store button reference for dialog
 
     // Custom alert function that uses the single alert container
     function showPageAlert(message, type = 'success') {
@@ -384,88 +179,6 @@
           alertEl.remove();
         }
       }, 5000);
-    }
-
-    // Dialog functions
-    function showApplyDialog(mission) {
-      currentMissionData = mission;
-      const dialog = document.getElementById('apply-dialog');
-      const title = document.getElementById('dialog-title');
-      const reqList = document.getElementById('dialog-requirements-list');
-      const fee = document.getElementById('dialog-fee');
-
-      title.textContent = `Apply: ${mission.title}`;
-      fee.textContent = HumanAds.formatCurrency(mission.reward_amount);
-
-      // Prevent background scrolling
-      document.body.style.overflow = 'hidden';
-
-      // Build requirements list
-      const requirements = mission.requirements || {};
-      const contentType = requirements.content_type || 'original_post';
-      const hashtags = requirements.hashtags || [];
-
-      let reqItems = ['Include required disclosure (e.g., #Ad)'];
-      if (contentType === 'quote_post_commentary') {
-        reqItems.push('Create a quote post with your commentary');
-      } else {
-        reqItems.push('Create an original post');
-      }
-      if (hashtags.length > 0) {
-        reqItems.push(`Include hashtags: ${hashtags.join(', ')}`);
-      }
-      reqItems.push('Post must remain live for review');
-
-      reqList.innerHTML = reqItems.map(r => `<li>${escapeHtml(r)}</li>`).join('');
-
-      dialog.classList.add('active');
-    }
-
-    function hideApplyDialog() {
-      const dialog = document.getElementById('apply-dialog');
-      dialog.classList.remove('active');
-
-      // Restore background scrolling
-      document.body.style.overflow = '';
-
-      // Reset form fields
-      document.getElementById('apply-proposed-angle').value = '';
-      document.getElementById('apply-post-time').value = '';
-      document.getElementById('apply-draft-copy').value = '';
-      document.getElementById('apply-accept-disclosure').checked = false;
-      document.getElementById('apply-no-engagement-buying').checked = false;
-
-      currentMissionData = null;
-      currentApplyBtn = null;
-    }
-
-    async function confirmApply() {
-      if (!currentMissionData || !currentApplyBtn) return;
-
-      // Validate required checkboxes
-      const acceptDisclosure = document.getElementById('apply-accept-disclosure').checked;
-      const acceptNoEngagement = document.getElementById('apply-no-engagement-buying').checked;
-
-      if (!acceptDisclosure) {
-        showPageAlert('Please confirm you will include proper disclosure.', 'error');
-        return;
-      }
-      if (!acceptNoEngagement) {
-        showPageAlert('Please confirm you will not purchase engagement.', 'error');
-        return;
-      }
-
-      // Gather form data
-      const formData = {
-        proposed_angle: document.getElementById('apply-proposed-angle').value.trim(),
-        estimated_post_time_window: document.getElementById('apply-post-time').value,
-        draft_copy: document.getElementById('apply-draft-copy').value.trim(),
-        accept_disclosure: acceptDisclosure,
-        accept_no_engagement_buying: acceptNoEngagement,
-      };
-
-      hideApplyDialog();
-      await submitApplication(currentMissionData.deal_id, currentApplyBtn, formData);
     }
 
     async function loadMissions(append = false) {
@@ -526,23 +239,6 @@
           missions.length === limit ? 'block' : 'none';
 
         offset += missions.length;
-
-        // Check if we need to auto-apply to a mission (from login redirect)
-        if (pendingApplyDealId && isAuthenticated) {
-          const dealIdToApply = pendingApplyDealId;
-          pendingApplyDealId = null; // Clear to prevent re-triggering
-
-          // Find the apply button for this deal and trigger application
-          const btn = document.querySelector(`[data-deal-id="${dealIdToApply}"]`);
-          const mission = window.missionsData[dealIdToApply];
-          if (btn && !btn.disabled && mission) {
-            // Small delay to let user see the page first, then show dialog
-            setTimeout(() => {
-              currentApplyBtn = btn;
-              showApplyDialog(mission);
-            }, 500);
-          }
-        }
       } catch (error) {
         if (!append) {
           listEl.innerHTML = `
@@ -610,121 +306,17 @@
         </div>
       `;
 
-      // Add click handler for apply button
+      // Add click handler for apply button - navigate to apply page
       const applyBtn = el.querySelector('.apply-btn');
       if (applyBtn) {
         applyBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          handleApply(mission, applyBtn);
+          // Navigate to apply page
+          window.location.href = `/missions/apply.html?id=${mission.deal_id}`;
         });
       }
 
       return el;
-    }
-
-    async function handleApply(mission, btn) {
-      // Prevent double-click
-      if (btn.disabled) return;
-
-      // Check connection status first via /api/me
-      try {
-        const response = await HumanAds.fetchApi('/me');
-        const data = response.data;
-
-        if (data.xConnected) {
-          // User is connected - show confirmation dialog
-          currentApplyBtn = btn;
-          showApplyDialog(mission);
-        } else {
-          // User not connected - redirect to login
-          const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?apply=' + mission.deal_id)}`;
-          window.location.href = loginUrl;
-        }
-      } catch (error) {
-        // Error checking status - try to redirect to login
-        const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?apply=' + mission.deal_id)}`;
-        window.location.href = loginUrl;
-      }
-    }
-
-    async function submitApplication(dealId, btn, formData = null) {
-      HumanAds.setButtonLoading(btn, true);
-
-      try {
-        // Use new applyForMission API if form data provided, otherwise fall back to old acceptMission
-        const result = formData
-          ? await HumanAds.applyForMission(dealId, formData)
-          : await HumanAds.acceptMission(dealId);
-
-        showPageAlert('Application submitted! You will be notified when selected.', 'success');
-
-        // Update button to show applied state
-        btn.textContent = 'APPLIED';
-        btn.style.pointerEvents = 'none';
-        btn.style.opacity = '0.5';
-        btn.classList.remove('btn-primary');
-        btn.classList.add('btn-outline');
-        btn.disabled = true;
-
-        // Update mission data to reflect application status
-        if (window.missionsData && window.missionsData[dealId]) {
-          window.missionsData[dealId].is_accepted = true;
-          window.missionsData[dealId].application_status = 'applied';
-        }
-
-        // Redirect to my missions after short delay
-        setTimeout(() => {
-          window.location.href = '/missions/my';
-        }, 1500);
-      } catch (error) {
-        // Handle specific error cases
-        const errorMessage = error.message || 'Failed to submit application';
-
-        if (errorMessage.includes('unauthorized') || errorMessage.includes('401') || error.status === 401) {
-          // Session expired - redirect to login
-          HumanAds.clearSession();
-          const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?apply=' + dealId)}`;
-          window.location.href = loginUrl;
-          return;
-        }
-
-        if (errorMessage.includes('Already') || errorMessage.includes('conflict') || error.status === 409) {
-          showPageAlert('You have already applied for this mission.', 'error');
-          btn.textContent = 'APPLIED';
-          btn.style.pointerEvents = 'none';
-          btn.style.opacity = '0.5';
-          btn.classList.remove('btn-primary');
-          btn.classList.add('btn-outline');
-          btn.disabled = true;
-          return;
-        }
-
-        if (errorMessage.includes('slots') || errorMessage.includes('filled') || errorMessage.includes('sold_out')) {
-          showPageAlert('Sorry, all slots for this mission have been filled.', 'error');
-          return;
-        }
-
-        if (errorMessage.includes('disclosure')) {
-          showPageAlert('Please confirm you will include proper disclosure.', 'error');
-          return;
-        }
-
-        if (errorMessage.includes('engagement')) {
-          showPageAlert('Please confirm you will not purchase engagement.', 'error');
-          return;
-        }
-
-        // Server error - include request ID for support
-        if (error.status === 500 && error.requestId) {
-          showPageAlert(`Server error. Reference: ${error.requestId}`, 'error');
-          return;
-        }
-
-        // Generic error
-        showPageAlert(errorMessage, 'error');
-      } finally {
-        HumanAds.setButtonLoading(btn, false);
-      }
     }
 
     function escapeHtml(str) {
@@ -794,29 +386,21 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Check for apply parameter in URL (from login redirect)
       const urlParams = new URLSearchParams(window.location.search);
-      const applyDealId = urlParams.get('apply') || urlParams.get('accept'); // Support both for backwards compat
+      const applyDealId = urlParams.get('apply') || urlParams.get('accept');
 
       if (applyDealId) {
-        pendingApplyDealId = applyDealId;
-        // Clean up URL
+        // Redirect to apply page
+        window.location.href = `/missions/apply.html?id=${applyDealId}`;
+        return;
+      }
+
+      // Check for success message after application
+      if (urlParams.get('applied') === '1') {
+        showPageAlert('Application submitted! You will be notified when selected.', 'success');
         window.history.replaceState({}, '', '/missions');
       }
 
       loadMissions();
-
-      // Dialog event listeners
-      document.getElementById('dialog-cancel').addEventListener('click', hideApplyDialog);
-      document.getElementById('dialog-confirm').addEventListener('click', confirmApply);
-
-      // Close dialog on backdrop click
-      document.getElementById('dialog-backdrop').addEventListener('click', hideApplyDialog);
-
-      // Close dialog on Escape key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          hideApplyDialog();
-        }
-      });
     });
 
     // Load more button
