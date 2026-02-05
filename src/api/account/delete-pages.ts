@@ -354,7 +354,8 @@ export async function handleDeletePage(request: Request, env: Env): Promise<Resp
           <div class="blocker-item">
             <strong>Active missions (${status.activeMissions})</strong><br>
             Complete or cancel your active missions first.<br>
-            <a href="/missions/my">View your missions</a>
+            You can withdraw applications that are still in "Applied" or "Shortlisted" status.<br>
+            <a href="/missions/my">Go to My Missions</a>
           </div>
         ` : ''}
         ${status.pendingPayouts > 0 ? `

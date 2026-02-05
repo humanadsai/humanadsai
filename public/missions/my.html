@@ -308,6 +308,9 @@
               You've been shortlisted! Final selection coming soon.
             </p>
             ${app.ai_notes ? `<p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 8px;">Feedback: ${escapeHtml(app.ai_notes)}</p>` : ''}
+            <button class="btn btn-outline withdraw-btn" data-app-id="${app.id}" style="font-size: 0.75rem; padding: 6px 12px; margin-top: 8px;">
+              Withdraw Application
+            </button>
           </div>
         `;
       } else if (app.status === 'rejected') {
@@ -378,6 +381,9 @@
             <p style="font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 8px; text-align: center;">
               Compose your post, then submit for verification
             </p>
+            <button class="btn btn-outline cancel-mission-btn" data-mission-id="${mission.id}" style="font-size: 0.75rem; padding: 6px 12px; margin-top: 12px; width: 100%;">
+              Cancel Mission
+            </button>
           </div>
         `;
       } else if (mission.status === 'paid') {
@@ -425,7 +431,33 @@
         ${actionHtml}
       `;
 
+      // Add cancel mission handler
+      const cancelBtn = el.querySelector('.cancel-mission-btn');
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => handleCancelMission(mission.id, cancelBtn));
+      }
+
       return el;
+    }
+
+    async function handleCancelMission(missionId, btn) {
+      if (!confirm('Are you sure you want to cancel this mission? The slot will be released.')) {
+        return;
+      }
+
+      HumanAds.setButtonLoading(btn, true);
+
+      try {
+        const response = await HumanAds.fetchApi(`/missions/${missionId}/cancel`, {
+          method: 'POST',
+        });
+        HumanAds.showAlert('Mission cancelled successfully.');
+        loadData(currentStatus, currentType);
+      } catch (error) {
+        HumanAds.showAlert(error.message || 'Failed to cancel mission', 'error');
+      } finally {
+        HumanAds.setButtonLoading(btn, false);
+      }
     }
 
     async function handleWithdraw(appId, btn) {
