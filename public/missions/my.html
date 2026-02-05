@@ -103,6 +103,20 @@
 
     <!-- Footer -->
     <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms.html">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy.html">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq.html">FAQ</a>
+        <span class="footer-divider">|</span>
+        <a href="/contact.html">Contact</a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
       <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
     </footer>
   </div>
@@ -164,6 +178,9 @@
       if (mission.status === 'accepted') {
         actionHtml = `
           <div class="submit-form">
+            <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 12px;">
+              Create your original sponsored post (include #ad disclosure), then paste the URL below.
+            </p>
             <input
               type="url"
               class="form-input"
@@ -173,6 +190,9 @@
             <button class="btn btn-primary submit-btn" data-mission-id="${mission.id}" style="width: 100%;">
               SUBMIT FOR VERIFICATION
             </button>
+            <p style="font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 8px; text-align: center;">
+              Paid after approval • Based on compliance, not engagement
+            </p>
           </div>
         `;
       } else if (mission.status === 'paid') {
@@ -187,19 +207,22 @@
         actionHtml = `
           <div style="margin-top: 16px; padding: 12px; background: rgba(244, 67, 54, 0.1); border-radius: 8px;">
             <p style="color: #F44336; font-size: 0.875rem;">
-              Your submission didn't meet the requirements. Please try again with a new mission.
+              Your submission didn't meet the requirements (disclosure missing, content issue, or policy violation). Please check <a href="/guidelines-promoters.html" style="color: #F44336; text-decoration: underline;">guidelines</a>.
             </p>
           </div>
         `;
       }
 
       el.innerHTML = `
+        <div class="mission-item-badges">
+          <span class="badge-disclosure">Disclosure required</span>
+        </div>
         <div class="mission-item-header">
           <h3 class="mission-item-title">${escapeHtml(mission.deal_title)}</h3>
           <span class="status-badge ${statusClass}">${mission.status}</span>
         </div>
         <p class="mission-item-description" style="margin-bottom: 8px;">
-          Reward: <strong>${HumanAds.formatCurrency(mission.reward_amount)}</strong>
+          Fixed fee: <strong>${HumanAds.formatCurrency(mission.reward_amount)}</strong>
         </p>
         ${mission.submission_url ? `
           <p style="font-size: 0.75rem; color: var(--color-text-muted);">
