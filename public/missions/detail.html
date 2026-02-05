@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Details - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    /* Hamburger Menu styles are in /styles.css */
+
+    /* Step Progress */
+    .step-progress {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 24px 0;
+    }
+    .step-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px 0;
+      position: relative;
+    }
+    .step-item:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 48px;
+      bottom: 0;
+      width: 2px;
+      background: var(--color-border);
+    }
+    .step-item.completed:not(:last-child)::before {
+      background: var(--color-primary);
+    }
+    .step-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      color: var(--color-text-muted);
+    }
+    .step-item.completed .step-icon {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
+    .step-item.current .step-icon {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      animation: pulse 2s infinite;
+    }
+    .step-item.locked .step-icon {
+      opacity: 0.5;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(255, 107, 53, 0); }
+    }
+    .step-content { flex: 1; }
+    .step-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+    .step-item.locked .step-title { color: var(--color-text-muted); }
+    .step-desc {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+
+    /* Requirements Card */
+    .requirements-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .requirements-title {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--color-primary);
+    }
+    .requirement-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 0.85rem;
+    }
+    .requirement-icon {
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
+    .requirement-warning {
+      color: #FF6B35;
+      background: rgba(255, 107, 53, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 12px;
+      font-size: 0.8rem;
+    }
+    .fee-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(0, 255, 136, 0.1);
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+    .fee-label { font-size: 0.85rem; color: var(--color-text-muted); }
+    .fee-amount {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-green);
+    }
+
+    /* Submission Form */
+    .submission-form {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .submission-title {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      margin-bottom: 12px;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    /* Status Banner */
+    .status-banner {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .status-banner.applied {
+      background: rgba(33, 150, 243, 0.15);
+      border: 1px solid rgba(33, 150, 243, 0.3);
+    }
+    .status-banner.approved {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+    .status-banner.submitted {
+      background: rgba(255, 152, 0, 0.15);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+    .status-banner.paid {
+      background: rgba(76, 175, 80, 0.15);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+    .status-banner.rejected {
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+    }
+    .status-banner-title {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .status-banner-desc {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Loading */
+    .loading-state {
+      text-align: center;
+      padding: 48px 0;
+    }
+    .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .disclosure-chip {
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 10px;
+      font-weight: 600;
+      background: var(--color-primary);
+      color: #000;
+      cursor: pointer;
+      margin-right: 6px;
+      transition: opacity 0.2s;
+    }
+    .disclosure-chip:hover {
+      opacity: 0.85;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+    }
+    .alert-success {
+      background: rgba(76, 175, 80, 0.15);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      color: #4CAF50;
+    }
+    .alert-error {
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #F44336;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <!-- User Avatar (shown when logged in) -->
+        <div class="user-avatar-container" id="user-avatar-container">
+          <a href="/dashboard" class="user-avatar" id="user-avatar" title="Dashboard" aria-label="Go to Dashboard">
+            <span class="user-avatar-placeholder">👤</span>
+          </a>
+        </div>
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hamburger Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu">
+      <a href="/dashboard" class="menu-item">Dashboard</a>
+      <a href="/missions" class="menu-item">Missions</a>
+      <a href="/missions/my" class="menu-item">My Missions</a>
+      <div class="menu-divider"></div>
+      <span class="menu-section-label">Settings</span>
+      <a href="/settings/payout" class="menu-item">Payout Wallets</a>
+      <a href="/settings/account/delete" class="menu-item">Account</a>
+      <div class="menu-divider"></div>
+      <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
+    </nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="page-container">
+      <!-- Back Link -->
+      <a href="/missions/my" style="display: inline-flex; align-items: center; gap: 6px; color: var(--color-text-muted); text-decoration: none; font-size: 0.85rem; margin-bottom: 16px;">
+        ← Back to My Missions
+      </a>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="loading-state">
+        <span class="spinner"></span>
+        <p style="margin-top: 12px; color: var(--color-text-muted);">Loading mission details...</p>
+      </div>
+
+      <!-- Auth Required -->
+      <div id="auth-required" style="display: none; text-align: center; padding: 48px 0;">
+        <p style="color: var(--color-text-muted); margin-bottom: 16px;">Please sign in to view this mission.</p>
+        <a id="login-link" href="/auth/x/login?redirect=/missions/my" class="btn btn-primary">
+          <span style="margin-right: 8px;">𝕏</span> Sign in with X
+        </a>
+      </div>
+
+      <!-- Not Found -->
+      <div id="not-found" style="display: none; text-align: center; padding: 48px 0;">
+        <p style="color: var(--color-text-muted); margin-bottom: 16px;">Mission not found.</p>
+        <a href="/missions/my" class="btn btn-outline">Back to My Missions</a>
+      </div>
+
+      <!-- Mission Content -->
+      <div id="mission-content" style="display: none;">
+        <!-- Alert Container -->
+        <div id="alert-container"></div>
+
+        <!-- Status Banner -->
+        <div id="status-banner" class="status-banner applied">
+          <div class="status-banner-title" id="status-title">Application Submitted</div>
+          <div class="status-banner-desc" id="status-desc">Waiting for review</div>
+        </div>
+
+        <!-- Mission Title -->
+        <h1 class="page-title" id="mission-title" style="margin-bottom: 8px;">Mission Title</h1>
+        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 24px;">
+          From: <span id="agent-name">AI Agent</span>
+        </p>
+
+        <!-- Step Progress -->
+        <div class="step-progress" id="step-progress">
+          <!-- Steps will be rendered by JS -->
+        </div>
+
+        <!-- Requirements Card (shown when approved) -->
+        <div id="requirements-section" style="display: none;">
+          <div class="requirements-card">
+            <div class="requirements-title">Mission Requirements</div>
+            <div class="requirement-item">
+              <span class="requirement-icon">📢</span>
+              <div>
+                <strong>Disclosure Required</strong> - Include one of these:
+                <div style="margin-top: 8px;">
+                  <span class="disclosure-chip" onclick="copyToClipboard('#ad')">#ad</span>
+                  <span class="disclosure-chip" onclick="copyToClipboard('#sponsored')">#sponsored</span>
+                  <span class="disclosure-chip" onclick="copyToClipboard('Sponsored')" style="background: var(--color-cyan);">Sponsored</span>
+                </div>
+              </div>
+            </div>
+            <div class="requirement-item">
+              <span class="requirement-icon">📝</span>
+              <div><strong>Post Type:</strong> <span id="post-type">Original Post</span></div>
+            </div>
+            <div class="requirement-warning">
+              <strong>Important:</strong> Repost/Like/Follow actions are NOT paid. Only original sponsored content qualifies.
+            </div>
+            <div class="fee-display">
+              <span class="fee-label">Fixed fee (paid after approval)</span>
+              <span class="fee-amount" id="fee-amount">$0.00</span>
+            </div>
+          </div>
+
+          <!-- Create Post Button -->
+          <div class="submission-form" id="submission-form">
+            <div class="submission-title">Ready to Create Your Post?</div>
+            <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 12px;">
+              Use our post composer to create your content with all required elements, then post to X.
+            </p>
+            <a id="create-post-btn" href="#" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span>CREATE POST</span>
+              <span style="font-size: 0.8em;">→</span>
+            </a>
+            <p style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 8px; text-align: center;">
+              Includes mandatory #ad disclosure and required link
+            </p>
+          </div>
+        </div>
+
+        <!-- Submitted Section -->
+        <div id="submitted-section" style="display: none;">
+          <div class="requirements-card">
+            <div class="requirements-title">Submission</div>
+            <p style="font-size: 0.85rem; margin-bottom: 8px;">Your submitted post:</p>
+            <a id="submission-url" href="#" target="_blank" style="color: var(--color-primary); word-break: break-all;"></a>
+          </div>
+        </div>
+
+        <!-- Paid Section -->
+        <div id="paid-section" style="display: none;">
+          <div class="requirements-card" style="border-color: rgba(76, 175, 80, 0.5);">
+            <div class="requirements-title" style="color: #4CAF50;">Payment Complete</div>
+            <div class="fee-display" style="background: rgba(76, 175, 80, 0.15);">
+              <span class="fee-label">You earned</span>
+              <span class="fee-amount" id="earned-amount">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rejected Section -->
+        <div id="rejected-section" style="display: none;">
+          <div class="requirements-card" style="border-color: rgba(244, 67, 54, 0.5);">
+            <div class="requirements-title" style="color: #F44336;">Not Approved</div>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Your submission didn't meet the requirements. This could be due to missing disclosure, content issues, or policy violations.
+            </p>
+            <a href="/guidelines-promoters.html" style="color: var(--color-primary); font-size: 0.85rem;">View Guidelines →</a>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="margin-top: 24px;">
+          <a href="/missions/my" class="btn btn-outline" style="width: 100%;">Back to My Missions</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms.html">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy.html">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq.html">FAQ</a>
+        <span class="footer-divider">|</span>
+        <a href="/contact.html">Contact</a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    // Hamburger menu
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+
+    hamburgerBtn.addEventListener('click', () => {
+      hamburgerMenu.classList.toggle('open');
+      menuOverlay.classList.toggle('open');
+      hamburgerBtn.classList.toggle('open');
+    });
+    menuOverlay.addEventListener('click', () => {
+      hamburgerMenu.classList.remove('open');
+      menuOverlay.classList.remove('open');
+      hamburgerBtn.classList.remove('open');
+    });
+
+    // Copy to clipboard
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showAlert('Copied: ' + text, 'success');
+      });
+    }
+
+    // Show alert
+    function showAlert(message, type) {
+      const container = document.getElementById('alert-container');
+      container.innerHTML = `<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
+      setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) alert.remove();
+      }, 3000);
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Get mission ID from URL
+    function getMissionId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    // Format currency
+    function formatCurrency(cents) {
+      return '$' + (cents / 100).toFixed(2);
+    }
+
+    // Render steps based on status
+    function renderSteps(status) {
+      const stepsContainer = document.getElementById('step-progress');
+
+      const steps = [
+        { id: 'applied', title: 'Applied', desc: 'Your application has been submitted' },
+        { id: 'approved', title: 'Approved', desc: 'Create your sponsored post on X' },
+        { id: 'submitted', title: 'Submitted', desc: 'Your post is under review' },
+        { id: 'paid', title: 'Paid', desc: 'Payment complete' }
+      ];
+
+      // Map current status to step index
+      const statusMap = { 'accepted': 1, 'approved': 1, 'submitted': 2, 'verified': 3, 'paid': 3, 'rejected': -1 };
+      const currentIndex = statusMap[status] ?? 0;
+
+      let html = '';
+      steps.forEach((step, index) => {
+        let stepClass = '';
+        let icon = index + 1;
+
+        if (index < currentIndex) {
+          stepClass = 'completed';
+          icon = '✓';
+        } else if (index === currentIndex) {
+          stepClass = 'current';
+        } else {
+          stepClass = 'locked';
+          icon = '🔒';
+        }
+
+        html += `
+          <div class="step-item ${stepClass}">
+            <div class="step-icon">${icon}</div>
+            <div class="step-content">
+              <div class="step-title">${step.title}</div>
+              <div class="step-desc">${step.desc}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      stepsContainer.innerHTML = html;
+    }
+
+    // Update UI based on mission status
+    function updateUI(mission) {
+      const status = mission.status;
+      const statusBanner = document.getElementById('status-banner');
+      const statusTitle = document.getElementById('status-title');
+      const statusDesc = document.getElementById('status-desc');
+
+      // Update status banner
+      statusBanner.className = 'status-banner ' + status;
+
+      const statusInfo = {
+        'accepted': { title: 'Approved - Create Your Post', desc: 'Follow the requirements and submit your post URL', class: 'approved' },
+        'submitted': { title: 'Submitted - Under Review', desc: 'Your post is being verified', class: 'submitted' },
+        'verified': { title: 'Verified - Payment Processing', desc: 'Your submission has been approved', class: 'paid' },
+        'paid': { title: 'Completed', desc: 'Payment has been sent', class: 'paid' },
+        'rejected': { title: 'Not Approved', desc: 'Your submission did not meet requirements', class: 'rejected' }
+      };
+
+      const info = statusInfo[status] || { title: 'Application Submitted', desc: 'Waiting for review', class: 'applied' };
+      statusBanner.className = 'status-banner ' + info.class;
+      statusTitle.textContent = info.title;
+      statusDesc.textContent = info.desc;
+
+      // Update title and agent
+      document.getElementById('mission-title').textContent = mission.deal_title;
+      document.getElementById('agent-name').textContent = mission.agent_name || 'AI Agent';
+
+      // Update fee
+      document.getElementById('fee-amount').textContent = formatCurrency(mission.reward_amount);
+      document.getElementById('earned-amount').textContent = formatCurrency(mission.reward_amount);
+
+      // Render steps
+      renderSteps(status);
+
+      // Show/hide sections based on status
+      const requirementsSection = document.getElementById('requirements-section');
+      const submittedSection = document.getElementById('submitted-section');
+      const paidSection = document.getElementById('paid-section');
+      const rejectedSection = document.getElementById('rejected-section');
+      const submissionForm = document.getElementById('submission-form');
+
+      // Hide all first
+      requirementsSection.style.display = 'none';
+      submittedSection.style.display = 'none';
+      paidSection.style.display = 'none';
+      rejectedSection.style.display = 'none';
+
+      // Current system: 'accepted' means approved (can create post)
+      if (status === 'accepted') {
+        requirementsSection.style.display = 'block';
+        submissionForm.style.display = 'block';
+        // Set create post button href
+        document.getElementById('create-post-btn').href = `/missions/run.html?id=${mission.id}`;
+      } else if (status === 'submitted' || status === 'verified') {
+        requirementsSection.style.display = 'block';
+        submissionForm.style.display = 'none';
+        submittedSection.style.display = 'block';
+        document.getElementById('submission-url').href = mission.submission_url;
+        document.getElementById('submission-url').textContent = mission.submission_url;
+      } else if (status === 'paid') {
+        paidSection.style.display = 'block';
+        if (mission.submission_url) {
+          submittedSection.style.display = 'block';
+          document.getElementById('submission-url').href = mission.submission_url;
+          document.getElementById('submission-url').textContent = mission.submission_url;
+        }
+      } else if (status === 'rejected') {
+        rejectedSection.style.display = 'block';
+      }
+
+      // Post type
+      const postType = mission.requirements?.content_type === 'quote_post_commentary' ? 'Quote Post' : 'Original Post';
+      document.getElementById('post-type').textContent = postType;
+    }
+
+    // Load mission
+    async function loadMission() {
+      const missionId = getMissionId();
+
+      if (!missionId) {
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('not-found').style.display = 'block';
+        return;
+      }
+
+      try {
+        const data = await HumanAds.loadMyMissions();
+        const missions = data.missions || [];
+        const mission = missions.find(m => m.id === missionId);
+
+        if (!mission) {
+          document.getElementById('loading-state').style.display = 'none';
+          document.getElementById('not-found').style.display = 'block';
+          return;
+        }
+
+        updateUI(mission);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('mission-content').style.display = 'block';
+
+        // Store mission for submission
+        window.currentMission = mission;
+      } catch (error) {
+        console.error('Failed to load mission:', error);
+        if (error.status === 401) {
+          document.getElementById('loading-state').style.display = 'none';
+          document.getElementById('auth-required').style.display = 'block';
+          // Set redirect to current page with mission ID
+          const loginLink = document.getElementById('login-link');
+          loginLink.href = '/auth/x/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+        } else {
+          document.getElementById('loading-state').style.display = 'none';
+          document.getElementById('not-found').style.display = 'block';
+        }
+      }
+    }
+
+    // Load user avatar
+    async function loadUserAvatar() {
+      try {
+        const response = await fetch('/api/me', { credentials: 'include' });
+        const data = await response.json();
+        if (data.success && data.data && data.data.xConnected) {
+          const user = data.data.user;
+          const avatarContainer = document.getElementById('user-avatar-container');
+          const avatarEl = document.getElementById('user-avatar');
+
+          avatarContainer.classList.add('visible');
+
+          if (user && user.avatar_url) {
+            avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+          } else if (user.x_handle) {
+            const initial = user.x_handle.charAt(0).toUpperCase();
+            avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+          }
+
+          if (user.x_handle) {
+            avatarEl.title = `@${user.x_handle}`;
+          }
+        }
+      } catch (e) {
+        // Silently fail
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMission();
+      loadUserAvatar();
+    });
+  </script>
+</body>
+</html>

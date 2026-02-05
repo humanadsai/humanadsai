@@ -37,19 +37,45 @@
     .tab:hover:not(.active) {
       background: var(--color-border);
     }
+    /* Status badges - compact */
     .status-badge {
-      display: inline-block;
-      padding: 4px 8px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
       border-radius: 4px;
-      font-size: 0.625rem;
-      font-weight: 700;
+      font-size: 10px;
+      line-height: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
+      white-space: nowrap;
     }
-    .status-accepted, .status-applied { background: #2196F3; color: white; }
-    .status-submitted { background: #FF9800; color: white; }
-    .status-verified, .status-paid { background: #4CAF50; color: white; }
-    .status-rejected { background: #F44336; color: white; }
-    .status-expired { background: #9E9E9E; color: white; }
+    .status-accepted, .status-applied {
+      background: rgba(33, 150, 243, 0.25);
+      border: 1px solid rgba(33, 150, 243, 0.4);
+      color: #64B5F6;
+    }
+    .status-submitted, .status-shortlisted {
+      background: rgba(255, 152, 0, 0.25);
+      border: 1px solid rgba(255, 152, 0, 0.4);
+      color: #FFB74D;
+    }
+    .status-verified, .status-paid, .status-selected {
+      background: rgba(76, 175, 80, 0.25);
+      border: 1px solid rgba(76, 175, 80, 0.4);
+      color: #81C784;
+    }
+    .status-rejected {
+      background: rgba(244, 67, 54, 0.25);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      color: #E57373;
+    }
+    .status-expired, .status-withdrawn, .status-cancelled {
+      background: rgba(158, 158, 158, 0.25);
+      border: 1px solid rgba(158, 158, 158, 0.4);
+      color: #BDBDBD;
+    }
 
     .submit-form {
       margin-top: 16px;
@@ -60,105 +86,7 @@
       width: 100%;
       margin-bottom: 12px;
     }
-    /* Hamburger Menu */
-    .hamburger-btn {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 5px;
-      width: 40px;
-      height: 40px;
-      padding: 8px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      z-index: 1001;
-    }
-    .hamburger-line {
-      display: block;
-      width: 24px;
-      height: 2px;
-      background: var(--color-text);
-      transition: all 0.3s;
-    }
-    .hamburger-btn.open .hamburger-line:nth-child(1) {
-      transform: rotate(45deg) translate(5px, 5px);
-    }
-    .hamburger-btn.open .hamburger-line:nth-child(2) {
-      opacity: 0;
-    }
-    .hamburger-btn.open .hamburger-line:nth-child(3) {
-      transform: rotate(-45deg) translate(5px, -5px);
-    }
-    .hamburger-menu {
-      position: fixed;
-      top: 0;
-      right: -280px;
-      width: 280px;
-      height: 100vh;
-      background: var(--color-bg);
-      border-left: 1px solid var(--color-border);
-      padding: 80px 24px 24px;
-      transition: right 0.3s ease;
-      z-index: 1000;
-      overflow-y: auto;
-    }
-    .hamburger-menu.open {
-      right: 0;
-    }
-    .menu-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s;
-      z-index: 999;
-    }
-    .menu-overlay.open {
-      opacity: 1;
-      visibility: visible;
-    }
-    .menu-item {
-      display: block;
-      padding: 14px 16px;
-      color: var(--color-text);
-      text-decoration: none;
-      font-family: var(--font-mono);
-      font-size: 0.875rem;
-      border-radius: 8px;
-      transition: background 0.2s;
-    }
-    .menu-item:hover {
-      background: var(--color-surface);
-    }
-    .menu-item.active {
-      color: var(--color-primary);
-      background: rgba(255, 107, 53, 0.1);
-    }
-    .menu-item-danger {
-      color: #FF4444;
-    }
-    .menu-item-danger:hover {
-      background: rgba(255, 68, 68, 0.1);
-    }
-    .menu-divider {
-      height: 1px;
-      background: var(--color-border);
-      margin: 12px 0;
-    }
-    .menu-section-label {
-      display: block;
-      padding: 8px 16px 4px;
-      font-size: 0.625rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--color-text-muted);
-      letter-spacing: 0.05em;
-    }
+    /* Hamburger Menu styles are in /styles.css */
     .mission-item-title:hover {
       color: var(--color-primary) !important;
     }
@@ -176,11 +104,19 @@
         </svg>
         <span class="logo-text">HumanAds</span>
       </a>
-      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-      </button>
+      <div class="header-right">
+        <!-- User Avatar (shown when logged in) -->
+        <div class="user-avatar-container" id="user-avatar-container">
+          <a href="/dashboard" class="user-avatar" id="user-avatar" title="Dashboard" aria-label="Go to Dashboard">
+            <span class="user-avatar-placeholder">👤</span>
+          </a>
+        </div>
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
     </header>
 
     <!-- Hamburger Menu (logged-in only for this page) -->
@@ -408,7 +344,7 @@
 
       el.innerHTML = `
         <div class="mission-item-badges">
-          <span class="badge-disclosure">Application</span>
+          <span class="badge badge--disclosure">Application</span>
         </div>
         <div class="mission-item-header">
           <h3 class="mission-item-title">${escapeHtml(deal.title || 'Mission')}</h3>
@@ -455,21 +391,13 @@
 
       if (mission.status === 'accepted') {
         actionHtml = `
-          <div class="submit-form">
-            <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 12px;">
-              Create your original sponsored post (include #ad disclosure), then paste the URL below.
-            </p>
-            <input
-              type="url"
-              class="form-input"
-              placeholder="Paste your X post URL here"
-              id="url-${mission.id}"
-            >
-            <button class="btn btn-primary submit-btn" data-mission-id="${mission.id}" style="width: 100%;">
-              SUBMIT FOR VERIFICATION
-            </button>
+          <div style="margin-top: 16px;">
+            <a href="/missions/run.html?id=${mission.id}" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span>CREATE POST</span>
+              <span style="font-size: 0.8em;">→</span>
+            </a>
             <p style="font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 8px; text-align: center;">
-              Paid after approval • Based on compliance, not engagement
+              Compose your post, then submit for verification
             </p>
           </div>
         `;
@@ -501,7 +429,7 @@
 
       el.innerHTML = `
         <div class="mission-item-badges">
-          <span class="badge-disclosure">Mission</span>
+          <span class="badge badge--type">Mission</span>
         </div>
         <div class="mission-item-header">
           <a href="/missions/detail.html?id=${mission.id}" class="mission-item-title" style="text-decoration: none; color: inherit;">${escapeHtml(mission.deal_title)}</a>
@@ -515,15 +443,8 @@
             Submitted: <a href="${escapeHtml(mission.submission_url)}" target="_blank" style="color: var(--color-primary);">${escapeHtml(mission.submission_url)}</a>
           </p>
         ` : ''}
-        <a href="/missions/run.html?id=${mission.id}" style="display: inline-block; margin-top: 12px; font-size: 0.8rem; color: var(--color-primary); text-decoration: none;">View Details →</a>
         ${actionHtml}
       `;
-
-      // Add submit handler
-      const submitBtn = el.querySelector('.submit-btn');
-      if (submitBtn) {
-        submitBtn.addEventListener('click', () => handleSubmit(mission.id, submitBtn));
-      }
 
       return el;
     }
@@ -612,9 +533,37 @@
       });
     });
 
+    // Load user avatar
+    async function loadUserAvatar() {
+      try {
+        const response = await HumanAds.fetchApi('/me');
+        if (response.success && response.data && response.data.xConnected) {
+          const user = response.data.user;
+          const avatarContainer = document.getElementById('user-avatar-container');
+          const avatarEl = document.getElementById('user-avatar');
+
+          avatarContainer.classList.add('visible');
+
+          if (user && user.avatar_url) {
+            avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+          } else if (user.x_handle) {
+            const initial = user.x_handle.charAt(0).toUpperCase();
+            avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+          }
+
+          if (user.x_handle) {
+            avatarEl.title = `@${user.x_handle}`;
+          }
+        }
+      } catch (e) {
+        // Silently fail
+      }
+    }
+
     // Initialize - load all data
     document.addEventListener('DOMContentLoaded', () => {
       loadData();
+      loadUserAvatar();
     });
   </script>
 </body>

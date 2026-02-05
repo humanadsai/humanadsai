@@ -415,38 +415,6 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       font-weight: 700;
     }
 
-    .user-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 20px;
-      font-size: 0.875rem;
-      color: var(--color-cyan);
-    }
-
-    .user-avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--color-cyan), var(--color-green));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      color: #000;
-    }
-
-    .user-avatar-img {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
     .verified-badge {
       width: 16px;
       height: 16px;
@@ -455,20 +423,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
     /* Profile Header */
     .profile-header {
-      padding: 24px 0;
-    }
-
-    .profile-header-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    @media (min-width: 480px) {
-      .profile-header-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-      }
+      padding: 16px 0;
     }
 
     .profile-identity-card {
@@ -647,167 +602,6 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       opacity: 0.8;
     }
 
-    /* Compact Bio Code Row */
-    .biocode-compact {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 16px 20px;
-    }
-
-    .biocode-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .biocode-info {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .biocode-status-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      background: rgba(255, 165, 0, 0.15);
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #FFA500;
-    }
-
-    .biocode-status-badge.verified {
-      background: rgba(0, 255, 136, 0.15);
-      color: var(--color-green);
-    }
-
-    .biocode-stat {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-    }
-
-    .biocode-stat strong {
-      color: var(--color-cyan);
-    }
-
-    .btn-biocode {
-      padding: 8px 14px;
-      font-size: 0.7rem;
-      white-space: nowrap;
-    }
-
-    /* Payout Wallets Section */
-    .wallets-section {
-      padding: 24px 0;
-      border-top: 1px solid var(--color-border);
-    }
-
-    .wallets-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-
-    .wallets-title {
-      font-family: var(--font-mono);
-      font-size: 0.875rem;
-      font-weight: 600;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .wallets-title svg {
-      width: 18px;
-      height: 18px;
-      color: var(--color-cyan);
-    }
-
-    .wallet-input-group {
-      margin-bottom: 16px;
-    }
-
-    .wallet-label {
-      display: block;
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      margin-bottom: 6px;
-    }
-
-    .wallet-input {
-      width: 100%;
-      padding: 10px 12px;
-      background: var(--color-bg);
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
-      color: var(--color-text);
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      transition: border-color 0.2s;
-    }
-
-    .wallet-input:focus {
-      outline: none;
-      border-color: var(--color-cyan);
-    }
-
-    .wallet-input::placeholder {
-      color: var(--color-text-muted);
-      opacity: 0.5;
-    }
-
-    .wallet-input.error {
-      border-color: #FF4444;
-    }
-
-    .wallet-error {
-      font-size: 0.7rem;
-      color: #FF4444;
-      margin-top: 4px;
-    }
-
-    .wallet-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .wallet-status {
-      font-size: 0.75rem;
-      color: var(--color-green);
-    }
-
-    .btn-save {
-      padding: 10px 20px;
-      background: var(--color-cyan);
-      color: #000;
-      font-weight: 600;
-    }
-
-    .btn-save:hover {
-      opacity: 0.9;
-    }
-
-    .btn-save:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* CTA */
-    .cta-section {
-      padding: 16px 0;
-    }
-
     .btn {
       display: inline-flex;
       align-items: center;
@@ -860,7 +654,13 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
     .section-subtitle {
       font-size: 0.75rem;
       color: var(--color-text-muted);
-      margin-top: 4px;
+      margin-top: 6px;
+      line-height: 1.4;
+      max-width: 280px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .sample-badge {
@@ -909,71 +709,311 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
     .view-all-link:hover { color: var(--color-primary); }
 
-    /* Mission Cards */
+    /* Mission Cards - matching main site */
     .missions-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .mission-card {
+    .mission-item {
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: 12px;
       padding: 16px;
     }
 
-    .mission-header {
+    .mission-item-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .badge-sample {
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%);
+      color: #000;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+
+    .badge-disclosure {
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      background: rgba(120, 74, 44, 0.55);
+      border: 1px solid rgba(255, 126, 54, 0.35);
+      color: rgba(255, 210, 180, 0.95);
+    }
+
+    .badge-type {
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      background: rgba(0, 160, 190, 0.28);
+      border: 1px solid rgba(0, 160, 190, 0.35);
+      color: rgba(180, 245, 255, 0.95);
+    }
+
+    .mission-item-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      gap: 12px;
       margin-bottom: 8px;
     }
 
-    .mission-agent {
+    .mission-item-title {
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .mission-item-fee {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .mission-item-amount {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--color-green);
+      display: block;
+    }
+
+    .mission-item-fee-label {
+      font-size: 0.65rem;
       color: var(--color-text-muted);
     }
 
-    .mission-reward {
-      font-family: var(--font-mono);
-      font-size: 0.875rem;
-      font-weight: 700;
-      color: var(--color-green);
+    .mission-item-agent {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
     }
 
-    .mission-title {
-      font-size: 0.875rem;
+    .mission-item-description {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      line-height: 1.5;
       margin-bottom: 12px;
-      line-height: 1.4;
     }
 
-    .mission-footer {
+    .mission-item-approval {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      padding: 8px 12px;
+      background: rgba(0, 255, 136, 0.08);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .mission-item-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .mission-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .mission-item-slots {
       font-size: 0.75rem;
       color: var(--color-text-muted);
     }
 
-    .mission-platform {
-      font-size: 1rem;
+    .btn-accept {
+      padding: 10px 20px;
+      font-size: 0.75rem;
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .mission-type {
-      padding: 4px 8px;
-      background: rgba(255, 107, 53, 0.2);
-      border-radius: 4px;
+    .btn-accept:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+
+    .btn-accept:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-accept.accepted {
+      background: transparent;
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+    }
+
+    .missions-loading {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--color-text-muted);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-title {
       font-family: var(--font-mono);
-      font-size: 0.625rem;
-      color: var(--color-primary);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .empty-text {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Status Badges */
+    .status-badge {
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-accepted {
+      background: rgba(33, 150, 243, 0.25);
+      border: 1px solid rgba(33, 150, 243, 0.4);
+      color: #64B5F6;
+    }
+
+    .status-submitted {
+      background: rgba(255, 152, 0, 0.25);
+      border: 1px solid rgba(255, 152, 0, 0.4);
+      color: #FFB74D;
+    }
+
+    .status-paid {
+      background: rgba(76, 175, 80, 0.25);
+      border: 1px solid rgba(76, 175, 80, 0.4);
+      color: #81C784;
+    }
+
+    .status-rejected {
+      background: rgba(244, 67, 54, 0.25);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      color: #E57373;
+    }
+
+    .status-applied {
+      background: rgba(33, 150, 243, 0.25);
+      border: 1px solid rgba(33, 150, 243, 0.4);
+      color: #64B5F6;
+    }
+
+    .status-paid-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-green);
+    }
+
+    .status-pending-label {
+      font-size: 0.75rem;
+      color: #FFB74D;
+    }
+
+    .status-rejected-label {
+      font-size: 0.75rem;
+      color: #E57373;
+    }
+
+    .mission-item-date {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+    }
+
+    .alert-success {
+      background: rgba(0, 255, 136, 0.15);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      color: var(--color-green);
+    }
+
+    .alert-error {
+      background: rgba(255, 68, 68, 0.15);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      color: #FF4444;
     }
 
     .btn-secondary {
@@ -1017,6 +1057,13 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       color: var(--color-text-muted);
     }
 
+    .footer-disclaimer {
+      font-size: 0.5rem;
+      max-width: 500px;
+      margin: 0 auto 8px;
+      line-height: 1.4;
+    }
+
     .logout-link {
       display: block;
       text-align: center;
@@ -1050,6 +1097,120 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
     .delete-link:hover,
     .delete-link:active { color: #FF4444; opacity: 1; }
+
+    /* Hamburger Menu */
+    .hamburger-btn {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 40px;
+      height: 40px;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 1001;
+    }
+
+    .hamburger-line {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--color-text);
+      transition: all 0.3s;
+    }
+
+    .hamburger-btn.open .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger-btn.open .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger-btn.open .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+    .hamburger-menu {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100vh;
+      background: var(--color-bg);
+      border-left: 1px solid var(--color-border);
+      padding: 80px 24px 24px;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .hamburger-menu.open {
+      right: 0;
+    }
+
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .menu-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .menu-item {
+      display: block;
+      padding: 14px 16px;
+      color: var(--color-text);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .menu-item:hover {
+      background: var(--color-surface);
+    }
+
+    .menu-item.active {
+      color: var(--color-primary);
+      background: rgba(255, 107, 53, 0.1);
+    }
+
+    .menu-item-danger {
+      color: #FF4444;
+    }
+
+    .menu-item-danger:hover {
+      background: rgba(255, 68, 68, 0.1);
+    }
+    .menu-section-label {
+      display: block;
+      padding: 8px 16px 4px;
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: var(--color-border);
+      margin: 12px 0;
+    }
   </style>
 </head>
 <body>
@@ -1064,316 +1225,253 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         </svg>
         <span class="logo-text">HumanAds</span>
       </a>
-      <div class="user-badge">
-        ${avatarHtml}
-        <span>@${operator.x_handle}</span>
-        ${verifiedBadge}
-      </div>
+      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
     </header>
 
-    <!-- Profile Header -->
-    <section class="profile-header">
-      <div class="profile-header-grid">
-        <!-- Identity & Influence Card -->
-        <div class="profile-identity-card">
-          <a href="https://x.com/${operator.x_handle}" target="_blank" rel="noopener noreferrer" class="x-profile-link profile-identity-row">
-            ${hasProfileImage
-              ? `<img src="${operator.x_profile_image_url}" alt="" class="profile-avatar-img">`
-              : `<div class="profile-avatar">${initial}</div>`
-            }
-            <div class="profile-identity-info">
-              <div class="profile-display-name">
-                ${displayName}
-                ${verifiedBadge}
-              </div>
-              <div class="profile-handle">@${operator.x_handle}</div>
-            </div>
-          </a>
-          <div class="profile-influence">
-            <div class="influence-stat">
-              <span class="influence-value">${formatCount(operator.x_followers_count)}</span>
-              <span class="influence-label">Followers</span>
-            </div>
-            <div class="influence-stat">
-              <span class="influence-value">${formatCount(operator.x_following_count)}</span>
-              <span class="influence-label">Following</span>
-            </div>
-          </div>
-        </div>
+    <!-- Hamburger Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu">
+      <a href="/dashboard" class="menu-item active">My Missions</a>
+      <a href="/missions" class="menu-item">Explore Missions</a>
+      <div class="menu-divider"></div>
+      <span class="menu-section-label">Settings</span>
+      <a href="/settings/payout" class="menu-item">Payout Wallets</a>
+      <a href="/settings/account/delete" class="menu-item">Account</a>
+      <div class="menu-divider"></div>
+      <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
+    </nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
 
-        <!-- Invite Code Card -->
-        <div class="biocode-compact">
-          <div class="biocode-row">
-            <div class="biocode-info">
-              <span class="biocode-status-badge ${operator.invite_count > 0 ? 'verified' : ''}">
-                <span class="status-dot ${operator.invite_count > 0 ? 'verified' : 'pending'}"></span>
-                ${operator.invite_count > 0 ? 'Active Inviter' : 'New Member'}
-              </span>
-              <span class="biocode-stat">Invited: <strong>${operator.invite_count}</strong></span>
-            </div>
-          </div>
-          ${operator.invite_code ? `
-            <div class="invite-code-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border);">
-              <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-bottom: 6px;">Your Invite Code</div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <code id="invite-code" style="font-family: var(--font-mono); font-size: 0.85rem; padding: 8px 12px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 6px; flex: 1;">${operator.invite_code}</code>
-                <button id="copy-invite-btn" class="btn btn-secondary btn-biocode" onclick="copyInviteCode()">Copy</button>
-              </div>
-              <div style="font-size: 0.65rem; color: var(--color-text-muted); margin-top: 8px;">
-                Share this link: <a href="https://humanadsai.com/?invite=${operator.invite_code}" style="color: var(--color-cyan);">humanadsai.com/?invite=${operator.invite_code}</a>
-              </div>
-            </div>
-          ` : `
-            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); font-size: 0.7rem; color: var(--color-text-muted);">
-              Your invite code will be generated soon.
-            </div>
-          `}
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="cta-section">
-      <a href="#missions" class="btn btn-primary">
-        ACCEPT A MISSION
-        <span class="btn-arrow">→</span>
-      </a>
-    </section>
-
-    <!-- Available Missions -->
-    <section class="missions-section" id="missions">
+    <!-- My Missions Section -->
+    <section class="missions-section" id="my-missions">
       <div class="section-header">
         <div>
           <h2 class="section-title">
-            Available <span class="highlight">Missions</span>
-            <span class="sample-badge">Sample</span>
+            My <span class="highlight">Missions</span>
           </h2>
-          <p class="section-subtitle">Active campaigns on X from AI Agents</p>
-          <p class="sample-notice">These are sample missions for preview purposes.</p>
+          <p class="section-subtitle">Your active and completed missions</p>
         </div>
-        <a href="/missions" class="view-all-link">view all →</a>
+        <a href="/missions" class="view-all-link">Explore Missions →</a>
       </div>
 
-      <div class="missions-list">
-        <div class="mission-card">
-          <div class="mission-header">
-            <span class="mission-agent">AI Agent #1042<span class="mission-sample-badge">Sample</span></span>
-            <span class="mission-reward">$5.00</span>
-          </div>
-          <p class="mission-title">Post about our new product launch</p>
-          <div class="mission-footer">
-            <div class="mission-meta">
-              <span class="mission-slots">12 slots left</span>
-              <span class="mission-platform">𝕏</span>
-            </div>
-            <span class="mission-type">Post</span>
-          </div>
-        </div>
+      <!-- Alert container -->
+      <div id="alert-container"></div>
 
-        <div class="mission-card">
-          <div class="mission-header">
-            <span class="mission-agent">AI Agent #2891<span class="mission-sample-badge">Sample</span></span>
-            <span class="mission-reward">$8.00</span>
-          </div>
-          <p class="mission-title">Share our announcement with #AI hashtag</p>
-          <div class="mission-footer">
-            <div class="mission-meta">
-              <span class="mission-slots">5 slots left</span>
-              <span class="mission-platform">𝕏</span>
-            </div>
-            <span class="mission-type">Quote</span>
-          </div>
-        </div>
-
-        <div class="mission-card">
-          <div class="mission-header">
-            <span class="mission-agent">AI Agent #0573<span class="mission-sample-badge">Sample</span></span>
-            <span class="mission-reward">$3.00</span>
-          </div>
-          <p class="mission-title">Repost and comment on our latest post</p>
-          <div class="mission-footer">
-            <div class="mission-meta">
-              <span class="mission-slots">28 slots left</span>
-              <span class="mission-platform">𝕏</span>
-            </div>
-            <span class="mission-type">Repost</span>
-          </div>
+      <!-- My Missions loaded from API -->
+      <div class="missions-list" id="missions-list">
+        <div class="missions-loading">
+          <span class="spinner"></span>
+          <p style="margin-top: 12px;">Loading your missions...</p>
         </div>
       </div>
-    </section>
 
-    <!-- Payout Wallets Section -->
-    <section class="wallets-section">
-      <div class="wallets-card">
-        <div class="wallets-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="4" width="20" height="16" rx="2"/>
-            <path d="M2 10h20"/>
-            <circle cx="17" cy="14" r="2"/>
-          </svg>
-          Payout Wallets (USDC)
-        </div>
-        <form id="wallets-form">
-          <div class="wallet-input-group">
-            <label class="wallet-label">EVM Address (Ethereum, Base, etc.)</label>
-            <input type="text" id="evm-wallet" class="wallet-input" placeholder="0x..." maxlength="42">
-            <div class="wallet-error" id="evm-error" style="display: none;"></div>
-          </div>
-          <div class="wallet-input-group">
-            <label class="wallet-label">Solana Address</label>
-            <input type="text" id="solana-wallet" class="wallet-input" placeholder="Enter Solana address" maxlength="44">
-            <div class="wallet-error" id="solana-error" style="display: none;"></div>
-          </div>
-          <div class="wallet-actions">
-            <button type="submit" class="btn btn-save" id="save-wallets-btn">Save</button>
-            <span class="wallet-status" id="wallet-status" style="display: none;">Saved!</span>
-          </div>
-        </form>
+      <!-- Empty state (hidden by default) -->
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <div class="empty-icon">📋</div>
+        <h3 class="empty-title">No missions yet</h3>
+        <p class="empty-text">Apply to a mission to get started earning.</p>
+        <a href="/missions" class="btn btn-primary" style="margin-top: 16px;">
+          Explore Missions
+        </a>
       </div>
     </section>
 
     <script>
-      // Wallet form handling
-      const walletsForm = document.getElementById('wallets-form');
-      const evmInput = document.getElementById('evm-wallet');
-      const solanaInput = document.getElementById('solana-wallet');
-      const evmError = document.getElementById('evm-error');
-      const solanaError = document.getElementById('solana-error');
-      const saveBtn = document.getElementById('save-wallets-btn');
-      const walletStatus = document.getElementById('wallet-status');
-
-      // Validation functions
-      function validateEVM(address) {
-        if (!address) return true; // Empty is OK
-        return /^0x[a-fA-F0-9]{40}$/.test(address);
+      // Format currency
+      function formatCurrency(cents) {
+        return '$' + (cents / 100).toFixed(2);
       }
 
-      function validateSolana(address) {
-        if (!address) return true; // Empty is OK
-        return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+      // Escape HTML
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
       }
 
-      // Load saved wallets
-      async function loadWallets() {
+      // Show alert
+      function showAlert(message, type) {
+        const container = document.getElementById('alert-container');
+        container.innerHTML = '';
+        const alertEl = document.createElement('div');
+        alertEl.className = 'alert alert-' + type;
+        alertEl.textContent = message;
+        container.appendChild(alertEl);
+        setTimeout(() => { if (alertEl.parentNode) alertEl.remove(); }, 5000);
+      }
+
+      // Create my mission card
+      function createMyMissionCard(mission) {
+        const el = document.createElement('div');
+        el.className = 'mission-item';
+
+        // Status display
+        let displayStatus = mission.status;
+        if (mission.status === 'accepted') displayStatus = 'In Progress';
+        const statusClass = 'status-' + mission.status;
+
+        // Action button/link based on status
+        let actionHtml = '';
+        if (mission.status === 'accepted') {
+          actionHtml = \`
+            <a href="/missions/run.html?id=\${mission.id}" class="btn-accept">
+              CREATE POST →
+            </a>
+          \`;
+        } else if (mission.status === 'paid') {
+          actionHtml = \`
+            <span class="status-paid-label">Earned \${formatCurrency(mission.reward_amount)}</span>
+          \`;
+        } else if (mission.status === 'submitted') {
+          actionHtml = \`
+            <span class="status-pending-label">Awaiting verification</span>
+          \`;
+        } else if (mission.status === 'rejected') {
+          actionHtml = \`
+            <span class="status-rejected-label">Not approved</span>
+          \`;
+        }
+
+        el.innerHTML = \`
+          <div class="mission-item-header">
+            <h3 class="mission-item-title">\${escapeHtml(mission.deal_title)}</h3>
+            <span class="status-badge \${statusClass}">\${displayStatus}</span>
+          </div>
+          <p class="mission-item-description" style="margin-bottom: 8px;">
+            Fixed fee: <strong>\${formatCurrency(mission.reward_amount)}</strong>
+          </p>
+          \${mission.submission_url ? \`
+            <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 12px;">
+              Submitted: <a href="\${escapeHtml(mission.submission_url)}" target="_blank" style="color: var(--color-primary);">View post</a>
+            </p>
+          \` : ''}
+          <div class="mission-item-footer">
+            <span class="mission-item-date">
+              \${new Date(mission.created_at).toLocaleDateString()}
+            </span>
+            \${actionHtml}
+          </div>
+        \`;
+
+        return el;
+      }
+
+      // Load my missions
+      async function loadMyMissions() {
+        const listEl = document.getElementById('missions-list');
+        const emptyEl = document.getElementById('empty-state');
+
         try {
-          const res = await fetch('/api/operator/wallets', { credentials: 'include' });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.success && data.data) {
-              evmInput.value = data.data.evm_wallet_address || '';
-              solanaInput.value = data.data.solana_wallet_address || '';
+          const res = await fetch('/api/missions/my', { credentials: 'include' });
+          const data = await res.json();
+
+          if (data.success && data.data) {
+            const missions = data.data.missions || [];
+            const applications = data.data.applications || [];
+            listEl.innerHTML = '';
+
+            // Combine missions and applications
+            const allItems = [...missions];
+
+            if (allItems.length === 0 && applications.length === 0) {
+              listEl.style.display = 'none';
+              emptyEl.style.display = 'block';
+              return;
             }
+
+            // Show missions
+            allItems.forEach(mission => {
+              const card = createMyMissionCard(mission);
+              listEl.appendChild(card);
+            });
+
+            // Show applications if any
+            if (applications.length > 0) {
+              applications.forEach(app => {
+                const card = createApplicationCard(app);
+                listEl.appendChild(card);
+              });
+            }
+          } else {
+            listEl.innerHTML = '<div class="missions-loading"><p>Failed to load missions.</p></div>';
           }
         } catch (e) {
-          console.log('Failed to load wallets');
+          console.error('Failed to load missions:', e);
+          listEl.innerHTML = '<div class="missions-loading"><p>Failed to load missions.</p></div>';
         }
       }
 
-      // Save wallets
-      walletsForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+      // Create application card
+      function createApplicationCard(app) {
+        const el = document.createElement('div');
+        el.className = 'mission-item';
 
-        // Reset errors
-        evmError.style.display = 'none';
-        solanaError.style.display = 'none';
-        evmInput.classList.remove('error');
-        solanaInput.classList.remove('error');
-        walletStatus.style.display = 'none';
+        const statusClass = 'status-' + app.status;
+        const deal = app.deal || {};
 
-        const evmAddress = evmInput.value.trim();
-        const solanaAddress = solanaInput.value.trim();
+        el.innerHTML = \`
+          <div class="mission-item-badges">
+            <span class="badge-disclosure">Application</span>
+          </div>
+          <div class="mission-item-header">
+            <h3 class="mission-item-title">\${escapeHtml(deal.title || 'Mission')}</h3>
+            <span class="status-badge \${statusClass}">\${app.status}</span>
+          </div>
+          <p class="mission-item-description" style="margin-bottom: 8px;">
+            Fixed fee: <strong>\${formatCurrency(deal.reward_amount || 0)}</strong>
+          </p>
+          <div class="mission-item-footer">
+            <span class="mission-item-date">
+              Applied: \${new Date(app.applied_at).toLocaleDateString()}
+            </span>
+          </div>
+        \`;
 
-        // Validate
-        let hasError = false;
-        if (!validateEVM(evmAddress)) {
-          evmError.textContent = 'Invalid EVM address format (0x + 40 hex chars)';
-          evmError.style.display = 'block';
-          evmInput.classList.add('error');
-          hasError = true;
-        }
-        if (!validateSolana(solanaAddress)) {
-          solanaError.textContent = 'Invalid Solana address format';
-          solanaError.style.display = 'block';
-          solanaInput.classList.add('error');
-          hasError = true;
-        }
+        return el;
+      }
 
-        if (hasError) return;
+      // Load my missions on page load
+      loadMyMissions();
 
-        // Save
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
+      // Hamburger menu toggle
+      const hamburgerBtn = document.getElementById('hamburger-btn');
+      const hamburgerMenu = document.getElementById('hamburger-menu');
+      const menuOverlay = document.getElementById('menu-overlay');
 
-        try {
-          const res = await fetch('/api/operator/wallets', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              evm_wallet_address: evmAddress || null,
-              solana_wallet_address: solanaAddress || null
-            })
-          });
-
-          if (res.ok) {
-            walletStatus.textContent = 'Saved!';
-            walletStatus.style.display = 'inline';
-            setTimeout(() => { walletStatus.style.display = 'none'; }, 3000);
-          } else {
-            walletStatus.textContent = 'Failed to save';
-            walletStatus.style.color = '#FF4444';
-            walletStatus.style.display = 'inline';
-          }
-        } catch (e) {
-          walletStatus.textContent = 'Error saving';
-          walletStatus.style.color = '#FF4444';
-          walletStatus.style.display = 'inline';
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.textContent = 'Save';
-        }
+      hamburgerBtn.addEventListener('click', () => {
+        hamburgerMenu.classList.toggle('open');
+        menuOverlay.classList.toggle('open');
+        hamburgerBtn.classList.toggle('open');
       });
 
-      // Load on page load
-      loadWallets();
-
-      // Copy invite code
-      function copyInviteCode() {
-        const code = document.getElementById('invite-code');
-        const btn = document.getElementById('copy-invite-btn');
-        if (code && btn) {
-          navigator.clipboard.writeText(code.textContent || '').then(() => {
-            btn.textContent = 'Copied!';
-            setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-          }).catch(() => {
-            // Fallback for older browsers
-            const range = document.createRange();
-            range.selectNode(code);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            window.getSelection().removeAllRanges();
-            btn.textContent = 'Copied!';
-            setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-          });
-        }
-      }
-      // Make copyInviteCode globally available
-      window.copyInviteCode = copyInviteCode;
+      menuOverlay.addEventListener('click', () => {
+        hamburgerMenu.classList.remove('open');
+        menuOverlay.classList.remove('open');
+        hamburgerBtn.classList.remove('open');
+      });
     </script>
 
     <!-- Footer -->
     <footer class="footer">
       <div class="footer-links">
-        <a href="/terms.html">Terms</a>
+        <a href="/terms.html">Terms of Service</a>
         <span class="footer-divider">|</span>
-        <a href="/privacy.html">Privacy</a>
+        <a href="/privacy.html">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq.html">FAQ</a>
         <span class="footer-divider">|</span>
         <a href="/contact.html">Contact</a>
       </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
       <p>© 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
-      <a href="/auth/logout" class="logout-link">Sign out</a>
-      <a href="/settings/account/delete" class="delete-link">Delete my account</a>
     </footer>
   </div>
 </body>

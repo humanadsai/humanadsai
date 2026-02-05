@@ -14,137 +14,118 @@
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.85; transform: scale(1.02); }
     }
-    /* Hamburger Menu */
-    .hamburger-btn {
+    /* Hamburger Menu styles are in /styles.css */
+
+    /* User Avatar in Header */
+    .header-right {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 5px;
-      width: 40px;
-      height: 40px;
-      padding: 8px;
-      background: transparent;
-      border: none;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-avatar-container {
+      display: none;
+    }
+    .user-avatar-container.visible {
+      display: block;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #1a1a1a;
+      border: 1px solid rgba(255,255,255,0.12);
+      overflow: hidden;
       cursor: pointer;
-      z-index: 1001;
+      transition: border-color 0.2s;
     }
-    .hamburger-line {
-      display: block;
-      width: 24px;
-      height: 2px;
-      background: var(--color-text);
-      transition: all 0.3s;
+    .user-avatar:hover {
+      border-color: var(--color-primary);
     }
-    .hamburger-btn.open .hamburger-line:nth-child(1) {
-      transform: rotate(45deg) translate(5px, 5px);
-    }
-    .hamburger-btn.open .hamburger-line:nth-child(2) {
-      opacity: 0;
-    }
-    .hamburger-btn.open .hamburger-line:nth-child(3) {
-      transform: rotate(-45deg) translate(5px, -5px);
-    }
-    .hamburger-menu {
-      position: fixed;
-      top: 0;
-      right: -280px;
-      width: 280px;
-      height: 100vh;
-      background: var(--color-bg);
-      border-left: 1px solid var(--color-border);
-      padding: 80px 24px 24px;
-      transition: right 0.3s ease;
-      z-index: 1000;
-      overflow-y: auto;
-    }
-    .hamburger-menu.open {
-      right: 0;
-    }
-    .menu-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
+    .user-avatar img {
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s;
-      z-index: 999;
+      object-fit: cover;
     }
-    .menu-overlay.open {
-      opacity: 1;
-      visibility: visible;
-    }
-    .menu-item {
-      display: block;
-      padding: 14px 16px;
-      color: var(--color-text);
-      text-decoration: none;
-      font-family: var(--font-mono);
-      font-size: 0.875rem;
-      border-radius: 8px;
-      transition: background 0.2s;
-    }
-    .menu-item:hover {
-      background: var(--color-surface);
-    }
-    .menu-item.active {
-      color: var(--color-primary);
-      background: rgba(255, 107, 53, 0.1);
-    }
-    .menu-item-danger {
-      color: #FF4444;
-    }
-    .menu-item-danger:hover {
-      background: rgba(255, 68, 68, 0.1);
-    }
-    .menu-divider {
-      height: 1px;
-      background: var(--color-border);
-      margin: 12px 0;
-    }
-    .menu-section-label {
-      display: block;
-      padding: 8px 16px 4px;
-      font-size: 0.625rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--color-text-muted);
-      letter-spacing: 0.05em;
-    }
-    /* Confirmation Dialog */
-    .dialog-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
+    .user-avatar-placeholder {
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.7);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
-      opacity: 0;
+      font-size: 14px;
+      color: var(--color-text-muted);
+      background: #1a1a1a;
+    }
+    /* Modal Root - container */
+    .dialog-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: grid;
+      place-items: center;
       visibility: hidden;
-      transition: opacity 0.2s, visibility 0.2s;
+      pointer-events: none;
     }
     .dialog-overlay.active {
-      opacity: 1;
       visibility: visible;
+      pointer-events: auto;
     }
+    /* Modal Backdrop - semi-transparent overlay */
+    .dialog-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+    }
+    .dialog-overlay.active .dialog-backdrop {
+      opacity: 1;
+    }
+    /* Modal Panel - FULLY OPAQUE */
     .dialog {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
+      position: relative;
+      background: #0b0b0b !important;   /* Solid opaque background */
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
       padding: 24px;
-      max-width: 420px;
-      width: 90%;
+      max-width: 520px;
+      width: min(92vw, 520px);
+      max-height: min(86vh, 720px);
+      overflow-y: auto;
+      color: #fff;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.65);
       transform: scale(0.95);
-      transition: transform 0.2s;
+      opacity: 0;
+      transition: transform 0.2s ease-out, opacity 0.2s ease-out;
     }
     .dialog-overlay.active .dialog {
       transform: scale(1);
+      opacity: 1;
+    }
+    /* Ensure no transparency leaks */
+    .dialog,
+    .dialog * {
+      opacity: 1 !important;
+    }
+    .dialog-overlay.active .dialog,
+    .dialog-overlay.active .dialog * {
+      opacity: 1 !important;
+    }
+    /* Form inputs inside dialog - also opaque */
+    .dialog .form-input,
+    .dialog textarea,
+    .dialog select {
+      background: #121212 !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      color: #fff !important;
+    }
+    .dialog .form-input:focus,
+    .dialog textarea:focus,
+    .dialog select:focus {
+      border-color: var(--color-primary) !important;
+      outline: none;
     }
     .dialog-title {
       font-size: 1.1rem;
@@ -212,11 +193,19 @@
         </svg>
         <span class="logo-text">HumanAds</span>
       </a>
-      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-      </button>
+      <div class="header-right">
+        <!-- User Avatar (shown when logged in) -->
+        <div class="user-avatar-container" id="user-avatar-container">
+          <a href="/dashboard" class="user-avatar" id="user-avatar" title="Dashboard" aria-label="Go to Dashboard">
+            <span class="user-avatar-placeholder">👤</span>
+          </a>
+        </div>
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
     </header>
 
     <!-- Hamburger Menu -->
@@ -308,7 +297,10 @@
 
   <!-- Application Form Dialog -->
   <div id="apply-dialog" class="dialog-overlay">
-    <div class="dialog" style="max-width: 520px;">
+    <!-- Backdrop (semi-transparent overlay) -->
+    <div class="dialog-backdrop" id="dialog-backdrop"></div>
+    <!-- Panel (fully opaque) -->
+    <div class="dialog">
       <h3 class="dialog-title" id="dialog-title">Apply for Mission</h3>
       <div class="dialog-requirements">
         <h4>Requirements</h4>
@@ -361,16 +353,16 @@
           ></textarea>
         </div>
 
-        <div class="form-group" style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+        <div class="form-group" style="margin-bottom: 16px; padding: 12px; background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
           <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.8rem;">
-            <input type="checkbox" id="apply-accept-disclosure" style="margin-top: 3px;">
+            <input type="checkbox" id="apply-accept-disclosure" style="margin-top: 3px; accent-color: var(--color-primary);">
             <span>I will include proper disclosure (e.g., #Ad, #Sponsored) as required by platform guidelines and regulations</span>
           </label>
         </div>
 
-        <div class="form-group" style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+        <div class="form-group" style="margin-bottom: 16px; padding: 12px; background: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
           <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.8rem;">
-            <input type="checkbox" id="apply-no-engagement-buying" style="margin-top: 3px;">
+            <input type="checkbox" id="apply-no-engagement-buying" style="margin-top: 3px; accent-color: var(--color-primary);">
             <span>I confirm I will not purchase engagement (likes, retweets, followers) for this post</span>
           </label>
         </div>
@@ -424,6 +416,9 @@
       title.textContent = `Apply: ${mission.title}`;
       fee.textContent = HumanAds.formatCurrency(mission.reward_amount);
 
+      // Prevent background scrolling
+      document.body.style.overflow = 'hidden';
+
       // Build requirements list
       const requirements = mission.requirements || {};
       const contentType = requirements.content_type || 'original_post';
@@ -448,6 +443,9 @@
     function hideApplyDialog() {
       const dialog = document.getElementById('apply-dialog');
       dialog.classList.remove('active');
+
+      // Restore background scrolling
+      document.body.style.overflow = '';
 
       // Reset form fields
       document.getElementById('apply-proposed-angle').value = '';
@@ -515,6 +513,9 @@
             document.getElementById('menu-logged-out').style.display = 'none';
             document.getElementById('menu-logged-in').style.display = 'block';
             document.getElementById('login-cta').style.display = 'none';
+
+            // Show user avatar - fetch user data
+            loadUserAvatar();
           } else {
             document.getElementById('menu-logged-out').style.display = 'block';
             document.getElementById('menu-logged-in').style.display = 'none';
@@ -600,14 +601,14 @@
 
       // Build sample badge if this is a sample mission
       const sampleBadgeHtml = mission.is_sample
-        ? `<span class="badge-sample" style="background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%); color: #000; font-weight: 700; padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; animation: pulse 2s infinite;">⚡ SAMPLE</span>`
+        ? `<span class="badge badge--sample">⚡ SAMPLE</span>`
         : '';
 
       el.innerHTML = `
         <div class="mission-item-badges">
           ${sampleBadgeHtml}
-          <span class="badge-disclosure">Disclosure required</span>
-          <span class="badge-type">${postType}</span>
+          <span class="badge badge--disclosure">Disclosure required</span>
+          <span class="badge badge--type">${postType}</span>
         </div>
         <div class="mission-item-header">
           <h3 class="mission-item-title">${escapeHtml(mission.title)}</h3>
@@ -754,6 +755,33 @@
       return div.innerHTML;
     }
 
+    // Load user avatar for header
+    async function loadUserAvatar() {
+      try {
+        const response = await HumanAds.fetchApi('/me');
+        if (response.success && response.data && response.data.xConnected) {
+          const user = response.data.user;
+          const avatarContainer = document.getElementById('user-avatar-container');
+          const avatarEl = document.getElementById('user-avatar');
+
+          avatarContainer.classList.add('visible');
+
+          if (user && user.avatar_url) {
+            avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+          } else if (user.x_handle) {
+            const initial = user.x_handle.charAt(0).toUpperCase();
+            avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+          }
+
+          if (user.x_handle) {
+            avatarEl.title = `@${user.x_handle}`;
+          }
+        }
+      } catch (e) {
+        // Silently fail - avatar just won't show
+      }
+    }
+
     // Get appropriate button based on application status
     function getApplicationButton(mission, isAuthenticated) {
       const status = mission.application_status || (mission.is_accepted ? 'applied' : null);
@@ -818,12 +846,8 @@
       document.getElementById('dialog-cancel').addEventListener('click', hideApplyDialog);
       document.getElementById('dialog-confirm').addEventListener('click', confirmApply);
 
-      // Close dialog on overlay click
-      document.getElementById('apply-dialog').addEventListener('click', (e) => {
-        if (e.target.classList.contains('dialog-overlay')) {
-          hideApplyDialog();
-        }
-      });
+      // Close dialog on backdrop click
+      document.getElementById('dialog-backdrop').addEventListener('click', hideApplyDialog);
 
       // Close dialog on Escape key
       document.addEventListener('keydown', (e) => {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Run Mission - HumanAds</title>
+  <title>Create Post - HumanAds</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,20 +12,20 @@
   <style>
     /* Steps */
     .steps {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     .step {
       display: flex;
       gap: 16px;
-      padding: 16px 0;
+      padding: 12px 0;
       border-bottom: 1px solid var(--color-border);
     }
     .step:last-child {
       border-bottom: none;
     }
     .step-number {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       background: var(--color-surface);
       border: 2px solid var(--color-border);
@@ -33,7 +33,7 @@
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       flex-shrink: 0;
     }
     .step.active .step-number {
@@ -46,22 +46,17 @@
       border-color: #4CAF50;
       color: #fff;
     }
-    .step.completed .step-number::after {
-      content: "✓";
-    }
     .step-content {
       flex: 1;
     }
     .step-title {
       font-weight: 600;
-      margin-bottom: 4px;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
     }
     .step-description {
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       color: var(--color-text-muted);
-    }
-    .step-action {
-      margin-top: 12px;
     }
 
     /* Requirements Card */
@@ -70,11 +65,14 @@
       border: 1px solid var(--color-border);
       border-radius: 12px;
       padding: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .requirements-card h3 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .requirements-list {
       list-style: none;
@@ -85,13 +83,21 @@
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      padding: 8px 0;
-      font-size: 0.875rem;
+      padding: 6px 0;
+      font-size: 0.85rem;
     }
     .requirements-list li::before {
-      content: "•";
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .req-required {
       color: var(--color-primary);
-      font-weight: bold;
+      font-weight: 600;
     }
 
     /* Fee Display */
@@ -99,146 +105,390 @@
       background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 179, 71, 0.1) 100%);
       border: 1px solid rgba(255, 107, 53, 0.3);
       border-radius: 12px;
-      padding: 20px;
+      padding: 16px;
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .fee-label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
       color: var(--color-text-muted);
       margin-bottom: 4px;
     }
     .fee-amount {
-      font-size: 2rem;
+      font-size: 1.75rem;
       font-weight: 700;
       color: var(--color-primary);
     }
 
-    /* Status Badge */
+    /* Status Badge - compact */
     .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .status-accepted {
+      background: rgba(33, 150, 243, 0.25);
+      border: 1px solid rgba(33, 150, 243, 0.4);
+      color: #64B5F6;
+    }
+    .status-submitted {
+      background: rgba(255, 152, 0, 0.25);
+      border: 1px solid rgba(255, 152, 0, 0.4);
+      color: #FFB74D;
+    }
+    .status-verified, .status-paid {
+      background: rgba(76, 175, 80, 0.25);
+      border: 1px solid rgba(76, 175, 80, 0.4);
+      color: #81C784;
+    }
+    .status-rejected {
+      background: rgba(244, 67, 54, 0.25);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      color: #E57373;
+    }
+
+    /* Post Composer */
+    .post-composer {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .post-composer h3 {
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .composer-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .composer-options label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+    .composer-options select {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-size: 0.85rem;
+    }
+    .key-points {
+      margin-bottom: 16px;
+    }
+    .key-points-title {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+    .key-point-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 0.85rem;
+    }
+    .key-point-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--color-primary);
+    }
+    .post-textarea-container {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .post-textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .post-textarea:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    .char-counter {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+    .char-counter.warning {
+      color: #FF9800;
+    }
+    .char-counter.error {
+      color: #F44336;
+    }
+
+    /* Required Elements */
+    .required-elements {
+      background: rgba(255, 107, 53, 0.08);
+      border: 1px solid rgba(255, 107, 53, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .required-elements-title {
       font-size: 0.75rem;
       font-weight: 600;
-      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 8px;
     }
-    .status-accepted { background: #2196F3; color: white; }
-    .status-submitted { background: #FF9800; color: white; }
-    .status-verified, .status-paid { background: #4CAF50; color: white; }
-    .status-rejected { background: #F44336; color: white; }
+    .required-element {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      font-size: 0.8rem;
+    }
+    .required-element .status-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+    .required-element .status-icon.ok {
+      background: #4CAF50;
+      color: white;
+    }
+    .required-element .status-icon.missing {
+      background: #F44336;
+      color: white;
+    }
+    .disclosure-chip {
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 10px;
+      font-weight: 600;
+      background: var(--color-primary);
+      color: #000;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .disclosure-chip:hover {
+      opacity: 0.85;
+    }
 
-    /* Submit Form */
+    /* Preview */
+    .post-preview {
+      background: #15202b;
+      border: 1px solid #38444d;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .preview-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .preview-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #38444d;
+    }
+    .preview-user-info {
+      flex: 1;
+    }
+    .preview-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .preview-handle {
+      color: #8899a6;
+      font-size: 0.85rem;
+    }
+    .preview-content {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .preview-content .hashtag {
+      color: #1da1f2;
+    }
+    .preview-content .link {
+      color: #1da1f2;
+    }
+
+    /* Actions */
+    .composer-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .composer-actions .btn {
+      flex: 1;
+    }
+
+    /* Post to X Section */
+    .post-to-x {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    /* Ready state - highlighted card */
+    .post-to-x.ready {
+      background: rgba(255, 107, 53, 0.08);
+      border: 2px solid rgba(255, 107, 53, 0.5);
+      box-shadow: 0 0 20px rgba(255, 107, 53, 0.15);
+    }
+    .post-to-x h3 {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+    .post-to-x.ready h3 {
+      color: var(--color-primary);
+      font-size: 1rem;
+    }
+    .post-to-x p {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-bottom: 16px;
+    }
+    .post-to-x.ready p {
+      margin-bottom: 12px;
+    }
+    /* Missing hint text */
+    .missing-hint {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+    }
+    .missing-hint.hidden {
+      display: none;
+    }
+    /* X Post Button - Base (disabled state) */
+    .x-post-btn {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.4);
+      padding: 16px 28px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: not-allowed;
+      transition: all 0.3s ease;
+      min-height: 56px;
+    }
+    /* X Post Button - Ready state (enabled) */
+    .x-post-btn.ready {
+      background: var(--color-primary);
+      color: #000;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.35), 0 0 0 1px rgba(255, 179, 71, 0.3);
+    }
+    .x-post-btn.ready:hover {
+      background: #ff8555;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(255, 107, 53, 0.45), 0 0 0 1px rgba(255, 179, 71, 0.4);
+    }
+    .x-post-btn.ready:active {
+      transform: translateY(0);
+    }
+    .x-post-btn .x-logo {
+      font-size: 1.2rem;
+    }
+    /* Secondary actions (Copy Post) when ready */
+    .composer-actions.ready-mode {
+      margin-top: 12px;
+    }
+    .composer-actions.ready-mode .btn {
+      font-size: 0.8rem;
+      padding: 8px 16px;
+    }
+
+    /* Submit Section */
     .submit-section {
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: 12px;
       padding: 20px;
-      margin-top: 24px;
+      margin-bottom: 20px;
     }
     .submit-section h3 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       margin-bottom: 12px;
     }
     .submit-section input {
       margin-bottom: 12px;
     }
 
-    /* Hamburger Menu */
-    .hamburger-btn {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 5px;
-      width: 40px;
-      height: 40px;
-      padding: 8px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      z-index: 1001;
+    /* Result sections */
+    .result-card {
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
     }
-    .hamburger-line {
-      display: block;
-      width: 24px;
-      height: 2px;
-      background: var(--color-text);
-      transition: all 0.3s;
+    .result-card.pending {
+      background: rgba(255, 152, 0, 0.1);
+      border: 1px solid rgba(255, 152, 0, 0.3);
     }
-    .hamburger-btn.open .hamburger-line:nth-child(1) {
-      transform: rotate(45deg) translate(5px, 5px);
+    .result-card.success {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid rgba(76, 175, 80, 0.3);
     }
-    .hamburger-btn.open .hamburger-line:nth-child(2) {
-      opacity: 0;
+    .result-card.error {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
     }
-    .hamburger-btn.open .hamburger-line:nth-child(3) {
-      transform: rotate(-45deg) translate(5px, -5px);
-    }
-    .hamburger-menu {
-      position: fixed;
-      top: 0;
-      right: -280px;
-      width: 280px;
-      height: 100vh;
-      background: var(--color-bg);
-      border-left: 1px solid var(--color-border);
-      padding: 80px 24px 24px;
-      transition: right 0.3s ease;
-      z-index: 1000;
-      overflow-y: auto;
-    }
-    .hamburger-menu.open {
-      right: 0;
-    }
-    .menu-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s;
-      z-index: 999;
-    }
-    .menu-overlay.open {
-      opacity: 1;
-      visibility: visible;
-    }
-    .menu-item {
-      display: block;
-      padding: 14px 16px;
-      color: var(--color-text);
-      text-decoration: none;
-      font-family: var(--font-mono);
-      font-size: 0.875rem;
-      border-radius: 8px;
-      transition: background 0.2s;
-    }
-    .menu-item:hover {
-      background: var(--color-surface);
-    }
-    .menu-item-danger {
-      color: #FF4444;
-    }
-    .menu-item-danger:hover {
-      background: rgba(255, 68, 68, 0.1);
-    }
-    .menu-divider {
-      height: 1px;
-      background: var(--color-border);
-      margin: 12px 0;
-    }
-    .menu-section-label {
-      display: block;
-      padding: 8px 16px 4px;
-      font-size: 0.625rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--color-text-muted);
-      letter-spacing: 0.05em;
+
+    /* Hamburger Menu styles are in /styles.css */
+
+    @media (max-width: 480px) {
+      .composer-options {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -254,11 +504,19 @@
         </svg>
         <span class="logo-text">HumanAds</span>
       </a>
-      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-      </button>
+      <div class="header-right">
+        <!-- User Avatar (shown when logged in) -->
+        <div class="user-avatar-container visible" id="user-avatar-container">
+          <a href="/dashboard" class="user-avatar" id="user-avatar" title="Dashboard" aria-label="Go to Dashboard">
+            <span class="user-avatar-placeholder">👤</span>
+          </a>
+        </div>
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
     </header>
 
     <!-- Hamburger Menu -->
@@ -284,7 +542,7 @@
 
       <div id="mission-content" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h1 class="page-title" id="mission-title" style="margin-bottom: 0;">Mission</h1>
+          <h1 class="page-title" id="mission-title" style="margin-bottom: 0; font-size: 1.25rem;">Mission</h1>
           <span class="status-badge" id="mission-status">Loading</span>
         </div>
 
@@ -294,73 +552,164 @@
           <div class="fee-amount" id="mission-fee">$0.00</div>
         </div>
 
-        <!-- Requirements Card -->
-        <div class="requirements-card">
-          <h3>Requirements</h3>
-          <ul class="requirements-list" id="requirements-list">
-            <li>Loading requirements...</li>
-          </ul>
-        </div>
-
         <!-- Steps -->
         <div class="steps" id="steps">
           <div class="step" data-step="1">
             <div class="step-number">1</div>
             <div class="step-content">
               <div class="step-title">Review Requirements</div>
-              <div class="step-description">Make sure you understand what's needed for this mission.</div>
+              <div class="step-description">Understand what's needed</div>
             </div>
           </div>
           <div class="step" data-step="2">
             <div class="step-number">2</div>
             <div class="step-content">
-              <div class="step-title">Create Your Post</div>
-              <div class="step-description">Write and publish your sponsored post on X. Remember to include proper disclosure (#Ad).</div>
+              <div class="step-title">Compose Your Post</div>
+              <div class="step-description">Create your content below</div>
             </div>
           </div>
           <div class="step" data-step="3">
             <div class="step-number">3</div>
             <div class="step-content">
-              <div class="step-title">Submit Post URL</div>
-              <div class="step-description">Paste the URL of your published post below for verification.</div>
+              <div class="step-title">Post to X</div>
+              <div class="step-description">Publish and submit URL</div>
             </div>
           </div>
           <div class="step" data-step="4">
             <div class="step-number">4</div>
             <div class="step-content">
-              <div class="step-title">Get Verified & Paid</div>
-              <div class="step-description">We'll verify your post meets the requirements and process your payment.</div>
+              <div class="step-title">Get Paid</div>
+              <div class="step-description">Verification & payment</div>
             </div>
           </div>
         </div>
 
-        <!-- Submit Section (shown for accepted missions) -->
-        <div class="submit-section" id="submit-section" style="display: none;">
-          <h3>Submit Your Post</h3>
-          <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 16px;">
-            Paste the URL of your published X post. Make sure it includes proper disclosure and meets all requirements.
-          </p>
-          <input
-            type="url"
-            class="form-input"
-            id="submission-url"
-            placeholder="https://x.com/yourhandle/status/123456789"
-            style="width: 100%;"
-          >
-          <button class="btn btn-primary" id="submit-btn" style="width: 100%;">
-            SUBMIT FOR VERIFICATION
-          </button>
-          <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 8px; text-align: center;">
-            Payment is based on compliance, not engagement metrics.
-          </p>
+        <!-- Requirements Card -->
+        <div class="requirements-card" id="requirements-card">
+          <h3>Requirements</h3>
+          <ul class="requirements-list" id="requirements-list">
+            <li>Loading requirements...</li>
+          </ul>
+        </div>
+
+        <!-- Post Composer Section (shown for accepted missions) -->
+        <div id="composer-section" style="display: none;">
+          <div class="post-composer">
+            <h3>Compose Your Post</h3>
+
+            <!-- Options -->
+            <div class="composer-options">
+              <div>
+                <label for="post-language">Language</label>
+                <select id="post-language">
+                  <option value="en">English</option>
+                  <option value="ja">Japanese</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="de">German</option>
+                  <option value="pt">Portuguese</option>
+                  <option value="zh">Chinese</option>
+                  <option value="ko">Korean</option>
+                </select>
+              </div>
+              <div>
+                <label for="post-tone">Tone</label>
+                <select id="post-tone">
+                  <option value="casual">Casual</option>
+                  <option value="professional">Professional</option>
+                  <option value="enthusiastic">Enthusiastic</option>
+                  <option value="informative">Informative</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Key Points -->
+            <div class="key-points" id="key-points-container">
+              <div class="key-points-title">Include these key points (recommended):</div>
+              <div id="key-points-list">
+                <!-- Generated by JS -->
+              </div>
+            </div>
+
+            <!-- Required Elements Status -->
+            <div class="required-elements">
+              <div class="required-elements-title">Required Elements (cannot be removed)</div>
+              <div class="required-element" id="disclosure-status">
+                <span class="status-icon missing">!</span>
+                <span>Disclosure: <span class="disclosure-chip" onclick="insertDisclosure('#ad')">#ad</span></span>
+              </div>
+              <div class="required-element" id="link-status">
+                <span class="status-icon missing">!</span>
+                <span>Required link: <code id="required-link">humanadsai.com</code></span>
+              </div>
+            </div>
+
+            <!-- Text Area -->
+            <div class="post-textarea-container">
+              <textarea id="post-content" class="post-textarea" placeholder="Write your post here..."></textarea>
+              <div class="char-counter" id="char-counter">0 / 280</div>
+            </div>
+
+            <!-- Preview -->
+            <div class="post-preview" id="post-preview">
+              <div class="preview-header">
+                <div class="preview-avatar" id="preview-avatar"></div>
+                <div class="preview-user-info">
+                  <div class="preview-name" id="preview-name">Your Name</div>
+                  <div class="preview-handle" id="preview-handle">@yourhandle</div>
+                </div>
+              </div>
+              <div class="preview-content" id="preview-content">
+                Your post will appear here...
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="composer-actions">
+              <button class="btn btn-outline" id="generate-draft-btn">Generate Draft</button>
+              <button class="btn btn-primary" id="copy-post-btn" disabled>Copy Post</button>
+            </div>
+          </div>
+
+          <!-- Post to X -->
+          <div class="post-to-x" id="post-to-x-section">
+            <h3>Ready to Post?</h3>
+            <p>Click below to open X with your composed text. After posting, come back and submit the URL.</p>
+            <div class="missing-hint" id="missing-hint">Complete all required elements above to enable posting</div>
+            <a href="#" class="x-post-btn" id="post-to-x-btn" target="_blank">
+              <span class="x-logo">𝕏</span>
+              <span>Post to X</span>
+            </a>
+          </div>
+
+          <!-- Submit Section -->
+          <div class="submit-section">
+            <h3>Submit Your Post URL</h3>
+            <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 12px;">
+              After posting to X, paste the URL here for verification.
+            </p>
+            <input
+              type="url"
+              class="form-input"
+              id="submission-url"
+              placeholder="https://x.com/yourhandle/status/123456789"
+              style="width: 100%;"
+            >
+            <button class="btn btn-primary" id="submit-btn" style="width: 100%;" disabled>
+              SUBMIT FOR VERIFICATION
+            </button>
+            <p style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 8px; text-align: center;">
+              AI will verify: disclosure present, link present, content matches your draft
+            </p>
+          </div>
         </div>
 
         <!-- Result Section (shown after submission) -->
         <div id="result-section" style="display: none;"></div>
 
         <!-- Back Link -->
-        <div style="text-align: center; margin-top: 32px;">
-          <a href="/missions/my" style="color: var(--color-text-muted); font-size: 0.875rem;">← Back to My Missions</a>
+        <div style="text-align: center; margin-top: 24px;">
+          <a href="/missions/my" style="color: var(--color-text-muted); font-size: 0.85rem;">Back to My Missions</a>
         </div>
       </div>
 
@@ -387,6 +736,12 @@
   <script src="/app.js"></script>
   <script>
     let missionData = null;
+    let userData = null;
+    let composedPost = '';
+    const MAX_CHARS = 280;
+
+    // Required disclosure tags
+    const DISCLOSURE_TAGS = ['#ad', '#sponsored', '#advertisement', 'Sponsored', 'Ad'];
 
     // Hamburger menu toggle
     const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -405,6 +760,257 @@
       hamburgerBtn.classList.remove('open');
     });
 
+    // Get required link from mission
+    function getRequiredLink() {
+      if (!missionData || !missionData.requirements) return 'humanadsai.com';
+      return missionData.requirements.link_url || 'humanadsai.com';
+    }
+
+    // Check if text contains disclosure
+    function hasDisclosure(text) {
+      const lowerText = text.toLowerCase();
+      return DISCLOSURE_TAGS.some(tag => lowerText.includes(tag.toLowerCase()));
+    }
+
+    // Check if text contains required link
+    function hasRequiredLink(text) {
+      const link = getRequiredLink();
+      return text.toLowerCase().includes(link.toLowerCase());
+    }
+
+    // Insert disclosure at cursor
+    function insertDisclosure(tag) {
+      const textarea = document.getElementById('post-content');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      // Insert at end if cursor at start
+      if (start === 0 && end === 0) {
+        textarea.value = text + ' ' + tag;
+      } else {
+        textarea.value = text.substring(0, start) + tag + ' ' + text.substring(end);
+      }
+
+      updatePostPreview();
+      textarea.focus();
+    }
+
+    // Update character counter and preview
+    function updatePostPreview() {
+      const textarea = document.getElementById('post-content');
+      const text = textarea.value;
+      const charCount = text.length;
+
+      // Update counter
+      const counter = document.getElementById('char-counter');
+      counter.textContent = `${charCount} / ${MAX_CHARS}`;
+      counter.className = 'char-counter';
+      if (charCount > MAX_CHARS) {
+        counter.classList.add('error');
+      } else if (charCount > MAX_CHARS - 20) {
+        counter.classList.add('warning');
+      }
+
+      // Update preview
+      const preview = document.getElementById('preview-content');
+      let previewText = escapeHtml(text) || 'Your post will appear here...';
+      // Highlight hashtags
+      previewText = previewText.replace(/(#\w+)/g, '<span class="hashtag">$1</span>');
+      // Highlight links
+      previewText = previewText.replace(/(https?:\/\/[^\s]+)/g, '<span class="link">$1</span>');
+      previewText = previewText.replace(/(\w+\.(com|io|ai|net|org)[^\s]*)/gi, '<span class="link">$1</span>');
+      preview.innerHTML = previewText;
+
+      // Update required elements status
+      updateRequiredElementsStatus(text);
+
+      // Update button states
+      updateButtonStates(text);
+
+      composedPost = text;
+    }
+
+    // Update required elements status
+    function updateRequiredElementsStatus(text) {
+      const disclosureStatus = document.getElementById('disclosure-status');
+      const linkStatus = document.getElementById('link-status');
+
+      // Disclosure status
+      const disclosureIcon = disclosureStatus.querySelector('.status-icon');
+      if (hasDisclosure(text)) {
+        disclosureIcon.className = 'status-icon ok';
+        disclosureIcon.textContent = '✓';
+      } else {
+        disclosureIcon.className = 'status-icon missing';
+        disclosureIcon.textContent = '!';
+      }
+
+      // Link status
+      const linkIcon = linkStatus.querySelector('.status-icon');
+      if (hasRequiredLink(text)) {
+        linkIcon.className = 'status-icon ok';
+        linkIcon.textContent = '✓';
+      } else {
+        linkIcon.className = 'status-icon missing';
+        linkIcon.textContent = '!';
+      }
+    }
+
+    // Update button states
+    function updateButtonStates(text) {
+      const copyBtn = document.getElementById('copy-post-btn');
+      const submitBtn = document.getElementById('submit-btn');
+      const postToXBtn = document.getElementById('post-to-x-btn');
+      const postToXSection = document.getElementById('post-to-x-section');
+      const missingHint = document.getElementById('missing-hint');
+      const submissionUrl = document.getElementById('submission-url').value.trim();
+
+      const hasText = text.length > 0;
+      const withinLimit = text.length <= MAX_CHARS;
+      const hasDisc = hasDisclosure(text);
+      const hasLink = hasRequiredLink(text);
+      const isValid = hasText && withinLimit && hasDisc && hasLink;
+
+      copyBtn.disabled = !isValid;
+
+      // Update Post to X section and button ready states
+      if (isValid) {
+        postToXSection.classList.add('ready');
+        postToXBtn.classList.add('ready');
+        missingHint.classList.add('hidden');
+        const encodedText = encodeURIComponent(text);
+        postToXBtn.href = `https://x.com/intent/tweet?text=${encodedText}`;
+      } else {
+        postToXSection.classList.remove('ready');
+        postToXBtn.classList.remove('ready');
+        missingHint.classList.remove('hidden');
+        postToXBtn.href = '#';
+
+        // Build missing hint text
+        const missing = [];
+        if (!hasText) {
+          missing.push('Write your post');
+        } else {
+          if (!withinLimit) missing.push(`${text.length - MAX_CHARS} chars over limit`);
+          if (!hasDisc) missing.push('Add #ad disclosure');
+          if (!hasLink) missing.push('Add required link');
+        }
+        missingHint.textContent = missing.length > 0 ? missing.join(' · ') : 'Complete all required elements';
+      }
+
+      // Submit button
+      submitBtn.disabled = !isValidXUrl(submissionUrl);
+    }
+
+    // Generate draft based on requirements
+    async function generateDraft() {
+      const btn = document.getElementById('generate-draft-btn');
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+
+      try {
+        const language = document.getElementById('post-language').value;
+        const tone = document.getElementById('post-tone').value;
+        const requirements = missionData.requirements || {};
+        const link = getRequiredLink();
+
+        // Build draft based on selected options and requirements
+        let draft = '';
+
+        // Get checked key points
+        const keyPoints = document.querySelectorAll('.key-point-item input:checked');
+        const checkedPoints = Array.from(keyPoints).map(cb => cb.dataset.point);
+
+        // Build content based on language and tone
+        if (language === 'ja') {
+          if (checkedPoints.length > 0) {
+            draft = checkedPoints.join('\n') + '\n\n';
+          }
+          draft += `${link}\n\n#ad`;
+        } else {
+          if (checkedPoints.length > 0) {
+            draft = checkedPoints.join('. ') + '.\n\n';
+          }
+          draft += `Check it out: ${link}\n\n#ad`;
+        }
+
+        // Add any required hashtags
+        if (requirements.hashtags && requirements.hashtags.length > 0) {
+          draft += ' ' + requirements.hashtags.join(' ');
+        }
+
+        document.getElementById('post-content').value = draft;
+        updatePostPreview();
+      } catch (error) {
+        console.error('Failed to generate draft:', error);
+        HumanAds.showAlert('Failed to generate draft', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate Draft';
+      }
+    }
+
+    // Copy post to clipboard
+    async function copyPost() {
+      const text = document.getElementById('post-content').value;
+      try {
+        await navigator.clipboard.writeText(text);
+        HumanAds.showAlert('Post copied to clipboard!');
+      } catch (error) {
+        console.error('Failed to copy:', error);
+        HumanAds.showAlert('Failed to copy to clipboard', 'error');
+      }
+    }
+
+    // Validate X URL
+    function isValidXUrl(url) {
+      try {
+        const parsed = new URL(url);
+        return (
+          (parsed.hostname === 'twitter.com' || parsed.hostname === 'x.com') &&
+          /^\/[a-zA-Z0-9_]+\/status\/\d+/.test(parsed.pathname)
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    // Escape HTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Load user info
+    async function loadUserInfo() {
+      try {
+        const data = await HumanAds.fetchApi('/me');
+        if (data.success && data.data && data.data.xConnected && data.data.user) {
+          userData = data.data.user;
+          // Update preview
+          document.getElementById('preview-name').textContent = userData.display_name || userData.x_handle || 'You';
+          document.getElementById('preview-handle').textContent = '@' + (userData.x_handle || 'handle');
+          if (userData.avatar_url) {
+            document.getElementById('preview-avatar').style.backgroundImage = `url(${userData.avatar_url})`;
+            document.getElementById('preview-avatar').style.backgroundSize = 'cover';
+
+            // Also update header avatar
+            const avatarEl = document.getElementById('user-avatar');
+            avatarEl.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.display_name || userData.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+            if (userData.x_handle) {
+              avatarEl.title = `@${userData.x_handle}`;
+            }
+          }
+        }
+      } catch (error) {
+        console.log('User info not available:', error);
+      }
+    }
+
+    // Load mission
     async function loadMission() {
       const urlParams = new URLSearchParams(window.location.search);
       const missionId = urlParams.get('id');
@@ -415,6 +1021,9 @@
       }
 
       try {
+        // Load user info in parallel
+        loadUserInfo();
+
         // Try to get from my missions
         const data = await HumanAds.loadMyMissions();
         const missions = data.missions || [];
@@ -435,6 +1044,7 @@
       }
     }
 
+    // Render mission
     function renderMission() {
       document.getElementById('loading').style.display = 'none';
       document.getElementById('mission-content').style.display = 'block';
@@ -454,23 +1064,29 @@
       const reqItems = buildRequirementsList(requirements);
       reqList.innerHTML = reqItems.map(r => `<li>${escapeHtml(r)}</li>`).join('');
 
+      // Set required link
+      document.getElementById('required-link').textContent = getRequiredLink();
+
+      // Build key points
+      buildKeyPoints(requirements);
+
       // Update steps based on status
       updateSteps(missionData.status);
 
       // Show appropriate sections
       if (missionData.status === 'accepted') {
-        document.getElementById('submit-section').style.display = 'block';
+        document.getElementById('composer-section').style.display = 'block';
       } else if (missionData.status === 'submitted') {
         document.getElementById('result-section').style.display = 'block';
         document.getElementById('result-section').innerHTML = `
-          <div style="padding: 20px; background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; text-align: center;">
+          <div class="result-card pending" style="text-align: center;">
             <p style="color: #FF9800; font-weight: 600; margin-bottom: 8px;">Submitted - Awaiting Verification</p>
             <p style="font-size: 0.85rem; color: var(--color-text-muted);">
-              Your post is being verified. This usually takes a few minutes.
+              AI is verifying your post. This usually completes within a few minutes.
             </p>
             ${missionData.submission_url ? `
               <p style="margin-top: 12px;">
-                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post →</a>
+                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post</a>
               </p>
             ` : ''}
           </div>
@@ -478,14 +1094,14 @@
       } else if (missionData.status === 'paid') {
         document.getElementById('result-section').style.display = 'block';
         document.getElementById('result-section').innerHTML = `
-          <div style="padding: 20px; background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; text-align: center;">
+          <div class="result-card success" style="text-align: center;">
             <p style="color: #4CAF50; font-weight: 600; font-size: 1.25rem; margin-bottom: 8px;">Mission Completed!</p>
             <p style="font-size: 0.85rem; color: var(--color-text-muted);">
               You earned <strong>${HumanAds.formatCurrency(missionData.reward_amount)}</strong>
             </p>
             ${missionData.submission_url ? `
               <p style="margin-top: 12px;">
-                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post →</a>
+                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post</a>
               </p>
             ` : ''}
           </div>
@@ -493,23 +1109,27 @@
       } else if (missionData.status === 'rejected') {
         document.getElementById('result-section').style.display = 'block';
         document.getElementById('result-section').innerHTML = `
-          <div style="padding: 20px; background: rgba(244, 67, 54, 0.1); border: 1px solid rgba(244, 67, 54, 0.3); border-radius: 12px;">
+          <div class="result-card error">
             <p style="color: #F44336; font-weight: 600; margin-bottom: 8px;">Verification Failed</p>
             <p style="font-size: 0.85rem; color: var(--color-text-muted);">
-              Your submission didn't meet the requirements. Please check the <a href="/guidelines-promoters.html" style="color: #F44336;">promoter guidelines</a>.
+              Your submission didn't meet the requirements. Check that your post includes:
             </p>
-            ${missionData.verification_result ? `
-              <p style="margin-top: 12px; font-size: 0.8rem; color: var(--color-text-muted);">
-                Reason: ${escapeHtml(typeof missionData.verification_result === 'string' ? missionData.verification_result : JSON.stringify(missionData.verification_result))}
-              </p>
-            ` : ''}
+            <ul style="font-size: 0.85rem; color: var(--color-text-muted); margin: 12px 0; padding-left: 20px;">
+              <li>Required disclosure (#ad or #sponsored)</li>
+              <li>Required link (${escapeHtml(getRequiredLink())})</li>
+              <li>Content that matches your submitted draft</li>
+            </ul>
+            <a href="/guidelines-promoters.html" style="color: var(--color-primary); font-size: 0.85rem;">View Guidelines</a>
           </div>
         `;
       }
     }
 
+    // Build requirements list
     function buildRequirementsList(requirements) {
-      const items = ['Include proper disclosure (e.g., #Ad, #Sponsored)'];
+      const items = [];
+
+      items.push('Include disclosure: #ad or #sponsored (Required)');
 
       const contentType = requirements.content_type || 'original_post';
       if (contentType === 'quote_post_commentary') {
@@ -518,16 +1138,18 @@
         items.push('Create an original post');
       }
 
+      if (requirements.link_url) {
+        items.push(`Include link: ${requirements.link_url} (Required)`);
+      } else {
+        items.push('Include link: humanadsai.com (Required)');
+      }
+
       if (requirements.hashtags?.length > 0) {
         items.push(`Include hashtags: ${requirements.hashtags.join(', ')}`);
       }
 
       if (requirements.mentions?.length > 0) {
         items.push(`Mention: ${requirements.mentions.join(', ')}`);
-      }
-
-      if (requirements.link_url) {
-        items.push(`Include link: ${requirements.link_url}`);
       }
 
       if (requirements.content_template) {
@@ -539,6 +1161,24 @@
       return items;
     }
 
+    // Build key points checkboxes
+    function buildKeyPoints(requirements) {
+      const container = document.getElementById('key-points-list');
+      const keyPoints = requirements.key_points || [
+        'Mention the main benefit',
+        'Share your personal experience',
+        'Include a call to action'
+      ];
+
+      container.innerHTML = keyPoints.map((point, i) => `
+        <label class="key-point-item">
+          <input type="checkbox" data-point="${escapeHtml(point)}" ${i < 2 ? 'checked' : ''}>
+          <span>${escapeHtml(point)}</span>
+        </label>
+      `).join('');
+    }
+
+    // Update steps
     function updateSteps(status) {
       const steps = document.querySelectorAll('.step');
 
@@ -546,8 +1186,8 @@
         step.classList.remove('active', 'completed');
 
         if (status === 'accepted') {
-          if (index < 2) step.classList.add('completed');
-          else if (index === 2) step.classList.add('active');
+          if (index < 1) step.classList.add('completed');
+          else if (index === 1) step.classList.add('active');
         } else if (status === 'submitted') {
           if (index < 3) step.classList.add('completed');
           else if (index === 3) step.classList.add('active');
@@ -557,33 +1197,15 @@
       });
     }
 
+    // Show error
     function showError(message) {
       document.getElementById('loading').style.display = 'none';
       document.getElementById('error-content').style.display = 'block';
       document.getElementById('error-message').textContent = message;
     }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    function isValidXUrl(url) {
-      try {
-        const parsed = new URL(url);
-        return (
-          (parsed.hostname === 'twitter.com' || parsed.hostname === 'x.com') &&
-          /^\/[a-zA-Z0-9_]+\/status\/\d+/.test(parsed.pathname)
-        );
-      } catch {
-        return false;
-      }
-    }
-
     // Submit handler
-    document.getElementById('submit-btn').addEventListener('click', async () => {
+    async function submitPost() {
       const urlInput = document.getElementById('submission-url');
       const submitBtn = document.getElementById('submit-btn');
       const url = urlInput.value.trim();
@@ -601,7 +1223,8 @@
       HumanAds.setButtonLoading(submitBtn, true);
 
       try {
-        const result = await HumanAds.submitMission(missionData.id, url);
+        // Submit with the composed content for verification
+        const result = await HumanAds.submitMission(missionData.id, url, composedPost);
 
         if (result.status === 'paid') {
           HumanAds.showAlert(`Mission completed! You earned ${HumanAds.formatCurrency(result.reward_amount)}`);
@@ -619,6 +1242,24 @@
         HumanAds.showAlert(error.message || 'Failed to submit.', 'error');
       } finally {
         HumanAds.setButtonLoading(submitBtn, false);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('post-content').addEventListener('input', updatePostPreview);
+    document.getElementById('generate-draft-btn').addEventListener('click', generateDraft);
+    document.getElementById('copy-post-btn').addEventListener('click', copyPost);
+    document.getElementById('submit-btn').addEventListener('click', submitPost);
+    document.getElementById('submission-url').addEventListener('input', () => {
+      updateButtonStates(document.getElementById('post-content').value);
+    });
+
+    // Prevent post to X if invalid
+    document.getElementById('post-to-x-btn').addEventListener('click', (e) => {
+      const text = document.getElementById('post-content').value;
+      if (!hasDisclosure(text) || !hasRequiredLink(text) || text.length > MAX_CHARS) {
+        e.preventDefault();
+        HumanAds.showAlert('Please complete all required elements before posting.', 'error');
       }
     });
 
