@@ -532,10 +532,18 @@ export async function handleDeleteConfirmPage(request: Request, env: Env): Promi
         .then(function(res) { return res.json(); })
         .then(function(data) {
           if (data.success) {
-            // Redirect to success page or home
+            // Redirect to success page
             window.location.href = '/settings/account/deleted';
           } else {
-            errorBox.textContent = data.error?.message || 'Failed to delete account. Please try again.';
+            var errorMsg = data.error?.message || 'Failed to delete account.';
+            var requestId = data.request_id;
+
+            // Show request ID for internal errors (for support)
+            if (data.error?.code === 'INTERNAL_ERROR' && requestId) {
+              errorMsg += ' (ID: ' + requestId + ')';
+            }
+
+            errorBox.textContent = errorMsg;
             errorBox.style.display = 'block';
             btn.disabled = false;
             btn.textContent = 'Permanently Delete';

@@ -42,51 +42,79 @@ function getSessionToken(request: Request): string | null {
 }
 
 /**
+ * Check which columns exist in the operators table
+ */
+async function getOperatorColumns(env: Env): Promise<Set<string>> {
+  try {
+    const result = await env.DB.prepare(
+      "SELECT name FROM pragma_table_info('operators')"
+    ).all<{ name: string }>();
+    return new Set(result.results.map(r => r.name));
+  } catch (e) {
+    console.error('[Delete] Failed to get column info:', e);
+    return new Set();
+  }
+}
+
+/**
  * POST /api/account/delete
  */
 export async function handleAccountDelete(request: Request, env: Env): Promise<Response> {
   const requestId = generateRequestId();
-
-  // Verify authentication
-  const sessionToken = getSessionToken(request);
-  if (!sessionToken) {
-    return errors.unauthorized(requestId);
-  }
-
-  const sessionHash = await sha256Hex(sessionToken);
+  let stage = 'init';
 
   try {
-    // Get authenticated operator
+    // Stage 1: Verify authentication
+    stage = 'auth';
+    const sessionToken = getSessionToken(request);
+    if (!sessionToken) {
+      console.log(`[Delete ${requestId}] No session token`);
+      return errors.unauthorized(requestId);
+    }
+
+    const sessionHash = await sha256Hex(sessionToken);
+
+    // Stage 2: Get authenticated operator
+    stage = 'get_operator';
     const operator = await env.DB.prepare(`
       SELECT id, x_handle, display_name, status
       FROM operators
       WHERE session_token_hash = ?
         AND session_expires_at > datetime('now')
+        AND status != 'deleted'
     `).bind(sessionHash).first<{
       id: string;
-      x_handle: string;
+      x_handle: string | null;
       display_name: string | null;
       status: string;
     }>();
 
     if (!operator) {
+      console.log(`[Delete ${requestId}] Operator not found or session expired`);
       return errors.unauthorized(requestId);
     }
 
-    // Parse request body
+    console.log(`[Delete ${requestId}] Operator found: ${operator.id} (@${operator.x_handle})`);
+
+    // Stage 3: Parse request body
+    stage = 'parse_body';
     let body: DeleteRequest;
     try {
       body = await request.json() as DeleteRequest;
-    } catch {
+    } catch (e) {
+      console.log(`[Delete ${requestId}] Invalid JSON body:`, e);
       return errors.badRequest(requestId, 'Invalid JSON body');
     }
 
-    // Verify confirmation text
-    if (body.confirmText !== 'DELETE') {
+    // Stage 4: Verify confirmation text
+    stage = 'verify_confirm';
+    if (!body.confirmText || body.confirmText.toUpperCase() !== 'DELETE') {
+      console.log(`[Delete ${requestId}] Invalid confirm text: ${body.confirmText}`);
       return errors.badRequest(requestId, 'Please type DELETE to confirm');
     }
 
-    // Check for active missions
+    // Stage 5: Check for active missions
+    stage = 'check_missions';
     const activeMissions = await env.DB.prepare(`
       SELECT id, status FROM missions
       WHERE operator_id = ?
@@ -94,6 +122,7 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
     `).bind(operator.id).all<Mission>();
 
     if (activeMissions.results && activeMissions.results.length > 0) {
+      console.log(`[Delete ${requestId}] Blocked: ${activeMissions.results.length} active missions`);
       return new Response(JSON.stringify({
         success: false,
         error: {
@@ -101,10 +130,6 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
           message: 'You have active missions. Please complete or cancel them before deleting your account.',
           details: {
             count: activeMissions.results.length,
-            missions: activeMissions.results.map(m => ({
-              id: m.id,
-              status: m.status,
-            })),
           },
         },
         request_id: requestId,
@@ -114,13 +139,15 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       });
     }
 
-    // Check for pending balance
+    // Stage 6: Check for pending balance
+    stage = 'check_balance';
     const balance = await env.DB.prepare(`
       SELECT available, pending FROM balances
       WHERE owner_type = 'operator' AND owner_id = ?
     `).bind(operator.id).first<Balance>();
 
     if (balance && balance.pending > 0) {
+      console.log(`[Delete ${requestId}] Blocked: pending payout ${balance.pending}`);
       return new Response(JSON.stringify({
         success: false,
         error: {
@@ -137,78 +164,159 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       });
     }
 
-    // Generate anonymized identifier
+    // Stage 7: Get available columns to build safe UPDATE
+    stage = 'get_columns';
+    const columns = await getOperatorColumns(env);
+    console.log(`[Delete ${requestId}] Available columns:`, Array.from(columns).join(', '));
+
+    // Stage 8: Anonymize user data
+    stage = 'anonymize';
     const deletedUserId = `deleted_${operator.id.substring(0, 8)}`;
     const deletedAt = new Date().toISOString();
+    const metadata = JSON.stringify({
+      deleted_at: deletedAt,
+      original_handle: operator.x_handle,
+    });
 
-    // Anonymize user data (keep minimal info for audit)
-    await env.DB.prepare(`
-      UPDATE operators SET
-        -- Clear personal identifiers
-        x_handle = NULL,
-        x_user_id = NULL,
-        display_name = ?,
-        avatar_url = NULL,
-        x_profile_image_url = NULL,
-        bio = NULL,
-        -- Clear X profile data
-        x_description = NULL,
-        x_url = NULL,
-        x_location = NULL,
-        x_created_at = NULL,
-        x_protected = 0,
-        x_verified = 0,
-        x_verified_type = NULL,
-        x_followers_count = 0,
-        x_following_count = 0,
-        x_tweet_count = 0,
-        x_listed_count = 0,
-        x_raw_json = NULL,
-        x_fetched_at = NULL,
-        x_connected_at = NULL,
-        -- Clear wallet addresses
-        evm_wallet_address = NULL,
-        solana_wallet_address = NULL,
-        -- Clear session
-        session_token_hash = NULL,
-        session_expires_at = NULL,
-        -- Clear invite code (but keep invite_count for stats)
-        invite_code = NULL,
-        -- Clear verification data
-        verify_code = NULL,
-        verify_status = 'deleted',
-        verify_post_id = NULL,
-        verify_completed_at = NULL,
-        -- Update status and metadata
-        status = 'deleted',
-        metadata = ?,
-        updated_at = ?
-      WHERE id = ?
-    `).bind(
-      deletedUserId,
-      JSON.stringify({
-        deleted_at: deletedAt,
-        original_handle: operator.x_handle, // Keep for support reference
-      }),
-      deletedAt,
-      operator.id
-    ).run();
+    // Build UPDATE query dynamically based on available columns
+    const updates: string[] = [];
+    const values: (string | number | null)[] = [];
 
-    // Update ledger entries to anonymize (keep financial data)
-    await env.DB.prepare(`
-      UPDATE ledger_entries SET
-        description = REPLACE(description, ?, ?)
-      WHERE owner_type = 'operator' AND owner_id = ?
-    `).bind(
-      operator.x_handle || '',
-      deletedUserId,
-      operator.id
-    ).run();
+    // Always update these core fields
+    updates.push('display_name = ?');
+    values.push(deletedUserId);
 
-    // Log the deletion for audit
-    console.log(`[Account Deletion] Operator ${operator.id} (@${operator.x_handle}) deleted at ${deletedAt}`);
+    updates.push('status = ?');
+    values.push('deleted');
 
-    // Return success with logout instruction
+    updates.push('metadata = ?');
+    values.push(metadata);
+
+    updates.push('updated_at = ?');
+    values.push(deletedAt);
+
+    // Clear session
+    updates.push('session_token_hash = NULL');
+    updates.push('session_expires_at = NULL');
+
+    // Clear personal identifiers if columns exist
+    if (columns.has('x_handle')) {
+      updates.push('x_handle = NULL');
+    }
+    if (columns.has('x_user_id')) {
+      updates.push('x_user_id = NULL');
+    }
+    if (columns.has('avatar_url')) {
+      updates.push('avatar_url = NULL');
+    }
+    if (columns.has('bio')) {
+      updates.push('bio = NULL');
+    }
+
+    // Clear X profile data if columns exist
+    if (columns.has('x_profile_image_url')) {
+      updates.push('x_profile_image_url = NULL');
+    }
+    if (columns.has('x_description')) {
+      updates.push('x_description = NULL');
+    }
+    if (columns.has('x_url')) {
+      updates.push('x_url = NULL');
+    }
+    if (columns.has('x_location')) {
+      updates.push('x_location = NULL');
+    }
+    if (columns.has('x_created_at')) {
+      updates.push('x_created_at = NULL');
+    }
+    if (columns.has('x_protected')) {
+      updates.push('x_protected = 0');
+    }
+    if (columns.has('x_verified')) {
+      updates.push('x_verified = 0');
+    }
+    if (columns.has('x_verified_type')) {
+      updates.push('x_verified_type = NULL');
+    }
+    if (columns.has('x_followers_count')) {
+      updates.push('x_followers_count = 0');
+    }
+    if (columns.has('x_following_count')) {
+      updates.push('x_following_count = 0');
+    }
+    if (columns.has('x_tweet_count')) {
+      updates.push('x_tweet_count = 0');
+    }
+    if (columns.has('x_listed_count')) {
+      updates.push('x_listed_count = 0');
+    }
+    if (columns.has('x_raw_json')) {
+      updates.push('x_raw_json = NULL');
+    }
+    if (columns.has('x_fetched_at')) {
+      updates.push('x_fetched_at = NULL');
+    }
+    if (columns.has('x_connected_at')) {
+      updates.push('x_connected_at = NULL');
+    }
+
+    // Clear wallet addresses if columns exist
+    if (columns.has('evm_wallet_address')) {
+      updates.push('evm_wallet_address = NULL');
+    }
+    if (columns.has('solana_wallet_address')) {
+      updates.push('solana_wallet_address = NULL');
+    }
+
+    // Clear invite data if columns exist
+    if (columns.has('invite_code')) {
+      updates.push('invite_code = NULL');
+    }
+
+    // Clear verification data if columns exist
+    if (columns.has('verify_code')) {
+      updates.push('verify_code = NULL');
+    }
+    if (columns.has('verify_status')) {
+      // verify_status is NOT NULL, so set to 'deleted' instead of NULL
+      updates.push("verify_status = 'deleted'");
+    }
+    if (columns.has('verify_post_id')) {
+      updates.push('verify_post_id = NULL');
+    }
+    if (columns.has('verify_completed_at')) {
+      updates.push('verify_completed_at = NULL');
+    }
+
+    // Add WHERE clause
+    values.push(operator.id);
+
+    const updateQuery = `UPDATE operators SET ${updates.join(', ')} WHERE id = ?`;
+    console.log(`[Delete ${requestId}] Running UPDATE query with ${updates.length} columns`);
+
+    await env.DB.prepare(updateQuery).bind(...values).run();
+
+    // Stage 9: Anonymize ledger entries (optional, non-blocking)
+    stage = 'anonymize_ledger';
+    try {
+      await env.DB.prepare(`
+        UPDATE ledger_entries SET
+          description = REPLACE(description, ?, ?)
+        WHERE owner_type = 'operator' AND owner_id = ?
+      `).bind(
+        operator.x_handle || '',
+        deletedUserId,
+        operator.id
+      ).run();
+    } catch (ledgerError) {
+      // Log but don't fail the deletion
+      console.error(`[Delete ${requestId}] Ledger anonymization failed (non-critical):`, ledgerError);
+    }
+
+    // Stage 10: Success
+    stage = 'success';
+    console.log(`[Delete ${requestId}] Account deleted successfully: ${operator.id} (@${operator.x_handle})`);
+
     return new Response(JSON.stringify({
       success: true,
       data: {
@@ -220,13 +328,25 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        // Clear session cookie
         'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
       },
     });
   } catch (e) {
-    console.error('[Account Deletion] Error:', e);
-    return errors.internalError(requestId);
+    const error = e as Error;
+    console.error(`[Delete ${requestId}] Error at stage '${stage}':`, error.message);
+    console.error(`[Delete ${requestId}] Stack:`, error.stack);
+
+    return new Response(JSON.stringify({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'An internal error occurred. Please try again or contact support.',
+      },
+      request_id: requestId,
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
 
@@ -252,6 +372,7 @@ export async function handleAccountDeleteCheck(request: Request, env: Env): Prom
       SELECT id FROM operators
       WHERE session_token_hash = ?
         AND session_expires_at > datetime('now')
+        AND status != 'deleted'
     `).bind(sessionHash).first<{ id: string }>();
 
     if (!operator) {
@@ -281,7 +402,9 @@ export async function handleAccountDeleteCheck(request: Request, env: Env): Prom
       },
     }, requestId);
   } catch (e) {
-    console.error('[Account Delete Check] Error:', e);
+    const error = e as Error;
+    console.error(`[Delete Check ${requestId}] Error:`, error.message);
+    console.error(`[Delete Check ${requestId}] Stack:`, error.stack);
     return errors.internalError(requestId);
   }
 }
