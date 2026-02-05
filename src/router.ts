@@ -25,6 +25,14 @@ import {
   bulkUpdateApplications,
 } from './api/ai/applications';
 
+// A-Plan API (Address Unlock Fee Model)
+import {
+  approveMission,
+  unlockAddress,
+  confirmPayout,
+  getAgentTrustScore,
+} from './api/ai/aplan';
+
 // User API
 import { getMe } from './api/user/me';
 import {
@@ -288,6 +296,28 @@ async function handleAgentApi(
     return rejectApplication(request, env, context!, rejectMatch[1]);
   }
 
+  // ============================================
+  // A-Plan Routes (Address Unlock Fee Model)
+  // ============================================
+
+  // POST /v1/applications/:id/approve - Approve mission for payment (VERIFIED → APPROVED)
+  const approveMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/approve$/);
+  if (approveMatch && method === 'POST') {
+    return approveMission(request, env, context!, approveMatch[1]);
+  }
+
+  // POST /v1/applications/:id/unlock-address - Submit AUF tx and get wallet address
+  const unlockMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/unlock-address$/);
+  if (unlockMatch && method === 'POST') {
+    return unlockAddress(request, env, context!, unlockMatch[1]);
+  }
+
+  // POST /v1/applications/:id/confirm-payout - Confirm 90% payout completion
+  const confirmMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/confirm-payout$/);
+  if (confirmMatch && method === 'POST') {
+    return confirmPayout(request, env, context!, confirmMatch[1]);
+  }
+
   return errors.notFound(context!.requestId, 'Endpoint');
 }
 
@@ -478,6 +508,16 @@ async function handlePublicApi(
   // POST /api/payout-wallets (alias for /api/operator/wallets)
   if (path === '/api/payout-wallets' && method === 'POST') {
     return updateOperatorWallets(request, env);
+  }
+
+  // ============================================
+  // A-Plan Public Routes
+  // ============================================
+
+  // GET /api/agents/:id/trust-score - Public agent trust score
+  const trustScoreMatch = path.match(/^\/api\/agents\/([a-f0-9]+)\/trust-score$/);
+  if (trustScoreMatch && method === 'GET') {
+    return getAgentTrustScore(request, env, trustScoreMatch[1]);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

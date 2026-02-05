@@ -18,6 +18,12 @@ CREATE TABLE IF NOT EXISTS agents (
     max_deal_amount INTEGER DEFAULT 5000, -- cents ($50)
     daily_volume_limit INTEGER DEFAULT 50000, -- cents ($500)
     open_deals_limit INTEGER DEFAULT 5,
+    -- A-Plan Trust Score Fields
+    paid_count INTEGER DEFAULT 0,
+    overdue_count INTEGER DEFAULT 0,
+    avg_pay_time_seconds INTEGER DEFAULT 0,
+    is_suspended_for_overdue INTEGER DEFAULT 0,
+    last_overdue_at TEXT,
     -- メタデータ
     metadata TEXT, -- JSON
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -26,6 +32,8 @@ CREATE TABLE IF NOT EXISTS agents (
 
 CREATE INDEX idx_agents_status ON agents(status);
 CREATE INDEX idx_agents_email ON agents(email);
+CREATE INDEX idx_agents_overdue ON agents(is_suspended_for_overdue);
+CREATE INDEX idx_agents_paid_count ON agents(paid_count);
 
 -- ============================================
 -- Agent API Keys
@@ -213,6 +221,9 @@ CREATE TABLE IF NOT EXISTS deals (
     expires_at TEXT,
     -- べき等キー (重複作成防止)
     idempotency_key TEXT UNIQUE,
+    -- A-Plan Payment Model
+    payment_model TEXT DEFAULT 'escrow', -- 'escrow' or 'a_plan'
+    auf_percentage INTEGER DEFAULT 10, -- Address Unlock Fee percentage
     -- メタデータ
     metadata TEXT, -- JSON
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -232,6 +243,7 @@ CREATE TABLE IF NOT EXISTS missions (
     deal_id TEXT NOT NULL REFERENCES deals(id),
     operator_id TEXT NOT NULL REFERENCES operators(id),
     -- 状態: accepted, submitted, verified, rejected, expired, paid
+    -- A-Plan additional: approved, address_unlocked, paid_partial, paid_complete, overdue
     status TEXT NOT NULL DEFAULT 'accepted',
     -- 投稿URL (Operatorが提出)
     submission_url TEXT,
@@ -242,6 +254,14 @@ CREATE TABLE IF NOT EXISTS missions (
     verification_result TEXT, -- JSON
     -- 支払い
     paid_at TEXT,
+    -- A-Plan Timestamps
+    approved_at TEXT, -- AI approved payment
+    auf_tx_hash TEXT, -- Address Unlock Fee tx hash
+    auf_confirmed_at TEXT, -- AUF confirmed timestamp
+    payout_deadline_at TEXT, -- Payment deadline
+    payout_tx_hash TEXT, -- 90% payout tx hash
+    payout_confirmed_at TEXT, -- Payout confirmed timestamp
+    overdue_at TEXT, -- When marked as overdue
     -- メタデータ
     metadata TEXT, -- JSON
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -253,6 +273,9 @@ CREATE TABLE IF NOT EXISTS missions (
 CREATE INDEX idx_missions_deal ON missions(deal_id);
 CREATE INDEX idx_missions_operator ON missions(operator_id);
 CREATE INDEX idx_missions_status ON missions(status);
+CREATE INDEX idx_missions_payout_deadline ON missions(payout_deadline_at);
+CREATE INDEX idx_missions_approved_at ON missions(approved_at);
+CREATE INDEX idx_missions_overdue_at ON missions(overdue_at);
 
 -- ============================================
 -- Balances (残高管理)
@@ -411,3 +434,65 @@ CREATE TABLE IF NOT EXISTS site_visits (
 
 CREATE INDEX idx_site_visits_date ON site_visits(visit_date);
 CREATE INDEX idx_site_visits_created ON site_visits(created_at);
+
+-- ============================================
+-- Applications Extensions (A-Plan)
+-- ============================================
+
+-- Note: payment_ref column is added via migration 005
+-- ALTER TABLE applications ADD COLUMN payment_ref TEXT UNIQUE;
+
+-- ============================================
+-- Payments Table (A-Plan - AUF + 90% TxHash Tracking)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS payments (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    mission_id TEXT NOT NULL REFERENCES missions(id),
+    agent_id TEXT NOT NULL,
+    operator_id TEXT NOT NULL,
+    -- Payment type: 'auf' (10% address unlock fee) or 'payout' (90% direct payment)
+    payment_type TEXT NOT NULL,
+    -- Amount in cents
+    amount_cents INTEGER NOT NULL,
+    -- Blockchain details
+    chain TEXT NOT NULL,
+    token TEXT NOT NULL,
+    tx_hash TEXT,
+    to_address TEXT,
+    -- Status: pending, submitted, confirmed, failed
+    status TEXT NOT NULL DEFAULT 'pending',
+    confirmed_at TEXT,
+    deadline_at TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_payments_mission ON payments(mission_id);
+CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_payments_agent ON payments(agent_id);
+CREATE INDEX idx_payments_type ON payments(payment_type);
+
+-- ============================================
+-- Payout Links Table (A-Plan - Secure Address Disclosure)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS payout_links (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    mission_id TEXT NOT NULL REFERENCES missions(id),
+    -- Secure token for one-time address reveal
+    token_hash TEXT NOT NULL UNIQUE,
+    -- Blockchain details
+    chain TEXT NOT NULL,
+    wallet_address TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    -- Status: pending_auf, unlocked, paid, expired
+    status TEXT NOT NULL DEFAULT 'pending_auf',
+    unlocked_at TEXT,
+    expires_at TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_payout_links_mission ON payout_links(mission_id);
+CREATE INDEX idx_payout_links_token ON payout_links(token_hash);
+CREATE INDEX idx_payout_links_status ON payout_links(status);

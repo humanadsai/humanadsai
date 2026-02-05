@@ -334,23 +334,33 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
     } else {
       console.log('[X Callback] Creating new operator for:', userInfo.username);
 
-      // Generate unique invite code for new user
-      let newInviteCode = generateInviteCode();
-      let inviteAttempts = 0;
-      while (inviteAttempts < 10) {
-        const existingCode = await env.DB.prepare(
-          'SELECT id FROM operators WHERE invite_code = ?'
-        ).bind(newInviteCode).first();
-        if (!existingCode) break;
+      // Check if invite_code column exists FIRST (before any invite-related queries)
+      const hasInviteColumns = await env.DB.prepare(
+        "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'invite_code'"
+      ).first<{ count: number }>();
+      const useInviteSchema = (hasInviteColumns?.count || 0) > 0;
+      console.log('[X Callback] Using invite schema:', useInviteSchema);
+
+      // Generate unique invite code for new user (only if invite schema exists)
+      let newInviteCode: string | null = null;
+      if (useInviteSchema) {
         newInviteCode = generateInviteCode();
-        inviteAttempts++;
+        let inviteAttempts = 0;
+        while (inviteAttempts < 10) {
+          const existingCode = await env.DB.prepare(
+            'SELECT id FROM operators WHERE invite_code = ?'
+          ).bind(newInviteCode).first();
+          if (!existingCode) break;
+          newInviteCode = generateInviteCode();
+          inviteAttempts++;
+        }
       }
 
-      // Check if user was invited by someone
+      // Check if user was invited by someone (only if invite schema exists)
       const inviteCodeUsed = getInviteCookie(request);
       let inviterId: string | null = null;
 
-      if (inviteCodeUsed) {
+      if (inviteCodeUsed && useInviteSchema) {
         console.log('[X Callback] Checking invite code:', inviteCodeUsed);
         const inviter = await env.DB.prepare(
           'SELECT id FROM operators WHERE invite_code = ?'
@@ -361,12 +371,6 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
           console.log('[X Callback] Valid invite from operator:', inviterId);
         }
       }
-
-      // Check if invite_code column exists
-      const hasInviteColumns = await env.DB.prepare(
-        "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'invite_code'"
-      ).first<{ count: number }>();
-      const useInviteSchema = (hasInviteColumns?.count || 0) > 0;
 
       if (useExtendedSchema && useInviteSchema) {
         // Create with all fields including invite system

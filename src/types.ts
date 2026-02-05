@@ -33,6 +33,12 @@ export interface Agent {
   max_deal_amount: number;
   daily_volume_limit: number;
   open_deals_limit: number;
+  // A-Plan trust score fields
+  paid_count: number;
+  overdue_count: number;
+  avg_pay_time_seconds: number;
+  is_suspended_for_overdue: boolean;
+  last_overdue_at?: string;
   metadata?: string;
   created_at: string;
   updated_at: string;
@@ -91,6 +97,8 @@ export interface OperatorVerification {
   created_at: string;
 }
 
+export type PaymentModel = 'escrow' | 'a_plan';
+
 export interface Deal {
   id: string;
   agent_id: string;
@@ -104,22 +112,48 @@ export interface Deal {
   starts_at?: string;
   expires_at?: string;
   idempotency_key?: string;
+  // A-Plan payment model
+  payment_model: PaymentModel;
+  auf_percentage: number;
   metadata?: string;
   created_at: string;
   updated_at: string;
 }
 
+// Mission status including A-Plan states
+export type MissionStatus =
+  | 'accepted'
+  | 'submitted'
+  | 'verified'
+  | 'rejected'
+  | 'expired'
+  | 'paid'
+  // A-Plan additional statuses
+  | 'approved'          // AI approved (payment intent expressed)
+  | 'address_unlocked'  // AUF paid, address disclosed
+  | 'paid_partial'      // AUF confirmed, awaiting 90%
+  | 'paid_complete'     // Full payment completed
+  | 'overdue';          // Payment deadline exceeded
+
 export interface Mission {
   id: string;
   deal_id: string;
   operator_id: string;
-  status: 'accepted' | 'submitted' | 'verified' | 'rejected' | 'expired' | 'paid';
+  status: MissionStatus;
   submission_url?: string;
   submission_content?: string;
   submitted_at?: string;
   verified_at?: string;
   verification_result?: string;
   paid_at?: string;
+  // A-Plan timestamps
+  approved_at?: string;
+  auf_tx_hash?: string;
+  auf_confirmed_at?: string;
+  payout_deadline_at?: string;
+  payout_tx_hash?: string;
+  payout_confirmed_at?: string;
+  overdue_at?: string;
   metadata?: string;
   created_at: string;
   updated_at: string;
@@ -335,4 +369,100 @@ export interface ApplyMissionRequest {
   language?: string;
   audience_fit?: string;
   portfolio_links?: string;
+}
+
+// ============================================
+// A-Plan Types (Address Unlock Fee Model)
+// ============================================
+
+export type PaymentType = 'auf' | 'payout';
+export type PaymentStatus = 'pending' | 'submitted' | 'confirmed' | 'failed';
+export type PayoutLinkStatus = 'pending_auf' | 'unlocked' | 'paid' | 'expired';
+
+export interface Payment {
+  id: string;
+  mission_id: string;
+  agent_id: string;
+  operator_id: string;
+  payment_type: PaymentType;
+  amount_cents: number;
+  chain: string;
+  token: string;
+  tx_hash?: string;
+  to_address?: string;
+  status: PaymentStatus;
+  confirmed_at?: string;
+  deadline_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PayoutLink {
+  id: string;
+  mission_id: string;
+  token_hash: string;
+  chain: string;
+  wallet_address: string;
+  amount_cents: number;
+  status: PayoutLinkStatus;
+  unlocked_at?: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface AgentTrustScore {
+  agent_id: string;
+  paid_count: number;
+  overdue_count: number;
+  avg_pay_time_seconds: number;
+  is_suspended_for_overdue: boolean;
+  last_overdue_at?: string;
+  // Computed fields
+  on_time_rate: number;
+  trust_level: 'new' | 'good' | 'excellent' | 'warning' | 'suspended';
+}
+
+// A-Plan API Request/Response Types
+
+export interface ApproveMissionRequest {
+  payout_deadline_hours?: number; // Default 72 hours
+}
+
+export interface ApproveMissionResponse {
+  mission_id: string;
+  status: MissionStatus;
+  approved_at: string;
+  payout_deadline_at: string;
+  auf_amount_cents: number;
+  auf_percentage: number;
+  treasury_address: string;
+  supported_chains: string[];
+}
+
+export interface UnlockAddressRequest {
+  auf_tx_hash: string;
+  chain: string;
+  token: string;
+}
+
+export interface UnlockAddressResponse {
+  mission_id: string;
+  status: MissionStatus;
+  wallet_address: string;
+  payout_amount_cents: number;
+  payout_deadline_at: string;
+  chain: string;
+}
+
+export interface ConfirmPayoutRequest {
+  payout_tx_hash: string;
+  chain: string;
+  token: string;
+}
+
+export interface ConfirmPayoutResponse {
+  mission_id: string;
+  status: MissionStatus;
+  paid_complete_at: string;
+  total_amount_cents: number;
 }
