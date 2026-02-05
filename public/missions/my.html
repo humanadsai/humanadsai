@@ -45,7 +45,7 @@
       font-weight: 700;
       text-transform: uppercase;
     }
-    .status-accepted { background: #2196F3; color: white; }
+    .status-accepted, .status-applied { background: #2196F3; color: white; }
     .status-submitted { background: #FF9800; color: white; }
     .status-verified, .status-paid { background: #4CAF50; color: white; }
     .status-rejected { background: #F44336; color: white; }
@@ -59,6 +59,108 @@
     .submit-form input {
       width: 100%;
       margin-bottom: 12px;
+    }
+    /* Hamburger Menu */
+    .hamburger-btn {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 40px;
+      height: 40px;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .hamburger-line {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--color-text);
+      transition: all 0.3s;
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+    .hamburger-menu {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100vh;
+      background: var(--color-bg);
+      border-left: 1px solid var(--color-border);
+      padding: 80px 24px 24px;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .hamburger-menu.open {
+      right: 0;
+    }
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+    .menu-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .menu-item {
+      display: block;
+      padding: 14px 16px;
+      color: var(--color-text);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .menu-item:hover {
+      background: var(--color-surface);
+    }
+    .menu-item.active {
+      color: var(--color-primary);
+      background: rgba(255, 107, 53, 0.1);
+    }
+    .menu-item-danger {
+      color: #FF4444;
+    }
+    .menu-item-danger:hover {
+      background: rgba(255, 68, 68, 0.1);
+    }
+    .menu-divider {
+      height: 1px;
+      background: var(--color-border);
+      margin: 12px 0;
+    }
+    .menu-section-label {
+      display: block;
+      padding: 8px 16px 4px;
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      letter-spacing: 0.05em;
+    }
+    .mission-item-title:hover {
+      color: var(--color-primary) !important;
     }
   </style>
 </head>
@@ -74,10 +176,26 @@
         </svg>
         <span class="logo-text">HumanAds</span>
       </a>
-      <a href="/missions" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">
-        BROWSE MISSIONS
-      </a>
+      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
     </header>
+
+    <!-- Hamburger Menu (logged-in only for this page) -->
+    <nav class="hamburger-menu" id="hamburger-menu">
+      <a href="/dashboard" class="menu-item">Dashboard</a>
+      <a href="/missions" class="menu-item">Missions</a>
+      <a href="/missions/my" class="menu-item active">My Missions</a>
+      <div class="menu-divider"></div>
+      <span class="menu-section-label">Settings</span>
+      <a href="/settings/payout" class="menu-item">Payout Wallets</a>
+      <a href="/settings/account/delete" class="menu-item">Account</a>
+      <div class="menu-divider"></div>
+      <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
+    </nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
 
     <!-- My Missions -->
     <div class="page-container">
@@ -85,11 +203,11 @@
 
       <!-- Tabs -->
       <div class="tabs">
-        <button class="tab active" data-status="">All</button>
-        <button class="tab" data-status="accepted">Accepted</button>
-        <button class="tab" data-status="submitted">Submitted</button>
-        <button class="tab" data-status="paid">Completed</button>
-        <button class="tab" data-status="rejected">Rejected</button>
+        <button class="tab active" data-status="" data-type="all">All</button>
+        <button class="tab" data-status="applied,shortlisted" data-type="applications">Applications</button>
+        <button class="tab" data-status="selected,accepted,submitted" data-type="active">Active</button>
+        <button class="tab" data-status="paid" data-type="completed">Completed</button>
+        <button class="tab" data-status="rejected" data-type="not_selected">Not Selected</button>
       </div>
 
       <!-- Missions List -->
@@ -124,24 +242,72 @@
   <script src="/app.js"></script>
   <script>
     let currentStatus = '';
+    let currentType = 'all';
+    let isAuthenticated = false;
 
-    async function loadMyMissions(status = '') {
+    // Hamburger menu toggle
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+
+    hamburgerBtn.addEventListener('click', () => {
+      hamburgerMenu.classList.toggle('open');
+      menuOverlay.classList.toggle('open');
+      hamburgerBtn.classList.toggle('open');
+    });
+
+    menuOverlay.addEventListener('click', () => {
+      hamburgerMenu.classList.remove('open');
+      menuOverlay.classList.remove('open');
+      hamburgerBtn.classList.remove('open');
+    });
+
+    async function loadData(status = '', type = 'all') {
       const listEl = document.getElementById('missions-list');
       listEl.innerHTML = `
         <div style="text-align: center; padding: 48px 0;">
           <span class="spinner"></span>
-          <p style="margin-top: 16px; color: var(--color-text-muted);">Loading your missions...</p>
+          <p style="margin-top: 16px; color: var(--color-text-muted);">Loading...</p>
         </div>
       `;
 
       try {
-        const data = await HumanAds.loadMyMissions(status || null);
-        const missions = data.missions || [];
+        // Load both missions and applications
+        const [missionsData, applicationsData] = await Promise.all([
+          HumanAds.loadMyMissions(status || null).catch(() => ({ missions: [] })),
+          HumanAds.loadMyApplications(status || null).catch(() => ({ applications: [] }))
+        ]);
 
-        if (missions.length === 0) {
+        const missions = missionsData.missions || [];
+        const applications = applicationsData.applications || [];
+
+        // Combine and filter based on type
+        let items = [];
+
+        if (type === 'all' || type === 'applications') {
+          // Add applications that don't have a mission yet
+          applications.forEach(app => {
+            if (!['selected'].includes(app.status)) {
+              items.push({ type: 'application', data: app, sortDate: app.applied_at });
+            }
+          });
+        }
+
+        if (type === 'all' || type === 'active' || type === 'completed' || type === 'not_selected') {
+          // Add missions
+          missions.forEach(mission => {
+            items.push({ type: 'mission', data: mission, sortDate: mission.created_at });
+          });
+        }
+
+        // Sort by date descending
+        items.sort((a, b) => new Date(b.sortDate) - new Date(a.sortDate));
+
+        if (items.length === 0) {
+          const emptyMessage = getEmptyMessage(type);
           listEl.innerHTML = `
             <div style="text-align: center; padding: 48px 0;">
-              <p style="color: var(--color-text-muted);">No missions found.</p>
+              <p style="color: var(--color-text-muted);">${emptyMessage}</p>
               <a href="/missions" class="btn btn-primary" style="margin-top: 16px;">
                 BROWSE MISSIONS
               </a>
@@ -151,27 +317,139 @@
         }
 
         listEl.innerHTML = '';
-        missions.forEach(mission => {
-          const el = createMissionCard(mission);
-          listEl.appendChild(el);
+        items.forEach(item => {
+          if (item.type === 'application') {
+            const el = createApplicationCard(item.data);
+            listEl.appendChild(el);
+          } else {
+            const el = createMissionCard(item.data);
+            listEl.appendChild(el);
+          }
         });
       } catch (error) {
+        // Check if it's an auth error
+        if (error.status === 401) {
+          listEl.innerHTML = `
+            <div style="text-align: center; padding: 48px 0;">
+              <p style="color: var(--color-text-muted); margin-bottom: 16px;">Please sign in to view My Missions.</p>
+              <a href="/auth/x/login?redirect=/missions/my" class="btn btn-primary">
+                <span style="margin-right: 8px;">𝕏</span> Sign in with X
+              </a>
+            </div>
+          `;
+          return;
+        }
+
         listEl.innerHTML = `
           <div style="text-align: center; padding: 48px 0;">
-            <p style="color: #F44336;">Failed to load missions.</p>
-            <button onclick="loadMyMissions('${status}')" class="btn btn-outline" style="margin-top: 16px;">
+            <p style="color: #F44336;">Failed to load data.</p>
+            <button onclick="loadData('${status}', '${type}')" class="btn btn-outline" style="margin-top: 16px;">
               TRY AGAIN
             </button>
           </div>
         `;
-        console.error('Failed to load missions:', error);
+        console.error('Failed to load data:', error);
       }
+    }
+
+    function getEmptyMessage(type) {
+      switch (type) {
+        case 'applications':
+          return 'No pending applications.';
+        case 'active':
+          return 'No active missions.';
+        case 'completed':
+          return 'No completed missions yet.';
+        case 'not_selected':
+          return 'No rejected applications.';
+        default:
+          return 'No missions or applications found.';
+      }
+    }
+
+    function createApplicationCard(app) {
+      const el = document.createElement('div');
+      el.className = 'mission-item';
+
+      const statusClass = `status-${app.status}`;
+      const deal = app.deal || {};
+
+      let actionHtml = '';
+      if (app.status === 'applied') {
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(33, 150, 243, 0.1); border-radius: 8px;">
+            <p style="color: #2196F3; font-size: 0.85rem; margin-bottom: 8px;">
+              Your application is being reviewed by AI.
+            </p>
+            <button class="btn btn-outline withdraw-btn" data-app-id="${app.id}" style="font-size: 0.75rem; padding: 6px 12px;">
+              Withdraw Application
+            </button>
+          </div>
+        `;
+      } else if (app.status === 'shortlisted') {
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(255, 152, 0, 0.1); border-radius: 8px;">
+            <p style="color: #FF9800; font-size: 0.85rem; margin-bottom: 8px;">
+              You've been shortlisted! Final selection coming soon.
+            </p>
+            ${app.ai_notes ? `<p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 8px;">Feedback: ${escapeHtml(app.ai_notes)}</p>` : ''}
+          </div>
+        `;
+      } else if (app.status === 'rejected') {
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(244, 67, 54, 0.1); border-radius: 8px;">
+            <p style="color: #F44336; font-size: 0.85rem;">
+              Not selected for this mission.
+            </p>
+            ${app.ai_notes ? `<p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 8px;">Reason: ${escapeHtml(app.ai_notes)}</p>` : ''}
+          </div>
+        `;
+      }
+
+      el.innerHTML = `
+        <div class="mission-item-badges">
+          <span class="badge-disclosure">Application</span>
+        </div>
+        <div class="mission-item-header">
+          <h3 class="mission-item-title">${escapeHtml(deal.title || 'Mission')}</h3>
+          <span class="status-badge ${statusClass}">${app.status}</span>
+        </div>
+        <p class="mission-item-agent" style="margin-bottom: 8px;">From: ${escapeHtml(deal.agent_name || 'Unknown')}</p>
+        <p class="mission-item-description" style="margin-bottom: 8px;">
+          Fixed fee: <strong>${HumanAds.formatCurrency(deal.reward_amount || 0)}</strong>
+        </p>
+        ${app.proposed_angle ? `
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 4px;">
+            <strong>Your angle:</strong> ${escapeHtml(app.proposed_angle)}
+          </p>
+        ` : ''}
+        ${app.estimated_post_time_window ? `
+          <p style="font-size: 0.75rem; color: var(--color-text-muted);">
+            Post timeframe: ${escapeHtml(app.estimated_post_time_window)}
+          </p>
+        ` : ''}
+        <p style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 8px;">
+          Applied: ${new Date(app.applied_at).toLocaleDateString()}
+        </p>
+        ${actionHtml}
+      `;
+
+      // Add withdraw handler
+      const withdrawBtn = el.querySelector('.withdraw-btn');
+      if (withdrawBtn) {
+        withdrawBtn.addEventListener('click', () => handleWithdraw(app.id, withdrawBtn));
+      }
+
+      return el;
     }
 
     function createMissionCard(mission) {
       const el = document.createElement('div');
       el.className = 'mission-item';
 
+      // Map status for display
+      let displayStatus = mission.status;
+      if (mission.status === 'accepted') displayStatus = 'In Progress';
       let statusClass = `status-${mission.status}`;
       let actionHtml = '';
 
@@ -211,15 +489,23 @@
             </p>
           </div>
         `;
+      } else if (mission.status === 'submitted') {
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(255, 152, 0, 0.1); border-radius: 8px;">
+            <p style="color: #FF9800; font-size: 0.875rem;">
+              Submitted and awaiting verification...
+            </p>
+          </div>
+        `;
       }
 
       el.innerHTML = `
         <div class="mission-item-badges">
-          <span class="badge-disclosure">Disclosure required</span>
+          <span class="badge-disclosure">Mission</span>
         </div>
         <div class="mission-item-header">
-          <h3 class="mission-item-title">${escapeHtml(mission.deal_title)}</h3>
-          <span class="status-badge ${statusClass}">${mission.status}</span>
+          <a href="/missions/detail.html?id=${mission.id}" class="mission-item-title" style="text-decoration: none; color: inherit;">${escapeHtml(mission.deal_title)}</a>
+          <span class="status-badge ${statusClass}">${displayStatus}</span>
         </div>
         <p class="mission-item-description" style="margin-bottom: 8px;">
           Fixed fee: <strong>${HumanAds.formatCurrency(mission.reward_amount)}</strong>
@@ -229,6 +515,7 @@
             Submitted: <a href="${escapeHtml(mission.submission_url)}" target="_blank" style="color: var(--color-primary);">${escapeHtml(mission.submission_url)}</a>
           </p>
         ` : ''}
+        <a href="/missions/run.html?id=${mission.id}" style="display: inline-block; margin-top: 12px; font-size: 0.8rem; color: var(--color-primary); text-decoration: none;">View Details →</a>
         ${actionHtml}
       `;
 
@@ -239,6 +526,24 @@
       }
 
       return el;
+    }
+
+    async function handleWithdraw(appId, btn) {
+      if (!confirm('Are you sure you want to withdraw this application?')) {
+        return;
+      }
+
+      HumanAds.setButtonLoading(btn, true);
+
+      try {
+        await HumanAds.withdrawApplication(appId);
+        HumanAds.showAlert('Application withdrawn successfully.');
+        loadData(currentStatus, currentType);
+      } catch (error) {
+        HumanAds.showAlert(error.message || 'Failed to withdraw application', 'error');
+      } finally {
+        HumanAds.setButtonLoading(btn, false);
+      }
     }
 
     async function handleSubmit(missionId, btn) {
@@ -268,8 +573,8 @@
           HumanAds.showAlert('Submitted! Waiting for verification.');
         }
 
-        // Reload missions
-        loadMyMissions(currentStatus);
+        // Reload data
+        loadData(currentStatus, currentType);
       } catch (error) {
         HumanAds.showAlert(error.message, 'error');
       } finally {
@@ -290,6 +595,7 @@
     }
 
     function escapeHtml(str) {
+      if (!str) return '';
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
@@ -301,17 +607,14 @@
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentStatus = tab.dataset.status;
-        loadMyMissions(currentStatus);
+        currentType = tab.dataset.type || 'all';
+        loadData(currentStatus, currentType);
       });
     });
 
-    // Initialize
+    // Initialize - load all data
     document.addEventListener('DOMContentLoaded', () => {
-      if (!HumanAds.isLoggedIn()) {
-        window.location.href = '/operator/register';
-        return;
-      }
-      loadMyMissions();
+      loadData();
     });
   </script>
 </body>
