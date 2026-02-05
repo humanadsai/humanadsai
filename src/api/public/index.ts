@@ -302,14 +302,32 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
       }
     }
 
-    // AI Connected - approved agents
+    // AI Connected - approved agents (including samples for demo)
+    let agentsCountReal = 0;
+    let agentsCountSample = 0;
     try {
-      const agents = await env.DB.prepare(
+      // Total approved agents (including samples)
+      const agentsTotal = await env.DB.prepare(
         `SELECT COUNT(*) as count FROM agents WHERE status = 'approved'`
       ).first<{ count: number }>();
-      agentsCount = agents?.count || 0;
+      agentsCount = agentsTotal?.count || 0;
+
+      // Sample agents only (where metadata contains is_sample: true)
+      const agentsSample = await env.DB.prepare(
+        `SELECT COUNT(*) as count FROM agents
+         WHERE status = 'approved'
+         AND json_extract(metadata, '$.is_sample') = true`
+      ).first<{ count: number }>();
+      agentsCountSample = agentsSample?.count || 0;
+
+      // Real agents (total minus sample)
+      agentsCountReal = agentsCount - agentsCountSample;
+
       if (debug) {
         debugInfo.agents_query = 'success';
+        debugInfo.agents_total = agentsCount;
+        debugInfo.agents_real = agentsCountReal;
+        debugInfo.agents_sample = agentsCountSample;
       }
     } catch (e) {
       console.error('Agents count query failed:', e);
@@ -320,10 +338,13 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
     }
 
     // Build response with no-cache headers to prevent CDN/browser caching
+    // ai_connected includes samples for demo/MVP (use ai_connected_real for production)
     const responseData: Record<string, unknown> = {
       site_access: siteAccessCount,
       human_operators: operatorsCount,
-      ai_connected: agentsCount,
+      ai_connected: agentsCount, // Total (including samples for demo)
+      ai_connected_real: agentsCountReal, // Real agents only (excluding samples)
+      ai_connected_sample: agentsCountSample, // Sample agents only
       generated_at: new Date().toISOString(),
       cache: 'miss',
     };
