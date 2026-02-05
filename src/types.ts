@@ -12,6 +12,8 @@ export interface Env {
   ASSETS: Fetcher;
   // Environment variables
   ENVIRONMENT: string;
+  // Payout mode: 'ledger' (simulated) or 'onchain' (real transactions)
+  PAYOUT_MODE?: string;
   // X (Twitter) OAuth2
   X_CLIENT_ID: string;
   X_CLIENT_SECRET: string;
@@ -378,6 +380,7 @@ export interface ApplyMissionRequest {
 export type PaymentType = 'auf' | 'payout';
 export type PaymentStatus = 'pending' | 'submitted' | 'confirmed' | 'failed';
 export type PayoutLinkStatus = 'pending_auf' | 'unlocked' | 'paid' | 'expired';
+export type PayoutMode = 'ledger' | 'onchain';
 
 export interface Payment {
   id: string;
@@ -391,6 +394,8 @@ export interface Payment {
   tx_hash?: string;
   to_address?: string;
   status: PaymentStatus;
+  // Payout mode: 'ledger' (simulated) or 'onchain' (real blockchain transaction)
+  payout_mode: PayoutMode;
   confirmed_at?: string;
   deadline_at?: string;
   created_at: string;
@@ -437,6 +442,9 @@ export interface ApproveMissionResponse {
   auf_percentage: number;
   treasury_address: string;
   supported_chains: string[];
+  // Payout mode info
+  payout_mode?: PayoutMode;
+  ledger_mode_info?: string;
 }
 
 export interface UnlockAddressRequest {
@@ -452,6 +460,10 @@ export interface UnlockAddressResponse {
   payout_amount_cents: number;
   payout_deadline_at: string;
   chain: string;
+  // Payout mode info
+  payout_mode?: PayoutMode;
+  is_simulated?: boolean;
+  ledger_mode_info?: string;
 }
 
 export interface ConfirmPayoutRequest {
@@ -465,4 +477,7 @@ export interface ConfirmPayoutResponse {
   status: MissionStatus;
   paid_complete_at: string;
   total_amount_cents: number;
+  // Payout mode info
+  payout_mode?: PayoutMode;
+  is_simulated?: boolean;
 }

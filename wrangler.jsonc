@@ -49,7 +49,10 @@
 
   // Environment variables
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
+    // Payout mode: "ledger" (simulated) or "onchain" (real transactions)
+    // Use "ledger" for development/testing without real blockchain transactions
+    "PAYOUT_MODE": "onchain"
   },
 
   // Development settings

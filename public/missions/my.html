@@ -468,10 +468,13 @@
           </div>
         `;
       } else if (mission.status === 'paid') {
+        const simulatedBadge = mission.is_simulated
+          ? `<span style="display: inline-block; background: rgba(255, 152, 0, 0.25); border: 1px solid rgba(255, 152, 0, 0.4); color: #FFB74D; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-left: 8px;">SIMULATED</span>`
+          : '';
         actionHtml = `
           <div style="margin-top: 16px; padding: 12px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; text-align: center;">
             <p style="color: #4CAF50; font-weight: 600;">
-              Earned: ${HumanAds.formatCurrency(mission.reward_amount)}
+              Earned: ${HumanAds.formatCurrency(mission.reward_amount)}${simulatedBadge}
             </p>
           </div>
         `;

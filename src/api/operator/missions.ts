@@ -2,6 +2,7 @@ import type { Env, Operator, Deal, Mission, AcceptMissionRequest, SubmitMissionR
 import { success, errors, generateRequestId } from '../../utils/response';
 import { authenticateOperator } from './register';
 import { releaseToOperator } from '../../services/ledger';
+import { isSimulatedTxHash } from '../../config/payout';
 
 /**
  * 利用可能なミッション一覧取得
@@ -411,7 +412,8 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
 
     let query = `
-      SELECT m.*, d.title as deal_title, d.requirements, d.reward_amount
+      SELECT m.*, d.title as deal_title, d.requirements, d.reward_amount,
+             m.payout_tx_hash
       FROM missions m
       JOIN deals d ON m.deal_id = d.id
       WHERE m.operator_id = ?
@@ -430,19 +432,27 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
 
     return success(
       {
-        missions: missions.results.map((m: Record<string, unknown>) => ({
-          id: m.id,
-          deal_id: m.deal_id,
-          deal_title: m.deal_title,
-          requirements: JSON.parse(m.requirements as string),
-          reward_amount: m.reward_amount,
-          status: m.status,
-          submission_url: m.submission_url,
-          submitted_at: m.submitted_at,
-          verified_at: m.verified_at,
-          paid_at: m.paid_at,
-          created_at: m.created_at,
-        })),
+        missions: missions.results.map((m: Record<string, unknown>) => {
+          // Check if payment was simulated (tx_hash starts with SIMULATED_)
+          const payoutTxHash = m.payout_tx_hash as string | null;
+          const isSimulated = payoutTxHash ? isSimulatedTxHash(payoutTxHash) : false;
+
+          return {
+            id: m.id,
+            deal_id: m.deal_id,
+            deal_title: m.deal_title,
+            requirements: JSON.parse(m.requirements as string),
+            reward_amount: m.reward_amount,
+            status: m.status,
+            submission_url: m.submission_url,
+            submitted_at: m.submitted_at,
+            verified_at: m.verified_at,
+            paid_at: m.paid_at,
+            created_at: m.created_at,
+            // Include simulated payment flag
+            is_simulated: isSimulated,
+          };
+        }),
         pagination: {
           limit,
           offset,
@@ -488,7 +498,7 @@ interface VerificationResult {
 }
 
 // Required disclosure tags for ad transparency
-const DISCLOSURE_TAGS = ['#ad', '#sponsored', '#advertisement', 'sponsored', 'ad'];
+const DISCLOSURE_TAGS = ['[PR]', 'by HumanAds', '#ad', '#sponsored', '#advertisement', 'sponsored', 'ad'];
 
 async function verifySubmission(
   submissionUrl: string,

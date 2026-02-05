@@ -12,9 +12,11 @@ import type {
   ConfirmPayoutRequest,
   ConfirmPayoutResponse,
   AgentTrustScore,
+  PayoutMode,
 } from '../../types';
 import { success, errors } from '../../utils/response';
 import { recordAufReceived, recordPayoutTracked, updateAgentTrustScore } from '../../services/ledger';
+import { getPayoutConfig, generateSimulatedTxHash, isSimulatedTxHash } from '../../config/payout';
 
 // Treasury addresses for receiving AUF payments (10%)
 const TREASURY_ADDRESSES: Record<string, string> = {
@@ -136,6 +138,10 @@ export async function approveMission(
     // Create AUF payment record
     const paymentId = crypto.randomUUID().replace(/-/g, '');
 
+    // Get payout mode from environment
+    const payoutConfig = getPayoutConfig(env);
+    const payoutMode: PayoutMode = payoutConfig.mode;
+
     // Update mission and create payment atomically
     await env.DB.batch([
       // Update mission status
@@ -147,11 +153,11 @@ export async function approveMission(
           updated_at = datetime('now')
          WHERE id = ?`
       ).bind(deadlineAt.toISOString(), appData.mission_id),
-      // Create AUF payment record
+      // Create AUF payment record with payout_mode
       env.DB.prepare(
-        `INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type, amount_cents, chain, token, status, deadline_at)
-         VALUES (?, ?, ?, ?, 'auf', ?, 'pending', 'pending', 'pending', ?)`
-      ).bind(paymentId, appData.mission_id, agent.id, appData.operator_id, aufAmountCents, deadlineAt.toISOString()),
+        `INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type, amount_cents, chain, token, status, payout_mode, deadline_at)
+         VALUES (?, ?, ?, ?, 'auf', ?, 'pending', 'pending', 'pending', ?, ?)`
+      ).bind(paymentId, appData.mission_id, agent.id, appData.operator_id, aufAmountCents, payoutMode, deadlineAt.toISOString()),
     ]);
 
     const response: ApproveMissionResponse = {
@@ -163,6 +169,11 @@ export async function approveMission(
       auf_percentage: aufPercentage,
       treasury_address: TREASURY_ADDRESSES.ethereum, // Default to Ethereum
       supported_chains: SUPPORTED_CHAINS,
+      // Include payout mode info
+      payout_mode: payoutMode,
+      ...(payoutMode === 'ledger' ? {
+        ledger_mode_info: 'Simulated mode enabled. Use any tx_hash starting with "SIMULATED_" to proceed without real blockchain transactions.',
+      } : {}),
     };
 
     return success(response, requestId);
@@ -282,15 +293,29 @@ export async function unlockAddress(
     const aufPercentage = appData.auf_percentage || 10;
     const payoutAmountCents = appData.reward_amount - Math.floor((appData.reward_amount * aufPercentage) / 100);
 
-    // TODO: Verify tx hash on-chain using blockchain service
-    // For MVP, we trust the tx_hash and mark as confirmed
-    // In production, this should verify:
-    // 1. Transaction exists and is confirmed
-    // 2. To address is correct (treasury)
-    // 3. Amount is correct (AUF amount)
-    // 4. Token is correct
+    // Get payout configuration
+    const payoutConfig = getPayoutConfig(env);
+    const payoutMode: PayoutMode = payoutConfig.mode;
+
+    // In ledger mode, allow simulated tx hashes
+    if (payoutMode === 'ledger') {
+      // Accept any tx_hash in ledger mode (simulated payments)
+      console.log(`[Ledger Mode] Simulated AUF payment: ${body.auf_tx_hash}`);
+    } else {
+      // TODO: Verify tx hash on-chain using blockchain service
+      // For MVP, we trust the tx_hash and mark as confirmed
+      // In production, this should verify:
+      // 1. Transaction exists and is confirmed
+      // 2. To address is correct (treasury)
+      // 3. Amount is correct (AUF amount)
+      // 4. Token is correct
+    }
 
     const now = new Date();
+
+    // Determine if this is a simulated transaction
+    const isSimulated = isSimulatedTxHash(body.auf_tx_hash);
+    const effectiveStatus = payoutMode === 'ledger' ? 'confirmed' : 'confirmed';
 
     // Update mission and payment records atomically
     await env.DB.batch([
@@ -303,21 +328,22 @@ export async function unlockAddress(
           updated_at = datetime('now')
          WHERE id = ?`
       ).bind(body.auf_tx_hash, appData.mission_id),
-      // Update AUF payment record
+      // Update AUF payment record with payout_mode
       env.DB.prepare(
         `UPDATE payments SET
           tx_hash = ?,
           chain = ?,
           token = ?,
-          status = 'confirmed',
+          payout_mode = ?,
+          status = ?,
           confirmed_at = datetime('now'),
           updated_at = datetime('now')
          WHERE mission_id = ? AND payment_type = 'auf'`
-      ).bind(body.auf_tx_hash, body.chain, body.token, appData.mission_id),
-      // Create payout payment record
+      ).bind(body.auf_tx_hash, body.chain, body.token, payoutMode, effectiveStatus, appData.mission_id),
+      // Create payout payment record with payout_mode
       env.DB.prepare(
-        `INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type, amount_cents, chain, token, to_address, status, deadline_at)
-         VALUES (?, ?, ?, ?, 'payout', ?, ?, ?, ?, 'pending', ?)`
+        `INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type, amount_cents, chain, token, to_address, status, payout_mode, deadline_at)
+         VALUES (?, ?, ?, ?, 'payout', ?, ?, ?, ?, 'pending', ?, ?)`
       ).bind(
         crypto.randomUUID().replace(/-/g, ''),
         appData.mission_id,
@@ -327,6 +353,7 @@ export async function unlockAddress(
         body.chain,
         body.token,
         walletAddress,
+        payoutMode,
         appData.payout_deadline_at
       ),
     ]);
@@ -349,6 +376,12 @@ export async function unlockAddress(
       payout_amount_cents: payoutAmountCents,
       payout_deadline_at: appData.payout_deadline_at,
       chain: body.chain,
+      // Include payout mode info
+      payout_mode: payoutMode,
+      is_simulated: isSimulated,
+      ...(payoutMode === 'ledger' ? {
+        ledger_mode_info: 'Simulated mode. Send payout tx_hash starting with "SIMULATED_" to confirm payment.',
+      } : {}),
     };
 
     return success(response, requestId);
@@ -428,8 +461,18 @@ export async function confirmPayout(
       });
     }
 
-    // TODO: Verify tx hash on-chain using blockchain service
-    // For MVP, we trust the tx_hash and mark as confirmed
+    // Get payout configuration
+    const payoutConfig = getPayoutConfig(env);
+    const payoutMode: PayoutMode = payoutConfig.mode;
+    const isSimulated = isSimulatedTxHash(body.payout_tx_hash);
+
+    // In ledger mode, allow simulated tx hashes
+    if (payoutMode === 'ledger') {
+      console.log(`[Ledger Mode] Simulated payout: ${body.payout_tx_hash}`);
+    } else {
+      // TODO: Verify tx hash on-chain using blockchain service
+      // For MVP, we trust the tx_hash and mark as confirmed
+    }
 
     const now = new Date();
     const approvedAt = new Date(appData.approved_at);
@@ -450,17 +493,18 @@ export async function confirmPayout(
           updated_at = datetime('now')
          WHERE id = ?`
       ).bind(body.payout_tx_hash, appData.mission_id),
-      // Update payout payment record
+      // Update payout payment record with payout_mode
       env.DB.prepare(
         `UPDATE payments SET
           tx_hash = ?,
           chain = ?,
           token = ?,
+          payout_mode = ?,
           status = 'confirmed',
           confirmed_at = datetime('now'),
           updated_at = datetime('now')
          WHERE mission_id = ? AND payment_type = 'payout'`
-      ).bind(body.payout_tx_hash, body.chain, body.token, appData.mission_id),
+      ).bind(body.payout_tx_hash, body.chain, body.token, payoutMode, appData.mission_id),
     ]);
 
     // Record payout in ledger
@@ -486,6 +530,9 @@ export async function confirmPayout(
       status: 'paid_complete',
       paid_complete_at: now.toISOString(),
       total_amount_cents: appData.reward_amount,
+      // Include payout mode info
+      payout_mode: payoutMode,
+      is_simulated: isSimulated,
     };
 
     return success(response, requestId);
