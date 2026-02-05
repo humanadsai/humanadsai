@@ -126,6 +126,10 @@ CREATE TABLE IF NOT EXISTS operators (
     -- First X connection timestamp (Unix ms)
     x_connected_at INTEGER,
 
+    -- Payout Wallet Addresses
+    evm_wallet_address TEXT,
+    solana_wallet_address TEXT,
+
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

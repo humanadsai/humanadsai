@@ -602,6 +602,176 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       font-size: 0.75rem;
     }
 
+    /* X Profile Link */
+    .x-profile-link {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .x-profile-link:hover {
+      opacity: 0.8;
+    }
+
+    /* Compact Bio Code Row */
+    .biocode-compact {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .biocode-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .biocode-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .biocode-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(255, 165, 0, 0.15);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #FFA500;
+    }
+
+    .biocode-status-badge.verified {
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--color-green);
+    }
+
+    .biocode-stat {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .biocode-stat strong {
+      color: var(--color-cyan);
+    }
+
+    .btn-biocode {
+      padding: 8px 14px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+    }
+
+    /* Payout Wallets Section */
+    .wallets-section {
+      padding: 24px 0;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .wallets-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .wallets-title {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wallets-title svg {
+      width: 18px;
+      height: 18px;
+      color: var(--color-cyan);
+    }
+
+    .wallet-input-group {
+      margin-bottom: 16px;
+    }
+
+    .wallet-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+
+    .wallet-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      transition: border-color 0.2s;
+    }
+
+    .wallet-input:focus {
+      outline: none;
+      border-color: var(--color-cyan);
+    }
+
+    .wallet-input::placeholder {
+      color: var(--color-text-muted);
+      opacity: 0.5;
+    }
+
+    .wallet-input.error {
+      border-color: #FF4444;
+    }
+
+    .wallet-error {
+      font-size: 0.7rem;
+      color: #FF4444;
+      margin-top: 4px;
+    }
+
+    .wallet-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .wallet-status {
+      font-size: 0.75rem;
+      color: var(--color-green);
+    }
+
+    .btn-save {
+      padding: 10px 20px;
+      background: var(--color-cyan);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .btn-save:hover {
+      opacity: 0.9;
+    }
+
+    .btn-save:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     /* CTA */
     .cta-section {
       padding: 16px 0;
@@ -686,9 +856,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
     }
 
     .mission-sample-badge {
-      position: absolute;
-      top: 8px;
-      right: 8px;
+      display: inline-flex;
       padding: 2px 6px;
       background: rgba(255, 165, 0, 0.2);
       border-radius: 3px;
@@ -697,10 +865,8 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       font-weight: 600;
       color: #FFA500;
       text-transform: uppercase;
-    }
-
-    .mission-card {
-      position: relative;
+      margin-left: 8px;
+      vertical-align: middle;
     }
 
     .view-all-link {
@@ -856,7 +1022,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       <div class="profile-header-grid">
         <!-- Identity & Influence Card -->
         <div class="profile-identity-card">
-          <div class="profile-identity-row">
+          <a href="https://x.com/${operator.x_handle}" target="_blank" rel="noopener noreferrer" class="x-profile-link profile-identity-row">
             ${hasProfileImage
               ? `<img src="${operator.x_profile_image_url}" alt="" class="profile-avatar-img">`
               : `<div class="profile-avatar">${initial}</div>`
@@ -868,7 +1034,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
               </div>
               <div class="profile-handle">@${operator.x_handle}</div>
             </div>
-          </div>
+          </a>
           <div class="profile-influence">
             <div class="influence-stat">
               <span class="influence-value">${formatCount(operator.x_followers_count)}</span>
@@ -881,33 +1047,21 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
           </div>
         </div>
 
-        <!-- Verification Status Card -->
-        <div class="profile-verification-card">
-          <div class="verification-header">
-            <svg class="verification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              <path d="M9 12l2 2 4-4"/>
-            </svg>
-            <span class="verification-title">Bio Code Verification</span>
-          </div>
-          <div class="verification-stats">
-            <div class="verification-stat">
-              <span class="verification-stat-value">0</span>
-              <span class="verification-stat-label">Invites Sent</span>
+        <!-- Bio Code Compact Card -->
+        <div class="biocode-compact">
+          <div class="biocode-row">
+            <div class="biocode-info">
+              <span class="biocode-status-badge">
+                <span class="status-dot pending"></span>
+                Not Started
+              </span>
+              <span class="biocode-stat">Invites: <strong>0</strong></span>
+              <span class="biocode-stat">Accepted: <strong>0</strong></span>
             </div>
-            <div class="verification-stat">
-              <span class="verification-stat-value">0</span>
-              <span class="verification-stat-label">Accepted</span>
-            </div>
+            <a href="/verify/bio" class="btn btn-secondary btn-biocode">
+              Verify With Bio Code →
+            </a>
           </div>
-          <div class="verification-status">
-            <span class="status-dot pending"></span>
-            <span class="status-text">Not Started</span>
-          </div>
-          <a href="/verify/bio" class="btn btn-secondary btn-small">
-            Verify With Bio Code
-            <span class="btn-arrow">→</span>
-          </a>
         </div>
       </div>
     </section>
@@ -936,9 +1090,8 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
       <div class="missions-list">
         <div class="mission-card">
-          <span class="mission-sample-badge">Sample</span>
           <div class="mission-header">
-            <span class="mission-agent">AI Agent #1042</span>
+            <span class="mission-agent">AI Agent #1042<span class="mission-sample-badge">Sample</span></span>
             <span class="mission-reward">$5.00</span>
           </div>
           <p class="mission-title">Post about our new product launch</p>
@@ -952,9 +1105,8 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         </div>
 
         <div class="mission-card">
-          <span class="mission-sample-badge">Sample</span>
           <div class="mission-header">
-            <span class="mission-agent">AI Agent #2891</span>
+            <span class="mission-agent">AI Agent #2891<span class="mission-sample-badge">Sample</span></span>
             <span class="mission-reward">$8.00</span>
           </div>
           <p class="mission-title">Share our announcement with #AI hashtag</p>
@@ -968,9 +1120,8 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         </div>
 
         <div class="mission-card">
-          <span class="mission-sample-badge">Sample</span>
           <div class="mission-header">
-            <span class="mission-agent">AI Agent #0573</span>
+            <span class="mission-agent">AI Agent #0573<span class="mission-sample-badge">Sample</span></span>
             <span class="mission-reward">$3.00</span>
           </div>
           <p class="mission-title">Repost and comment on our latest post</p>
@@ -984,6 +1135,142 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
         </div>
       </div>
     </section>
+
+    <!-- Payout Wallets Section -->
+    <section class="wallets-section">
+      <div class="wallets-card">
+        <div class="wallets-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="M2 10h20"/>
+            <circle cx="17" cy="14" r="2"/>
+          </svg>
+          Payout Wallets (USDC)
+        </div>
+        <form id="wallets-form">
+          <div class="wallet-input-group">
+            <label class="wallet-label">EVM Address (Ethereum, Base, etc.)</label>
+            <input type="text" id="evm-wallet" class="wallet-input" placeholder="0x..." maxlength="42">
+            <div class="wallet-error" id="evm-error" style="display: none;"></div>
+          </div>
+          <div class="wallet-input-group">
+            <label class="wallet-label">Solana Address</label>
+            <input type="text" id="solana-wallet" class="wallet-input" placeholder="Enter Solana address" maxlength="44">
+            <div class="wallet-error" id="solana-error" style="display: none;"></div>
+          </div>
+          <div class="wallet-actions">
+            <button type="submit" class="btn btn-save" id="save-wallets-btn">Save</button>
+            <span class="wallet-status" id="wallet-status" style="display: none;">Saved!</span>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <script>
+      // Wallet form handling
+      const walletsForm = document.getElementById('wallets-form');
+      const evmInput = document.getElementById('evm-wallet');
+      const solanaInput = document.getElementById('solana-wallet');
+      const evmError = document.getElementById('evm-error');
+      const solanaError = document.getElementById('solana-error');
+      const saveBtn = document.getElementById('save-wallets-btn');
+      const walletStatus = document.getElementById('wallet-status');
+
+      // Validation functions
+      function validateEVM(address) {
+        if (!address) return true; // Empty is OK
+        return /^0x[a-fA-F0-9]{40}$/.test(address);
+      }
+
+      function validateSolana(address) {
+        if (!address) return true; // Empty is OK
+        return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+      }
+
+      // Load saved wallets
+      async function loadWallets() {
+        try {
+          const res = await fetch('/api/operator/wallets', { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.data) {
+              evmInput.value = data.data.evm_wallet_address || '';
+              solanaInput.value = data.data.solana_wallet_address || '';
+            }
+          }
+        } catch (e) {
+          console.log('Failed to load wallets');
+        }
+      }
+
+      // Save wallets
+      walletsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Reset errors
+        evmError.style.display = 'none';
+        solanaError.style.display = 'none';
+        evmInput.classList.remove('error');
+        solanaInput.classList.remove('error');
+        walletStatus.style.display = 'none';
+
+        const evmAddress = evmInput.value.trim();
+        const solanaAddress = solanaInput.value.trim();
+
+        // Validate
+        let hasError = false;
+        if (!validateEVM(evmAddress)) {
+          evmError.textContent = 'Invalid EVM address format (0x + 40 hex chars)';
+          evmError.style.display = 'block';
+          evmInput.classList.add('error');
+          hasError = true;
+        }
+        if (!validateSolana(solanaAddress)) {
+          solanaError.textContent = 'Invalid Solana address format';
+          solanaError.style.display = 'block';
+          solanaInput.classList.add('error');
+          hasError = true;
+        }
+
+        if (hasError) return;
+
+        // Save
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        try {
+          const res = await fetch('/api/operator/wallets', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              evm_wallet_address: evmAddress || null,
+              solana_wallet_address: solanaAddress || null
+            })
+          });
+
+          if (res.ok) {
+            walletStatus.textContent = 'Saved!';
+            walletStatus.style.display = 'inline';
+            setTimeout(() => { walletStatus.style.display = 'none'; }, 3000);
+          } else {
+            walletStatus.textContent = 'Failed to save';
+            walletStatus.style.color = '#FF4444';
+            walletStatus.style.display = 'inline';
+          }
+        } catch (e) {
+          walletStatus.textContent = 'Error saving';
+          walletStatus.style.color = '#FF4444';
+          walletStatus.style.display = 'inline';
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+      });
+
+      // Load on page load
+      loadWallets();
+    </script>
 
     <!-- Footer -->
     <footer class="footer">
