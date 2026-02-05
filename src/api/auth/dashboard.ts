@@ -1030,16 +1030,22 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
     .delete-link {
       display: block;
+      width: 100%;
       text-align: center;
       color: var(--color-text-muted);
       font-size: 0.7rem;
+      font-family: var(--font-sans);
       margin-top: 8px;
       text-decoration: none;
       opacity: 0.6;
       padding: 8px;
+      background: none;
+      border: none;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .delete-link:hover,
@@ -1571,7 +1577,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       </div>
       <p>© 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
       <a href="/auth/logout" class="logout-link">Sign out</a>
-      <a href="#" class="delete-link" id="delete-account-link">Delete my account</a>
+      <button type="button" class="delete-link" id="delete-account-link" onclick="window.openDeleteAccountModal && window.openDeleteAccountModal()">Delete my account</button>
     </footer>
 
     <!-- Delete Account Modal -->
@@ -1856,10 +1862,19 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
           }
         }
 
+        // Expose function globally for onclick fallback
+        window.openDeleteAccountModal = function() {
+          console.log('[Delete Modal] Called via onclick');
+          deleteModal.classList.add('active');
+          resetModal();
+          checkDeleteStatus();
+        };
+
         // Event listeners
-        deleteLink.addEventListener('click', openDeleteModal);
-        deleteLink.addEventListener('touchend', function(e) {
+        deleteLink.addEventListener('click', function(e) {
+          console.log('[Delete Modal] Click event fired');
           e.preventDefault();
+          e.stopPropagation();
           openDeleteModal(e);
         });
 
