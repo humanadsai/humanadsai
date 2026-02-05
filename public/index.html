@@ -660,56 +660,13 @@
       return count.toString();
     }
 
-    // ============================================
-    // Check Auth State for Menu, Avatar, and CTAs
-    // ============================================
-    async function checkAuthState() {
-      let isLoggedIn = false;
-      let user = null;
-
-      try {
-        const response = await fetch('/api/user/me', { credentials: 'include' });
-        const data = await response.json();
-
-        if (data.success && data.data && data.data.xConnected) {
-          isLoggedIn = true;
-          user = data.data.user;
-
-          // Show user avatar in header
-          const avatarContainer = document.getElementById('user-avatar-container');
-          const avatarEl = document.getElementById('user-avatar');
-          avatarContainer.classList.add('visible');
-
-          if (user && user.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
-          } else if (user.x_handle) {
-            const initial = user.x_handle.charAt(0).toUpperCase();
-            avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
-          }
-
-          if (user.x_handle) {
-            avatarEl.title = `@${user.x_handle}`;
-          }
-
-          // Switch hero CTAs to logged-in version
-          document.getElementById('hero-cta-logged-out').style.display = 'none';
-          document.getElementById('hero-cta-logged-in').style.display = 'block';
-
-          // Update side menu to logged-in version
-          SideMenu.render(true);
-        }
-      } catch (e) {
-        console.log('Auth check: not logged in');
-      }
-    }
 
     // ============================================
     // Initialize
     // ============================================
 
-    // Initialize side menu immediately with logged-out state (default)
-    // This prevents empty menu if user opens it before auth check completes
-    SideMenu.init(false);
+    // Initialize menu toggle immediately (hamburger button functionality)
+    SideMenu.initToggle();
 
     // Avatar click opens the side menu
     document.getElementById('user-avatar').addEventListener('click', () => {
@@ -721,10 +678,60 @@
       hamburgerBtn.classList.add('open');
     });
 
+    // Check auth state FIRST, then render menu based on result
+    // This ensures menu always shows correct state
+    (async function initializeAuthAndMenu() {
+      // Show loading state in menu while checking auth
+      const menuContainer = document.getElementById('hamburger-menu');
+      menuContainer.innerHTML = '<div class="menu-loading" style="padding: 20px; color: var(--color-text-muted); text-align: center;">Loading...</div>';
+
+      let isLoggedIn = false;
+      let user = null;
+
+      try {
+        const response = await fetch('/api/me', { credentials: 'include' });
+        const data = await response.json();
+
+        if (data.success && data.data && data.data.xConnected) {
+          isLoggedIn = true;
+          user = data.data.user;
+        }
+      } catch (e) {
+        console.log('[Auth] Error checking auth:', e);
+      }
+
+      // Render menu based on auth state
+      SideMenu.render(isLoggedIn);
+
+      // If logged in, update avatar and CTAs
+      if (isLoggedIn && user) {
+        // Show user avatar in header
+        const avatarContainer = document.getElementById('user-avatar-container');
+        const avatarEl = document.getElementById('user-avatar');
+        avatarContainer.classList.add('visible');
+
+        if (user.avatar_url) {
+          avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+        } else if (user.x_handle) {
+          const initial = user.x_handle.charAt(0).toUpperCase();
+          avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+        }
+
+        if (user.x_handle) {
+          avatarEl.title = `@${user.x_handle}`;
+        }
+
+        // Switch hero CTAs to logged-in version
+        document.getElementById('hero-cta-logged-out').style.display = 'none';
+        document.getElementById('hero-cta-logged-in').style.display = 'block';
+      }
+
+      console.log('[Auth] isLoggedIn:', isLoggedIn, 'user:', user ? user.x_handle : 'null');
+    })();
+
     loadStats();
     loadHomeMissions();
     loadAvailableHumans();
-    checkAuthState();
   </script>
 </body>
 </html>
