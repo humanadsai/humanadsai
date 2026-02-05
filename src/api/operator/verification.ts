@@ -135,11 +135,13 @@ export async function getVerifyCode(request: Request, env: Env): Promise<Respons
       ).first<{ count: number }>();
 
       if ((hasVerifyColumns?.count || 0) === 0) {
-        // Add columns
-        await env.DB.prepare(`ALTER TABLE operators ADD COLUMN verify_code TEXT UNIQUE`).run();
-        await env.DB.prepare(`ALTER TABLE operators ADD COLUMN verify_status TEXT NOT NULL DEFAULT 'not_started'`).run();
+        // Add columns (SQLite doesn't support UNIQUE constraint in ALTER TABLE, so add index separately)
+        await env.DB.prepare(`ALTER TABLE operators ADD COLUMN verify_code TEXT`).run();
+        await env.DB.prepare(`ALTER TABLE operators ADD COLUMN verify_status TEXT DEFAULT 'not_started'`).run();
         await env.DB.prepare(`ALTER TABLE operators ADD COLUMN verify_post_id TEXT`).run();
         await env.DB.prepare(`ALTER TABLE operators ADD COLUMN verify_completed_at TEXT`).run();
+        // Create unique index for verify_code
+        await env.DB.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_operators_verify_code ON operators(verify_code)`).run();
       }
 
       // Generate unique code
