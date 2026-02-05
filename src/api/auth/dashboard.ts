@@ -1036,9 +1036,14 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       margin-top: 8px;
       text-decoration: none;
       opacity: 0.6;
+      padding: 8px;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      cursor: pointer;
     }
 
-    .delete-link:hover { color: #FF4444; opacity: 1; }
+    .delete-link:hover,
+    .delete-link:active { color: #FF4444; opacity: 1; }
 
     /* Delete Account Modal */
     .modal-overlay {
@@ -1053,6 +1058,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       align-items: center;
       justify-content: center;
       padding: 16px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .modal-overlay.active { display: flex; }
@@ -1064,6 +1070,9 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       max-width: 400px;
       width: 100%;
       padding: 24px;
+      position: relative;
+      z-index: 1001;
+      pointer-events: auto;
     }
 
     .modal-header {
@@ -1189,11 +1198,19 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       color: var(--color-text);
       cursor: pointer;
       transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .btn-cancel:hover {
       background: var(--color-surface);
       border-color: var(--color-primary);
+    }
+
+    .btn-cancel:active {
+      transform: scale(0.98);
     }
 
     .btn-delete {
@@ -1208,15 +1225,28 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       color: #fff;
       cursor: pointer;
       transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
-    .btn-delete:hover {
+    .btn-delete:hover:not(:disabled) {
       background: #FF2222;
+    }
+
+    .btn-delete:active:not(:disabled) {
+      transform: scale(0.98);
     }
 
     .btn-delete:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn-delete:not(:disabled) {
+      pointer-events: auto;
     }
   </style>
 </head>
@@ -1582,147 +1612,215 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
           </div>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" id="delete-cancel-btn">Cancel</button>
-          <button class="btn-delete" id="delete-action-btn" disabled>Continue</button>
+          <button type="button" class="btn-cancel" id="delete-cancel-btn">Cancel</button>
+          <button type="button" class="btn-delete" id="delete-action-btn">Loading...</button>
         </div>
       </div>
     </div>
 
     <script>
       // Delete account functionality
-      const deleteModal = document.getElementById('delete-modal');
-      const deleteLink = document.getElementById('delete-account-link');
-      const cancelBtn = document.getElementById('delete-cancel-btn');
-      const actionBtn = document.getElementById('delete-action-btn');
-      const step1 = document.getElementById('delete-step-1');
-      const step2 = document.getElementById('delete-step-2');
-      const blockersDiv = document.getElementById('delete-blockers');
-      const confirmInput = document.getElementById('delete-confirm-input');
-      const deleteError = document.getElementById('delete-error');
+      (function() {
+        const deleteModal = document.getElementById('delete-modal');
+        const deleteLink = document.getElementById('delete-account-link');
+        const cancelBtn = document.getElementById('delete-cancel-btn');
+        const actionBtn = document.getElementById('delete-action-btn');
+        const step1 = document.getElementById('delete-step-1');
+        const step2 = document.getElementById('delete-step-2');
+        const blockersDiv = document.getElementById('delete-blockers');
+        const confirmInput = document.getElementById('delete-confirm-input');
+        const deleteError = document.getElementById('delete-error');
 
-      let currentStep = 1;
-      let canDelete = false;
+        let currentStep = 1;
+        let canDelete = false;
 
-      // Open modal
-      deleteLink.addEventListener('click', async (e) => {
-        e.preventDefault();
-        deleteModal.classList.add('active');
-        currentStep = 1;
-        step1.style.display = 'block';
-        step2.style.display = 'none';
-        actionBtn.textContent = 'Continue';
-        actionBtn.disabled = true;
-        confirmInput.value = '';
-        deleteError.style.display = 'none';
-
-        // Check if account can be deleted
-        try {
-          const res = await fetch('/api/account/delete/check', { credentials: 'include' });
-          const data = await res.json();
-
-          if (data.success && data.data) {
-            canDelete = data.data.can_delete;
-            const blockers = data.data.blockers;
-
-            if (!canDelete) {
-              let blockerHtml = '<div class="modal-blocker">';
-              blockerHtml += '<div class="modal-blocker-title">Cannot delete account</div>';
-
-              if (blockers.active_missions > 0) {
-                blockerHtml += '<div class="modal-blocker-text">You have ' + blockers.active_missions + ' active mission(s). Please complete or cancel them first.</div>';
-              }
-              if (blockers.pending_payout > 0) {
-                blockerHtml += '<div class="modal-blocker-text">You have a pending payout of $' + (blockers.pending_payout / 100).toFixed(2) + '. Please wait for it to complete.</div>';
-              }
-
-              blockerHtml += '</div>';
-              blockersDiv.innerHTML = blockerHtml;
-              blockersDiv.style.display = 'block';
-              actionBtn.disabled = true;
-              actionBtn.textContent = 'Cannot Delete';
-            } else {
-              blockersDiv.style.display = 'none';
-              actionBtn.disabled = false;
-              actionBtn.textContent = 'Continue';
-            }
-          }
-        } catch (err) {
-          console.error('Failed to check delete status:', err);
-          blockersDiv.innerHTML = '<div class="modal-blocker"><div class="modal-blocker-title">Error</div><div class="modal-blocker-text">Failed to check account status. Please try again.</div></div>';
-          blockersDiv.style.display = 'block';
-          actionBtn.disabled = true;
+        // Helper to update button state
+        function updateActionButton(disabled, text) {
+          actionBtn.disabled = disabled;
+          actionBtn.textContent = text;
+          // Force reflow for iOS
+          actionBtn.offsetHeight;
         }
-      });
 
-      // Close modal
-      cancelBtn.addEventListener('click', () => {
-        deleteModal.classList.remove('active');
-        currentStep = 1;
-      });
+        // Reset modal to initial state
+        function resetModal() {
+          currentStep = 1;
+          canDelete = false;
+          step1.style.display = 'block';
+          step2.style.display = 'none';
+          blockersDiv.style.display = 'none';
+          blockersDiv.innerHTML = '';
+          confirmInput.value = '';
+          deleteError.style.display = 'none';
+          updateActionButton(true, 'Loading...');
+        }
 
-      // Close on overlay click
-      deleteModal.addEventListener('click', (e) => {
-        if (e.target === deleteModal) {
+        // Open modal
+        async function openDeleteModal(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          deleteModal.classList.add('active');
+          resetModal();
+
+          // Check if account can be deleted
+          try {
+            const res = await fetch('/api/account/delete/check', { credentials: 'include' });
+
+            if (!res.ok) {
+              throw new Error('API returned ' + res.status);
+            }
+
+            const data = await res.json();
+            console.log('[Delete Check] Response:', data);
+
+            if (data.success && data.data) {
+              canDelete = data.data.can_delete;
+              const blockers = data.data.blockers || {};
+
+              if (!canDelete) {
+                let blockerHtml = '<div class="modal-blocker">';
+                blockerHtml += '<div class="modal-blocker-title">Cannot delete account yet</div>';
+
+                if (blockers.active_missions > 0) {
+                  blockerHtml += '<div class="modal-blocker-text">You have ' + blockers.active_missions + ' active mission(s). Please complete or cancel them first.</div>';
+                  blockerHtml += '<a href="/missions/my" style="display: inline-block; margin-top: 8px; font-size: 0.75rem; color: var(--color-cyan);">View active missions →</a>';
+                }
+                if (blockers.pending_payout > 0) {
+                  blockerHtml += '<div class="modal-blocker-text" style="margin-top: 8px;">You have a pending payout of $' + (blockers.pending_payout / 100).toFixed(2) + '. Please wait for it to complete.</div>';
+                }
+
+                blockerHtml += '</div>';
+                blockersDiv.innerHTML = blockerHtml;
+                blockersDiv.style.display = 'block';
+                updateActionButton(true, 'Cannot Delete');
+              } else {
+                blockersDiv.style.display = 'none';
+                updateActionButton(false, 'Continue');
+                console.log('[Delete Check] canDelete=true, button enabled');
+              }
+            } else {
+              // API returned but no valid data - allow deletion by default
+              console.log('[Delete Check] No valid data, allowing deletion');
+              canDelete = true;
+              blockersDiv.style.display = 'none';
+              updateActionButton(false, 'Continue');
+            }
+          } catch (err) {
+            console.error('[Delete Check] Error:', err);
+            // On error, show retry option but also allow proceeding
+            blockersDiv.innerHTML = '<div class="modal-blocker"><div class="modal-blocker-title">Status Check Failed</div><div class="modal-blocker-text">Could not verify account status. You may proceed, but please ensure you have no active missions.</div></div>';
+            blockersDiv.style.display = 'block';
+            // Allow proceeding even on error (server will validate again)
+            canDelete = true;
+            updateActionButton(false, 'Continue Anyway');
+          }
+        }
+
+        // Close modal
+        function closeModal() {
           deleteModal.classList.remove('active');
           currentStep = 1;
         }
-      });
 
-      // Enable delete button when input matches
-      confirmInput.addEventListener('input', () => {
-        actionBtn.disabled = confirmInput.value !== 'DELETE';
-        deleteError.style.display = 'none';
-      });
+        // Handle action button click
+        async function handleActionClick(e) {
+          e.preventDefault();
+          e.stopPropagation();
 
-      // Action button (Continue or Delete)
-      actionBtn.addEventListener('click', async () => {
-        if (currentStep === 1 && canDelete) {
-          // Move to step 2
-          currentStep = 2;
-          step1.style.display = 'none';
-          step2.style.display = 'block';
-          actionBtn.textContent = 'Delete Account';
-          actionBtn.disabled = true;
-          confirmInput.focus();
-        } else if (currentStep === 2) {
-          // Perform deletion
-          if (confirmInput.value !== 'DELETE') {
-            deleteError.textContent = 'Please type DELETE to confirm';
-            deleteError.style.display = 'block';
-            return;
-          }
+          console.log('[Delete Action] currentStep=' + currentStep + ', canDelete=' + canDelete);
 
-          actionBtn.disabled = true;
-          actionBtn.textContent = 'Deleting...';
-          deleteError.style.display = 'none';
-
-          try {
-            const res = await fetch('/api/account/delete', {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ confirmText: 'DELETE' })
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-              // Redirect to home (session is cleared)
-              window.location.href = '/?deleted=1';
-            } else {
-              deleteError.textContent = data.error?.message || 'Failed to delete account';
-              deleteError.style.display = 'block';
-              actionBtn.disabled = false;
-              actionBtn.textContent = 'Delete Account';
+          if (currentStep === 1) {
+            if (!canDelete) {
+              console.log('[Delete Action] Cannot delete, button should be disabled');
+              return;
             }
-          } catch (err) {
-            deleteError.textContent = 'Network error. Please try again.';
-            deleteError.style.display = 'block';
-            actionBtn.disabled = false;
-            actionBtn.textContent = 'Delete Account';
+            // Move to step 2
+            currentStep = 2;
+            step1.style.display = 'none';
+            step2.style.display = 'block';
+            updateActionButton(true, 'Permanently Delete');
+            // Focus input after a small delay for iOS
+            setTimeout(() => confirmInput.focus(), 100);
+          } else if (currentStep === 2) {
+            // Perform deletion
+            const inputValue = confirmInput.value.trim().toUpperCase();
+            if (inputValue !== 'DELETE') {
+              deleteError.textContent = 'Please type DELETE to confirm';
+              deleteError.style.display = 'block';
+              return;
+            }
+
+            updateActionButton(true, 'Deleting...');
+            deleteError.style.display = 'none';
+
+            try {
+              const res = await fetch('/api/account/delete', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ confirmText: 'DELETE' })
+              });
+
+              const data = await res.json();
+              console.log('[Delete] Response:', data);
+
+              if (data.success) {
+                // Redirect to home (session is cleared)
+                window.location.href = '/?deleted=1';
+              } else {
+                const errorMsg = data.error?.message || 'Failed to delete account. Please try again.';
+                deleteError.textContent = errorMsg;
+                deleteError.style.display = 'block';
+                updateActionButton(false, 'Permanently Delete');
+              }
+            } catch (err) {
+              console.error('[Delete] Error:', err);
+              deleteError.textContent = 'Network error. Please check your connection and try again.';
+              deleteError.style.display = 'block';
+              updateActionButton(false, 'Permanently Delete');
+            }
           }
         }
-      });
+
+        // Handle confirm input
+        function handleConfirmInput() {
+          const inputValue = confirmInput.value.trim().toUpperCase();
+          const isValid = inputValue === 'DELETE';
+          updateActionButton(!isValid, 'Permanently Delete');
+          if (isValid) {
+            deleteError.style.display = 'none';
+          }
+        }
+
+        // Event listeners
+        deleteLink.addEventListener('click', openDeleteModal);
+        deleteLink.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          openDeleteModal(e);
+        });
+
+        cancelBtn.addEventListener('click', closeModal);
+
+        // Close on overlay click (but not on modal click)
+        deleteModal.addEventListener('click', function(e) {
+          if (e.target === deleteModal) {
+            closeModal();
+          }
+        });
+
+        confirmInput.addEventListener('input', handleConfirmInput);
+        confirmInput.addEventListener('keyup', handleConfirmInput);
+
+        actionBtn.addEventListener('click', handleActionClick);
+        // Touch support for iOS
+        actionBtn.addEventListener('touchend', function(e) {
+          if (!actionBtn.disabled) {
+            e.preventDefault();
+            handleActionClick(e);
+          }
+        });
+      })();
     </script>
   </div>
 </body>
