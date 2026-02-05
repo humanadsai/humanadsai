@@ -63,15 +63,15 @@ export async function writeAuditLog(db: D1Database, entry: AuditLogEntry): Promi
  * リクエストから監査ログ用の情報を抽出
  */
 export function extractAuditInfo(request: Request): {
-  ipAddress: string | null;
-  userAgent: string | null;
+  ipAddress: string | undefined;
+  userAgent: string | undefined;
   endpoint: string;
   method: string;
 } {
   const url = new URL(request.url);
   return {
-    ipAddress: request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For'),
-    userAgent: request.headers.get('User-Agent'),
+    ipAddress: request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || undefined,
+    userAgent: request.headers.get('User-Agent') || undefined,
     endpoint: url.pathname,
     method: request.method,
   };

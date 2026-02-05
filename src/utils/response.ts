@@ -50,6 +50,9 @@ export function error(
  * 共通エラーレスポンス
  */
 export const errors = {
+  badRequest: (requestId: string, message?: string) =>
+    error('BAD_REQUEST', message || 'Bad request', requestId, 400),
+
   unauthorized: (requestId: string, reason?: string) =>
     error('UNAUTHORIZED', reason || 'Authentication required', requestId, 401),
 
