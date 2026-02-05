@@ -68,6 +68,7 @@ export interface Operator {
   x_user_id?: string;
   display_name?: string;
   avatar_url?: string;
+  x_profile_image_url?: string;
   status: 'unverified' | 'pending' | 'verified' | 'suspended';
   verified_at?: string;
   total_missions_completed: number;

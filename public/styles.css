@@ -1685,35 +1685,170 @@ body {
   margin-bottom: var(--spacing-md);
 }
 
-.badge-disclosure,
-.badge-type {
-  display: inline-block;
-  padding: 2px 8px;
+/* ============================================
+   Unified Badge Component (Small - compact)
+   ============================================ */
+.badge {
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
   border-radius: 4px;
-  font-size: 0.6875rem;
+  font-size: 10px;
+  line-height: 10px;
   font-weight: 600;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
+.badge-icon {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+}
+
+/* Sample Badge - Orange gradient, prominent */
+.badge--sample {
+  background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%);
+  color: #000;
+  animation: badge-pulse 2s infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.02); }
+}
+
+/* Disclosure Badge - Brown/orange tint */
+.badge--disclosure {
+  background: rgba(120, 74, 44, 0.55);
+  border: 1px solid rgba(255, 126, 54, 0.35);
+  color: rgba(255, 210, 180, 0.95);
+}
+
+/* Type Badge - Cyan tint (Original Post, Quote Post) */
+.badge--type {
+  background: rgba(0, 160, 190, 0.28);
+  border: 1px solid rgba(0, 160, 190, 0.35);
+  color: rgba(180, 245, 255, 0.95);
+}
+
+/* Status Badges */
+.badge--status {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.badge--accepted,
+.badge--applied {
+  background: rgba(33, 150, 243, 0.25);
+  border: 1px solid rgba(33, 150, 243, 0.4);
+  color: #64B5F6;
+}
+
+.badge--submitted,
+.badge--shortlisted {
+  background: rgba(255, 152, 0, 0.25);
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  color: #FFB74D;
+}
+
+.badge--verified,
+.badge--paid,
+.badge--selected {
+  background: rgba(76, 175, 80, 0.25);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  color: #81C784;
+}
+
+.badge--rejected {
+  background: rgba(244, 67, 54, 0.25);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  color: #E57373;
+}
+
+.badge--expired,
+.badge--withdrawn,
+.badge--cancelled {
+  background: rgba(158, 158, 158, 0.25);
+  border: 1px solid rgba(158, 158, 158, 0.4);
+  color: #BDBDBD;
+}
+
+/* Legacy class aliases - DEPRECATED, use .badge.badge--* instead */
+.badge-sample {
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%);
+  color: #000;
+  animation: badge-pulse 2s infinite;
+}
 .badge-disclosure {
-  background: rgba(255, 107, 53, 0.2);
-  color: var(--color-primary);
-  border: 1px solid rgba(255, 107, 53, 0.4);
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(120, 74, 44, 0.55);
+  border: 1px solid rgba(255, 126, 54, 0.35);
+  color: rgba(255, 210, 180, 0.95);
 }
-
 .badge-type {
-  background: rgba(0, 212, 255, 0.15);
-  color: var(--color-cyan);
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(0, 160, 190, 0.28);
+  border: 1px solid rgba(0, 160, 190, 0.35);
+  color: rgba(180, 245, 255, 0.95);
 }
 
 /* Mission Preview Card Badges */
 .mission-preview-badges {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 8px;
   margin-bottom: var(--spacing-sm);
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .mission-preview-fee {
@@ -1740,9 +1875,10 @@ body {
 /* Mission Item Badges (missions list page) */
 .mission-item-badges {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 8px;
   margin-bottom: var(--spacing-sm);
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .mission-item-fee {
@@ -1999,4 +2135,188 @@ body {
   border-left: 2px solid var(--color-primary);
   padding-left: var(--spacing-md);
   margin-bottom: var(--spacing-xs);
+}
+
+/* ============================================
+   Hamburger Menu (Global)
+   ============================================ */
+
+/* Root container - fixed positioning */
+.hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--color-text);
+  transition: all 0.3s;
+}
+
+.hamburger-btn.open .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-btn.open .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-btn.open .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Header Right Container (avatar + hamburger) */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* User Avatar in Header */
+.user-avatar-container {
+  display: none;
+}
+
+.user-avatar-container.visible {
+  display: block;
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.12);
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.user-avatar:hover {
+  border-color: var(--color-primary);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  background: #1a1a1a;
+}
+
+/* Overlay - darkens background, blocks interaction */
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 999;
+}
+
+.menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Menu Panel - FULLY OPAQUE */
+.hamburger-menu {
+  position: fixed;
+  top: 0;
+  right: -280px;
+  width: 280px;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  background: #0b0b0b !important; /* Solid opaque background */
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 80px 24px 24px;
+  transition: right 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+}
+
+.hamburger-menu.open {
+  right: 0;
+}
+
+/* Ensure menu content is fully opaque */
+.hamburger-menu,
+.hamburger-menu * {
+  opacity: 1 !important;
+}
+
+/* Menu Items */
+.menu-item {
+  display: block;
+  padding: 14px 16px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-item.active {
+  color: var(--color-primary);
+  background: rgba(255, 107, 53, 0.15);
+}
+
+.menu-item-danger {
+  color: #FF4444;
+}
+
+.menu-item-danger:hover {
+  background: rgba(255, 68, 68, 0.15);
+}
+
+.menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 12px 0;
+}
+
+.menu-section-label {
+  display: block;
+  padding: 8px 16px 4px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
 }

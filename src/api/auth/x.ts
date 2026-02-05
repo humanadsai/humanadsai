@@ -44,6 +44,35 @@ const getRedirectCookie = (request: Request): string | null => {
   return null;
 };
 
+// Get invite code from cookie
+const getInviteCookie = (request: Request): string | null => {
+  const cookieHeader = request.headers.get('Cookie');
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(';').map(c => c.trim());
+  for (const cookie of cookies) {
+    const [name, value] = cookie.split('=');
+    if (name === 'x_auth_invite' && value) {
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+};
+
+// Generate unique invite code
+const generateInviteCode = (): string => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'HADS_';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
 /**
  * GET /auth/x/login
  * Initiates X OAuth2 PKCE flow
@@ -51,13 +80,17 @@ const getRedirectCookie = (request: Request): string | null => {
 export async function handleXLogin(request: Request, env: Env): Promise<Response> {
   console.log('[X Login] Starting OAuth2 PKCE flow...');
 
-  // Get optional redirect URL from query parameter
+  // Get optional redirect URL and invite code from query parameters
   const requestUrl = new URL(request.url);
   const redirectAfterLogin = requestUrl.searchParams.get('redirect') || '/dashboard';
+  const inviteCode = requestUrl.searchParams.get('invite') || '';
 
   // Only allow relative paths for security
   const safeRedirect = redirectAfterLogin.startsWith('/') ? redirectAfterLogin : '/dashboard';
   console.log('[X Login] Will redirect to after login:', safeRedirect);
+  if (inviteCode) {
+    console.log('[X Login] Invite code:', inviteCode);
+  }
 
   const config: XAuthConfig = {
     clientId: env.X_CLIENT_ID,
@@ -77,6 +110,11 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
   // Create separate cookie for redirect URL (simple, non-encrypted)
   const redirectCookie = `x_auth_redirect=${encodeURIComponent(safeRedirect)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`;
 
+  // Create cookie for invite code (if provided)
+  const inviteCookie = inviteCode
+    ? `x_auth_invite=${encodeURIComponent(inviteCode)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`
+    : 'x_auth_invite=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
+
   console.log('[X Login] Redirecting to X authorization page...');
 
   // Redirect to X authorization page
@@ -84,6 +122,7 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
   headers.set('Location', url);
   headers.append('Set-Cookie', cookie);
   headers.append('Set-Cookie', redirectCookie);
+  headers.append('Set-Cookie', inviteCookie);
 
   return new Response(null, {
     status: 302,
@@ -295,8 +334,80 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
     } else {
       console.log('[X Callback] Creating new operator for:', userInfo.username);
 
-      if (useExtendedSchema) {
-        // Create with all X profile data (new schema)
+      // Generate unique invite code for new user
+      let newInviteCode = generateInviteCode();
+      let inviteAttempts = 0;
+      while (inviteAttempts < 10) {
+        const existingCode = await env.DB.prepare(
+          'SELECT id FROM operators WHERE invite_code = ?'
+        ).bind(newInviteCode).first();
+        if (!existingCode) break;
+        newInviteCode = generateInviteCode();
+        inviteAttempts++;
+      }
+
+      // Check if user was invited by someone
+      const inviteCodeUsed = getInviteCookie(request);
+      let inviterId: string | null = null;
+
+      if (inviteCodeUsed) {
+        console.log('[X Callback] Checking invite code:', inviteCodeUsed);
+        const inviter = await env.DB.prepare(
+          'SELECT id FROM operators WHERE invite_code = ?'
+        ).bind(inviteCodeUsed).first<{ id: string }>();
+
+        if (inviter) {
+          inviterId = inviter.id;
+          console.log('[X Callback] Valid invite from operator:', inviterId);
+        }
+      }
+
+      // Check if invite_code column exists
+      const hasInviteColumns = await env.DB.prepare(
+        "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'invite_code'"
+      ).first<{ count: number }>();
+      const useInviteSchema = (hasInviteColumns?.count || 0) > 0;
+
+      if (useExtendedSchema && useInviteSchema) {
+        // Create with all fields including invite system
+        await env.DB.prepare(
+          `INSERT INTO operators (
+            x_user_id, x_handle, display_name,
+            x_profile_image_url, x_description, x_url, x_location, x_created_at, x_protected,
+            x_verified, x_verified_type,
+            x_followers_count, x_following_count, x_tweet_count, x_listed_count,
+            x_raw_json, x_fetched_at, x_connected_at,
+            invite_code, invited_by, invite_count,
+            status, verified_at, session_token_hash, session_expires_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'verified', datetime('now'), ?, ?)`
+        )
+          .bind(
+            userInfo.id!,
+            userInfo.username!,
+            userInfo.name!,
+            userInfo.profile_image_url || null,
+            userInfo.description || null,
+            userInfo.url || null,
+            userInfo.location || null,
+            userInfo.created_at || null,
+            userInfo.protected ? 1 : 0,
+            userInfo.verified ? 1 : 0,
+            userInfo.verified_type || null,
+            metrics?.followers_count || 0,
+            metrics?.following_count || 0,
+            metrics?.tweet_count || 0,
+            metrics?.listed_count || 0,
+            userInfo.raw_json || null,
+            nowMs,
+            nowMs, // x_connected_at = first connection time
+            newInviteCode,
+            inviterId,
+            sessionTokenHash,
+            sessionExpiresAt
+          )
+          .run();
+      } else if (useExtendedSchema) {
+        // Create with extended schema but no invite columns
         await env.DB.prepare(
           `INSERT INTO operators (
             x_user_id, x_handle, display_name,
@@ -325,7 +436,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
             metrics?.listed_count || 0,
             userInfo.raw_json || null,
             nowMs,
-            nowMs, // x_connected_at = first connection time
+            nowMs,
             sessionTokenHash,
             sessionExpiresAt
           )
@@ -339,6 +450,14 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
           .bind(userInfo.id!, userInfo.username!, userInfo.name!, sessionTokenHash, sessionExpiresAt)
           .run();
       }
+
+      // Increment inviter's invite_count if applicable
+      if (inviterId && useInviteSchema) {
+        await env.DB.prepare(
+          `UPDATE operators SET invite_count = invite_count + 1, updated_at = datetime('now') WHERE id = ?`
+        ).bind(inviterId).run();
+        console.log('[X Callback] Incremented invite count for:', inviterId);
+      }
     }
 
     // Get redirect URL from cookie (if set during login)
@@ -347,6 +466,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
 
     const sessionCookie = `session=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
     const clearRedirectCookie = 'x_auth_redirect=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
+    const clearInviteCookie = 'x_auth_invite=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
 
     // Use Headers API to properly set multiple Set-Cookie headers
     const headers = new Headers();
@@ -354,6 +474,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
     headers.append('Set-Cookie', deleteAuthCookie());
     headers.append('Set-Cookie', sessionCookie);
     headers.append('Set-Cookie', clearRedirectCookie);
+    headers.append('Set-Cookie', clearInviteCookie);
 
     return new Response(null, {
       status: 302,

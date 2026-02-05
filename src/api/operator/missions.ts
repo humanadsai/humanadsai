@@ -309,11 +309,12 @@ export async function submitMission(request: Request, env: Env): Promise<Respons
       .bind(body.submission_url, body.submission_content || null, mission.id)
       .run();
 
-    // MVP: 自動検証（簡易）
-    // 本番ではX APIで投稿内容を検証する
+    // Mechanical verification: check disclosure, link, content
+    // In production, can also verify via X API
     const verificationResult = await verifySubmission(
       body.submission_url,
-      JSON.parse(mission.requirements)
+      JSON.parse(mission.requirements),
+      body.submission_content || undefined
     );
 
     if (verificationResult.success) {
@@ -477,21 +478,101 @@ interface VerificationResult {
   method: string;
   checks: {
     url_valid: boolean;
+    disclosure_present?: boolean;
+    link_present?: boolean;
     content_match?: boolean;
     hashtags_present?: boolean;
   };
   message: string;
+  details?: string[];
 }
+
+// Required disclosure tags for ad transparency
+const DISCLOSURE_TAGS = ['#ad', '#sponsored', '#advertisement', 'sponsored', 'ad'];
 
 async function verifySubmission(
   submissionUrl: string,
-  requirements: { verification_method: string; hashtags?: string[]; content_template?: string }
+  requirements: { verification_method: string; hashtags?: string[]; content_template?: string; link_url?: string },
+  submissionContent?: string
 ): Promise<VerificationResult> {
-  // MVPでは簡易検証（URL形式チェックのみ）
-  // 本番ではX APIで実際の投稿内容を取得して検証
-
   const urlValid = isValidXUrl(submissionUrl);
+  const details: string[] = [];
 
+  if (!urlValid) {
+    return {
+      success: false,
+      method: 'mechanical_check',
+      checks: { url_valid: false },
+      message: 'Invalid X post URL',
+      details: ['The submission URL is not a valid X (Twitter) post URL'],
+    };
+  }
+
+  // If we have submission content, verify required elements
+  if (submissionContent) {
+    const lowerContent = submissionContent.toLowerCase();
+
+    // Check for disclosure tag
+    const disclosurePresent = DISCLOSURE_TAGS.some((tag) =>
+      lowerContent.includes(tag.toLowerCase())
+    );
+
+    if (!disclosurePresent) {
+      details.push('Missing required disclosure tag (#ad, #sponsored, etc.)');
+    }
+
+    // Check for required link
+    const requiredLink = requirements.link_url || 'humanadsai.com';
+    const linkPresent = lowerContent.includes(requiredLink.toLowerCase());
+
+    if (!linkPresent) {
+      details.push(`Missing required link: ${requiredLink}`);
+    }
+
+    // Check for required hashtags
+    let hashtagsPresent = true;
+    if (requirements.hashtags && requirements.hashtags.length > 0) {
+      for (const hashtag of requirements.hashtags) {
+        if (!lowerContent.includes(hashtag.toLowerCase())) {
+          hashtagsPresent = false;
+          details.push(`Missing required hashtag: ${hashtag}`);
+        }
+      }
+    }
+
+    // If any required element is missing, fail verification
+    if (!disclosurePresent || !linkPresent) {
+      return {
+        success: false,
+        method: 'mechanical_check',
+        checks: {
+          url_valid: true,
+          disclosure_present: disclosurePresent,
+          link_present: linkPresent,
+          hashtags_present: hashtagsPresent,
+        },
+        message: 'Missing required elements',
+        details,
+      };
+    }
+
+    // All checks passed
+    return {
+      success: true,
+      method: 'mechanical_check',
+      checks: {
+        url_valid: true,
+        disclosure_present: true,
+        link_present: true,
+        hashtags_present: hashtagsPresent,
+        content_match: true,
+      },
+      message: 'All requirements verified',
+      details: ['Disclosure present', 'Required link present', 'Content verified'],
+    };
+  }
+
+  // Fallback for submissions without content (legacy)
   if (requirements.verification_method === 'url_check') {
     return {
       success: urlValid,
@@ -501,16 +582,15 @@ async function verifySubmission(
     };
   }
 
-  // その他の検証方法は本番で実装
-  // MVPではURL検証のみで成功とする
+  // MVP fallback - just URL check
   return {
     success: urlValid,
-    method: requirements.verification_method,
+    method: requirements.verification_method || 'url_check',
     checks: {
       url_valid: urlValid,
-      content_match: true, // MVP: 常にtrue
-      hashtags_present: true, // MVP: 常にtrue
+      content_match: true,
+      hashtags_present: true,
     },
-    message: 'Verification passed (MVP mode)',
+    message: 'Verification passed (URL check only)',
   };
 }

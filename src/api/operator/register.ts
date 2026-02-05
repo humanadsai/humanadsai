@@ -261,7 +261,27 @@ export async function getOperatorProfile(request: Request, env: Env): Promise<Re
 }
 
 /**
+ * Get session token from cookie
+ */
+function getSessionTokenFromCookie(request: Request): string | null {
+  const cookieHeader = request.headers.get('Cookie');
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(';').map(c => c.trim());
+  for (const cookie of cookies) {
+    const [name, value] = cookie.split('=');
+    if (name === 'session') {
+      return value;
+    }
+  }
+  return null;
+}
+
+/**
  * Operatorセッション認証
+ * Supports both:
+ * 1. Bearer token in Authorization header
+ * 2. Cookie-based session (HttpOnly 'session' cookie)
  */
 export async function authenticateOperator(
   request: Request,
@@ -269,15 +289,26 @@ export async function authenticateOperator(
 ): Promise<{ success: boolean; operator?: Operator; error?: Response }> {
   const requestId = generateRequestId();
 
+  // Try Bearer token first
+  let sessionToken: string | null = null;
   const authHeader = request.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    sessionToken = authHeader.substring(7);
+  }
+
+  // Fall back to cookie-based session
+  if (!sessionToken) {
+    sessionToken = getSessionTokenFromCookie(request);
+  }
+
+  // No session found
+  if (!sessionToken) {
     return {
       success: false,
-      error: errors.unauthorized(requestId, 'Session token required'),
+      error: errors.unauthorized(requestId, 'Please sign in to continue'),
     };
   }
 
-  const sessionToken = authHeader.substring(7);
   const sessionHash = await hashApiKey(sessionToken);
 
   const operator = await env.DB.prepare(
@@ -292,7 +323,7 @@ export async function authenticateOperator(
   if (!operator) {
     return {
       success: false,
-      error: errors.unauthorized(requestId, 'Invalid or expired session'),
+      error: errors.unauthorized(requestId, 'Session expired. Please sign in again.'),
     };
   }
 
