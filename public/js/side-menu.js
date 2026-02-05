@@ -124,11 +124,11 @@
   }
 
   /**
-   * Check if user is logged in via /api/user/me
+   * Check if user is logged in via /api/me
    */
   async function checkAuthStatus() {
     try {
-      const res = await fetch('/api/user/me', { credentials: 'include' });
+      const res = await fetch('/api/me', { credentials: 'include' });
       const data = await res.json();
       return data.success && data.data && data.data.xConnected;
     } catch (e) {
@@ -154,7 +154,8 @@
   window.SideMenu = {
     init: initSideMenu,
     render: renderSideMenu,
-    checkAuth: checkAuthStatus
+    checkAuth: checkAuthStatus,
+    initToggle: initMenuToggle  // Allow initializing toggle separately
   };
 
   // Auto-initialize on DOMContentLoaded if menu exists
