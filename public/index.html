@@ -333,9 +333,12 @@
       const xHandle = operator.x_handle ? `@${operator.x_handle}` : '';
       const isVerified = operator.x_verified;
       const followersCount = operator.x_followers_count;
+      const followingCount = operator.x_following_count;
+      const preferredPrice = operator.preferred_price;
 
-      // Format follower count
-      const formattedFollowers = formatFollowerCount(followersCount);
+      // Format counts (always show, even for small values)
+      const formattedFollowers = formatCount(followersCount);
+      const formattedFollowing = formatCount(followingCount);
 
       // Avatar HTML
       const avatarHtml = avatarUrl
@@ -350,15 +353,18 @@
            </span>`
         : '';
 
-      // X followers HTML (only show if data available)
-      const followersHtml = formattedFollowers
-        ? `<div class="human-carousel-stat-row">
-             <span class="human-x-followers">
-               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-               ${formattedFollowers} Followers
-             </span>
-           </div>`
-        : '';
+      // X metrics HTML (always show)
+      const xMetricsHtml = `<div class="human-carousel-stat-row">
+           <span class="human-x-followers">
+             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+             ${formattedFollowers} Followers · ${formattedFollowing} Following
+           </span>
+         </div>`;
+
+      // Price HTML - show preferred price or fallback
+      const priceHtml = preferredPrice
+        ? `<div class="human-carousel-rate">${preferredPrice}</div>`
+        : `<div class="human-carousel-rate human-carousel-rate-fallback">Preferred Price Not Set</div>`;
 
       card.innerHTML = `
         <div class="human-carousel-header">
@@ -374,17 +380,17 @@
           </div>
         </div>
         <div class="human-carousel-stats">
-          ${followersHtml}
-          <div class="human-carousel-rate">$50/Hr</div>
+          ${xMetricsHtml}
+          ${priceHtml}
         </div>
       `;
 
       return card;
     }
 
-    function formatFollowerCount(count) {
-      if (count === null || count === undefined || count === 0) {
-        return null;
+    function formatCount(count) {
+      if (count === null || count === undefined) {
+        return '—';
       }
       if (count >= 1000000) {
         return (count / 1000000).toFixed(2) + 'M';

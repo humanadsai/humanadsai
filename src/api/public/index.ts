@@ -122,7 +122,7 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
     const operators = await env.DB.prepare(
       `SELECT id, x_handle, display_name, avatar_url, x_profile_image_url,
         total_missions_completed, total_earnings, verified_at,
-        x_verified, x_followers_count
+        x_verified, x_followers_count, x_following_count, metadata
        FROM operators
        WHERE status = 'verified'
        ORDER BY ${orderBy}
@@ -133,17 +133,30 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
 
     return success(
       {
-        operators: operators.results.map((op: Record<string, unknown>) => ({
-          id: op.id,
-          x_handle: op.x_handle,
-          display_name: op.display_name,
-          avatar_url: op.x_profile_image_url || op.avatar_url,
-          total_missions_completed: op.total_missions_completed,
-          total_earnings: op.total_earnings,
-          verified_at: op.verified_at,
-          x_verified: op.x_verified === 1,
-          x_followers_count: op.x_followers_count,
-        })),
+        operators: operators.results.map((op: Record<string, unknown>) => {
+          let preferredPrice = null;
+          if (op.metadata) {
+            try {
+              const meta = JSON.parse(op.metadata as string);
+              preferredPrice = meta.preferred_price || null;
+            } catch (e) {
+              // ignore parse errors
+            }
+          }
+          return {
+            id: op.id,
+            x_handle: op.x_handle,
+            display_name: op.display_name,
+            avatar_url: op.x_profile_image_url || op.avatar_url,
+            total_missions_completed: op.total_missions_completed,
+            total_earnings: op.total_earnings,
+            verified_at: op.verified_at,
+            x_verified: op.x_verified === 1,
+            x_followers_count: op.x_followers_count,
+            x_following_count: op.x_following_count,
+            preferred_price: preferredPrice,
+          };
+        }),
         pagination: {
           limit,
           offset,

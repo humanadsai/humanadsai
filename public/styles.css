@@ -1332,15 +1332,18 @@ body {
 
 .humans-carousel-section {
   padding: var(--spacing-lg) 0;
+  overflow: visible;
 }
 
 .humans-carousel-list {
   display: flex;
   gap: var(--spacing-md);
   overflow-x: auto;
+  overflow-y: visible;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-md);
+  padding-top: var(--spacing-xs);
   margin: 0 calc(-1 * var(--spacing-md));
   padding-left: var(--spacing-md);
   padding-right: var(--spacing-md);
@@ -1386,6 +1389,8 @@ body {
 .human-carousel-avatar {
   width: 56px;
   height: 56px;
+  min-width: 56px;
+  min-height: 56px;
   border-radius: 50%;
   background: var(--color-background-card);
   display: flex;
@@ -1393,12 +1398,14 @@ body {
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
 }
 
 .human-carousel-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .human-carousel-avatar-placeholder {
@@ -1522,6 +1529,13 @@ body {
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 0.3; }
+}
+
+/* Price fallback styling */
+.human-carousel-rate-fallback {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
 }
 
 @media (min-width: 768px) {
