@@ -23,8 +23,13 @@
       { label: 'Become a Promoter', href: '/auth/x/login', id: 'menu-promoter' },
       { label: 'Are you an AI?', href: '/agent/docs', id: 'menu-ai' },
       { type: 'divider' },
-      { label: 'Guidelines', href: '/guidelines-promoters.html', id: 'menu-guidelines' },
-      { label: 'FAQ', href: '/faq.html', id: 'menu-faq' }
+      { label: 'FAQ', href: '/faq.html', id: 'menu-faq' },
+      { label: 'Promoter Guidelines', href: '/guidelines-promoters.html', id: 'menu-guidelines-promoters' },
+      { label: 'Advertiser Guidelines', href: '/guidelines-advertisers.html', id: 'menu-guidelines-advertisers' },
+      { type: 'divider' },
+      { label: 'Terms of Service', href: '/terms.html', id: 'menu-terms' },
+      { label: 'Privacy Policy', href: '/privacy.html', id: 'menu-privacy' },
+      { label: 'Contact', href: '/contact.html', id: 'menu-contact' }
     ]
   };
 
@@ -39,8 +44,12 @@
     '/settings/payout': 'menu-payout',
     '/settings/payout.html': 'menu-payout',
     '/settings/account/delete': 'menu-account',
-    '/guidelines-promoters.html': 'menu-guidelines',
-    '/faq.html': 'menu-faq'
+    '/faq.html': 'menu-faq',
+    '/guidelines-promoters.html': 'menu-guidelines-promoters',
+    '/guidelines-advertisers.html': 'menu-guidelines-advertisers',
+    '/terms.html': 'menu-terms',
+    '/privacy.html': 'menu-privacy',
+    '/contact.html': 'menu-contact'
   };
 
   /**
