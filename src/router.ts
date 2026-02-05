@@ -10,6 +10,24 @@ import { createDeposit, getAgentBalance } from './api/agent/deposit';
 // Operator API
 import { registerOperator, verifyOperator, getOperatorProfile } from './api/operator/register';
 import {
+  applyForMission,
+  getMyApplications,
+  withdrawApplication,
+  getApplication,
+} from './api/operator/applications';
+
+// AI Agent API
+import {
+  getApplicationsForMission,
+  shortlistApplication,
+  selectApplication,
+  rejectApplication,
+  bulkUpdateApplications,
+} from './api/ai/applications';
+
+// User API
+import { getMe } from './api/user/me';
+import {
   getAvailableMissions,
   acceptMission,
   submitMission,
@@ -115,10 +133,24 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
+    // Redirects (deprecated endpoints)
+    // ============================================
+
+    // Redirect /payout.json to /settings/payout (deprecated endpoint)
+    if (path === '/payout.json') {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: '/settings/payout',
+        },
+      });
+    }
+
+    // ============================================
     // Health check
     // ============================================
 
-    if (path === '/health' || path === '/') {
+    if (path === '/health') {
       return Response.json({
         status: 'ok',
         service: 'HumanAds API',
@@ -127,7 +159,22 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       });
     }
 
-    // Not found
+    // ============================================
+    // Static Assets (fallback to ASSETS for HTML pages and static files)
+    // ============================================
+
+    // Serve static files from /public directory
+    // This handles: /, /index.html, /settings/payout, /missions, etc.
+    try {
+      const assetResponse = await env.ASSETS.fetch(request);
+      if (assetResponse.status !== 404) {
+        return assetResponse;
+      }
+    } catch (e) {
+      console.error('Asset fetch error:', e);
+    }
+
+    // Not found (only for truly unknown routes)
     return errors.notFound(generateRequestId(), 'Endpoint');
   } catch (e) {
     console.error('Router error:', e);
@@ -204,6 +251,40 @@ async function handleAgentApi(
     return getAgentBalance(request, env, context!);
   }
 
+  // ============================================
+  // AI Application Management Routes
+  // ============================================
+
+  // GET /v1/deals/:dealId/applications - List applications for a deal
+  const applicationsMatch = path.match(/^\/v1\/deals\/([a-f0-9]+)\/applications$/);
+  if (applicationsMatch && method === 'GET') {
+    return getApplicationsForMission(request, env, context!, applicationsMatch[1]);
+  }
+
+  // POST /v1/deals/:dealId/applications/bulk - Bulk update applications
+  const bulkMatch = path.match(/^\/v1\/deals\/([a-f0-9]+)\/applications\/bulk$/);
+  if (bulkMatch && method === 'POST') {
+    return bulkUpdateApplications(request, env, context!, bulkMatch[1]);
+  }
+
+  // POST /v1/applications/:id/shortlist - Shortlist an application
+  const shortlistMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/shortlist$/);
+  if (shortlistMatch && method === 'POST') {
+    return shortlistApplication(request, env, context!, shortlistMatch[1]);
+  }
+
+  // POST /v1/applications/:id/select - Select an application (creates mission, consumes slot)
+  const selectMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/select$/);
+  if (selectMatch && method === 'POST') {
+    return selectApplication(request, env, context!, selectMatch[1]);
+  }
+
+  // POST /v1/applications/:id/reject - Reject an application
+  const rejectMatch = path.match(/^\/v1\/applications\/([a-f0-9]+)\/reject$/);
+  if (rejectMatch && method === 'POST') {
+    return rejectApplication(request, env, context!, rejectMatch[1]);
+  }
+
   return errors.notFound(context!.requestId, 'Endpoint');
 }
 
@@ -269,6 +350,33 @@ async function handleOperatorApi(
   // GET /api/missions/my
   if (path === '/api/missions/my' && method === 'GET') {
     return getMyMissions(request, env);
+  }
+
+  // ============================================
+  // Application Routes (Apply → AI Selection Model)
+  // ============================================
+
+  // POST /api/missions/:dealId/apply - Apply for a mission
+  const applyMatch = path.match(/^\/api\/missions\/([a-f0-9]+)\/apply$/);
+  if (applyMatch && method === 'POST') {
+    return applyForMission(request, env, applyMatch[1]);
+  }
+
+  // GET /api/my/applications - Get my applications
+  if (path === '/api/my/applications' && method === 'GET') {
+    return getMyApplications(request, env);
+  }
+
+  // GET /api/applications/:id - Get application details
+  const appDetailMatch = path.match(/^\/api\/applications\/([a-f0-9]+)$/);
+  if (appDetailMatch && method === 'GET') {
+    return getApplication(request, env, appDetailMatch[1]);
+  }
+
+  // POST /api/applications/:id/withdraw - Withdraw an application
+  const withdrawMatch = path.match(/^\/api\/applications\/([a-f0-9]+)\/withdraw$/);
+  if (withdrawMatch && method === 'POST') {
+    return withdrawApplication(request, env, withdrawMatch[1]);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');
@@ -343,9 +451,24 @@ async function handlePublicApi(
     return getStats(request, env);
   }
 
+  // GET /api/me - Current user info
+  if (path === '/api/me' && method === 'GET') {
+    return getMe(request, env);
+  }
+
   // POST /api/track-visit
   if (path === '/api/track-visit' && method === 'POST') {
     return trackVisit(request, env);
+  }
+
+  // GET /api/payout-wallets (alias for /api/operator/wallets)
+  if (path === '/api/payout-wallets' && method === 'GET') {
+    return getOperatorWallets(request, env);
+  }
+
+  // POST /api/payout-wallets (alias for /api/operator/wallets)
+  if (path === '/api/payout-wallets' && method === 'POST') {
+    return updateOperatorWallets(request, env);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

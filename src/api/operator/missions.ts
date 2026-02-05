@@ -24,11 +24,15 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
     const deals = await env.DB.prepare(
       `SELECT d.*,
         a.name as agent_name,
-        (SELECT COUNT(*) FROM missions WHERE deal_id = d.id) as mission_count
+        json_extract(a.metadata, '$.is_sample') as is_sample,
+        (SELECT COUNT(*) FROM missions WHERE deal_id = d.id) as mission_count,
+        COALESCE(d.applications_count, 0) as applications_count,
+        COALESCE(d.slots_total, d.max_participants) as slots_total,
+        COALESCE(d.slots_selected, d.current_participants) as slots_selected
        FROM deals d
        JOIN agents a ON d.agent_id = a.id
        WHERE d.status = 'active'
-       AND d.current_participants < d.max_participants
+       AND COALESCE(d.slots_selected, d.current_participants) < COALESCE(d.slots_total, d.max_participants)
        AND (d.expires_at IS NULL OR d.expires_at > datetime('now'))
        ORDER BY d.created_at DESC
        LIMIT ? OFFSET ?`
@@ -36,36 +40,70 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
       .bind(limit, offset)
       .all();
 
-    // 認証済みの場合、受諾済みかチェック
-    let acceptedDealIds: Set<string> = new Set();
+    // 認証済みの場合、アプリケーションとミッションの状態を取得
+    let applicationsByDeal: Map<string, { status: string; mission_id?: string }> = new Map();
     if (operatorId) {
-      const accepted = await env.DB.prepare(
-        `SELECT deal_id FROM missions WHERE operator_id = ?`
+      // Get applications
+      const applications = await env.DB.prepare(
+        `SELECT a.deal_id, a.status, m.id as mission_id
+         FROM applications a
+         LEFT JOIN missions m ON m.deal_id = a.deal_id AND m.operator_id = a.operator_id
+         WHERE a.operator_id = ?`
       )
         .bind(operatorId)
-        .all<{ deal_id: string }>();
-      acceptedDealIds = new Set(accepted.results.map((m) => m.deal_id));
+        .all<{ deal_id: string; status: string; mission_id?: string }>();
+
+      applications.results.forEach((app) => {
+        applicationsByDeal.set(app.deal_id, {
+          status: app.status,
+          mission_id: app.mission_id,
+        });
+      });
+
+      // Also check for missions without applications (legacy)
+      const missions = await env.DB.prepare(
+        `SELECT deal_id, id as mission_id FROM missions WHERE operator_id = ?`
+      )
+        .bind(operatorId)
+        .all<{ deal_id: string; mission_id: string }>();
+
+      missions.results.forEach((m) => {
+        if (!applicationsByDeal.has(m.deal_id)) {
+          applicationsByDeal.set(m.deal_id, { status: 'selected', mission_id: m.mission_id });
+        }
+      });
     }
 
-    const missions = deals.results.map((deal: Record<string, unknown>) => ({
-      deal_id: deal.id,
-      title: deal.title,
-      description: deal.description,
-      requirements: JSON.parse(deal.requirements as string),
-      reward_amount: deal.reward_amount,
-      remaining_slots: (deal.max_participants as number) - (deal.current_participants as number),
-      agent_name: deal.agent_name,
-      expires_at: deal.expires_at,
-      is_accepted: acceptedDealIds.has(deal.id as string),
-    }));
+    const missionsList = deals.results.map((deal: Record<string, unknown>) => {
+      const appInfo = applicationsByDeal.get(deal.id as string);
+      const slotsTotal = (deal.slots_total as number) ?? (deal.max_participants as number);
+      const slotsSelected = (deal.slots_selected as number) ?? (deal.current_participants as number);
+
+      return {
+        deal_id: deal.id,
+        title: deal.title,
+        description: deal.description,
+        requirements: JSON.parse(deal.requirements as string),
+        reward_amount: deal.reward_amount,
+        remaining_slots: slotsTotal - slotsSelected,
+        applications_count: (deal.applications_count as number) || 0,
+        agent_name: deal.agent_name,
+        expires_at: deal.expires_at,
+        is_accepted: appInfo?.status === 'selected' || !!appInfo?.mission_id,
+        application_status: appInfo?.status || null,
+        mission_id: appInfo?.mission_id || null,
+        is_sample: deal.is_sample === 1 || deal.is_sample === true,
+      };
+    });
 
     return success(
       {
-        missions,
+        missions: missionsList,
+        is_authenticated: operatorId !== null,
         pagination: {
           limit,
           offset,
-          total: missions.length,
+          total: missionsList.length,
         },
       },
       requestId
@@ -77,12 +115,18 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
 }
 
 /**
- * ミッション受諾
+ * ミッション受諾 (DEPRECATED)
  *
  * POST /api/missions/accept
+ *
+ * DEPRECATED: Use POST /api/missions/:dealId/apply instead.
+ * This endpoint is maintained for backward compatibility during transition.
+ * It creates an application and auto-selects it if slots are available.
  */
 export async function acceptMission(request: Request, env: Env): Promise<Response> {
   const requestId = generateRequestId();
+
+  console.warn('DEPRECATED: /api/missions/accept - use /api/missions/:id/apply instead');
 
   try {
     // 認証
@@ -125,15 +169,32 @@ export async function acceptMission(request: Request, env: Env): Promise<Respons
       return errors.conflict(requestId, 'Already accepted this mission');
     }
 
+    // 既にアプリケーションがあるかチェック
+    const existingApp = await env.DB.prepare(
+      `SELECT * FROM applications WHERE deal_id = ? AND operator_id = ?`
+    )
+      .bind(deal.id, operator.id)
+      .first();
+
+    if (existingApp) {
+      return errors.conflict(requestId, 'Already applied for this mission');
+    }
+
     // 期限チェック
     if (deal.expires_at && new Date(deal.expires_at) < new Date()) {
       return errors.invalidRequest(requestId, { message: 'Deal has expired' });
     }
 
-    // ミッション作成
+    // Create application and mission atomically (backward compatibility: auto-select)
     const missionId = crypto.randomUUID().replace(/-/g, '');
+    const applicationId = crypto.randomUUID().replace(/-/g, '');
 
     await env.DB.batch([
+      // Create application with auto-selected status
+      env.DB.prepare(
+        `INSERT INTO applications (id, deal_id, operator_id, status, accept_disclosure, accept_no_engagement_buying, selected_at)
+         VALUES (?, ?, ?, 'selected', 1, 1, datetime('now'))`
+      ).bind(applicationId, deal.id, operator.id),
       // ミッション作成
       env.DB.prepare(
         `INSERT INTO missions (id, deal_id, operator_id, status)
@@ -141,7 +202,11 @@ export async function acceptMission(request: Request, env: Env): Promise<Respons
       ).bind(missionId, deal.id, operator.id),
       // Deal参加者数を更新
       env.DB.prepare(
-        `UPDATE deals SET current_participants = current_participants + 1, updated_at = datetime('now')
+        `UPDATE deals SET
+          current_participants = current_participants + 1,
+          slots_selected = COALESCE(slots_selected, current_participants) + 1,
+          applications_count = COALESCE(applications_count, 0) + 1,
+          updated_at = datetime('now')
          WHERE id = ?`
       ).bind(deal.id),
     ]);
@@ -169,6 +234,7 @@ export async function acceptMission(request: Request, env: Env): Promise<Respons
           '3. Wait for verification',
           '4. Receive your reward!',
         ],
+        _deprecated: 'This endpoint is deprecated. Use POST /api/missions/:dealId/apply instead.',
       },
       requestId,
       201

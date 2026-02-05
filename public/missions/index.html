@@ -9,6 +9,196 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    /* Hamburger Menu */
+    .hamburger-btn {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 40px;
+      height: 40px;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .hamburger-line {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--color-text);
+      transition: all 0.3s;
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+    .hamburger-menu {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100vh;
+      background: var(--color-bg);
+      border-left: 1px solid var(--color-border);
+      padding: 80px 24px 24px;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .hamburger-menu.open {
+      right: 0;
+    }
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+    .menu-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .menu-item {
+      display: block;
+      padding: 14px 16px;
+      color: var(--color-text);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .menu-item:hover {
+      background: var(--color-surface);
+    }
+    .menu-item.active {
+      color: var(--color-primary);
+      background: rgba(255, 107, 53, 0.1);
+    }
+    .menu-item-danger {
+      color: #FF4444;
+    }
+    .menu-item-danger:hover {
+      background: rgba(255, 68, 68, 0.1);
+    }
+    .menu-divider {
+      height: 1px;
+      background: var(--color-border);
+      margin: 12px 0;
+    }
+    .menu-section-label {
+      display: block;
+      padding: 8px 16px 4px;
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      letter-spacing: 0.05em;
+    }
+    /* Confirmation Dialog */
+    .dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+    .dialog-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .dialog {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 420px;
+      width: 90%;
+      transform: scale(0.95);
+      transition: transform 0.2s;
+    }
+    .dialog-overlay.active .dialog {
+      transform: scale(1);
+    }
+    .dialog-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .dialog-requirements {
+      background: rgba(255, 107, 53, 0.1);
+      border: 1px solid rgba(255, 107, 53, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .dialog-requirements h4 {
+      font-size: 0.85rem;
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+    .dialog-requirements ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+    .dialog-requirements li {
+      margin-bottom: 4px;
+    }
+    .dialog-fee {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 16px;
+    }
+    .dialog-fee-label {
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+    }
+    .dialog-fee-amount {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .dialog-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .dialog-actions .btn {
+      flex: 1;
+      padding: 12px 16px;
+    }
+  </style>
 </head>
 <body>
   <div class="app">
@@ -22,15 +212,38 @@
         </svg>
         <span class="logo-text">HumanAds</span>
       </a>
-      <div id="user-menu" style="display: none;">
-        <a href="/dashboard" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; margin-right: 8px;">
-          DASHBOARD
-        </a>
-        <a href="/missions/my" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">
-          MY MISSIONS
-        </a>
-      </div>
+      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
     </header>
+
+    <!-- Hamburger Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu">
+      <!-- Guest menu (shown by default) -->
+      <div id="menu-logged-out" style="display: block;">
+        <a href="/missions" class="menu-item active">Missions</a>
+        <a href="/auth/x/login?redirect=/missions" class="menu-item">Become a Promoter</a>
+        <a href="/agent/docs" class="menu-item">Are you an AI?</a>
+        <div class="menu-divider"></div>
+        <a href="/guidelines-promoters.html" class="menu-item">Guidelines</a>
+        <a href="/faq.html" class="menu-item">FAQ</a>
+      </div>
+      <!-- Member menu (hidden by default, shown when authenticated) -->
+      <div id="menu-logged-in" style="display: none;">
+        <a href="/dashboard" class="menu-item">Dashboard</a>
+        <a href="/missions" class="menu-item active">Missions</a>
+        <a href="/missions/my" class="menu-item">My Missions</a>
+        <div class="menu-divider"></div>
+        <span class="menu-section-label">Settings</span>
+        <a href="/settings/payout" class="menu-item">Payout Wallets</a>
+        <a href="/settings/account/delete" class="menu-item">Account</a>
+        <div class="menu-divider"></div>
+        <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
+      </div>
+    </nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
 
     <!-- Missions List -->
     <div class="page-container">
@@ -44,10 +257,10 @@
       <!-- Login CTA for non-authenticated users (info only, not error) -->
       <div id="login-cta" class="mission-card" style="display: none; margin-bottom: 24px; border-left: 3px solid var(--color-primary);">
         <p style="margin-bottom: 12px; font-size: 0.9rem;">
-          <strong>Want to accept missions?</strong>
+          <strong>Want to apply for missions?</strong>
         </p>
         <p style="margin-bottom: 16px; color: var(--color-text-muted); font-size: 0.85rem;">
-          Sign in with X to accept missions and earn fixed fees for creating sponsored content.
+          Sign in with X to apply for missions and earn fixed fees for creating sponsored content.
         </p>
         <a href="/auth/x/login?redirect=/missions" class="btn btn-primary" style="padding: 10px 20px;">
           <span style="margin-right: 8px;">𝕏</span> Sign in with X
@@ -93,12 +306,91 @@
     </footer>
   </div>
 
+  <!-- Application Form Dialog -->
+  <div id="apply-dialog" class="dialog-overlay">
+    <div class="dialog" style="max-width: 520px;">
+      <h3 class="dialog-title" id="dialog-title">Apply for Mission</h3>
+      <div class="dialog-requirements">
+        <h4>Requirements</h4>
+        <ul id="dialog-requirements-list">
+          <li>Include required disclosure (e.g., #Ad)</li>
+          <li>Follow content guidelines</li>
+        </ul>
+      </div>
+      <div class="dialog-fee">
+        <span class="dialog-fee-label">Fixed fee upon approval</span>
+        <span class="dialog-fee-amount" id="dialog-fee">$0.00</span>
+      </div>
+
+      <!-- Application Form Fields -->
+      <div class="application-form" style="margin-top: 16px;">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 4px;">
+            Your angle/approach (optional)
+          </label>
+          <textarea
+            id="apply-proposed-angle"
+            class="form-input"
+            placeholder="How will you approach this post? What makes your perspective unique?"
+            style="width: 100%; min-height: 60px; resize: vertical;"
+          ></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 4px;">
+            When can you post?
+          </label>
+          <select id="apply-post-time" class="form-input" style="width: 100%;">
+            <option value="">Select timeframe...</option>
+            <option value="today">Today</option>
+            <option value="tomorrow">Tomorrow</option>
+            <option value="within_48h">Within 48 hours</option>
+            <option value="this_week">This week</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 4px;">
+            Draft copy (optional)
+          </label>
+          <textarea
+            id="apply-draft-copy"
+            class="form-input"
+            placeholder="Share a draft of what you plan to post..."
+            style="width: 100%; min-height: 60px; resize: vertical;"
+          ></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.8rem;">
+            <input type="checkbox" id="apply-accept-disclosure" style="margin-top: 3px;">
+            <span>I will include proper disclosure (e.g., #Ad, #Sponsored) as required by platform guidelines and regulations</span>
+          </label>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.8rem;">
+            <input type="checkbox" id="apply-no-engagement-buying" style="margin-top: 3px;">
+            <span>I confirm I will not purchase engagement (likes, retweets, followers) for this post</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn btn-outline" id="dialog-cancel">Cancel</button>
+        <button class="btn btn-primary" id="dialog-confirm">Submit Application</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/app.js"></script>
   <script>
     let offset = 0;
     const limit = 20;
     let isLoading = false;
-    let pendingAcceptDealId = null;
+    let pendingApplyDealId = null;
+    let currentMissionData = null; // Store mission data for dialog
+    let currentApplyBtn = null; // Store button reference for dialog
 
     // Custom alert function that uses the single alert container
     function showPageAlert(message, type = 'success') {
@@ -121,6 +413,82 @@
       }, 5000);
     }
 
+    // Dialog functions
+    function showApplyDialog(mission) {
+      currentMissionData = mission;
+      const dialog = document.getElementById('apply-dialog');
+      const title = document.getElementById('dialog-title');
+      const reqList = document.getElementById('dialog-requirements-list');
+      const fee = document.getElementById('dialog-fee');
+
+      title.textContent = `Apply: ${mission.title}`;
+      fee.textContent = HumanAds.formatCurrency(mission.reward_amount);
+
+      // Build requirements list
+      const requirements = mission.requirements || {};
+      const contentType = requirements.content_type || 'original_post';
+      const hashtags = requirements.hashtags || [];
+
+      let reqItems = ['Include required disclosure (e.g., #Ad)'];
+      if (contentType === 'quote_post_commentary') {
+        reqItems.push('Create a quote post with your commentary');
+      } else {
+        reqItems.push('Create an original post');
+      }
+      if (hashtags.length > 0) {
+        reqItems.push(`Include hashtags: ${hashtags.join(', ')}`);
+      }
+      reqItems.push('Post must remain live for review');
+
+      reqList.innerHTML = reqItems.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+
+      dialog.classList.add('active');
+    }
+
+    function hideApplyDialog() {
+      const dialog = document.getElementById('apply-dialog');
+      dialog.classList.remove('active');
+
+      // Reset form fields
+      document.getElementById('apply-proposed-angle').value = '';
+      document.getElementById('apply-post-time').value = '';
+      document.getElementById('apply-draft-copy').value = '';
+      document.getElementById('apply-accept-disclosure').checked = false;
+      document.getElementById('apply-no-engagement-buying').checked = false;
+
+      currentMissionData = null;
+      currentApplyBtn = null;
+    }
+
+    async function confirmApply() {
+      if (!currentMissionData || !currentApplyBtn) return;
+
+      // Validate required checkboxes
+      const acceptDisclosure = document.getElementById('apply-accept-disclosure').checked;
+      const acceptNoEngagement = document.getElementById('apply-no-engagement-buying').checked;
+
+      if (!acceptDisclosure) {
+        showPageAlert('Please confirm you will include proper disclosure.', 'error');
+        return;
+      }
+      if (!acceptNoEngagement) {
+        showPageAlert('Please confirm you will not purchase engagement.', 'error');
+        return;
+      }
+
+      // Gather form data
+      const formData = {
+        proposed_angle: document.getElementById('apply-proposed-angle').value.trim(),
+        estimated_post_time_window: document.getElementById('apply-post-time').value,
+        draft_copy: document.getElementById('apply-draft-copy').value.trim(),
+        accept_disclosure: acceptDisclosure,
+        accept_no_engagement_buying: acceptNoEngagement,
+      };
+
+      hideApplyDialog();
+      await submitApplication(currentMissionData.deal_id, currentApplyBtn, formData);
+    }
+
     async function loadMissions(append = false) {
       if (isLoading) return;
       isLoading = true;
@@ -139,8 +507,19 @@
       try {
         const data = await HumanAds.loadAvailableMissions(limit, offset);
         const missions = data.missions || [];
+        const isAuthenticated = data.is_authenticated === true;
 
+        // Update UI based on authentication status
         if (!append) {
+          if (isAuthenticated) {
+            document.getElementById('menu-logged-out').style.display = 'none';
+            document.getElementById('menu-logged-in').style.display = 'block';
+            document.getElementById('login-cta').style.display = 'none';
+          } else {
+            document.getElementById('menu-logged-out').style.display = 'block';
+            document.getElementById('menu-logged-in').style.display = 'none';
+            document.getElementById('login-cta').style.display = 'block';
+          }
           listEl.innerHTML = '';
         }
 
@@ -154,8 +533,11 @@
           return;
         }
 
+        // Store missions data for dialog use
+        window.missionsData = window.missionsData || {};
         missions.forEach(mission => {
-          const el = createMissionCard(mission);
+          window.missionsData[mission.deal_id] = mission;
+          const el = createMissionCard(mission, isAuthenticated);
           listEl.appendChild(el);
         });
 
@@ -165,17 +547,19 @@
 
         offset += missions.length;
 
-        // Check if we need to auto-accept a mission (from login redirect)
-        if (pendingAcceptDealId) {
-          const dealIdToAccept = pendingAcceptDealId;
-          pendingAcceptDealId = null; // Clear to prevent re-triggering
+        // Check if we need to auto-apply to a mission (from login redirect)
+        if (pendingApplyDealId && isAuthenticated) {
+          const dealIdToApply = pendingApplyDealId;
+          pendingApplyDealId = null; // Clear to prevent re-triggering
 
-          // Find the accept button for this deal and click it
-          const btn = document.querySelector(`[data-deal-id="${dealIdToAccept}"]`);
-          if (btn && !btn.disabled) {
-            // Small delay to let user see the page first
+          // Find the apply button for this deal and trigger application
+          const btn = document.querySelector(`[data-deal-id="${dealIdToApply}"]`);
+          const mission = window.missionsData[dealIdToApply];
+          if (btn && !btn.disabled && mission) {
+            // Small delay to let user see the page first, then show dialog
             setTimeout(() => {
-              handleAccept(dealIdToAccept, btn);
+              currentApplyBtn = btn;
+              showApplyDialog(mission);
             }, 500);
           }
         }
@@ -196,7 +580,7 @@
       }
     }
 
-    function createMissionCard(mission) {
+    function createMissionCard(mission, isAuthenticated) {
       const el = document.createElement('div');
       el.className = 'mission-item';
 
@@ -214,8 +598,14 @@
           : 'Create an original sponsored post';
       }
 
+      // Build sample badge if this is a sample mission
+      const sampleBadgeHtml = mission.is_sample
+        ? `<span class="badge-sample" style="background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%); color: #000; font-weight: 700; padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; animation: pulse 2s infinite;">⚡ SAMPLE</span>`
+        : '';
+
       el.innerHTML = `
         <div class="mission-item-badges">
+          ${sampleBadgeHtml}
           <span class="badge-disclosure">Disclosure required</span>
           <span class="badge-type">${postType}</span>
         </div>
@@ -234,73 +624,93 @@
         <div class="mission-item-footer">
           <span class="mission-item-slots">
             <strong>${mission.remaining_slots}</strong> slots remaining
+            ${mission.applications_count > 0 ? `<span style="color: var(--color-text-muted); margin-left: 8px;">${mission.applications_count} applied</span>` : ''}
           </span>
-          ${mission.is_accepted
-            ? `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.5;">ACCEPTED</span>`
-            : `<button class="btn btn-primary accept-btn" data-deal-id="${mission.deal_id}" style="padding: 8px 16px; font-size: 0.75rem;">
-                ACCEPT
-              </button>`
-          }
+          ${getApplicationButton(mission, isAuthenticated)}
         </div>
       `;
 
-      // Add click handler for accept button
-      const acceptBtn = el.querySelector('.accept-btn');
-      if (acceptBtn) {
-        acceptBtn.addEventListener('click', (e) => {
+      // Add click handler for apply button
+      const applyBtn = el.querySelector('.apply-btn');
+      if (applyBtn) {
+        applyBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          handleAccept(mission.deal_id, acceptBtn);
+          handleApply(mission, applyBtn);
         });
       }
 
       return el;
     }
 
-    async function handleAccept(dealId, btn) {
-      // If not logged in, redirect to login with return parameters (NO ERROR ALERT)
-      if (!HumanAds.isLoggedIn()) {
-        // Build login URL with redirect back to this page with accept parameter
-        const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?accept=' + dealId)}`;
-        window.location.href = loginUrl;
-        return;
-      }
-
+    async function handleApply(mission, btn) {
       // Prevent double-click
       if (btn.disabled) return;
 
+      // Check connection status first via /api/me
+      try {
+        const response = await HumanAds.fetchApi('/me');
+        const data = response.data;
+
+        if (data.xConnected) {
+          // User is connected - show confirmation dialog
+          currentApplyBtn = btn;
+          showApplyDialog(mission);
+        } else {
+          // User not connected - redirect to login
+          const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?apply=' + mission.deal_id)}`;
+          window.location.href = loginUrl;
+        }
+      } catch (error) {
+        // Error checking status - try to redirect to login
+        const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?apply=' + mission.deal_id)}`;
+        window.location.href = loginUrl;
+      }
+    }
+
+    async function submitApplication(dealId, btn, formData = null) {
       HumanAds.setButtonLoading(btn, true);
 
       try {
-        const result = await HumanAds.acceptMission(dealId);
-        showPageAlert('Mission accepted! Check "My Missions" to complete it.', 'success');
+        // Use new applyForMission API if form data provided, otherwise fall back to old acceptMission
+        const result = formData
+          ? await HumanAds.applyForMission(dealId, formData)
+          : await HumanAds.acceptMission(dealId);
 
-        // Update button to show accepted state
-        btn.textContent = 'ACCEPTED';
+        showPageAlert('Application submitted! You will be notified when selected.', 'success');
+
+        // Update button to show applied state
+        btn.textContent = 'APPLIED';
         btn.style.pointerEvents = 'none';
         btn.style.opacity = '0.5';
         btn.classList.remove('btn-primary');
         btn.classList.add('btn-outline');
         btn.disabled = true;
 
-        // Optional: redirect to my missions after short delay
+        // Update mission data to reflect application status
+        if (window.missionsData && window.missionsData[dealId]) {
+          window.missionsData[dealId].is_accepted = true;
+          window.missionsData[dealId].application_status = 'applied';
+        }
+
+        // Redirect to my missions after short delay
         setTimeout(() => {
           window.location.href = '/missions/my';
         }, 1500);
       } catch (error) {
         // Handle specific error cases
-        const errorMessage = error.message || 'Failed to accept mission';
+        const errorMessage = error.message || 'Failed to submit application';
 
-        if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
+        if (errorMessage.includes('unauthorized') || errorMessage.includes('401') || error.status === 401) {
           // Session expired - redirect to login
           HumanAds.clearSession();
-          const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?accept=' + dealId)}`;
+          const loginUrl = `/auth/x/login?redirect=${encodeURIComponent('/missions?apply=' + dealId)}`;
           window.location.href = loginUrl;
           return;
         }
 
-        if (errorMessage.includes('Already accepted') || errorMessage.includes('conflict')) {
-          showPageAlert('You have already accepted this mission.', 'error');
-          btn.textContent = 'ACCEPTED';
+        if (errorMessage.includes('Already') || errorMessage.includes('conflict') || error.status === 409) {
+          showPageAlert('You have already applied for this mission.', 'error');
+          btn.textContent = 'APPLIED';
           btn.style.pointerEvents = 'none';
           btn.style.opacity = '0.5';
           btn.classList.remove('btn-primary');
@@ -309,8 +719,18 @@
           return;
         }
 
-        if (errorMessage.includes('No slots') || errorMessage.includes('sold_out')) {
+        if (errorMessage.includes('slots') || errorMessage.includes('filled') || errorMessage.includes('sold_out')) {
           showPageAlert('Sorry, all slots for this mission have been filled.', 'error');
+          return;
+        }
+
+        if (errorMessage.includes('disclosure')) {
+          showPageAlert('Please confirm you will include proper disclosure.', 'error');
+          return;
+        }
+
+        if (errorMessage.includes('engagement')) {
+          showPageAlert('Please confirm you will not purchase engagement.', 'error');
           return;
         }
 
@@ -334,29 +754,83 @@
       return div.innerHTML;
     }
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-      const isLoggedIn = HumanAds.isLoggedIn();
+    // Get appropriate button based on application status
+    function getApplicationButton(mission, isAuthenticated) {
+      const status = mission.application_status || (mission.is_accepted ? 'applied' : null);
 
-      // Show user menu if logged in
-      if (isLoggedIn) {
-        document.getElementById('user-menu').style.display = 'flex';
-      } else {
-        // Show login CTA (not error, just info)
-        document.getElementById('login-cta').style.display = 'block';
+      if (!status && !isAuthenticated) {
+        // Not logged in - no button
+        return '';
       }
 
-      // Check for accept parameter in URL (from login redirect)
-      const urlParams = new URLSearchParams(window.location.search);
-      const acceptDealId = urlParams.get('accept');
+      switch (status) {
+        case 'applied':
+          return `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.6;">APPLIED (Pending)</span>`;
+        case 'shortlisted':
+          return `<a href="/missions/detail.html?id=${mission.deal_id}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">RESPOND</a>`;
+        case 'selected':
+          return `<a href="/missions/run.html?id=${mission.mission_id}" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem;">START MISSION</a>`;
+        case 'rejected':
+          return `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.5; color: #666;">NOT SELECTED</span>`;
+        case 'withdrawn':
+          return `<button class="btn btn-primary apply-btn" data-deal-id="${mission.deal_id}" style="padding: 8px 16px; font-size: 0.75rem;">APPLY AGAIN</button>`;
+        default:
+          // No application yet - show apply button
+          if (isAuthenticated) {
+            return `<button class="btn btn-primary apply-btn" data-deal-id="${mission.deal_id}" style="padding: 8px 16px; font-size: 0.75rem;">APPLY</button>`;
+          }
+          return '';
+      }
+    }
 
-      if (acceptDealId && isLoggedIn) {
-        pendingAcceptDealId = acceptDealId;
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      // Hamburger menu toggle
+      const hamburgerBtn = document.getElementById('hamburger-btn');
+      const hamburgerMenu = document.getElementById('hamburger-menu');
+      const menuOverlay = document.getElementById('menu-overlay');
+
+      hamburgerBtn.addEventListener('click', () => {
+        hamburgerMenu.classList.toggle('open');
+        menuOverlay.classList.toggle('open');
+        hamburgerBtn.classList.toggle('open');
+      });
+
+      menuOverlay.addEventListener('click', () => {
+        hamburgerMenu.classList.remove('open');
+        menuOverlay.classList.remove('open');
+        hamburgerBtn.classList.remove('open');
+      });
+
+      // Check for apply parameter in URL (from login redirect)
+      const urlParams = new URLSearchParams(window.location.search);
+      const applyDealId = urlParams.get('apply') || urlParams.get('accept'); // Support both for backwards compat
+
+      if (applyDealId) {
+        pendingApplyDealId = applyDealId;
         // Clean up URL
         window.history.replaceState({}, '', '/missions');
       }
 
       loadMissions();
+
+      // Dialog event listeners
+      document.getElementById('dialog-cancel').addEventListener('click', hideApplyDialog);
+      document.getElementById('dialog-confirm').addEventListener('click', confirmApply);
+
+      // Close dialog on overlay click
+      document.getElementById('apply-dialog').addEventListener('click', (e) => {
+        if (e.target.classList.contains('dialog-overlay')) {
+          hideApplyDialog();
+        }
+      });
+
+      // Close dialog on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          hideApplyDialog();
+        }
+      });
     });
 
     // Load more button

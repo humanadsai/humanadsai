@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Run Mission - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    /* Steps */
+    .steps {
+      margin-bottom: 32px;
+    }
+    .step {
+      display: flex;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .step:last-child {
+      border-bottom: none;
+    }
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.875rem;
+      flex-shrink: 0;
+    }
+    .step.active .step-number {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+    }
+    .step.completed .step-number {
+      background: #4CAF50;
+      border-color: #4CAF50;
+      color: #fff;
+    }
+    .step.completed .step-number::after {
+      content: "✓";
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .step-description {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    .step-action {
+      margin-top: 12px;
+    }
+
+    /* Requirements Card */
+    .requirements-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .requirements-card h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+    .requirements-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .requirements-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 0;
+      font-size: 0.875rem;
+    }
+    .requirements-list li::before {
+      content: "•";
+      color: var(--color-primary);
+      font-weight: bold;
+    }
+
+    /* Fee Display */
+    .fee-display {
+      background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 179, 71, 0.1) 100%);
+      border: 1px solid rgba(255, 107, 53, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .fee-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+    .fee-amount {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-accepted { background: #2196F3; color: white; }
+    .status-submitted { background: #FF9800; color: white; }
+    .status-verified, .status-paid { background: #4CAF50; color: white; }
+    .status-rejected { background: #F44336; color: white; }
+
+    /* Submit Form */
+    .submit-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .submit-section h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+    .submit-section input {
+      margin-bottom: 12px;
+    }
+
+    /* Hamburger Menu */
+    .hamburger-btn {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 40px;
+      height: 40px;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .hamburger-line {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--color-text);
+      transition: all 0.3s;
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger-btn.open .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+    .hamburger-menu {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100vh;
+      background: var(--color-bg);
+      border-left: 1px solid var(--color-border);
+      padding: 80px 24px 24px;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .hamburger-menu.open {
+      right: 0;
+    }
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+    .menu-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .menu-item {
+      display: block;
+      padding: 14px 16px;
+      color: var(--color-text);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .menu-item:hover {
+      background: var(--color-surface);
+    }
+    .menu-item-danger {
+      color: #FF4444;
+    }
+    .menu-item-danger:hover {
+      background: rgba(255, 68, 68, 0.1);
+    }
+    .menu-divider {
+      height: 1px;
+      background: var(--color-border);
+      margin: 12px 0;
+    }
+    .menu-section-label {
+      display: block;
+      padding: 8px 16px 4px;
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </header>
+
+    <!-- Hamburger Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu">
+      <a href="/dashboard" class="menu-item">Dashboard</a>
+      <a href="/missions" class="menu-item">Missions</a>
+      <a href="/missions/my" class="menu-item">My Missions</a>
+      <div class="menu-divider"></div>
+      <span class="menu-section-label">Settings</span>
+      <a href="/settings/payout" class="menu-item">Payout Wallets</a>
+      <a href="/settings/account/delete" class="menu-item">Account</a>
+      <div class="menu-divider"></div>
+      <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
+    </nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Mission Execution Page -->
+    <div class="page-container">
+      <div id="loading" style="text-align: center; padding: 48px 0;">
+        <span class="spinner"></span>
+        <p style="margin-top: 16px; color: var(--color-text-muted);">Loading mission...</p>
+      </div>
+
+      <div id="mission-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h1 class="page-title" id="mission-title" style="margin-bottom: 0;">Mission</h1>
+          <span class="status-badge" id="mission-status">Loading</span>
+        </div>
+
+        <!-- Fee Display -->
+        <div class="fee-display">
+          <div class="fee-label">You will earn</div>
+          <div class="fee-amount" id="mission-fee">$0.00</div>
+        </div>
+
+        <!-- Requirements Card -->
+        <div class="requirements-card">
+          <h3>Requirements</h3>
+          <ul class="requirements-list" id="requirements-list">
+            <li>Loading requirements...</li>
+          </ul>
+        </div>
+
+        <!-- Steps -->
+        <div class="steps" id="steps">
+          <div class="step" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <div class="step-title">Review Requirements</div>
+              <div class="step-description">Make sure you understand what's needed for this mission.</div>
+            </div>
+          </div>
+          <div class="step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <div class="step-title">Create Your Post</div>
+              <div class="step-description">Write and publish your sponsored post on X. Remember to include proper disclosure (#Ad).</div>
+            </div>
+          </div>
+          <div class="step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <div class="step-title">Submit Post URL</div>
+              <div class="step-description">Paste the URL of your published post below for verification.</div>
+            </div>
+          </div>
+          <div class="step" data-step="4">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <div class="step-title">Get Verified & Paid</div>
+              <div class="step-description">We'll verify your post meets the requirements and process your payment.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Section (shown for accepted missions) -->
+        <div class="submit-section" id="submit-section" style="display: none;">
+          <h3>Submit Your Post</h3>
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 16px;">
+            Paste the URL of your published X post. Make sure it includes proper disclosure and meets all requirements.
+          </p>
+          <input
+            type="url"
+            class="form-input"
+            id="submission-url"
+            placeholder="https://x.com/yourhandle/status/123456789"
+            style="width: 100%;"
+          >
+          <button class="btn btn-primary" id="submit-btn" style="width: 100%;">
+            SUBMIT FOR VERIFICATION
+          </button>
+          <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 8px; text-align: center;">
+            Payment is based on compliance, not engagement metrics.
+          </p>
+        </div>
+
+        <!-- Result Section (shown after submission) -->
+        <div id="result-section" style="display: none;"></div>
+
+        <!-- Back Link -->
+        <div style="text-align: center; margin-top: 32px;">
+          <a href="/missions/my" style="color: var(--color-text-muted); font-size: 0.875rem;">← Back to My Missions</a>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-content" style="display: none; text-align: center; padding: 48px 0;">
+        <p style="color: #F44336; margin-bottom: 16px;" id="error-message">Mission not found.</p>
+        <a href="/missions/my" class="btn btn-outline">Back to My Missions</a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms.html">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy.html">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+      </div>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    let missionData = null;
+
+    // Hamburger menu toggle
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+
+    hamburgerBtn.addEventListener('click', () => {
+      hamburgerMenu.classList.toggle('open');
+      menuOverlay.classList.toggle('open');
+      hamburgerBtn.classList.toggle('open');
+    });
+
+    menuOverlay.addEventListener('click', () => {
+      hamburgerMenu.classList.remove('open');
+      menuOverlay.classList.remove('open');
+      hamburgerBtn.classList.remove('open');
+    });
+
+    async function loadMission() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const missionId = urlParams.get('id');
+
+      if (!missionId) {
+        showError('No mission ID provided.');
+        return;
+      }
+
+      try {
+        // Try to get from my missions
+        const data = await HumanAds.loadMyMissions();
+        const missions = data.missions || [];
+        missionData = missions.find(m => m.id === missionId);
+
+        if (!missionData) {
+          showError('Mission not found or you do not have access.');
+          return;
+        }
+
+        renderMission();
+      } catch (error) {
+        if (error.status === 401) {
+          window.location.href = `/auth/x/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+          return;
+        }
+        showError(error.message || 'Failed to load mission.');
+      }
+    }
+
+    function renderMission() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('mission-content').style.display = 'block';
+
+      // Title and fee
+      document.getElementById('mission-title').textContent = missionData.deal_title;
+      document.getElementById('mission-fee').textContent = HumanAds.formatCurrency(missionData.reward_amount);
+
+      // Status
+      const statusBadge = document.getElementById('mission-status');
+      statusBadge.textContent = missionData.status;
+      statusBadge.className = `status-badge status-${missionData.status}`;
+
+      // Requirements
+      const reqList = document.getElementById('requirements-list');
+      const requirements = missionData.requirements || {};
+      const reqItems = buildRequirementsList(requirements);
+      reqList.innerHTML = reqItems.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+
+      // Update steps based on status
+      updateSteps(missionData.status);
+
+      // Show appropriate sections
+      if (missionData.status === 'accepted') {
+        document.getElementById('submit-section').style.display = 'block';
+      } else if (missionData.status === 'submitted') {
+        document.getElementById('result-section').style.display = 'block';
+        document.getElementById('result-section').innerHTML = `
+          <div style="padding: 20px; background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; text-align: center;">
+            <p style="color: #FF9800; font-weight: 600; margin-bottom: 8px;">Submitted - Awaiting Verification</p>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Your post is being verified. This usually takes a few minutes.
+            </p>
+            ${missionData.submission_url ? `
+              <p style="margin-top: 12px;">
+                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post →</a>
+              </p>
+            ` : ''}
+          </div>
+        `;
+      } else if (missionData.status === 'paid') {
+        document.getElementById('result-section').style.display = 'block';
+        document.getElementById('result-section').innerHTML = `
+          <div style="padding: 20px; background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; text-align: center;">
+            <p style="color: #4CAF50; font-weight: 600; font-size: 1.25rem; margin-bottom: 8px;">Mission Completed!</p>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              You earned <strong>${HumanAds.formatCurrency(missionData.reward_amount)}</strong>
+            </p>
+            ${missionData.submission_url ? `
+              <p style="margin-top: 12px;">
+                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post →</a>
+              </p>
+            ` : ''}
+          </div>
+        `;
+      } else if (missionData.status === 'rejected') {
+        document.getElementById('result-section').style.display = 'block';
+        document.getElementById('result-section').innerHTML = `
+          <div style="padding: 20px; background: rgba(244, 67, 54, 0.1); border: 1px solid rgba(244, 67, 54, 0.3); border-radius: 12px;">
+            <p style="color: #F44336; font-weight: 600; margin-bottom: 8px;">Verification Failed</p>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Your submission didn't meet the requirements. Please check the <a href="/guidelines-promoters.html" style="color: #F44336;">promoter guidelines</a>.
+            </p>
+            ${missionData.verification_result ? `
+              <p style="margin-top: 12px; font-size: 0.8rem; color: var(--color-text-muted);">
+                Reason: ${escapeHtml(typeof missionData.verification_result === 'string' ? missionData.verification_result : JSON.stringify(missionData.verification_result))}
+              </p>
+            ` : ''}
+          </div>
+        `;
+      }
+    }
+
+    function buildRequirementsList(requirements) {
+      const items = ['Include proper disclosure (e.g., #Ad, #Sponsored)'];
+
+      const contentType = requirements.content_type || 'original_post';
+      if (contentType === 'quote_post_commentary') {
+        items.push('Create a quote post with your own commentary');
+      } else {
+        items.push('Create an original post');
+      }
+
+      if (requirements.hashtags?.length > 0) {
+        items.push(`Include hashtags: ${requirements.hashtags.join(', ')}`);
+      }
+
+      if (requirements.mentions?.length > 0) {
+        items.push(`Mention: ${requirements.mentions.join(', ')}`);
+      }
+
+      if (requirements.link_url) {
+        items.push(`Include link: ${requirements.link_url}`);
+      }
+
+      if (requirements.content_template) {
+        items.push(`Content guidance: ${requirements.content_template}`);
+      }
+
+      items.push('Post must remain live for verification');
+
+      return items;
+    }
+
+    function updateSteps(status) {
+      const steps = document.querySelectorAll('.step');
+
+      steps.forEach((step, index) => {
+        step.classList.remove('active', 'completed');
+
+        if (status === 'accepted') {
+          if (index < 2) step.classList.add('completed');
+          else if (index === 2) step.classList.add('active');
+        } else if (status === 'submitted') {
+          if (index < 3) step.classList.add('completed');
+          else if (index === 3) step.classList.add('active');
+        } else if (status === 'paid' || status === 'verified') {
+          step.classList.add('completed');
+        }
+      });
+    }
+
+    function showError(message) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error-content').style.display = 'block';
+      document.getElementById('error-message').textContent = message;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function isValidXUrl(url) {
+      try {
+        const parsed = new URL(url);
+        return (
+          (parsed.hostname === 'twitter.com' || parsed.hostname === 'x.com') &&
+          /^\/[a-zA-Z0-9_]+\/status\/\d+/.test(parsed.pathname)
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    // Submit handler
+    document.getElementById('submit-btn').addEventListener('click', async () => {
+      const urlInput = document.getElementById('submission-url');
+      const submitBtn = document.getElementById('submit-btn');
+      const url = urlInput.value.trim();
+
+      if (!url) {
+        HumanAds.showAlert('Please enter your X post URL.', 'error');
+        return;
+      }
+
+      if (!isValidXUrl(url)) {
+        HumanAds.showAlert('Please enter a valid X post URL (e.g., https://x.com/handle/status/123).', 'error');
+        return;
+      }
+
+      HumanAds.setButtonLoading(submitBtn, true);
+
+      try {
+        const result = await HumanAds.submitMission(missionData.id, url);
+
+        if (result.status === 'paid') {
+          HumanAds.showAlert(`Mission completed! You earned ${HumanAds.formatCurrency(result.reward_amount)}`);
+        } else if (result.status === 'rejected') {
+          HumanAds.showAlert('Verification failed. Please check the requirements.', 'error');
+        } else {
+          HumanAds.showAlert('Submitted! Awaiting verification.');
+        }
+
+        // Reload to show updated status
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } catch (error) {
+        HumanAds.showAlert(error.message || 'Failed to submit.', 'error');
+      } finally {
+        HumanAds.setButtonLoading(submitBtn, false);
+      }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMission();
+    });
+  </script>
+</body>
+</html>

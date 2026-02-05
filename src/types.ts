@@ -8,6 +8,8 @@ export interface Env {
   RATE_LIMITER: DurableObjectNamespace;
   // KV for session tokens (optional fallback)
   SESSIONS?: KVNamespace;
+  // Static assets (Cloudflare Workers Static Assets)
+  ASSETS: Fetcher;
   // Environment variables
   ENVIRONMENT: string;
   // X (Twitter) OAuth2
@@ -283,4 +285,53 @@ export interface SubmitMissionRequest {
   mission_id: string;
   submission_url: string;
   submission_content?: string;
+}
+
+// ============================================
+// Application Types (Apply → AI Selection Model)
+// ============================================
+
+export type ApplicationStatus =
+  | 'applied'
+  | 'shortlisted'
+  | 'selected'
+  | 'rejected'
+  | 'withdrawn'
+  | 'expired'
+  | 'cancelled';
+
+export interface Application {
+  id: string;
+  deal_id: string;
+  operator_id: string;
+  status: ApplicationStatus;
+  proposed_angle?: string;
+  estimated_post_time_window?: string;
+  draft_copy?: string;
+  accept_disclosure: boolean;
+  accept_no_engagement_buying: boolean;
+  language?: string;
+  audience_fit?: string;
+  portfolio_links?: string;
+  applied_at?: string;
+  shortlisted_at?: string;
+  selected_at?: string;
+  rejected_at?: string;
+  withdrawn_at?: string;
+  ai_score?: number;
+  ai_notes?: string;
+  metadata?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApplyMissionRequest {
+  proposed_angle?: string;
+  estimated_post_time_window?: string;
+  draft_copy?: string;
+  accept_disclosure: boolean;
+  accept_no_engagement_buying: boolean;
+  language?: string;
+  audience_fit?: string;
+  portfolio_links?: string;
 }

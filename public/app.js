@@ -15,7 +15,7 @@ async function fetchApi(endpoint, options = {}) {
     ...options.headers,
   };
 
-  // Add auth header if session token exists
+  // Add auth header if session token exists in localStorage (legacy)
   const sessionToken = localStorage.getItem('session_token');
   if (sessionToken) {
     headers['Authorization'] = `Bearer ${sessionToken}`;
@@ -24,6 +24,7 @@ async function fetchApi(endpoint, options = {}) {
   const response = await fetch(url, {
     ...options,
     headers,
+    credentials: 'include', // Include cookies for session auth
   });
 
   const data = await response.json();
@@ -131,6 +132,48 @@ async function submitMission(missionId, submissionUrl, submissionContent = null)
 }
 
 // ============================================
+// Applications (Apply → AI Selection Model)
+// ============================================
+
+async function applyForMission(dealId, formData) {
+  const data = await fetchApi(`/missions/${dealId}/apply`, {
+    method: 'POST',
+    body: JSON.stringify({
+      proposed_angle: formData.proposed_angle || null,
+      estimated_post_time_window: formData.estimated_post_time_window || null,
+      draft_copy: formData.draft_copy || null,
+      accept_disclosure: formData.accept_disclosure || false,
+      accept_no_engagement_buying: formData.accept_no_engagement_buying || false,
+      language: formData.language || null,
+      audience_fit: formData.audience_fit || null,
+      portfolio_links: formData.portfolio_links || null,
+    }),
+  });
+  return data.data;
+}
+
+async function loadMyApplications(status = null) {
+  let url = '/my/applications';
+  if (status) {
+    url += `?status=${status}`;
+  }
+  const data = await fetchApi(url);
+  return data.data;
+}
+
+async function getApplicationDetails(applicationId) {
+  const data = await fetchApi(`/applications/${applicationId}`);
+  return data.data;
+}
+
+async function withdrawApplication(applicationId) {
+  const data = await fetchApi(`/applications/${applicationId}/withdraw`, {
+    method: 'POST',
+  });
+  return data.data;
+}
+
+// ============================================
 // Session Management
 // ============================================
 
@@ -214,6 +257,10 @@ window.HumanAds = {
   loadMyMissions,
   acceptMission,
   submitMission,
+  applyForMission,
+  loadMyApplications,
+  getApplicationDetails,
+  withdrawApplication,
   isLoggedIn,
   saveSession,
   clearSession,
