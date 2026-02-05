@@ -455,7 +455,7 @@
         `;
 
         // Initialize side menu with admin items
-        SideMenu.init(true);
+        SideMenu.init(true, true);
       } catch (e) {
         console.error('Admin dashboard error:', e);
         content.innerHTML = `
@@ -465,7 +465,7 @@
             <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 16px;">Retry</button>
           </div>
         `;
-        SideMenu.init(true);
+        SideMenu.init(true, true);
       }
     })();
 

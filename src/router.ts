@@ -78,6 +78,7 @@ import {
   updateOperatorRole,
   listApplications,
   seedApplication,
+  updateApplication,
   listMissions,
   createSubmission,
   reviewMission,
@@ -828,6 +829,12 @@ async function handleAdminApi(
   // POST /api/admin/applications/seed - Seed application
   if (path === '/api/admin/applications/seed' && method === 'POST') {
     return seedApplication(request, env);
+  }
+
+  // PUT /api/admin/applications/:id - Update application status
+  const updateAppMatch = path.match(/^\/api\/admin\/applications\/([a-zA-Z0-9]+)$/);
+  if (updateAppMatch && method === 'PUT') {
+    return updateApplication(request, env, updateAppMatch[1]);
   }
 
   // ============================================

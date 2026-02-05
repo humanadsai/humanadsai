@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applications - Admin - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .admin-page { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .admin-header h1 { font-family: var(--font-mono); font-size: 1.5rem; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; }
+    .filter-chip:hover, .filter-chip.active { border-color: var(--color-primary); color: var(--color-primary); }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; }
+    .data-table th { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; }
+    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-family: var(--font-mono); font-weight: 600; }
+    .status-badge.pending { background: rgba(255,149,0,0.2); color: #ff9500; }
+    .status-badge.selected { background: rgba(52,199,89,0.2); color: #34c759; }
+    .status-badge.rejected { background: rgba(255,59,48,0.2); color: #ff3b30; }
+    .status-badge.withdrawn { background: rgba(255,255,255,0.1); color: var(--color-text-muted); }
+    .status-badge.shortlisted { background: rgba(0,122,255,0.2); color: #007aff; }
+    .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 4px; font-family: var(--font-mono); cursor: pointer; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
+    .btn-sm:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .btn-sm.success { background: #34c759; border-color: #34c759; color: white; }
+    .btn-sm.danger { background: #ff3b30; border-color: #ff3b30; color: white; }
+    .loading, .empty { text-align: center; padding: 40px; color: var(--color-text-muted); }
+    .id-cell { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
+    .table-container { overflow-x: auto; }
+    .action-btns { display: flex; gap: 4px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/><circle cx="14" cy="20" r="4" fill="#FF6B35"/><path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="admin-page" id="content">
+      <div class="loading">Loading applications...</div>
+    </main>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script src="/js/humanads.js"></script>
+  <script>
+    let currentStatus = null;
+
+    async function loadApplications(status = null) {
+      currentStatus = status;
+      const content = document.getElementById('content');
+      content.innerHTML = '<div class="loading">Loading applications...</div>';
+
+      try {
+        const url = status ? `/admin/applications?status=${status}` : '/admin/applications';
+        const res = await HumanAds.fetchApi(url);
+
+        if (!res.success) {
+          content.innerHTML = `<div class="empty">Error: ${res.error?.message || 'Failed to load'}</div>`;
+          return;
+        }
+
+        const applications = res.data.applications || [];
+
+        content.innerHTML = `
+          <div class="admin-header">
+            <h1>Applications (${applications.length})</h1>
+          </div>
+          <div class="filters">
+            <span class="filter-chip ${!status ? 'active' : ''}" onclick="loadApplications()">All</span>
+            <span class="filter-chip ${status === 'pending' ? 'active' : ''}" onclick="loadApplications('pending')">Pending</span>
+            <span class="filter-chip ${status === 'shortlisted' ? 'active' : ''}" onclick="loadApplications('shortlisted')">Shortlisted</span>
+            <span class="filter-chip ${status === 'selected' ? 'active' : ''}" onclick="loadApplications('selected')">Selected</span>
+            <span class="filter-chip ${status === 'rejected' ? 'active' : ''}" onclick="loadApplications('rejected')">Rejected</span>
+          </div>
+          <div class="table-container">
+            ${applications.length === 0 ? '<div class="empty">No applications found</div>' : `
+              <table class="data-table">
+                <thead>
+                  <tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Applied</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                  ${applications.map(a => `
+                    <tr>
+                      <td class="id-cell">${a.id.substring(0,8)}...</td>
+                      <td>${HumanAds.escapeHtml(a.deal_title || a.deal_id?.substring(0,8) || 'N/A')}</td>
+                      <td>@${HumanAds.escapeHtml(a.x_handle || 'unknown')}</td>
+                      <td><span class="status-badge ${a.status}">${a.status}</span></td>
+                      <td>${HumanAds.formatDate(a.created_at)}</td>
+                      <td class="action-btns">
+                        ${a.status === 'pending' ? `
+                          <button class="btn-sm success" onclick="updateApplication('${a.id}', 'shortlisted')">Shortlist</button>
+                          <button class="btn-sm danger" onclick="updateApplication('${a.id}', 'rejected')">Reject</button>
+                        ` : a.status === 'shortlisted' ? `
+                          <button class="btn-sm success" onclick="updateApplication('${a.id}', 'selected')">Select</button>
+                          <button class="btn-sm danger" onclick="updateApplication('${a.id}', 'rejected')">Reject</button>
+                        ` : `
+                          <button class="btn-sm" disabled>-</button>
+                        `}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `}
+          </div>
+        `;
+      } catch (e) {
+        content.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+      }
+    }
+
+    async function updateApplication(id, status) {
+      if (!confirm(`Update application status to ${status}?`)) return;
+
+      try {
+        const res = await HumanAds.fetchApi(`/admin/applications/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ status })
+        });
+        if (res.success) {
+          HumanAds.showAlert(`Application ${status}!`);
+          loadApplications(currentStatus);
+        } else {
+          HumanAds.showAlert(res.error?.message || 'Failed', 'error');
+        }
+      } catch (e) {
+        HumanAds.showAlert(e.message, 'error');
+      }
+    }
+
+    (async function() {
+      const meRes = await HumanAds.fetchApi('/me');
+      if (!meRes.success || !meRes.data?.user?.is_admin) {
+        window.location.href = '/admin';
+        return;
+      }
+      const params = new URLSearchParams(window.location.search);
+      loadApplications(params.get('status'));
+      SideMenu.init(true, true);
+    })();
+  </script>
+</body>
+</html>

@@ -570,6 +570,74 @@ export async function listApplications(request: Request, env: Env): Promise<Resp
   }
 }
 
+export async function updateApplication(
+  request: Request,
+  env: Env,
+  applicationId: string
+): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  try {
+    const body = await request.json<{ status: string }>();
+
+    if (!body.status) {
+      return errors.invalidRequest(requestId, { message: 'status is required' });
+    }
+
+    const validStatuses = ['pending', 'shortlisted', 'selected', 'rejected', 'withdrawn'];
+    if (!validStatuses.includes(body.status)) {
+      return errors.invalidRequest(requestId, { message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    // Check if application exists
+    const existing = await env.DB.prepare('SELECT * FROM applications WHERE id = ?')
+      .bind(applicationId)
+      .first<Application>();
+
+    if (!existing) {
+      return errors.notFound(requestId, 'Application');
+    }
+
+    // Update application
+    const selectedAt = body.status === 'selected' ? "datetime('now')" : 'selected_at';
+    await env.DB.prepare(
+      `UPDATE applications SET
+         status = ?,
+         selected_at = ${body.status === 'selected' ? "datetime('now')" : 'selected_at'},
+         updated_at = datetime('now')
+       WHERE id = ?`
+    )
+      .bind(body.status, applicationId)
+      .run();
+
+    // If selected, create a mission
+    if (body.status === 'selected') {
+      const missionId = crypto.randomUUID().replace(/-/g, '');
+      await env.DB.prepare(
+        `INSERT INTO missions (id, deal_id, operator_id, status) VALUES (?, ?, ?, 'accepted')`
+      ).bind(missionId, existing.deal_id, existing.operator_id).run();
+    }
+
+    const application = await env.DB.prepare(
+      `SELECT a.*, o.x_handle, d.title as deal_title
+       FROM applications a
+       LEFT JOIN operators o ON a.operator_id = o.id
+       LEFT JOIN deals d ON a.deal_id = d.id
+       WHERE a.id = ?`
+    )
+      .bind(applicationId)
+      .first();
+
+    return success({ application }, requestId);
+  } catch (e) {
+    console.error('Update application error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
 export async function seedApplication(
   request: Request,
   env: Env
