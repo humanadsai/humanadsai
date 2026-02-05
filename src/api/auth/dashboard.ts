@@ -1577,7 +1577,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       </div>
       <p>© 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
       <a href="/auth/logout" class="logout-link">Sign out</a>
-      <button type="button" class="delete-link" id="delete-account-link" onclick="window.openDeleteAccountModal && window.openDeleteAccountModal()">Delete my account</button>
+      <button type="button" class="delete-link" id="delete-account-link" onclick="openDeleteAccountModal()">Delete my account</button>
     </footer>
 
     <!-- Delete Account Modal -->
@@ -1625,19 +1625,33 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
     </div>
 
     <script>
+      // Simple global function - this will be replaced by the IIFE below if it runs successfully
+      // Using function declaration (not window.xxx) for maximum iOS Safari compatibility
+      function openDeleteAccountModal() {
+        console.log('[Delete Modal] Fallback function called');
+        var modal = document.getElementById('delete-modal');
+        if (modal) {
+          modal.classList.add('active');
+          console.log('[Delete Modal] Modal opened (fallback)');
+        } else {
+          console.error('[Delete Modal] Modal element not found');
+          alert('Error: Could not open delete modal. Please refresh the page.');
+        }
+      }
+
       // Delete account functionality
       (function() {
         console.log('[Delete Modal] Initializing...');
 
-        const deleteModal = document.getElementById('delete-modal');
-        const deleteLink = document.getElementById('delete-account-link');
-        const cancelBtn = document.getElementById('delete-cancel-btn');
-        const actionBtn = document.getElementById('delete-action-btn');
-        const step1 = document.getElementById('delete-step-1');
-        const step2 = document.getElementById('delete-step-2');
-        const blockersDiv = document.getElementById('delete-blockers');
-        const confirmInput = document.getElementById('delete-confirm-input');
-        const deleteError = document.getElementById('delete-error');
+        var deleteModal = document.getElementById('delete-modal');
+        var deleteLink = document.getElementById('delete-account-link');
+        var cancelBtn = document.getElementById('delete-cancel-btn');
+        var actionBtn = document.getElementById('delete-action-btn');
+        var step1 = document.getElementById('delete-step-1');
+        var step2 = document.getElementById('delete-step-2');
+        var blockersDiv = document.getElementById('delete-blockers');
+        var confirmInput = document.getElementById('delete-confirm-input');
+        var deleteError = document.getElementById('delete-error');
 
         // Debug: Check if all elements are found
         console.log('[Delete Modal] Elements:', {
@@ -1658,9 +1672,9 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
           return;
         }
 
-        let currentStep = 1;
-        let canDelete = false;
-        let statusCheckFailed = false;
+        var currentStep = 1;
+        var canDelete = false;
+        var statusCheckFailed = false;
 
         // Helper to update button state
         function updateActionButton(disabled, text) {
@@ -1862,13 +1876,16 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
           }
         }
 
-        // Expose function globally for onclick fallback
+        // Override the global function with full implementation
+        // This replaces the simple fallback defined above
         window.openDeleteAccountModal = function() {
-          console.log('[Delete Modal] Called via onclick');
+          console.log('[Delete Modal] Full implementation called');
           deleteModal.classList.add('active');
           resetModal();
           checkDeleteStatus();
         };
+        // Also update the function reference for non-window calls
+        openDeleteAccountModal = window.openDeleteAccountModal;
 
         // Event listeners
         deleteLink.addEventListener('click', function(e) {
