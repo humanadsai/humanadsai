@@ -79,24 +79,11 @@ async function loadStats() {
 }
 
 // ============================================
-// Operator Registration
+// Authentication (X OAuth only)
 // ============================================
 
-async function registerOperator(xHandle) {
-  const data = await fetchApi('/operator/register', {
-    method: 'POST',
-    body: JSON.stringify({ x_handle: xHandle }),
-  });
-  return data.data;
-}
-
-async function verifyOperator(operatorId) {
-  const data = await fetchApi('/operator/verify', {
-    method: 'POST',
-    body: JSON.stringify({ operator_id: operatorId }),
-  });
-  return data.data;
-}
+// Note: Operator registration is now handled via X OAuth at /auth/x/login
+// The old manual registration and bio verification methods have been removed
 
 // ============================================
 // Missions
@@ -216,8 +203,6 @@ window.HumanAds = {
   fetchApi,
   formatCurrency,
   formatNumber,
-  registerOperator,
-  verifyOperator,
   loadAvailableMissions,
   loadMyMissions,
   acceptMission,

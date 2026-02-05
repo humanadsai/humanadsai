@@ -24,12 +24,12 @@
       </a>
     </header>
 
-    <!-- Registration Form -->
+    <!-- Registration -->
     <div class="page-container">
       <h1 class="page-title">Become a Human Promoter</h1>
 
-      <!-- Primary: Sign in with X -->
-      <div id="step-0" class="form-card">
+      <!-- Sign in with X -->
+      <div class="form-card">
         <div class="x-signin-section">
           <p class="x-signin-text">Connect your X account to get started</p>
           <a href="/auth/x/login" class="btn btn-x-signin btn-large" style="width: 100%;">
@@ -38,83 +38,48 @@
           </a>
         </div>
 
-        <div class="auth-divider">
-          <span>or verify manually</span>
+        <div style="margin-top: 24px; padding: 16px; background: rgba(255, 255, 255, 0.03); border-radius: 8px;">
+          <h3 style="font-size: 0.875rem; margin-bottom: 12px; color: var(--color-text);">What you'll get:</h3>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; color: var(--color-text-muted);">
+            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Access to sponsored content missions
+            </li>
+            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Fixed fees paid after approval
+            </li>
+            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Compliance-based rewards (not engagement)
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              No payment for likes/reposts/follows
+            </li>
+          </ul>
         </div>
 
-        <button id="show-manual-btn" class="btn btn-secondary" style="width: 100%;">
-          Verify with Bio Code
-        </button>
-      </div>
-
-      <!-- Alternative: Manual X Handle Entry -->
-      <div id="step-1" class="form-card" style="display: none;">
-        <form id="register-form">
-          <div class="form-group">
-            <label class="form-label" for="x-handle">Your X Handle</label>
-            <input
-              type="text"
-              id="x-handle"
-              class="form-input"
-              placeholder="@yourusername"
-              required
-              autocomplete="off"
-            >
-            <p class="form-hint">Enter your X username to start the verification process.</p>
-          </div>
-          <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
-            GET VERIFICATION CODE
-          </button>
-        </form>
-        <button id="back-to-signin" class="btn btn-secondary" style="width: 100%; margin-top: 12px;">
-          Back to Sign in with X
-        </button>
-      </div>
-
-      <!-- Step 2: Verification Code -->
-      <div id="step-2" class="form-card" style="display: none;">
-        <div class="verification-code">
-          <p class="form-hint">Add this code to your X bio:</p>
-          <div class="verification-code-value" id="verification-code">HUMANADS-XXXX-XXXX</div>
-          <button id="copy-code" class="btn btn-outline" style="margin-top: 12px;">
-            COPY CODE
-          </button>
-        </div>
-
-        <ol class="verification-instructions">
-          <li data-step="1.">Go to your X profile settings</li>
-          <li data-step="2.">Add the code to your bio (anywhere)</li>
-          <li data-step="3.">Click "Verify" below</li>
-          <li data-step="4.">You can remove the code after verification</li>
-        </ol>
-
-        <button id="verify-btn" class="btn btn-primary btn-large" style="width: 100%;">
-          VERIFY MY ACCOUNT
-        </button>
-
-        <p class="form-hint" style="text-align: center; margin-top: 16px;">
-          Code expires in <span id="expires-countdown">30:00</span>
+        <p style="margin-top: 20px; font-size: 0.75rem; color: var(--color-text-muted); text-align: center;">
+          By signing in, you agree to our
+          <a href="/terms.html" style="color: var(--color-primary);">Terms of Service</a> and
+          <a href="/privacy.html" style="color: var(--color-primary);">Privacy Policy</a>
         </p>
       </div>
 
-      <!-- Step 3: Success -->
-      <div id="step-3" class="form-card" style="display: none;">
-        <div style="text-align: center;">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" style="margin-bottom: 16px;">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-          <h2 style="margin-bottom: 16px;">You're Verified!</h2>
-          <p style="color: var(--color-text-muted); margin-bottom: 24px;">
-            Welcome to HumanAds. You can now accept missions and create sponsored content.
-          </p>
-          <a href="/missions" class="btn btn-primary btn-large" style="width: 100%;">
-            BROWSE MISSIONS
-          </a>
-          <a href="/guidelines-promoters.html" style="display: block; margin-top: 16px; color: var(--color-primary); font-size: 0.875rem;">
-            Read Promoter Guidelines
-          </a>
-        </div>
+      <!-- Already have missions? -->
+      <div style="text-align: center; margin-top: 24px;">
+        <a href="/missions" style="color: var(--color-text-muted); font-size: 0.875rem; text-decoration: none;">
+          ← Browse available missions first
+        </a>
       </div>
     </div>
 
@@ -140,108 +105,9 @@
 
   <script src="/app.js"></script>
   <script>
-    let operatorId = null;
-    let expiresAt = null;
-    let countdownInterval = null;
-
-    // Register form submission
-    document.getElementById('register-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = e.target.querySelector('button');
-      const xHandle = document.getElementById('x-handle').value.trim();
-
-      if (!xHandle) return;
-
-      HumanAds.setButtonLoading(btn, true);
-
-      try {
-        const result = await HumanAds.registerOperator(xHandle);
-
-        operatorId = result.operator_id;
-        expiresAt = new Date(result.expires_at);
-
-        document.getElementById('verification-code').textContent = result.verification_code;
-        document.getElementById('step-1').style.display = 'none';
-        document.getElementById('step-2').style.display = 'block';
-
-        startCountdown();
-      } catch (error) {
-        HumanAds.showAlert(error.message, 'error');
-      } finally {
-        HumanAds.setButtonLoading(btn, false);
-      }
-    });
-
-    // Copy code button
-    document.getElementById('copy-code').addEventListener('click', () => {
-      const code = document.getElementById('verification-code').textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        HumanAds.showAlert('Code copied to clipboard!');
-      });
-    });
-
-    // Verify button
-    document.getElementById('verify-btn').addEventListener('click', async () => {
-      const btn = document.getElementById('verify-btn');
-      HumanAds.setButtonLoading(btn, true);
-
-      try {
-        const result = await HumanAds.verifyOperator(operatorId);
-
-        // Save session
-        HumanAds.saveSession(result.session_token, result.session_expires_at);
-
-        // Show success
-        document.getElementById('step-2').style.display = 'none';
-        document.getElementById('step-3').style.display = 'block';
-
-        if (countdownInterval) {
-          clearInterval(countdownInterval);
-        }
-      } catch (error) {
-        HumanAds.showAlert(error.message, 'error');
-      } finally {
-        HumanAds.setButtonLoading(btn, false);
-      }
-    });
-
-    function startCountdown() {
-      const countdownEl = document.getElementById('expires-countdown');
-
-      countdownInterval = setInterval(() => {
-        const now = new Date();
-        const diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
-
-        if (diff <= 0) {
-          clearInterval(countdownInterval);
-          countdownEl.textContent = 'Expired';
-          HumanAds.showAlert('Verification code expired. Please try again.', 'error');
-          document.getElementById('step-2').style.display = 'none';
-          document.getElementById('step-1').style.display = 'block';
-          return;
-        }
-
-        const minutes = Math.floor(diff / 60);
-        const seconds = diff % 60;
-        countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-      }, 1000);
-    }
-
-    // Show manual verification
-    document.getElementById('show-manual-btn').addEventListener('click', () => {
-      document.getElementById('step-0').style.display = 'none';
-      document.getElementById('step-1').style.display = 'block';
-    });
-
-    // Back to sign in with X
-    document.getElementById('back-to-signin').addEventListener('click', () => {
-      document.getElementById('step-1').style.display = 'none';
-      document.getElementById('step-0').style.display = 'block';
-    });
-
     // Check if already logged in
     if (HumanAds.isLoggedIn()) {
-      window.location.href = '/missions';
+      window.location.href = '/dashboard';
     }
   </script>
 </body>
