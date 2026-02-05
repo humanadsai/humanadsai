@@ -598,17 +598,26 @@ async function verifySubmission(
 // Cancel reason codes
 type CancelReasonCode = 'WRONG_LINK' | 'POST_DELETED' | 'CANNOT_MEET_REQUIREMENTS' | 'NO_LONGER_INTERESTED' | 'OTHER';
 
-// Cancel window for submitted missions (30 minutes)
-const SUBMITTED_CANCEL_WINDOW_MINUTES = 30;
+// Cooldown period after canceling a submitted/verified mission (24 hours)
+const CANCEL_COOLDOWN_HOURS = 24;
 
 /**
  * Cancel a mission
  *
  * POST /api/missions/:id/cancel
  *
- * Allows operator to cancel their mission.
+ * Allows operator to cancel their mission before AI review starts.
  * - 'accepted' status: can always cancel
- * - 'submitted' status: can cancel within 30 minutes of submission
+ * - 'submitted' status: can cancel anytime (before AI review starts)
+ * - 'verified' status: can cancel anytime (before AI review starts)
+ *
+ * Non-cancelable:
+ * - 'paid', 'rejected' - final states
+ * - Future: 'under_review' when AI has started reviewing
+ *
+ * Abuse prevention:
+ * - 24-hour cooldown for re-applying to same deal after submitted/verified cancel
+ * - Track cancel counts in operator metadata for compliance scoring
  */
 export async function cancelMission(
   request: Request,
@@ -626,7 +635,7 @@ export async function cancelMission(
 
     const operator = authResult.operator!;
 
-    // Parse request body for reason (optional for accepted, recommended for submitted)
+    // Parse request body for reason
     let reasonCode: CancelReasonCode | null = null;
     let reasonNote: string | null = null;
     try {
@@ -652,42 +661,56 @@ export async function cancelMission(
     }
 
     // Check if mission can be cancelled based on status
-    const cancelableStatuses = ['accepted', 'submitted'];
+    // Cancelable: accepted, submitted, verified (before AI review starts)
+    // Non-cancelable: paid, rejected, expired (final states)
+    const cancelableStatuses = ['accepted', 'submitted', 'verified'];
     if (!cancelableStatuses.includes(mission.status)) {
       return errors.invalidRequest(requestId, {
-        message: `Cannot cancel mission with status '${mission.status}'. Only missions in 'accepted' or 'submitted' status can be cancelled.`,
+        message: `Cannot cancel mission with status '${mission.status}'. Only missions before AI review can be cancelled.`,
         code: 'not_cancelable',
       });
     }
 
-    // For submitted missions, check the 30-minute window
-    if (mission.status === 'submitted') {
-      if (!mission.submitted_at) {
-        return errors.invalidRequest(requestId, {
-          message: 'Mission submission time not recorded.',
-          code: 'not_cancelable',
-        });
-      }
+    // Check if AI has started reviewing (future: check review_started_at field)
+    // For now, we allow cancellation of submitted/verified since we don't have UNDER_REVIEW status yet
 
-      const submittedAt = new Date(mission.submitted_at);
-      const now = new Date();
-      const minutesSinceSubmission = (now.getTime() - submittedAt.getTime()) / (1000 * 60);
+    // Determine if this is a post-submission cancel (for cooldown and penalty tracking)
+    const isPostSubmissionCancel = ['submitted', 'verified'].includes(mission.status);
 
-      if (minutesSinceSubmission > SUBMITTED_CANCEL_WINDOW_MINUTES) {
-        return errors.invalidRequest(requestId, {
-          message: `Cannot cancel submitted mission after ${SUBMITTED_CANCEL_WINDOW_MINUTES} minutes. Your submission is now under review.`,
-          code: 'cancel_window_expired',
-        });
-      }
-    }
+    // Calculate cooldown expiry (24 hours from now for post-submission cancels)
+    const cooldownUntil = isPostSubmissionCancel
+      ? new Date(Date.now() + CANCEL_COOLDOWN_HOURS * 60 * 60 * 1000).toISOString()
+      : null;
 
-    // Update mission status and release slot
+    // Build cancel metadata
     const cancelMetadata = JSON.stringify({
       cancelled_at: new Date().toISOString(),
       reason_code: reasonCode,
       reason_note: reasonNote,
       previous_status: mission.status,
+      cooldown_until: cooldownUntil,
     });
+
+    // Build operator metadata update for tracking
+    const operatorMetadataUpdate = isPostSubmissionCancel
+      ? `json_set(
+          json_set(
+            COALESCE(metadata, '{}'),
+            '$.cancel_count',
+            COALESCE(json_extract(metadata, '$.cancel_count'), 0) + 1
+          ),
+          '$.submit_cancel_count_30d',
+          COALESCE(json_extract(metadata, '$.submit_cancel_count_30d'), 0) + 1,
+          '$.last_submit_cancel_at',
+          datetime('now')
+        )`
+      : `json_set(
+          COALESCE(metadata, '{}'),
+          '$.cancel_count',
+          COALESCE(json_extract(metadata, '$.cancel_count'), 0) + 1,
+          '$.last_cancel_at',
+          datetime('now')
+        )`;
 
     await env.DB.batch([
       // Update mission status to expired (cancelled)
@@ -698,13 +721,20 @@ export async function cancelMission(
           updated_at = datetime('now')
          WHERE id = ?`
       ).bind(cancelMetadata, missionId),
-      // Update application status to cancelled if exists
+      // Update application status to cancelled with cooldown
       env.DB.prepare(
         `UPDATE applications SET
           status = 'cancelled',
+          metadata = json_set(
+            COALESCE(metadata, '{}'),
+            '$.cancelled_at',
+            datetime('now'),
+            '$.cooldown_until',
+            ?
+          ),
           updated_at = datetime('now')
          WHERE deal_id = ? AND operator_id = ?`
-      ).bind(mission.deal_id, operator.id),
+      ).bind(cooldownUntil, mission.deal_id, operator.id),
       // Release slot on deal
       env.DB.prepare(
         `UPDATE deals SET
@@ -716,25 +746,20 @@ export async function cancelMission(
       // Track cancellation count on operator (for abuse prevention)
       env.DB.prepare(
         `UPDATE operators SET
-          metadata = json_set(
-            COALESCE(metadata, '{}'),
-            '$.cancel_count',
-            COALESCE(json_extract(metadata, '$.cancel_count'), 0) + 1,
-            '$.last_cancel_at',
-            datetime('now')
-          ),
+          metadata = ${operatorMetadataUpdate},
           updated_at = datetime('now')
          WHERE id = ?`
       ).bind(operator.id),
     ]);
 
-    const wasSubmitted = mission.status === 'submitted';
+    const wasSubmittedOrVerified = isPostSubmissionCancel;
     return success(
       {
         mission_id: missionId,
         status: 'cancelled',
-        message: wasSubmitted
-          ? 'Submission cancelled successfully. The slot has been released.'
+        cooldown_until: cooldownUntil,
+        message: wasSubmittedOrVerified
+          ? `Submission cancelled successfully. You can re-apply to this mission after ${CANCEL_COOLDOWN_HOURS} hours.`
           : 'Mission cancelled successfully. The slot has been released.',
       },
       requestId

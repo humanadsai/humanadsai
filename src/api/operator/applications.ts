@@ -72,8 +72,29 @@ export async function applyForMission(
       .first<Application>();
 
     if (existing) {
-      if (existing.status === 'withdrawn') {
-        // Allow re-application if previously withdrawn
+      // Allow re-application if previously withdrawn or cancelled
+      if (existing.status === 'withdrawn' || existing.status === 'cancelled') {
+        // Check cooldown for cancelled applications
+        if (existing.status === 'cancelled' && existing.metadata) {
+          try {
+            const metadata = JSON.parse(existing.metadata as string);
+            if (metadata.cooldown_until) {
+              const cooldownUntil = new Date(metadata.cooldown_until);
+              const now = new Date();
+              if (now < cooldownUntil) {
+                const hoursRemaining = Math.ceil((cooldownUntil.getTime() - now.getTime()) / (1000 * 60 * 60));
+                return errors.invalidRequest(requestId, {
+                  message: `You cannot re-apply to this mission yet. Please wait ${hoursRemaining} more hour${hoursRemaining !== 1 ? 's' : ''}.`,
+                  code: 'cooldown_active',
+                  cooldown_until: metadata.cooldown_until,
+                });
+              }
+            }
+          } catch {
+            // Metadata parse error, allow re-application
+          }
+        }
+
         await env.DB.prepare(
           `UPDATE applications SET
             status = 'applied',
@@ -87,6 +108,7 @@ export async function applyForMission(
             portfolio_links = ?,
             applied_at = datetime('now'),
             withdrawn_at = NULL,
+            metadata = NULL,
             updated_at = datetime('now')
            WHERE id = ?`
         )
