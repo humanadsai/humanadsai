@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply for Mission - HumanAds</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .apply-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+    .apply-header {
+      margin-bottom: 24px;
+    }
+    .apply-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .apply-fee {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .apply-fee-label {
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+    .apply-fee-amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .requirements-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .requirements-box h4 {
+      margin-bottom: 12px;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    .requirements-box ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .requirements-box li {
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .form-textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    .checkbox-group {
+      padding: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .checkbox-group input[type="checkbox"] {
+      margin-top: 3px;
+      accent-color: var(--color-primary);
+    }
+    .apply-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .apply-actions .btn {
+      flex: 1;
+      padding: 14px;
+    }
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: var(--color-text-muted);
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+    .back-link:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+    </header>
+
+    <main class="main">
+      <div class="apply-container">
+        <a href="/missions" class="back-link">&larr; Back to Missions</a>
+
+        <div id="loading" class="loading">
+          <span class="spinner"></span>
+          <p>Loading mission...</p>
+        </div>
+
+        <div id="apply-form" style="display: none;">
+          <div class="apply-header">
+            <h1 class="apply-title" id="mission-title">Apply for Mission</h1>
+          </div>
+
+          <div class="apply-fee">
+            <span class="apply-fee-label">Fixed fee upon approval</span>
+            <span class="apply-fee-amount" id="mission-fee">$0.00</span>
+          </div>
+
+          <div class="requirements-box">
+            <h4>Requirements</h4>
+            <ul id="requirements-list">
+              <li>Include required disclosure (e.g., #Ad)</li>
+              <li>Follow content guidelines</li>
+            </ul>
+          </div>
+
+          <form id="application-form">
+            <div class="form-group">
+              <label class="form-label">Your angle/approach (optional)</label>
+              <textarea id="proposed-angle" class="form-textarea" placeholder="How will you approach this post? What makes your perspective unique?"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">When can you post?</label>
+              <select id="post-time" class="form-select">
+                <option value="">Select timeframe...</option>
+                <option value="today">Today</option>
+                <option value="tomorrow">Tomorrow</option>
+                <option value="within_48h">Within 48 hours</option>
+                <option value="this_week">This week</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Draft copy (optional)</label>
+              <textarea id="draft-copy" class="form-textarea" placeholder="Share a draft of what you plan to post..."></textarea>
+            </div>
+
+            <div class="checkbox-group">
+              <label>
+                <input type="checkbox" id="accept-disclosure" required>
+                <span>I will include proper disclosure (e.g., #Ad, #Sponsored) as required by platform guidelines and regulations</span>
+              </label>
+            </div>
+
+            <div class="checkbox-group">
+              <label>
+                <input type="checkbox" id="no-engagement-buying" required>
+                <span>I confirm I will not purchase engagement (likes, retweets, followers) for this post</span>
+              </label>
+            </div>
+
+            <div class="apply-actions">
+              <a href="/missions" class="btn btn-outline">Cancel</a>
+              <button type="submit" class="btn btn-primary" id="submit-btn">Submit Application</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <!-- Confirmation Dialog -->
+    <div class="confirm-dialog-overlay" id="confirm-dialog" style="display: none;">
+      <div class="confirm-dialog">
+        <h3>Confirm Application</h3>
+        <div class="confirm-checklist">
+          <div class="confirm-item">
+            <span class="confirm-label">Mission:</span>
+            <span id="confirm-title"></span>
+          </div>
+          <div class="confirm-item">
+            <span class="confirm-label">Reward:</span>
+            <span id="confirm-reward"></span>
+          </div>
+          <div class="confirm-item confirm-warning">
+            <span>Must include: #ad or #Sponsored</span>
+          </div>
+          <div class="confirm-item confirm-warning">
+            <span>No engagement ask (no follow/like/repost)</span>
+          </div>
+          <div class="confirm-item confirm-wallet-warning" id="wallet-warning" style="display: none;">
+            <span>Wallet not set — you may miss payout</span>
+            <a href="/settings/payout">Set wallet</a>
+          </div>
+        </div>
+        <div class="confirm-actions">
+          <button class="btn btn-outline" onclick="hideConfirmDialog()">Cancel</button>
+          <button class="btn btn-primary" id="confirm-apply-btn">Apply now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const dealId = urlParams.get('id');
+    let missionData = null;
+
+    async function loadMission() {
+      if (!dealId) {
+        window.location.href = '/missions';
+        return;
+      }
+
+      try {
+        const response = await HumanAds.fetchApi(`/deals/${dealId}`);
+        missionData = response.data.deal;
+
+        document.getElementById('mission-title').textContent = missionData.title;
+        document.getElementById('mission-fee').textContent = HumanAds.formatCurrency(missionData.reward_amount);
+
+        // Build requirements
+        const requirements = missionData.requirements || {};
+        const contentType = requirements.content_type || 'original_post';
+        const hashtags = requirements.hashtags || [];
+
+        let reqItems = ['Include required disclosure (e.g., #Ad)'];
+        if (contentType === 'quote_post_commentary') {
+          reqItems.push('Create a quote post with your commentary');
+        } else {
+          reqItems.push('Create an original post');
+        }
+        if (hashtags.length > 0) {
+          reqItems.push(`Include hashtags: ${hashtags.join(', ')}`);
+        }
+        reqItems.push('Post must remain live for review');
+
+        document.getElementById('requirements-list').innerHTML = reqItems.map(r => `<li>${r}</li>`).join('');
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('apply-form').style.display = 'block';
+      } catch (error) {
+        document.getElementById('loading').innerHTML = `
+          <p style="color: #F44336;">Failed to load mission.</p>
+          <a href="/missions" class="btn btn-outline" style="margin-top: 16px;">Back to Missions</a>
+        `;
+      }
+    }
+
+    let hasWallet = false;
+
+    function showConfirmDialog() {
+      document.getElementById('confirm-title').textContent = missionData.title;
+      document.getElementById('confirm-reward').textContent = HumanAds.formatCurrency(missionData.reward_amount);
+
+      // Show wallet warning if no wallet set
+      const walletWarning = document.getElementById('wallet-warning');
+      walletWarning.style.display = hasWallet ? 'none' : 'flex';
+
+      document.getElementById('confirm-dialog').style.display = 'flex';
+    }
+
+    function hideConfirmDialog() {
+      document.getElementById('confirm-dialog').style.display = 'none';
+    }
+
+    async function doSubmit() {
+      const submitBtn = document.getElementById('submit-btn');
+      const confirmBtn = document.getElementById('confirm-apply-btn');
+      HumanAds.setButtonLoading(submitBtn, true);
+      HumanAds.setButtonLoading(confirmBtn, true);
+
+      try {
+        const formData = {
+          proposed_angle: document.getElementById('proposed-angle').value.trim(),
+          estimated_post_time_window: document.getElementById('post-time').value,
+          draft_copy: document.getElementById('draft-copy').value.trim(),
+          accept_disclosure: document.getElementById('accept-disclosure').checked,
+          accept_no_engagement_buying: document.getElementById('no-engagement-buying').checked,
+        };
+
+        await HumanAds.applyForMission(dealId, formData);
+
+        // Redirect to missions page with success message
+        window.location.href = '/missions?applied=1';
+      } catch (error) {
+        HumanAds.showAlert(error.message || 'Failed to submit application.', 'error');
+        HumanAds.setButtonLoading(submitBtn, false);
+        HumanAds.setButtonLoading(confirmBtn, false);
+        hideConfirmDialog();
+      }
+    }
+
+    document.getElementById('application-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const acceptDisclosure = document.getElementById('accept-disclosure').checked;
+      const noEngagementBuying = document.getElementById('no-engagement-buying').checked;
+
+      if (!acceptDisclosure || !noEngagementBuying) {
+        HumanAds.showAlert('Please check both required boxes.', 'error');
+        return;
+      }
+
+      // Show confirmation dialog instead of submitting directly
+      showConfirmDialog();
+    });
+
+    // Confirm button handler
+    document.getElementById('confirm-apply-btn').addEventListener('click', doSubmit);
+
+    // Check auth and load mission
+    (async () => {
+      try {
+        const response = await HumanAds.fetchApi('/me');
+        if (!response.data.xConnected) {
+          window.location.href = `/auth/x/login?redirect=${encodeURIComponent('/missions/apply.html?id=' + dealId)}`;
+          return;
+        }
+        // Check if wallet is set
+        hasWallet = !!response.data.user?.evm_wallet_address;
+        loadMission();
+      } catch (error) {
+        window.location.href = `/auth/x/login?redirect=${encodeURIComponent('/missions/apply.html?id=' + dealId)}`;
+      }
+    })();
+  </script>
+</body>
+</html>
