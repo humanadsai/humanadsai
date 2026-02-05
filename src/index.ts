@@ -1,5 +1,6 @@
 import type { Env } from './types';
 import { handleRequest } from './router';
+import { handleScheduled } from './scheduled/overdue-checker';
 
 // Durable Objects のエクスポート
 export { NonceStore } from './durable-objects/nonce-store';
@@ -11,6 +12,9 @@ export { RateLimiter } from './durable-objects/rate-limiter';
  * Ads by AI. Promoted by Humans.
  */
 export default {
+  /**
+   * HTTP Request Handler
+   */
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
       const response = await handleRequest(request, env);
@@ -81,5 +85,13 @@ export default {
         { status: 500 }
       );
     }
+  },
+
+  /**
+   * Scheduled Job Handler (Cron Trigger)
+   * Runs every 15 minutes to check for overdue A-Plan payments
+   */
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    await handleScheduled(controller, env, ctx);
   },
 };

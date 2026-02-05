@@ -17,6 +17,7 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
     const deals = await env.DB.prepare(
       `SELECT d.id, d.title, d.description, d.requirements, d.reward_amount,
         d.max_participants, d.current_participants, d.expires_at, d.created_at,
+        d.metadata,
         a.name as agent_name
        FROM deals d
        JOIN agents a ON d.agent_id = a.id
@@ -31,17 +32,30 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
 
     return success(
       {
-        deals: deals.results.map((d: Record<string, unknown>) => ({
-          id: d.id,
-          title: d.title,
-          description: d.description,
-          requirements: JSON.parse(d.requirements as string),
-          reward_amount: d.reward_amount,
-          remaining_slots: (d.max_participants as number) - (d.current_participants as number),
-          agent_name: d.agent_name,
-          expires_at: d.expires_at,
-          created_at: d.created_at,
-        })),
+        deals: deals.results.map((d: Record<string, unknown>) => {
+          // Parse metadata to extract is_sample flag
+          let isSample = false;
+          if (d.metadata) {
+            try {
+              const meta = JSON.parse(d.metadata as string);
+              isSample = meta.is_sample === true;
+            } catch {
+              // ignore parse errors
+            }
+          }
+          return {
+            id: d.id,
+            title: d.title,
+            description: d.description,
+            requirements: JSON.parse(d.requirements as string),
+            reward_amount: d.reward_amount,
+            remaining_slots: (d.max_participants as number) - (d.current_participants as number),
+            agent_name: d.agent_name,
+            expires_at: d.expires_at,
+            created_at: d.created_at,
+            is_sample: isSample,
+          };
+        }),
         pagination: {
           limit,
           offset,
@@ -78,6 +92,17 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
       return errors.notFound(requestId, 'Deal');
     }
 
+    // Parse metadata to extract is_sample flag
+    let isSample = false;
+    if (deal.metadata) {
+      try {
+        const meta = JSON.parse(deal.metadata as string);
+        isSample = meta.is_sample === true;
+      } catch {
+        // ignore parse errors
+      }
+    }
+
     return success(
       {
         deal: {
@@ -90,6 +115,7 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
           agent_name: deal.agent_name,
           expires_at: deal.expires_at,
           created_at: deal.created_at,
+          is_sample: isSample,
         },
       },
       requestId
