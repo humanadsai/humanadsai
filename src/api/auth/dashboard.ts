@@ -1232,16 +1232,9 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       </button>
     </header>
 
-    <!-- Hamburger Menu -->
-    <nav class="hamburger-menu" id="hamburger-menu">
-      <a href="/dashboard" class="menu-item active">My Missions</a>
-      <a href="/missions" class="menu-item">Explore Missions</a>
-      <div class="menu-divider"></div>
-      <span class="menu-section-label">Settings</span>
-      <a href="/settings/payout" class="menu-item">Payout Wallets</a>
-      <a href="/settings/account/delete" class="menu-item">Account</a>
-      <div class="menu-divider"></div>
-      <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
+    <!-- Hamburger Menu (content managed by side-menu.js) -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false">
+      <!-- Menu content rendered by SideMenu.init() -->
     </nav>
     <div class="menu-overlay" id="menu-overlay"></div>
 
@@ -1279,7 +1272,11 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
       </div>
     </section>
 
+    <script src="/js/side-menu.js"></script>
     <script>
+      // Initialize side menu (logged-in page)
+      SideMenu.init(true);
+
       // Format currency
       function formatCurrency(cents) {
         return '$' + (cents / 100).toFixed(2);
@@ -1436,23 +1433,6 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
 
       // Load my missions on page load
       loadMyMissions();
-
-      // Hamburger menu toggle
-      const hamburgerBtn = document.getElementById('hamburger-btn');
-      const hamburgerMenu = document.getElementById('hamburger-menu');
-      const menuOverlay = document.getElementById('menu-overlay');
-
-      hamburgerBtn.addEventListener('click', () => {
-        hamburgerMenu.classList.toggle('open');
-        menuOverlay.classList.toggle('open');
-        hamburgerBtn.classList.toggle('open');
-      });
-
-      menuOverlay.addEventListener('click', () => {
-        hamburgerMenu.classList.remove('open');
-        menuOverlay.classList.remove('open');
-        hamburgerBtn.classList.remove('open');
-      });
     </script>
 
     <!-- Footer -->

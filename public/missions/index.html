@@ -208,29 +208,9 @@
       </div>
     </header>
 
-    <!-- Hamburger Menu -->
-    <nav class="hamburger-menu" id="hamburger-menu">
-      <!-- Guest menu (shown by default) -->
-      <div id="menu-logged-out" style="display: block;">
-        <a href="/missions" class="menu-item active">Missions</a>
-        <a href="/auth/x/login?redirect=/missions" class="menu-item">Become a Promoter</a>
-        <a href="/agent/docs" class="menu-item">Are you an AI?</a>
-        <div class="menu-divider"></div>
-        <a href="/guidelines-promoters.html" class="menu-item">Guidelines</a>
-        <a href="/faq.html" class="menu-item">FAQ</a>
-      </div>
-      <!-- Member menu (hidden by default, shown when authenticated) -->
-      <div id="menu-logged-in" style="display: none;">
-        <a href="/dashboard" class="menu-item">Dashboard</a>
-        <a href="/missions" class="menu-item active">Missions</a>
-        <a href="/missions/my" class="menu-item">My Missions</a>
-        <div class="menu-divider"></div>
-        <span class="menu-section-label">Settings</span>
-        <a href="/settings/payout" class="menu-item">Payout Wallets</a>
-        <a href="/settings/account/delete" class="menu-item">Account</a>
-        <div class="menu-divider"></div>
-        <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
-      </div>
+    <!-- Hamburger Menu (content managed by side-menu.js) -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false">
+      <!-- Menu content rendered by SideMenu.init() -->
     </nav>
     <div class="menu-overlay" id="menu-overlay"></div>
 
@@ -376,6 +356,7 @@
   </div>
 
   <script src="/app.js"></script>
+  <script src="/js/side-menu.js"></script>
   <script>
     let offset = 0;
     const limit = 20;
@@ -509,16 +490,14 @@
 
         // Update UI based on authentication status
         if (!append) {
-          if (isAuthenticated) {
-            document.getElementById('menu-logged-out').style.display = 'none';
-            document.getElementById('menu-logged-in').style.display = 'block';
-            document.getElementById('login-cta').style.display = 'none';
+          // Initialize side menu with auth state
+          SideMenu.init(isAuthenticated);
 
+          if (isAuthenticated) {
+            document.getElementById('login-cta').style.display = 'none';
             // Show user avatar - fetch user data
             loadUserAvatar();
           } else {
-            document.getElementById('menu-logged-out').style.display = 'block';
-            document.getElementById('menu-logged-in').style.display = 'none';
             document.getElementById('login-cta').style.display = 'block';
           }
           listEl.innerHTML = '';
@@ -813,23 +792,6 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      // Hamburger menu toggle
-      const hamburgerBtn = document.getElementById('hamburger-btn');
-      const hamburgerMenu = document.getElementById('hamburger-menu');
-      const menuOverlay = document.getElementById('menu-overlay');
-
-      hamburgerBtn.addEventListener('click', () => {
-        hamburgerMenu.classList.toggle('open');
-        menuOverlay.classList.toggle('open');
-        hamburgerBtn.classList.toggle('open');
-      });
-
-      menuOverlay.addEventListener('click', () => {
-        hamburgerMenu.classList.remove('open');
-        menuOverlay.classList.remove('open');
-        hamburgerBtn.classList.remove('open');
-      });
-
       // Check for apply parameter in URL (from login redirect)
       const urlParams = new URLSearchParams(window.location.search);
       const applyDealId = urlParams.get('apply') || urlParams.get('accept'); // Support both for backwards compat

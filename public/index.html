@@ -123,29 +123,9 @@
       </div>
     </header>
 
-    <!-- Hamburger Menu (content changes based on auth state) -->
-    <nav class="hamburger-menu" id="hamburger-menu">
-      <!-- Logged out menu (default) -->
-      <div id="menu-logged-out">
-        <a href="/missions" class="menu-item">Missions</a>
-        <a href="/auth/x/login" class="menu-item">Become a Promoter</a>
-        <a href="/agent/docs" class="menu-item">Are you an AI?</a>
-        <div class="menu-divider"></div>
-        <a href="/guidelines-promoters.html" class="menu-item">Guidelines</a>
-        <a href="/faq.html" class="menu-item">FAQ</a>
-      </div>
-      <!-- Logged in menu (hidden by default) -->
-      <div id="menu-logged-in" style="display: none;">
-        <a href="/dashboard" class="menu-item">Dashboard</a>
-        <a href="/missions" class="menu-item">Missions</a>
-        <a href="/missions/my" class="menu-item">My Missions</a>
-        <div class="menu-divider"></div>
-        <span class="menu-section-label">Settings</span>
-        <a href="/settings/payout" class="menu-item">Payout Wallets</a>
-        <a href="/settings/account/delete" class="menu-item">Account</a>
-        <div class="menu-divider"></div>
-        <a href="/auth/logout" class="menu-item menu-item-danger">Sign out</a>
-      </div>
+    <!-- Hamburger Menu (content managed by side-menu.js) -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false">
+      <!-- Menu content rendered by SideMenu.init() -->
     </nav>
     <div class="menu-overlay" id="menu-overlay"></div>
 
@@ -371,6 +351,7 @@
   </div>
 
   <script src="/app.js"></script>
+  <script src="/js/side-menu.js"></script>
   <script>
     // ============================================
     // Shared Mission Card Creator (same as dashboard, but configurable)
@@ -674,40 +655,21 @@
     }
 
     // ============================================
-    // Hamburger Menu
-    // ============================================
-    const hamburgerBtn = document.getElementById('hamburger-btn');
-    const hamburgerMenu = document.getElementById('hamburger-menu');
-    const menuOverlay = document.getElementById('menu-overlay');
-
-    hamburgerBtn.addEventListener('click', () => {
-      hamburgerMenu.classList.toggle('open');
-      menuOverlay.classList.toggle('open');
-      hamburgerBtn.classList.toggle('open');
-    });
-
-    menuOverlay.addEventListener('click', () => {
-      hamburgerMenu.classList.remove('open');
-      menuOverlay.classList.remove('open');
-      hamburgerBtn.classList.remove('open');
-    });
-
-    // ============================================
     // Check Auth State for Menu, Avatar, and CTAs
     // ============================================
     async function checkAuthState() {
+      let isLoggedIn = false;
+      let user = null;
+
       try {
-        const response = await fetch('/api/me', { credentials: 'include' });
+        const response = await fetch('/api/user/me', { credentials: 'include' });
         const data = await response.json();
 
         if (data.success && data.data && data.data.xConnected) {
-          const user = data.data.user;
+          isLoggedIn = true;
+          user = data.data.user;
 
-          // 1. Show logged-in menu
-          document.getElementById('menu-logged-out').style.display = 'none';
-          document.getElementById('menu-logged-in').style.display = 'block';
-
-          // 2. Show user avatar in header
+          // Show user avatar in header
           const avatarContainer = document.getElementById('user-avatar-container');
           const avatarEl = document.getElementById('user-avatar');
           avatarContainer.classList.add('visible');
@@ -715,24 +677,24 @@
           if (user && user.avatar_url) {
             avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
           } else if (user.x_handle) {
-            // Show initial letter if no avatar
             const initial = user.x_handle.charAt(0).toUpperCase();
             avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
           }
 
-          // Set avatar title to show handle on hover
           if (user.x_handle) {
             avatarEl.title = `@${user.x_handle}`;
           }
 
-          // 3. Switch hero CTAs to logged-in version
+          // Switch hero CTAs to logged-in version
           document.getElementById('hero-cta-logged-out').style.display = 'none';
           document.getElementById('hero-cta-logged-in').style.display = 'block';
         }
       } catch (e) {
-        // Not logged in, keep default state
         console.log('Auth check: not logged in');
       }
+
+      // Initialize side menu with auth state
+      SideMenu.init(isLoggedIn);
     }
 
     // ============================================
