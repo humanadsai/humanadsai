@@ -70,6 +70,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
+    // User API (/api/user/...) - Session authenticated user endpoints
+    // ============================================
+
+    if (path.startsWith('/api/user/')) {
+      return handleUserApi(request, env, path, method);
+    }
+
+    // ============================================
     // Public API (/api/...)
     // ============================================
 
@@ -240,6 +248,29 @@ async function handleOperatorApi(
   // GET /api/missions/my
   if (path === '/api/missions/my' && method === 'GET') {
     return getMyMissions(request, env);
+  }
+
+  return errors.notFound(generateRequestId(), 'Endpoint');
+}
+
+/**
+ * User API ハンドラー (Session authenticated)
+ * User-facing endpoints for logged-in users
+ */
+async function handleUserApi(
+  request: Request,
+  env: Env,
+  path: string,
+  method: string
+): Promise<Response> {
+  // GET /api/user/verify-code
+  if (path === '/api/user/verify-code' && method === 'GET') {
+    return getVerifyCode(request, env);
+  }
+
+  // POST /api/user/verify-post
+  if (path === '/api/user/verify-post' && method === 'POST') {
+    return verifyPost(request, env);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');
