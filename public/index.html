@@ -63,9 +63,15 @@
       overflow: hidden;
       cursor: pointer;
       transition: border-color 0.2s;
+      padding: 0;
+      -webkit-appearance: none;
+      appearance: none;
+      -webkit-tap-highlight-color: transparent;
     }
-    .user-avatar:hover {
+    .user-avatar:hover,
+    .user-avatar:focus {
       border-color: var(--color-primary);
+      outline: none;
     }
     .user-avatar img {
       width: 100%;
@@ -111,9 +117,9 @@
       <div class="header-right">
         <!-- User Avatar (shown when logged in) -->
         <div class="user-avatar-container" id="user-avatar-container">
-          <a href="/dashboard" class="user-avatar" id="user-avatar" title="Dashboard" aria-label="Go to Dashboard">
+          <button class="user-avatar" id="user-avatar" title="Open Menu" aria-label="Open Menu" type="button">
             <span class="user-avatar-placeholder">👤</span>
-          </a>
+          </button>
         </div>
         <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
           <span class="hamburger-line"></span>
@@ -688,18 +694,33 @@
           // Switch hero CTAs to logged-in version
           document.getElementById('hero-cta-logged-out').style.display = 'none';
           document.getElementById('hero-cta-logged-in').style.display = 'block';
+
+          // Update side menu to logged-in version
+          SideMenu.render(true);
         }
       } catch (e) {
         console.log('Auth check: not logged in');
       }
-
-      // Initialize side menu with auth state
-      SideMenu.init(isLoggedIn);
     }
 
     // ============================================
     // Initialize
     // ============================================
+
+    // Initialize side menu immediately with logged-out state (default)
+    // This prevents empty menu if user opens it before auth check completes
+    SideMenu.init(false);
+
+    // Avatar click opens the side menu
+    document.getElementById('user-avatar').addEventListener('click', () => {
+      const hamburgerMenu = document.getElementById('hamburger-menu');
+      const menuOverlay = document.getElementById('menu-overlay');
+      const hamburgerBtn = document.getElementById('hamburger-btn');
+      hamburgerMenu.classList.add('open');
+      menuOverlay.classList.add('open');
+      hamburgerBtn.classList.add('open');
+    });
+
     loadStats();
     loadHomeMissions();
     loadAvailableHumans();
