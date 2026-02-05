@@ -531,16 +531,28 @@ export async function handleDeleteConfirmPage(request: Request, env: Env): Promi
         })
         .then(function(res) { return res.json(); })
         .then(function(data) {
-          if (data.success) {
+          // Handle both { ok: true } and { success: true } formats
+          if (data.ok || data.success) {
             // Redirect to success page
             window.location.href = '/settings/account/deleted';
           } else {
-            var errorMsg = data.error?.message || 'Failed to delete account.';
+            var errorMsg = 'Failed to delete account.';
             var requestId = data.request_id;
 
-            // Show request ID for internal errors (for support)
-            if (data.error?.code === 'INTERNAL_ERROR' && requestId) {
-              errorMsg += ' (ID: ' + requestId + ')';
+            // Map error codes to user-friendly messages
+            if (data.error === 'active_missions') {
+              errorMsg = 'You have active missions. Please complete or cancel them first.';
+            } else if (data.error === 'pending_payouts') {
+              errorMsg = 'You have pending payouts. Please wait for them to complete.';
+            } else if (data.error === 'unauthorized') {
+              errorMsg = 'Session expired. Please log in again.';
+            } else if (data.error === 'internal_error') {
+              errorMsg = 'An internal error occurred. Please try again.';
+              if (requestId) {
+                errorMsg += ' (ID: ' + requestId + ')';
+              }
+            } else if (data.error?.message) {
+              errorMsg = data.error.message;
             }
 
             errorBox.textContent = errorMsg;

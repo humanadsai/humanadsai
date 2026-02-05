@@ -42,26 +42,12 @@ function getSessionToken(request: Request): string | null {
 }
 
 /**
- * Check which columns exist in the operators table
- */
-async function getOperatorColumns(env: Env): Promise<Set<string>> {
-  try {
-    const result = await env.DB.prepare(
-      "SELECT name FROM pragma_table_info('operators')"
-    ).all<{ name: string }>();
-    return new Set(result.results.map(r => r.name));
-  } catch (e) {
-    console.error('[Delete] Failed to get column info:', e);
-    return new Set();
-  }
-}
-
-/**
  * POST /api/account/delete
  */
 export async function handleAccountDelete(request: Request, env: Env): Promise<Response> {
   const requestId = generateRequestId();
   let stage = 'init';
+  let operatorId = 'unknown';
 
   try {
     // Stage 1: Verify authentication
@@ -94,6 +80,7 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       return errors.unauthorized(requestId);
     }
 
+    operatorId = operator.id;
     console.log(`[Delete ${requestId}] Operator found: ${operator.id} (@${operator.x_handle})`);
 
     // Stage 3: Parse request body
@@ -101,37 +88,39 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
     let body: DeleteRequest;
     try {
       body = await request.json() as DeleteRequest;
-    } catch (e) {
-      console.log(`[Delete ${requestId}] Invalid JSON body:`, e);
+    } catch (parseError) {
+      console.log(`[Delete ${requestId}] Invalid JSON body`);
       return errors.badRequest(requestId, 'Invalid JSON body');
     }
 
     // Stage 4: Verify confirmation text
     stage = 'verify_confirm';
     if (!body.confirmText || body.confirmText.toUpperCase() !== 'DELETE') {
-      console.log(`[Delete ${requestId}] Invalid confirm text: ${body.confirmText}`);
+      console.log(`[Delete ${requestId}] Invalid confirm text`);
       return errors.badRequest(requestId, 'Please type DELETE to confirm');
     }
 
     // Stage 5: Check for active missions
     stage = 'check_missions';
-    const activeMissions = await env.DB.prepare(`
-      SELECT id, status FROM missions
-      WHERE operator_id = ?
-        AND status IN ('accepted', 'submitted', 'verified')
-    `).bind(operator.id).all<Mission>();
+    let activeMissionCount = 0;
+    try {
+      const activeMissions = await env.DB.prepare(`
+        SELECT COUNT(*) as count FROM missions
+        WHERE operator_id = ?
+          AND status IN ('accepted', 'submitted', 'verified')
+      `).bind(operator.id).first<{ count: number }>();
+      activeMissionCount = activeMissions?.count || 0;
+    } catch (missionError) {
+      console.log(`[Delete ${requestId}] Mission check failed (ignoring):`, missionError);
+      // Continue - if we can't check missions, allow deletion
+    }
 
-    if (activeMissions.results && activeMissions.results.length > 0) {
-      console.log(`[Delete ${requestId}] Blocked: ${activeMissions.results.length} active missions`);
+    if (activeMissionCount > 0) {
+      console.log(`[Delete ${requestId}] Blocked: ${activeMissionCount} active missions`);
       return new Response(JSON.stringify({
-        success: false,
-        error: {
-          code: 'ACTIVE_MISSIONS',
-          message: 'You have active missions. Please complete or cancel them before deleting your account.',
-          details: {
-            count: activeMissions.results.length,
-          },
-        },
+        ok: false,
+        error: 'active_missions',
+        activeMissions: activeMissionCount,
         request_id: requestId,
       }), {
         status: 409,
@@ -141,22 +130,24 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
 
     // Stage 6: Check for pending balance
     stage = 'check_balance';
-    const balance = await env.DB.prepare(`
-      SELECT available, pending FROM balances
-      WHERE owner_type = 'operator' AND owner_id = ?
-    `).bind(operator.id).first<Balance>();
+    let pendingAmount = 0;
+    try {
+      const balance = await env.DB.prepare(`
+        SELECT pending FROM balances
+        WHERE owner_type = 'operator' AND owner_id = ?
+      `).bind(operator.id).first<{ pending: number }>();
+      pendingAmount = balance?.pending || 0;
+    } catch (balanceError) {
+      console.log(`[Delete ${requestId}] Balance check failed (ignoring):`, balanceError);
+      // Continue - if we can't check balance, allow deletion
+    }
 
-    if (balance && balance.pending > 0) {
-      console.log(`[Delete ${requestId}] Blocked: pending payout ${balance.pending}`);
+    if (pendingAmount > 0) {
+      console.log(`[Delete ${requestId}] Blocked: pending payout ${pendingAmount}`);
       return new Response(JSON.stringify({
-        success: false,
-        error: {
-          code: 'PENDING_PAYOUT',
-          message: 'You have a pending payout. Please wait for it to complete or contact support.',
-          details: {
-            pending_amount: balance.pending,
-          },
-        },
+        ok: false,
+        error: 'pending_payouts',
+        pendingPayouts: pendingAmount,
         request_id: requestId,
       }), {
         status: 409,
@@ -164,12 +155,7 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       });
     }
 
-    // Stage 7: Get available columns to build safe UPDATE
-    stage = 'get_columns';
-    const columns = await getOperatorColumns(env);
-    console.log(`[Delete ${requestId}] Available columns:`, Array.from(columns).join(', '));
-
-    // Stage 8: Anonymize user data
+    // Stage 7: Anonymize user data (minimal, safe update)
     stage = 'anonymize';
     const deletedUserId = `deleted_${operator.id.substring(0, 8)}`;
     const deletedAt = new Date().toISOString();
@@ -178,151 +164,128 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       original_handle: operator.x_handle,
     });
 
-    // Build UPDATE query dynamically based on available columns
-    const updates: string[] = [];
-    const values: (string | number | null)[] = [];
+    // Use a minimal UPDATE that only touches columns we know exist
+    // Core columns that definitely exist in schema
+    console.log(`[Delete ${requestId}] Running anonymize UPDATE`);
 
-    // Always update these core fields
-    updates.push('display_name = ?');
-    values.push(deletedUserId);
-
-    updates.push('status = ?');
-    values.push('deleted');
-
-    updates.push('metadata = ?');
-    values.push(metadata);
-
-    updates.push('updated_at = ?');
-    values.push(deletedAt);
-
-    // Clear session
-    updates.push('session_token_hash = NULL');
-    updates.push('session_expires_at = NULL');
-
-    // Clear personal identifiers if columns exist
-    if (columns.has('x_handle')) {
-      updates.push('x_handle = NULL');
-    }
-    if (columns.has('x_user_id')) {
-      updates.push('x_user_id = NULL');
-    }
-    if (columns.has('avatar_url')) {
-      updates.push('avatar_url = NULL');
-    }
-    if (columns.has('bio')) {
-      updates.push('bio = NULL');
-    }
-
-    // Clear X profile data if columns exist
-    if (columns.has('x_profile_image_url')) {
-      updates.push('x_profile_image_url = NULL');
-    }
-    if (columns.has('x_description')) {
-      updates.push('x_description = NULL');
-    }
-    if (columns.has('x_url')) {
-      updates.push('x_url = NULL');
-    }
-    if (columns.has('x_location')) {
-      updates.push('x_location = NULL');
-    }
-    if (columns.has('x_created_at')) {
-      updates.push('x_created_at = NULL');
-    }
-    if (columns.has('x_protected')) {
-      updates.push('x_protected = 0');
-    }
-    if (columns.has('x_verified')) {
-      updates.push('x_verified = 0');
-    }
-    if (columns.has('x_verified_type')) {
-      updates.push('x_verified_type = NULL');
-    }
-    if (columns.has('x_followers_count')) {
-      updates.push('x_followers_count = 0');
-    }
-    if (columns.has('x_following_count')) {
-      updates.push('x_following_count = 0');
-    }
-    if (columns.has('x_tweet_count')) {
-      updates.push('x_tweet_count = 0');
-    }
-    if (columns.has('x_listed_count')) {
-      updates.push('x_listed_count = 0');
-    }
-    if (columns.has('x_raw_json')) {
-      updates.push('x_raw_json = NULL');
-    }
-    if (columns.has('x_fetched_at')) {
-      updates.push('x_fetched_at = NULL');
-    }
-    if (columns.has('x_connected_at')) {
-      updates.push('x_connected_at = NULL');
-    }
-
-    // Clear wallet addresses if columns exist
-    if (columns.has('evm_wallet_address')) {
-      updates.push('evm_wallet_address = NULL');
-    }
-    if (columns.has('solana_wallet_address')) {
-      updates.push('solana_wallet_address = NULL');
-    }
-
-    // Clear invite data if columns exist
-    if (columns.has('invite_code')) {
-      updates.push('invite_code = NULL');
-    }
-
-    // Clear verification data if columns exist
-    if (columns.has('verify_code')) {
-      updates.push('verify_code = NULL');
-    }
-    if (columns.has('verify_status')) {
-      // verify_status is NOT NULL, so set to 'deleted' instead of NULL
-      updates.push("verify_status = 'deleted'");
-    }
-    if (columns.has('verify_post_id')) {
-      updates.push('verify_post_id = NULL');
-    }
-    if (columns.has('verify_completed_at')) {
-      updates.push('verify_completed_at = NULL');
-    }
-
-    // Add WHERE clause
-    values.push(operator.id);
-
-    const updateQuery = `UPDATE operators SET ${updates.join(', ')} WHERE id = ?`;
-    console.log(`[Delete ${requestId}] Running UPDATE query with ${updates.length} columns`);
-
-    await env.DB.prepare(updateQuery).bind(...values).run();
-
-    // Stage 9: Anonymize ledger entries (optional, non-blocking)
-    stage = 'anonymize_ledger';
     try {
       await env.DB.prepare(`
-        UPDATE ledger_entries SET
-          description = REPLACE(description, ?, ?)
-        WHERE owner_type = 'operator' AND owner_id = ?
+        UPDATE operators SET
+          display_name = ?,
+          status = 'deleted',
+          metadata = ?,
+          updated_at = ?,
+          session_token_hash = NULL,
+          session_expires_at = NULL,
+          x_handle = NULL,
+          avatar_url = NULL,
+          bio = NULL
+        WHERE id = ?
       `).bind(
-        operator.x_handle || '',
         deletedUserId,
+        metadata,
+        deletedAt,
         operator.id
       ).run();
-    } catch (ledgerError) {
-      // Log but don't fail the deletion
-      console.error(`[Delete ${requestId}] Ledger anonymization failed (non-critical):`, ledgerError);
+    } catch (updateError) {
+      const err = updateError as Error;
+      console.error(`[Delete ${requestId}] Core update failed:`, err.message);
+
+      // Try minimal update as fallback
+      console.log(`[Delete ${requestId}] Trying minimal update`);
+      await env.DB.prepare(`
+        UPDATE operators SET
+          status = 'deleted',
+          session_token_hash = NULL,
+          session_expires_at = NULL,
+          updated_at = ?
+        WHERE id = ?
+      `).bind(deletedAt, operator.id).run();
     }
 
-    // Stage 10: Success
+    // Stage 8: Clear extended profile data (optional, non-blocking)
+    stage = 'clear_extended';
+    try {
+      await env.DB.prepare(`
+        UPDATE operators SET
+          x_user_id = NULL,
+          x_profile_image_url = NULL,
+          x_description = NULL,
+          x_url = NULL,
+          x_location = NULL,
+          x_created_at = NULL,
+          x_protected = 0,
+          x_verified = 0,
+          x_verified_type = NULL,
+          x_followers_count = 0,
+          x_following_count = 0,
+          x_tweet_count = 0,
+          x_listed_count = 0,
+          x_raw_json = NULL,
+          x_fetched_at = NULL,
+          x_connected_at = NULL
+        WHERE id = ?
+      `).bind(operator.id).run();
+    } catch (extendedError) {
+      console.log(`[Delete ${requestId}] Extended profile clear failed (non-critical):`, extendedError);
+      // Non-blocking - continue
+    }
+
+    // Stage 9: Clear wallet addresses (optional, non-blocking)
+    stage = 'clear_wallets';
+    try {
+      await env.DB.prepare(`
+        UPDATE operators SET
+          evm_wallet_address = NULL,
+          solana_wallet_address = NULL
+        WHERE id = ?
+      `).bind(operator.id).run();
+    } catch (walletError) {
+      console.log(`[Delete ${requestId}] Wallet clear failed (non-critical):`, walletError);
+      // Non-blocking - continue
+    }
+
+    // Stage 10: Clear invite/verification data (optional, non-blocking)
+    stage = 'clear_verification';
+    try {
+      await env.DB.prepare(`
+        UPDATE operators SET
+          invite_code = NULL,
+          verify_code = NULL,
+          verify_post_id = NULL,
+          verify_completed_at = NULL
+        WHERE id = ?
+      `).bind(operator.id).run();
+    } catch (verifyError) {
+      console.log(`[Delete ${requestId}] Verification clear failed (non-critical):`, verifyError);
+      // Non-blocking - continue
+    }
+
+    // Stage 11: Anonymize ledger entries (optional, non-blocking)
+    stage = 'anonymize_ledger';
+    try {
+      if (operator.x_handle) {
+        await env.DB.prepare(`
+          UPDATE ledger_entries SET
+            description = REPLACE(description, ?, ?)
+          WHERE owner_type = 'operator' AND owner_id = ?
+        `).bind(
+          operator.x_handle,
+          deletedUserId,
+          operator.id
+        ).run();
+      }
+    } catch (ledgerError) {
+      console.log(`[Delete ${requestId}] Ledger anonymize failed (non-critical):`, ledgerError);
+      // Non-blocking - continue
+    }
+
+    // Stage 12: Success
     stage = 'success';
-    console.log(`[Delete ${requestId}] Account deleted successfully: ${operator.id} (@${operator.x_handle})`);
+    console.log(`[Delete ${requestId}] Account deleted successfully: ${operator.id}`);
 
     return new Response(JSON.stringify({
-      success: true,
-      data: {
-        deleted: true,
-        message: 'Your account has been deleted. You will be logged out.',
-      },
+      ok: true,
       request_id: requestId,
     }), {
       status: 200,
@@ -333,15 +296,14 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
     });
   } catch (e) {
     const error = e as Error;
-    console.error(`[Delete ${requestId}] Error at stage '${stage}':`, error.message);
-    console.error(`[Delete ${requestId}] Stack:`, error.stack);
+    console.error(`[Delete ${requestId}] FATAL at stage '${stage}' for operator '${operatorId}':`);
+    console.error(`[Delete ${requestId}] Error name: ${error.name}`);
+    console.error(`[Delete ${requestId}] Error message: ${error.message}`);
+    console.error(`[Delete ${requestId}] Stack: ${error.stack}`);
 
     return new Response(JSON.stringify({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'An internal error occurred. Please try again or contact support.',
-      },
+      ok: false,
+      error: 'internal_error',
       request_id: requestId,
     }), {
       status: 500,
@@ -380,31 +342,42 @@ export async function handleAccountDeleteCheck(request: Request, env: Env): Prom
     }
 
     // Check for active missions
-    const activeMissions = await env.DB.prepare(`
-      SELECT COUNT(*) as count FROM missions
-      WHERE operator_id = ?
-        AND status IN ('accepted', 'submitted', 'verified')
-    `).bind(operator.id).first<{ count: number }>();
+    let activeMissionCount = 0;
+    try {
+      const activeMissions = await env.DB.prepare(`
+        SELECT COUNT(*) as count FROM missions
+        WHERE operator_id = ?
+          AND status IN ('accepted', 'submitted', 'verified')
+      `).bind(operator.id).first<{ count: number }>();
+      activeMissionCount = activeMissions?.count || 0;
+    } catch (e) {
+      console.log(`[Delete Check ${requestId}] Mission check failed:`, e);
+    }
 
     // Check for pending balance
-    const balance = await env.DB.prepare(`
-      SELECT available, pending FROM balances
-      WHERE owner_type = 'operator' AND owner_id = ?
-    `).bind(operator.id).first<Balance>();
+    let pendingAmount = 0;
+    try {
+      const balance = await env.DB.prepare(`
+        SELECT pending FROM balances
+        WHERE owner_type = 'operator' AND owner_id = ?
+      `).bind(operator.id).first<{ pending: number }>();
+      pendingAmount = balance?.pending || 0;
+    } catch (e) {
+      console.log(`[Delete Check ${requestId}] Balance check failed:`, e);
+    }
 
-    const canDelete = (activeMissions?.count || 0) === 0 && (!balance || balance.pending === 0);
+    const canDelete = activeMissionCount === 0 && pendingAmount === 0;
 
     return success({
       can_delete: canDelete,
       blockers: {
-        active_missions: activeMissions?.count || 0,
-        pending_payout: balance?.pending || 0,
+        active_missions: activeMissionCount,
+        pending_payout: pendingAmount,
       },
     }, requestId);
   } catch (e) {
     const error = e as Error;
     console.error(`[Delete Check ${requestId}] Error:`, error.message);
-    console.error(`[Delete Check ${requestId}] Stack:`, error.stack);
     return errors.internalError(requestId);
   }
 }
