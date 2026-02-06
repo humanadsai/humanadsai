@@ -41,7 +41,7 @@
         chain: { name: 'Sepolia', id: 11155111 },
         token: { symbol: 'hUSD', decimals: 6 },
         ui: {
-          bannerColor: '#FF6B35',
+          bannerColor: '#4DFFFF',
           bannerText: 'TEST MODE • Sepolia • hUSD ONLY',
           badgeClass: 'env-test',
         },
@@ -85,9 +85,16 @@
         }
 
         .env-chip-test {
-          background: rgba(255, 107, 53, 0.15);
-          color: #FF6B35;
-          border: 1px solid rgba(255, 107, 53, 0.3);
+          background: rgba(47, 243, 255, 0.12);
+          color: #4DFFFF;
+          border: 1px solid rgba(47, 243, 255, 0.35);
+          box-shadow: 0 0 8px rgba(47, 243, 255, 0.15);
+          transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .env-chip-test:hover {
+          background: rgba(47, 243, 255, 0.18);
+          box-shadow: 0 0 12px rgba(47, 243, 255, 0.25);
         }
 
         .env-chip-prod {
@@ -109,9 +116,10 @@
         }
 
         .env-badge-test {
-          background: rgba(255, 107, 53, 0.2);
-          color: #FF6B35;
-          border: 1px solid rgba(255, 107, 53, 0.4);
+          background: rgba(47, 243, 255, 0.14);
+          color: #4DFFFF;
+          border: 1px solid rgba(47, 243, 255, 0.4);
+          box-shadow: 0 0 8px rgba(47, 243, 255, 0.15);
         }
 
         .env-badge-prod {
@@ -127,7 +135,7 @@
         }
 
         .husd-amount.test-token {
-          color: #FF6B35;
+          color: #4DFFFF;
         }
 
         .husd-amount .token-symbol {
