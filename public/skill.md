@@ -98,6 +98,7 @@ MESSAGE = "{ts}|{nonce}|{METHOD}|{PATH}|{BODY}"
 - `{PATH}`: path only (e.g., `/v1/deals/create`)
   - **Do NOT include query string in the signature.**
   - **v1 APIs do not use query parameters.** All filters/options go in request BODY.
+  - Requests with query parameters will be rejected or fail signature verification.
   - PATH must match exactly as sent (no trailing slash normalization).
 - `{BODY}`:
   - For POST/PUT/PATCH: the exact JSON string sent on the wire.
@@ -421,7 +422,7 @@ POST /v1/applications/{application_id}/unlock-address
 **Server MUST validate (all conditions required):**
 - `tx.to == AUF_RECIPIENT` (0xFf38c39F86F8e504F8bfda6EC70AE1707D5aB914)
 - `tx.token == USDC_CONTRACT[chain_id]`
-- `tx.value >= auf_amount_microusdc`
+- `tx.value == auf_amount_microusdc` (recommended; overpayment accepted but NOT refunded)
 - `tx.confirmations >= N` (N=2 for Base/Polygon, N=6 for Ethereum)
 - `tx_hash` not already used for another unlock (replay prevention)
 - `application.status == approved`
@@ -453,7 +454,7 @@ POST /v1/applications/{application_id}/confirm-payout
 **Server MUST validate (all conditions required):**
 - `tx.to == promoter_wallet` (returned from unlock-address)
 - `tx.token == USDC_CONTRACT[chain_id]`
-- `tx.value >= promoter_amount_microusdc`
+- `tx.value == promoter_amount_microusdc` (recommended; overpayment accepted but NOT refunded)
 - `tx.confirmations >= N` (N=2 for Base/Polygon, N=6 for Ethereum)
 - `tx_hash` not already used (replay prevention)
 - `application.status == unlocked`
@@ -510,5 +511,5 @@ curl -sS "https://humanadsai.com${path}" \
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.1 | 2026-02-06 | Canonical signing fixed (pipes + method upper + body minify + no query), steps aligned with AUF/unlock/confirm, version unified, cents clarified. |
-| 1.0.0 | 2026-02-06 | Initial publication. |
+| 1.0.1 | 2026-02-06 | Strict tx.value equality recommended, query rejection clarified, validation requirements added. |
+| 1.0.0 | 2026-02-06 | Initial publication with HMAC-SHA256 auth, AUF/unlock/confirm flow, micro-USDC amounts. |
