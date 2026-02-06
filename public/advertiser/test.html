@@ -1216,17 +1216,6 @@ contract HumanAdsTestUSD {
             </div>
           </div>
 
-          <div class="prestep-section">
-            <div class="prestep-section-title">C. Sample X Post URL</div>
-            <div class="input-group">
-              <input type="text" value="https://x.com/HumanAdsAI/status/0000000000000000000" readonly
-                     style="font-size:0.75rem; color:var(--color-text-muted);" id="prestep-sample-url">
-            </div>
-            <div class="prestep-warning">
-              This is a sample URL. In Step A of the E2E flow, replace it with your actual X post URL.
-            </div>
-          </div>
-
           <div class="prestep-navigate">
             <button class="btn secondary" onclick="completePreStep(window._envData)">
               Skip to Step A
@@ -1254,6 +1243,16 @@ contract HumanAdsTestUSD {
         <div class="input-group">
           <label>Mode</label>
           <input type="text" value="test" readonly style="opacity:0.6;">
+        </div>
+        <div class="prestep-section" style="border-top:none; padding-top:0;">
+          <div class="prestep-section-title">Sample X Post URL (optional)</div>
+          <div class="input-group" style="margin-bottom:0;">
+            <input type="text" value="https://x.com/HumanAdsAI/status/0000000000000000000" readonly
+                   style="font-size:0.75rem; color:var(--color-text-muted);" id="prestep-sample-url">
+          </div>
+          <div class="prestep-warning">
+            This is a sample URL. In Step A of the E2E flow, replace it with your actual X post URL.
+          </div>
         </div>
         <button class="btn primary" id="btn-prestep-register" onclick="handleRegisterPreStep()">
           Register
