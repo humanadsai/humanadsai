@@ -78,34 +78,42 @@ const generateInviteCode = (): string => {
  * Initiates X OAuth2 PKCE flow
  */
 export async function handleXLogin(request: Request, env: Env): Promise<Response> {
-  console.log('[X Login] Starting OAuth2 PKCE flow...');
+  const requestId = crypto.randomUUID();
+  console.log(`[X Login] [${requestId}] Starting OAuth2 PKCE flow...`);
 
-  // Get optional redirect URL and invite code from query parameters
-  const requestUrl = new URL(request.url);
-  const redirectAfterLogin = requestUrl.searchParams.get('redirect') || '/missions/my';
-  const inviteCode = requestUrl.searchParams.get('invite') || '';
+  try {
+    // Check required environment variables
+    if (!env.X_CLIENT_ID || !env.X_CLIENT_SECRET) {
+      console.error(`[X Login] [${requestId}] Missing X OAuth credentials`);
+      return createErrorRedirect('Service temporarily unavailable. Please try again later.');
+    }
 
-  // Only allow relative paths for security
-  const safeRedirect = redirectAfterLogin.startsWith('/') ? redirectAfterLogin : '/missions/my';
-  console.log('[X Login] Will redirect to after login:', safeRedirect);
-  if (inviteCode) {
-    console.log('[X Login] Invite code:', inviteCode);
-  }
+    // Get optional redirect URL and invite code from query parameters
+    const requestUrl = new URL(request.url);
+    const redirectAfterLogin = requestUrl.searchParams.get('redirect') || '/missions/my';
+    const inviteCode = requestUrl.searchParams.get('invite') || '';
 
-  const config: XAuthConfig = {
-    clientId: env.X_CLIENT_ID,
-    clientSecret: env.X_CLIENT_SECRET,
-    redirectUri: getRedirectUri(request),
-  };
+    // Only allow relative paths for security
+    const safeRedirect = redirectAfterLogin.startsWith('/') ? redirectAfterLogin : '/missions/my';
+    console.log(`[X Login] [${requestId}] Will redirect to after login:`, safeRedirect);
+    if (inviteCode) {
+      console.log(`[X Login] [${requestId}] Invite code:`, inviteCode);
+    }
 
-  console.log('[X Login] Redirect URI:', config.redirectUri);
-  console.log('[X Login] Client ID present:', !!config.clientId);
-  console.log('[X Login] Client Secret present:', !!config.clientSecret);
+    const config: XAuthConfig = {
+      clientId: env.X_CLIENT_ID,
+      clientSecret: env.X_CLIENT_SECRET,
+      redirectUri: getRedirectUri(request),
+    };
 
-  const { url, state, codeVerifier } = await buildAuthUrl(config);
+    console.log(`[X Login] [${requestId}] Redirect URI:`, config.redirectUri);
+    console.log(`[X Login] [${requestId}] Client ID present:`, !!config.clientId);
+    console.log(`[X Login] [${requestId}] Client Secret present:`, !!config.clientSecret);
 
-  // Create encrypted cookie with state and code_verifier
-  const cookie = await createAuthCookie(state, codeVerifier, env.X_CLIENT_SECRET);
+    const { url, state, codeVerifier } = await buildAuthUrl(config);
+
+    // Create encrypted cookie with state and code_verifier
+    const cookie = await createAuthCookie(state, codeVerifier, env.X_CLIENT_SECRET);
 
   // Create separate cookie for redirect URL (simple, non-encrypted)
   const redirectCookie = `x_auth_redirect=${encodeURIComponent(safeRedirect)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`;
@@ -115,19 +123,23 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
     ? `x_auth_invite=${encodeURIComponent(inviteCode)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`
     : 'x_auth_invite=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
 
-  console.log('[X Login] Redirecting to X authorization page...');
+    console.log(`[X Login] [${requestId}] Redirecting to X authorization page...`);
 
-  // Redirect to X authorization page
-  const headers = new Headers();
-  headers.set('Location', url);
-  headers.append('Set-Cookie', cookie);
-  headers.append('Set-Cookie', redirectCookie);
-  headers.append('Set-Cookie', inviteCookie);
+    // Redirect to X authorization page
+    const headers = new Headers();
+    headers.set('Location', url);
+    headers.append('Set-Cookie', cookie);
+    headers.append('Set-Cookie', redirectCookie);
+    headers.append('Set-Cookie', inviteCookie);
 
-  return new Response(null, {
-    status: 302,
-    headers,
-  });
+    return new Response(null, {
+      status: 302,
+      headers,
+    });
+  } catch (e) {
+    console.error(`[X Login] [${requestId}] Error:`, e);
+    return createErrorRedirect('Failed to start authentication. Please try again.');
+  }
 }
 
 /**

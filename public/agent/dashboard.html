@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advertiser Dashboard - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .dashboard-page {
+      padding: 24px 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .dashboard-header {
+      margin-bottom: 24px;
+    }
+    .dashboard-header h1 {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    .dashboard-header p {
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    @media (min-width: 768px) {
+      .summary-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (min-width: 1024px) {
+      .summary-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+    .summary-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .summary-card .value {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 4px;
+    }
+    .summary-card .label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Agent Filter */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .filter-bar select {
+      padding: 8px 12px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      min-width: 200px;
+    }
+
+    /* Missions Table */
+    .section-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-header h2 {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+    th {
+      background: var(--color-background-light);
+      font-weight: 600;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: var(--color-background-light);
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-badge.active { background: rgba(52, 199, 89, 0.15); color: #34c759; }
+    .status-badge.draft { background: rgba(142, 142, 147, 0.15); color: #8e8e93; }
+    .status-badge.completed { background: rgba(0, 122, 255, 0.15); color: #007aff; }
+    .status-badge.cancelled { background: rgba(255, 59, 48, 0.15); color: #ff3b30; }
+    .status-badge.confirmed { background: rgba(52, 199, 89, 0.15); color: #34c759; }
+    .status-badge.pending { background: rgba(255, 149, 0, 0.15); color: #ff9500; }
+    .status-badge.auf { background: rgba(175, 82, 222, 0.15); color: #af52de; }
+    .status-badge.payout { background: rgba(0, 199, 190, 0.15); color: #00c7be; }
+
+    /* Stats Mini */
+    .stats-mini {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .stat-mini {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+    .stat-mini .num {
+      font-weight: 600;
+    }
+    .stat-mini .lbl {
+      color: var(--color-text-muted);
+    }
+    .stat-mini.pending .num { color: #ff9500; }
+    .stat-mini.approved .num { color: #34c759; }
+    .stat-mini.rejected .num { color: #ff3b30; }
+    .stat-mini.paid .num { color: #007aff; }
+
+    /* TX Hash */
+    .tx-hash {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-cyan);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .tx-hash:hover {
+      text-decoration: underline;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--color-text-muted);
+    }
+    .empty-state h3 {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: var(--color-text-muted);
+    }
+
+    /* Amount */
+    .amount {
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .amount.positive { color: #34c759; }
+
+    /* Actions */
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-sm:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="dashboard-page" id="main-content">
+      <div class="loading">Loading dashboard...</div>
+    </main>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script src="/js/humanads.js"></script>
+  <script>
+    (async function() {
+      const content = document.getElementById('main-content');
+
+      try {
+        // Check auth
+        const meRes = await HumanAds.fetchApi('/me');
+        const isLoggedIn = meRes.success && meRes.data?.xConnected;
+        const isAdmin = meRes.data?.user?.is_admin === true;
+
+        SideMenu.init(isLoggedIn, isAdmin);
+
+        if (!isAdmin) {
+          content.innerHTML = `
+            <div class="dashboard-header">
+              <h1>Advertiser Dashboard</h1>
+              <p>Admin access required</p>
+            </div>
+            <div class="section-card">
+              <div class="empty-state">
+                <h3>Access Restricted</h3>
+                <p>This dashboard is only available to administrators.</p>
+                <p style="margin-top: 16px;">
+                  <a href="/ai/how-it-works" class="btn-sm">Learn about advertising on HumanAds</a>
+                </p>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // Fetch agents for filter
+        const agentsRes = await HumanAds.fetchApi('/admin/agents');
+        const agents = agentsRes.success ? (agentsRes.data?.agents || []) : [];
+
+        // Get selected agent from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedAgentId = urlParams.get('agent_id') || '';
+
+        // Fetch dashboard data
+        const dashboardUrl = selectedAgentId
+          ? `/admin/dashboard/advertiser?agent_id=${selectedAgentId}`
+          : '/admin/dashboard/advertiser';
+        const dashRes = await HumanAds.fetchApi(dashboardUrl);
+
+        if (!dashRes.success) {
+          throw new Error(dashRes.error?.message || 'Failed to load dashboard');
+        }
+
+        const { summary, missions, recent_payments } = dashRes.data;
+
+        // Format currency
+        function formatUSD(cents) {
+          return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+          if (!dateStr) return '—';
+          const d = new Date(dateStr);
+          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Truncate hash
+        function truncateHash(hash) {
+          if (!hash) return '—';
+          if (hash.length <= 16) return hash;
+          return hash.slice(0, 8) + '...' + hash.slice(-6);
+        }
+
+        // Get explorer URL
+        function getExplorerUrl(hash, chain) {
+          const explorers = {
+            ethereum: 'https://etherscan.io/tx/',
+            polygon: 'https://polygonscan.com/tx/',
+            base: 'https://basescan.org/tx/',
+            sepolia: 'https://sepolia.etherscan.io/tx/',
+            base_sepolia: 'https://sepolia.basescan.org/tx/',
+            solana: 'https://solscan.io/tx/',
+            solana_devnet: 'https://solscan.io/tx/',
+          };
+          return (explorers[chain] || explorers.ethereum) + hash;
+        }
+
+        // Render page
+        content.innerHTML = `
+          <div class="dashboard-header">
+            <h1>Advertiser Dashboard</h1>
+            <p>Monitor your missions, applications, and payments</p>
+          </div>
+
+          <!-- Filter -->
+          <div class="filter-bar">
+            <select id="agent-filter" onchange="filterByAgent(this.value)">
+              <option value="">All Agents</option>
+              ${agents.map(a => `
+                <option value="${a.id}" ${a.id === selectedAgentId ? 'selected' : ''}>
+                  ${a.name}
+                </option>
+              `).join('')}
+            </select>
+            <a href="/agent/deploy" class="btn-sm" style="margin-left: auto;">+ Deploy Mission</a>
+          </div>
+
+          <!-- Summary -->
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="value">${summary.total_missions}</div>
+              <div class="label">Total Missions</div>
+            </div>
+            <div class="summary-card">
+              <div class="value">${summary.active_missions}</div>
+              <div class="label">Active</div>
+            </div>
+            <div class="summary-card">
+              <div class="value">${summary.total_applications}</div>
+              <div class="label">Applications</div>
+            </div>
+            <div class="summary-card">
+              <div class="value">${summary.total_approved}</div>
+              <div class="label">Paid Posts</div>
+            </div>
+            <div class="summary-card">
+              <div class="value">${formatUSD(summary.total_budget_cents)}</div>
+              <div class="label">Total Budget</div>
+            </div>
+            <div class="summary-card">
+              <div class="value">${formatUSD(summary.total_paid_cents)}</div>
+              <div class="label">Total Paid</div>
+            </div>
+          </div>
+
+          <!-- Missions Table -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2>Missions</h2>
+            </div>
+            ${missions.length === 0 ? `
+              <div class="empty-state">
+                <h3>No missions yet</h3>
+                <p>Deploy your first mission to get started.</p>
+                <p style="margin-top: 16px;">
+                  <a href="/agent/deploy" class="btn-sm">Deploy Mission</a>
+                </p>
+              </div>
+            ` : `
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mission</th>
+                      <th>Agent</th>
+                      <th>Status</th>
+                      <th>Reward</th>
+                      <th>Applications</th>
+                      <th>Progress</th>
+                      <th>Paid</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${missions.map(m => `
+                      <tr>
+                        <td>
+                          <div style="font-weight: 500; margin-bottom: 2px;">${m.deal.title}</div>
+                          <div style="font-size: 0.7rem; color: var(--color-text-muted);">
+                            ${formatDate(m.deal.created_at)}
+                          </div>
+                        </td>
+                        <td style="font-size: 0.75rem;">${m.agent.name}</td>
+                        <td><span class="status-badge ${m.deal.status}">${m.deal.status}</span></td>
+                        <td>
+                          <div class="amount">${formatUSD(m.deal.reward_amount)}</div>
+                          <div style="font-size: 0.7rem; color: var(--color-text-muted);">
+                            × ${m.deal.max_participants} slots
+                          </div>
+                        </td>
+                        <td>
+                          <div class="stats-mini">
+                            <div class="stat-mini pending">
+                              <span class="num">${m.stats.applications_pending}</span>
+                              <span class="lbl">pending</span>
+                            </div>
+                            <div class="stat-mini approved">
+                              <span class="num">${m.stats.applications_selected}</span>
+                              <span class="lbl">selected</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="stats-mini">
+                            <div class="stat-mini">
+                              <span class="num">${m.stats.missions_submitted}</span>
+                              <span class="lbl">submitted</span>
+                            </div>
+                            <div class="stat-mini approved">
+                              <span class="num">${m.stats.missions_verified}</span>
+                              <span class="lbl">verified</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="amount positive">${formatUSD(m.payments.payout_total_cents)}</div>
+                          <div style="font-size: 0.7rem; color: var(--color-text-muted);">
+                            ${m.stats.missions_paid} posts
+                          </div>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </div>
+
+          <!-- Recent Payments -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2>Recent Payments</h2>
+            </div>
+            ${recent_payments.length === 0 ? `
+              <div class="empty-state">
+                <h3>No payments yet</h3>
+                <p>Payments will appear here once missions are approved and paid.</p>
+              </div>
+            ` : `
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Mission</th>
+                      <th>Promoter</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Chain</th>
+                      <th>Status</th>
+                      <th>TX Hash</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${recent_payments.map(p => `
+                      <tr>
+                        <td style="font-size: 0.75rem;">${formatDate(p.created_at)}</td>
+                        <td style="font-size: 0.8rem;">${p.deal_title || '—'}</td>
+                        <td style="font-size: 0.8rem;">@${p.operator_handle || '—'}</td>
+                        <td><span class="status-badge ${p.payment_type}">${p.payment_type.toUpperCase()}</span></td>
+                        <td class="amount">${formatUSD(p.amount_cents)}</td>
+                        <td style="font-family: var(--font-mono); font-size: 0.75rem;">${p.chain || '—'}/${p.token || '—'}</td>
+                        <td><span class="status-badge ${p.status}">${p.status}</span></td>
+                        <td>
+                          ${p.tx_hash ? `
+                            <a href="${getExplorerUrl(p.tx_hash, p.chain)}" target="_blank" class="tx-hash" title="${p.tx_hash}">
+                              ${truncateHash(p.tx_hash)}
+                            </a>
+                          ` : '—'}
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </div>
+        `;
+
+        // Agent filter function
+        window.filterByAgent = function(agentId) {
+          const url = new URL(window.location.href);
+          if (agentId) {
+            url.searchParams.set('agent_id', agentId);
+          } else {
+            url.searchParams.delete('agent_id');
+          }
+          window.location.href = url.toString();
+        };
+
+      } catch (e) {
+        console.error('Dashboard error:', e);
+        content.innerHTML = `
+          <div class="dashboard-header">
+            <h1>Advertiser Dashboard</h1>
+          </div>
+          <div class="section-card">
+            <div class="empty-state">
+              <h3>Error Loading Dashboard</h3>
+              <p>${e.message}</p>
+              <p style="margin-top: 16px;">
+                <button onclick="location.reload()" class="btn-sm">Retry</button>
+              </p>
+            </div>
+          </div>
+        `;
+        SideMenu.init(false);
+      }
+    })();
+  </script>
+</body>
+</html>

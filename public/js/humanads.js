@@ -12,12 +12,13 @@
     // ============================================
 
     /**
-     * Fetch API wrapper with credentials and JSON handling
+     * Fetch API wrapper with credentials, JSON handling, and timeout
      * @param {string} url - API endpoint (relative to /api)
      * @param {object} options - Fetch options
+     * @param {number} timeout - Timeout in ms (default: 5000)
      * @returns {Promise<object>} - Parsed JSON response
      */
-    async fetchApi(url, options = {}) {
+    async fetchApi(url, options = {}, timeout = 5000) {
       const fullUrl = url.startsWith('/api') ? url : `/api${url}`;
 
       const defaultOptions = {
@@ -28,10 +29,33 @@
         },
       };
 
-      const response = await fetch(fullUrl, { ...defaultOptions, ...options });
-      const data = await response.json();
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      return data;
+      try {
+        const response = await fetch(fullUrl, {
+          ...defaultOptions,
+          ...options,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        const data = await response.json();
+        return data;
+      } catch (e) {
+        clearTimeout(timeoutId);
+        if (e.name === 'AbortError') {
+          return {
+            success: false,
+            error: { code: 'TIMEOUT', message: 'Request timed out. Please try again.' }
+          };
+        }
+        return {
+          success: false,
+          error: { code: 'NETWORK_ERROR', message: e.message || 'Network error. Please check your connection.' }
+        };
+      }
     },
 
     // ============================================

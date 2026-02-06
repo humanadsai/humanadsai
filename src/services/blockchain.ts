@@ -7,6 +7,7 @@
 
 // Block explorer API endpoints
 const EXPLORER_APIS: Record<string, { url: string; apiKeyEnv?: string }> = {
+  // Mainnet
   ethereum: {
     url: 'https://api.etherscan.io/api',
     apiKeyEnv: 'ETHERSCAN_API_KEY',
@@ -19,13 +20,26 @@ const EXPLORER_APIS: Record<string, { url: string; apiKeyEnv?: string }> = {
     url: 'https://api.basescan.org/api',
     apiKeyEnv: 'BASESCAN_API_KEY',
   },
+  // Testnet
+  sepolia: {
+    url: 'https://api-sepolia.etherscan.io/api',
+    apiKeyEnv: 'ETHERSCAN_API_KEY',
+  },
+  base_sepolia: {
+    url: 'https://api-sepolia.basescan.org/api',
+    apiKeyEnv: 'BASESCAN_API_KEY',
+  },
 };
 
-// Solana RPC endpoint
-const SOLANA_RPC_URL = 'https://api.mainnet-beta.solana.com';
+// Solana RPC endpoints
+const SOLANA_RPC_URLS: Record<string, string> = {
+  solana: 'https://api.mainnet-beta.solana.com',
+  solana_devnet: 'https://api.devnet.solana.com',
+};
 
-// Token contract addresses (mainnet)
+// Token contract addresses
 const TOKEN_CONTRACTS: Record<string, Record<string, string>> = {
+  // Mainnet
   ethereum: {
     USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
@@ -39,6 +53,15 @@ const TOKEN_CONTRACTS: Record<string, Record<string, string>> = {
   base: {
     USDC: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     USDT: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+    ETH: 'native',
+  },
+  // Testnet
+  sepolia: {
+    USDC: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238', // Circle USDC on Sepolia
+    ETH: 'native',
+  },
+  base_sepolia: {
+    USDC: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // USDC on Base Sepolia
     ETH: 'native',
   },
 };
@@ -242,11 +265,14 @@ export async function verifySolanaTransaction(
   signature: string,
   expectedTo: string,
   expectedAmountCents: number,
-  token: string
+  token: string,
+  chain: string = 'solana'
 ): Promise<TxVerificationResult> {
   try {
+    const rpcUrl = SOLANA_RPC_URLS[chain] || SOLANA_RPC_URLS.solana;
+
     // Get transaction details
-    const response = await fetch(SOLANA_RPC_URL, {
+    const response = await fetch(rpcUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -375,9 +401,41 @@ export async function verifyTransaction(
   token: string,
   apiKey?: string
 ): Promise<TxVerificationResult> {
-  if (chain === 'solana') {
-    return verifySolanaTransaction(txHash, expectedTo, expectedAmountCents, token);
+  // Solana chains
+  if (chain === 'solana' || chain === 'solana_devnet') {
+    return verifySolanaTransaction(txHash, expectedTo, expectedAmountCents, token, chain);
   }
 
+  // EVM chains
   return verifyEvmTransaction(txHash, chain, expectedTo, expectedAmountCents, token, apiKey);
+}
+
+/**
+ * Check if a tx_hash has already been used (to prevent replay attacks)
+ */
+export async function isTxHashUsed(
+  db: D1Database,
+  txHash: string,
+  chain: string
+): Promise<boolean> {
+  const existing = await db.prepare(
+    `SELECT id FROM payments WHERE tx_hash = ? AND chain = ? LIMIT 1`
+  ).bind(txHash, chain).first();
+  return !!existing;
+}
+
+/**
+ * Get block explorer URL for a transaction
+ */
+export function getExplorerUrl(txHash: string, chain: string): string {
+  const explorers: Record<string, string> = {
+    ethereum: `https://etherscan.io/tx/${txHash}`,
+    polygon: `https://polygonscan.com/tx/${txHash}`,
+    base: `https://basescan.org/tx/${txHash}`,
+    sepolia: `https://sepolia.etherscan.io/tx/${txHash}`,
+    base_sepolia: `https://sepolia.basescan.org/tx/${txHash}`,
+    solana: `https://solscan.io/tx/${txHash}`,
+    solana_devnet: `https://solscan.io/tx/${txHash}?cluster=devnet`,
+  };
+  return explorers[chain] || `https://etherscan.io/tx/${txHash}`;
 }

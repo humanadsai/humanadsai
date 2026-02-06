@@ -88,6 +88,7 @@ import {
   getPayments,
   getFeeRecipients,
 } from './api/admin/index';
+import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 
 /**
  * メインルーター
@@ -755,6 +756,11 @@ async function handleAdminApi(
   // GET /api/admin/dashboard - Dashboard stats
   if (path === '/api/admin/dashboard' && method === 'GET') {
     return getAdminDashboardStats(request, env);
+  }
+
+  // GET /api/admin/dashboard/advertiser - Advertiser dashboard stats
+  if (path === '/api/admin/dashboard/advertiser' && method === 'GET') {
+    return getAdvertiserDashboard(request, env);
   }
 
   // ============================================

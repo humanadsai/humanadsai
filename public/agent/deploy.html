@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deploy a Mission - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .deploy-page {
+      padding: 24px 16px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .deploy-header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    .deploy-header h1 {
+      font-family: var(--font-mono);
+      font-size: 1.75rem;
+      margin-bottom: 8px;
+    }
+    .deploy-header p {
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+    }
+    .form-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .form-card h2 {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-card h2 svg {
+      width: 20px;
+      height: 20px;
+      color: var(--color-primary);
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--color-text);
+    }
+    .form-group label .required {
+      color: #ff3b30;
+      margin-left: 2px;
+    }
+    .form-group label .hint {
+      font-weight: 400;
+      color: var(--color-text-muted);
+      font-size: 0.75rem;
+      margin-left: 4px;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: var(--color-text-muted);
+      opacity: 0.6;
+    }
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+    .btn-deploy {
+      padding: 12px 32px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-deploy.primary {
+      background: var(--color-primary);
+      color: white;
+    }
+    .btn-deploy.primary:hover:not(:disabled) {
+      background: #e55a2b;
+      transform: translateY(-1px);
+    }
+    .btn-deploy:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-deploy.secondary {
+      background: transparent;
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+    }
+    .btn-deploy.secondary:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+    }
+    .alert-info {
+      background: rgba(0, 122, 255, 0.1);
+      border: 1px solid rgba(0, 122, 255, 0.3);
+      color: #007aff;
+    }
+    .alert-warning {
+      background: rgba(255, 149, 0, 0.1);
+      border: 1px solid rgba(255, 149, 0, 0.3);
+      color: #ff9500;
+    }
+    .alert-error {
+      background: rgba(255, 59, 48, 0.1);
+      border: 1px solid rgba(255, 59, 48, 0.3);
+      color: #ff3b30;
+    }
+    .alert-success {
+      background: rgba(52, 199, 89, 0.1);
+      border: 1px solid rgba(52, 199, 89, 0.3);
+      color: #34c759;
+    }
+    .fee-breakdown {
+      background: var(--color-background-light);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+    }
+    .fee-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+    }
+    .fee-row.total {
+      border-top: 1px solid var(--color-border);
+      margin-top: 8px;
+      padding-top: 8px;
+      font-weight: 600;
+    }
+    .unauthorized-message {
+      text-align: center;
+      padding: 48px 24px;
+    }
+    .unauthorized-message h2 {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+    .unauthorized-message p {
+      color: var(--color-text-muted);
+      margin-bottom: 24px;
+    }
+    .unauthorized-message .cta-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .loading-overlay.hidden { display: none; }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .form-actions { flex-direction: column; }
+      .btn-deploy { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="deploy-page" id="main-content">
+      <div class="loading">Checking authorization...</div>
+    </main>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script src="/js/humanads.js"></script>
+  <script>
+    (async function() {
+      const content = document.getElementById('main-content');
+      const loadingOverlay = document.getElementById('loading-overlay');
+
+      // Helper to show error state
+      function showError(title, message, showRetry = true) {
+        content.innerHTML = `
+          <div class="deploy-header">
+            <h1>Deploy a Mission</h1>
+            <p>Launch sponsored content campaigns with human creators</p>
+          </div>
+          <div class="form-card">
+            <div class="unauthorized-message">
+              <h2>${title}</h2>
+              <div class="alert alert-error" style="text-align: left; margin: 24px 0;">
+                ${message}
+              </div>
+              <div class="cta-buttons">
+                ${showRetry ? '<button onclick="location.reload()" class="btn-deploy primary">Retry</button>' : ''}
+                <a href="mailto:support@humanadsai.com" class="btn-deploy secondary">Contact Support</a>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Helper to show sign-in state
+      function showSignIn() {
+        content.innerHTML = `
+          <div class="deploy-header">
+            <h1>Deploy a Mission</h1>
+            <p>Launch sponsored content campaigns with human creators</p>
+          </div>
+          <div class="form-card">
+            <div class="unauthorized-message">
+              <h2>Sign In Required</h2>
+              <p>Please sign in with X to deploy missions.</p>
+              <div class="cta-buttons" style="margin-top: 24px;">
+                <a href="/auth/x/login?redirect=/agent/deploy" class="btn-deploy primary">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px; vertical-align: middle;">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  Sign in with X
+                </a>
+              </div>
+              <p style="margin-top: 24px; font-size: 0.8rem; color: var(--color-text-muted);">
+                Don't have access? <a href="mailto:support@humanadsai.com">Contact us</a> to become an advertiser.
+              </p>
+            </div>
+          </div>
+        `;
+        SideMenu.init(false, false);
+      }
+
+      // Helper to show non-admin state
+      function showNonAdmin() {
+        content.innerHTML = `
+          <div class="deploy-header">
+            <h1>Deploy a Mission</h1>
+            <p>Launch sponsored content campaigns with human creators</p>
+          </div>
+          <div class="form-card">
+            <div class="unauthorized-message">
+              <h2>AI Advertiser Access</h2>
+              <p>Mission deployment is currently available via API integration or admin access.</p>
+              <div class="alert alert-info" style="text-align: left; margin: 24px 0;">
+                <strong>To deploy missions:</strong><br><br>
+                1. Contact us at <strong>support@humanadsai.com</strong> to register as an AI advertiser<br>
+                2. Receive your API credentials<br>
+                3. Use the API to create and manage missions programmatically
+              </div>
+              <div class="cta-buttons">
+                <a href="/ai/how-it-works" class="btn-deploy secondary">Learn How It Works</a>
+                <a href="/missions" class="btn-deploy secondary">View Sample Missions</a>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      try {
+        // Check auth with timeout (5 seconds)
+        const meRes = await HumanAds.fetchApi('/me', {}, 5000);
+
+        // Handle API errors
+        if (!meRes.success) {
+          const errorCode = meRes.error?.code || 'UNKNOWN';
+          if (errorCode === 'TIMEOUT') {
+            showError('Connection Timeout', 'The server took too long to respond. Please check your connection and try again.');
+          } else if (errorCode === 'NETWORK_ERROR') {
+            showError('Network Error', meRes.error?.message || 'Could not connect to the server.');
+          } else {
+            showError('Error', meRes.error?.message || 'An unexpected error occurred.');
+          }
+          SideMenu.init(false, false);
+          return;
+        }
+
+        const isLoggedIn = meRes.data?.xConnected === true;
+        const isAdmin = meRes.data?.user?.is_admin === true;
+
+        // Initialize side menu
+        SideMenu.init(isLoggedIn, isAdmin);
+
+        // Not logged in → show sign in
+        if (!isLoggedIn) {
+          showSignIn();
+          return;
+        }
+
+        // Logged in but not admin → show contact info
+        if (!isAdmin) {
+          showNonAdmin();
+          return;
+        }
+
+        // Fetch agents for dropdown
+        const agentsRes = await HumanAds.fetchApi('/admin/agents');
+        const agents = agentsRes.success ? (agentsRes.data?.agents || []) : [];
+
+        // Render form for admins
+        content.innerHTML = `
+          <div class="deploy-header">
+            <h1>Deploy a Mission</h1>
+            <p>Create a sponsored content campaign for human creators</p>
+          </div>
+
+          <div class="alert alert-info">
+            <strong>10% Platform Fee:</strong> HumanAds charges a 10% fee on approved missions, paid at the time of approval via USDC.
+          </div>
+
+          <form id="deploy-form">
+            <!-- Basic Info -->
+            <div class="form-card">
+              <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Mission Details
+              </h2>
+
+              <div class="form-group">
+                <label>Agent (Advertiser) <span class="required">*</span></label>
+                <select name="agent_id" required>
+                  <option value="">Select an agent...</option>
+                  ${agents.map(a => `<option value="${a.id}">${a.name} (${a.email})</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Mission Title <span class="required">*</span></label>
+                <input type="text" name="title" required placeholder="e.g., Share your honest review of our AI tool" maxlength="100">
+              </div>
+
+              <div class="form-group">
+                <label>Description <span class="hint">(What should creators post about?)</span></label>
+                <textarea name="description" placeholder="Describe what you want creators to post. Be specific about the message, tone, and any key points to include."></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Product/Service URL <span class="required">*</span></label>
+                  <input type="url" name="product_url" required placeholder="https://yourproduct.com">
+                </div>
+                <div class="form-group">
+                  <label>Official X Account <span class="required">*</span></label>
+                  <input type="text" name="x_account" required placeholder="@YourBrand">
+                </div>
+              </div>
+            </div>
+
+            <!-- Requirements -->
+            <div class="form-card">
+              <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 11l3 3L22 4"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+                Requirements & Rules
+              </h2>
+
+              <div class="form-group">
+                <label>Post Type <span class="required">*</span></label>
+                <select name="post_type" required>
+                  <option value="original_post">Original Post</option>
+                  <option value="quote_post">Quote Post (with your tweet)</option>
+                  <option value="reply">Reply to your tweet</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Required Disclosure <span class="required">*</span> <span class="hint">(Must be included in post)</span></label>
+                <input type="text" name="disclosure" required placeholder="#ad" value="#ad">
+              </div>
+
+              <div class="form-group">
+                <label>DO (What creators should do) <span class="required">*</span></label>
+                <textarea name="do_instructions" required placeholder="- Share your genuine opinion&#10;- Mention the key feature&#10;- Include the product link"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>DON'T (What creators must avoid) <span class="required">*</span></label>
+                <textarea name="dont_instructions" required placeholder="- No false claims&#10;- No copied content&#10;- No asking for likes/follows/reposts"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Target Language <span class="required">*</span></label>
+                <select name="language" required>
+                  <option value="EN">English</option>
+                  <option value="JP">Japanese</option>
+                  <option value="ANY">Any Language</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Payment -->
+            <div class="form-card">
+              <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v12M8 10h8M8 14h8"/>
+                </svg>
+                Payment
+              </h2>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Payment per Post (USDC) <span class="required">*</span></label>
+                  <input type="number" name="reward_amount" required min="1" max="10000" step="0.01" placeholder="5.00">
+                </div>
+                <div class="form-group">
+                  <label>Max Posts <span class="required">*</span></label>
+                  <input type="number" name="max_participants" required min="1" max="1000" placeholder="10">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Deadline</label>
+                <input type="datetime-local" name="expires_at">
+              </div>
+
+              <div class="fee-breakdown" id="fee-breakdown" style="display: none;">
+                <div class="fee-row">
+                  <span>Per post reward:</span>
+                  <span id="fee-per-post">$0.00</span>
+                </div>
+                <div class="fee-row">
+                  <span>Max posts:</span>
+                  <span id="fee-max-posts">0</span>
+                </div>
+                <div class="fee-row">
+                  <span>Platform fee (10%):</span>
+                  <span id="fee-platform">$0.00</span>
+                </div>
+                <div class="fee-row total">
+                  <span>Total budget:</span>
+                  <span id="fee-total">$0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div id="form-message"></div>
+
+            <div class="form-actions">
+              <a href="/missions" class="btn-deploy secondary">Cancel</a>
+              <button type="submit" class="btn-deploy primary" id="submit-btn">Deploy Mission</button>
+            </div>
+          </form>
+        `;
+
+        // Fee calculation
+        const rewardInput = document.querySelector('input[name="reward_amount"]');
+        const maxPostsInput = document.querySelector('input[name="max_participants"]');
+        const feeBreakdown = document.getElementById('fee-breakdown');
+
+        function updateFees() {
+          const reward = parseFloat(rewardInput.value) || 0;
+          const maxPosts = parseInt(maxPostsInput.value) || 0;
+          const subtotal = reward * maxPosts;
+          const fee = subtotal * 0.1;
+          const total = subtotal + fee;
+
+          if (reward > 0 && maxPosts > 0) {
+            feeBreakdown.style.display = 'block';
+            document.getElementById('fee-per-post').textContent = '$' + reward.toFixed(2);
+            document.getElementById('fee-max-posts').textContent = maxPosts;
+            document.getElementById('fee-platform').textContent = '$' + fee.toFixed(2);
+            document.getElementById('fee-total').textContent = '$' + total.toFixed(2);
+          } else {
+            feeBreakdown.style.display = 'none';
+          }
+        }
+
+        rewardInput.addEventListener('input', updateFees);
+        maxPostsInput.addEventListener('input', updateFees);
+
+        // Form submission
+        const form = document.getElementById('deploy-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const formMessage = document.getElementById('form-message');
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          submitBtn.disabled = true;
+          loadingOverlay.classList.remove('hidden');
+          formMessage.innerHTML = '';
+
+          try {
+            const formData = new FormData(form);
+
+            // Build requirements object
+            const requirements = {
+              post_type: formData.get('post_type'),
+              content_template: null,
+              hashtags: [],
+              mentions: [formData.get('x_account').replace('@', '')],
+              link_url: formData.get('product_url'),
+              verification_method: 'url_check',
+              // Custom fields stored in metadata
+              disclosure: formData.get('disclosure'),
+              do_instructions: formData.get('do_instructions'),
+              dont_instructions: formData.get('dont_instructions'),
+              language: formData.get('language'),
+            };
+
+            // Convert reward to cents
+            const rewardCents = Math.round(parseFloat(formData.get('reward_amount')) * 100);
+
+            const payload = {
+              agent_id: formData.get('agent_id'),
+              title: formData.get('title'),
+              description: formData.get('description') || null,
+              requirements: requirements,
+              reward_amount: rewardCents,
+              max_participants: parseInt(formData.get('max_participants')),
+              payment_model: 'a_plan',
+              auf_percentage: 10,
+              expires_at: formData.get('expires_at') || null,
+            };
+
+            const res = await HumanAds.fetchApi('/admin/deals', {
+              method: 'POST',
+              body: JSON.stringify(payload),
+            });
+
+            if (!res.success) {
+              throw new Error(res.error?.message || 'Failed to create mission');
+            }
+
+            formMessage.innerHTML = `
+              <div class="alert alert-success">
+                Mission deployed successfully! <a href="/missions/${res.data.deal.id}">View Mission</a>
+              </div>
+            `;
+
+            // Reset form
+            form.reset();
+            feeBreakdown.style.display = 'none';
+
+          } catch (err) {
+            formMessage.innerHTML = `
+              <div class="alert alert-error">
+                Error: ${err.message}
+              </div>
+            `;
+          } finally {
+            submitBtn.disabled = false;
+            loadingOverlay.classList.add('hidden');
+          }
+        });
+
+      } catch (e) {
+        console.error('Deploy page error:', e);
+        content.innerHTML = `
+          <div class="deploy-header">
+            <h1>Deploy a Mission</h1>
+            <p>Launch sponsored content campaigns with human creators</p>
+          </div>
+          <div class="form-card">
+            <div class="unauthorized-message">
+              <h2>Error Loading Page</h2>
+              <div class="alert alert-error" style="text-align: left; margin: 24px 0;">
+                ${e.message || 'An unexpected error occurred. Please try again.'}
+              </div>
+              <div class="cta-buttons">
+                <button onclick="location.reload()" class="btn-deploy primary">Retry</button>
+                <a href="mailto:support@humanadsai.com" class="btn-deploy secondary">Contact Support</a>
+              </div>
+            </div>
+          </div>
+        `;
+        SideMenu.init(false, false);
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -444,8 +444,13 @@ export interface ApproveMissionResponse {
   payout_deadline_at: string;
   auf_amount_cents: number;
   auf_percentage: number;
-  treasury_address: string;
+  // Fee vault addresses for AUF payment
+  fee_vault_addresses: {
+    evm: string;
+    solana: string;
+  };
   supported_chains: string[];
+  supported_tokens?: Record<string, string[]>;
   // Payout mode info
   payout_mode?: PayoutMode;
   ledger_mode_info?: string;
@@ -464,6 +469,10 @@ export interface UnlockAddressResponse {
   payout_amount_cents: number;
   payout_deadline_at: string;
   chain: string;
+  token?: string;
+  // Transaction verification info
+  auf_tx_verified?: boolean;
+  auf_explorer_url?: string;
   // Payout mode info
   payout_mode?: PayoutMode;
   is_simulated?: boolean;

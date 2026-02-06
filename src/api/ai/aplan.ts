@@ -17,13 +17,31 @@ import type {
 import { success, errors } from '../../utils/response';
 import { recordAufReceived, recordPayoutTracked, updateAgentTrustScore } from '../../services/ledger';
 import { getPayoutConfig, generateSimulatedTxHash, isSimulatedTxHash } from '../../config/payout';
+import { verifyTransaction, isTxHashUsed, getExplorerUrl } from '../../services/blockchain';
 
-// Treasury addresses for receiving AUF payments (10%)
-const TREASURY_ADDRESSES: Record<string, string> = {
-  ethereum: '0x...', // TODO: Set actual treasury addresses
-  polygon: '0x...',
-  base: '0x...',
-  solana: '...', // Solana treasury address
+// Treasury/Fee Vault addresses for receiving AUF payments (10%)
+// These are the actual HumanAds fee collection addresses
+const FEE_VAULT_ADDRESSES: Record<string, string> = {
+  // EVM chains (all use the same address)
+  ethereum: '0x5acd3371DB99f7D17DFaFD14b522148260862DE8',
+  polygon: '0x5acd3371DB99f7D17DFaFD14b522148260862DE8',
+  base: '0x5acd3371DB99f7D17DFaFD14b522148260862DE8',
+  sepolia: '0x5acd3371DB99f7D17DFaFD14b522148260862DE8',
+  base_sepolia: '0x5acd3371DB99f7D17DFaFD14b522148260862DE8',
+  // Solana
+  solana: '5xQeP26JTDyyUCdG7Sq63vyCWgEbATewCj5N2P7H5X8A',
+  solana_devnet: '5xQeP26JTDyyUCdG7Sq63vyCWgEbATewCj5N2P7H5X8A',
+};
+
+// Minimum confirmations required for tx verification
+const MIN_CONFIRMATIONS: Record<string, number> = {
+  ethereum: 3,
+  polygon: 5,
+  base: 2,
+  sepolia: 1,
+  base_sepolia: 1,
+  solana: 1,
+  solana_devnet: 1,
 };
 
 // Supported chains and tokens
@@ -167,8 +185,13 @@ export async function approveMission(
       payout_deadline_at: deadlineAt.toISOString(),
       auf_amount_cents: aufAmountCents,
       auf_percentage: aufPercentage,
-      treasury_address: TREASURY_ADDRESSES.ethereum, // Default to Ethereum
+      // Fee vault addresses for AUF payment (send to the one matching your chain)
+      fee_vault_addresses: {
+        evm: FEE_VAULT_ADDRESSES.ethereum, // Same for all EVM chains
+        solana: FEE_VAULT_ADDRESSES.solana,
+      },
       supported_chains: SUPPORTED_CHAINS,
+      supported_tokens: SUPPORTED_TOKENS,
       // Include payout mode info
       payout_mode: payoutMode,
       ...(payoutMode === 'ledger' ? {
@@ -297,18 +320,79 @@ export async function unlockAddress(
     const payoutConfig = getPayoutConfig(env);
     const payoutMode: PayoutMode = payoutConfig.mode;
 
+    // Calculate AUF amount for verification
+    const aufPercentageForVerify = appData.auf_percentage || 10;
+    const aufAmountCentsForVerify = Math.floor((appData.reward_amount * aufPercentageForVerify) / 100);
+
+    // Get expected treasury address
+    const treasuryAddress = FEE_VAULT_ADDRESSES[body.chain];
+    if (!treasuryAddress) {
+      return errors.invalidRequest(requestId, {
+        code: 'UNSUPPORTED_CHAIN',
+        message: `Chain '${body.chain}' is not supported for AUF payments`,
+      });
+    }
+
     // In ledger mode, allow simulated tx hashes
     if (payoutMode === 'ledger') {
       // Accept any tx_hash in ledger mode (simulated payments)
       console.log(`[Ledger Mode] Simulated AUF payment: ${body.auf_tx_hash}`);
     } else {
-      // TODO: Verify tx hash on-chain using blockchain service
-      // For MVP, we trust the tx_hash and mark as confirmed
-      // In production, this should verify:
-      // 1. Transaction exists and is confirmed
-      // 2. To address is correct (treasury)
-      // 3. Amount is correct (AUF amount)
-      // 4. Token is correct
+      // ONCHAIN MODE: Verify the transaction on-chain
+
+      // 1. Check if tx_hash has already been used (replay prevention)
+      const txUsed = await isTxHashUsed(env.DB, body.auf_tx_hash, body.chain);
+      if (txUsed) {
+        return errors.invalidRequest(requestId, {
+          code: 'AUF_ALREADY_USED',
+          message: 'This transaction hash has already been used for another payment',
+        });
+      }
+
+      // 2. Verify transaction on-chain
+      const verification = await verifyTransaction(
+        body.auf_tx_hash,
+        body.chain,
+        treasuryAddress,
+        aufAmountCentsForVerify,
+        body.token
+      );
+
+      if (!verification.verified) {
+        // Map verification errors to specific error codes
+        let errorCode = 'AUF_TX_INVALID';
+        if (verification.error?.includes('not found')) {
+          errorCode = 'AUF_TX_NOT_FOUND';
+        } else if (verification.error?.includes('recipient')) {
+          errorCode = 'AUF_WRONG_RECIPIENT';
+        } else if (verification.error?.includes('Amount')) {
+          errorCode = 'AUF_WRONG_AMOUNT';
+        } else if (verification.error?.includes('token')) {
+          errorCode = 'AUF_WRONG_TOKEN';
+        }
+
+        return errors.invalidRequest(requestId, {
+          code: errorCode,
+          message: verification.error || 'AUF transaction verification failed',
+          expected: {
+            to: treasuryAddress,
+            amount_cents: aufAmountCentsForVerify,
+            token: body.token,
+            chain: body.chain,
+          },
+        });
+      }
+
+      // 3. Check confirmations (optional, for extra safety)
+      const minConfirmations = MIN_CONFIRMATIONS[body.chain] || 1;
+      if (verification.details && verification.details.confirmations < minConfirmations) {
+        return errors.invalidRequest(requestId, {
+          code: 'AUF_NOT_CONFIRMED_YET',
+          message: `Transaction needs at least ${minConfirmations} confirmations. Current: ${verification.details.confirmations}`,
+        });
+      }
+
+      console.log(`[OnChain Mode] AUF verified: ${body.auf_tx_hash}`, verification.details);
     }
 
     const now = new Date();
@@ -376,6 +460,10 @@ export async function unlockAddress(
       payout_amount_cents: payoutAmountCents,
       payout_deadline_at: appData.payout_deadline_at,
       chain: body.chain,
+      token: body.token,
+      // Transaction verification info
+      auf_tx_verified: true,
+      auf_explorer_url: getExplorerUrl(body.auf_tx_hash, body.chain),
       // Include payout mode info
       payout_mode: payoutMode,
       is_simulated: isSimulated,
@@ -466,12 +554,101 @@ export async function confirmPayout(
     const payoutMode: PayoutMode = payoutConfig.mode;
     const isSimulated = isSimulatedTxHash(body.payout_tx_hash);
 
+    // Get operator's wallet address for verification
+    const operatorWallet = await env.DB.prepare(
+      `SELECT evm_wallet_address, solana_wallet_address FROM operators WHERE id = ?`
+    ).bind(appData.operator_id).first<{
+      evm_wallet_address: string | null;
+      solana_wallet_address: string | null;
+    }>();
+
+    if (!operatorWallet) {
+      return errors.internalError(requestId);
+    }
+
+    // Determine expected recipient based on chain
+    let expectedRecipient: string;
+    if (body.chain === 'solana' || body.chain === 'solana_devnet') {
+      if (!operatorWallet.solana_wallet_address) {
+        return errors.invalidRequest(requestId, {
+          code: 'OPERATOR_WALLET_NOT_SET',
+          message: 'Operator has not configured Solana wallet address',
+        });
+      }
+      expectedRecipient = operatorWallet.solana_wallet_address;
+    } else {
+      if (!operatorWallet.evm_wallet_address) {
+        return errors.invalidRequest(requestId, {
+          code: 'OPERATOR_WALLET_NOT_SET',
+          message: 'Operator has not configured EVM wallet address',
+        });
+      }
+      expectedRecipient = operatorWallet.evm_wallet_address;
+    }
+
+    // Calculate expected payout amount
+    const aufPercentageForVerify = appData.auf_percentage || 10;
+    const payoutAmountCentsForVerify = appData.reward_amount - Math.floor((appData.reward_amount * aufPercentageForVerify) / 100);
+
     // In ledger mode, allow simulated tx hashes
     if (payoutMode === 'ledger') {
       console.log(`[Ledger Mode] Simulated payout: ${body.payout_tx_hash}`);
     } else {
-      // TODO: Verify tx hash on-chain using blockchain service
-      // For MVP, we trust the tx_hash and mark as confirmed
+      // ONCHAIN MODE: Verify the payout transaction on-chain
+
+      // 1. Check if tx_hash has already been used (replay prevention)
+      const txUsed = await isTxHashUsed(env.DB, body.payout_tx_hash, body.chain);
+      if (txUsed) {
+        return errors.invalidRequest(requestId, {
+          code: 'PAYOUT_ALREADY_USED',
+          message: 'This transaction hash has already been used for another payment',
+        });
+      }
+
+      // 2. Verify transaction on-chain
+      const verification = await verifyTransaction(
+        body.payout_tx_hash,
+        body.chain,
+        expectedRecipient,
+        payoutAmountCentsForVerify,
+        body.token
+      );
+
+      if (!verification.verified) {
+        // Map verification errors to specific error codes
+        let errorCode = 'PAYOUT_TX_INVALID';
+        if (verification.error?.includes('not found')) {
+          errorCode = 'PAYOUT_TX_NOT_FOUND';
+        } else if (verification.error?.includes('recipient')) {
+          errorCode = 'PAYOUT_WRONG_RECIPIENT';
+        } else if (verification.error?.includes('Amount')) {
+          errorCode = 'PAYOUT_WRONG_AMOUNT';
+        } else if (verification.error?.includes('token')) {
+          errorCode = 'PAYOUT_WRONG_TOKEN';
+        }
+
+        return errors.invalidRequest(requestId, {
+          code: errorCode,
+          message: verification.error || 'Payout transaction verification failed',
+          expected: {
+            to: expectedRecipient,
+            amount_cents: payoutAmountCentsForVerify,
+            token: body.token,
+            chain: body.chain,
+          },
+        });
+      }
+
+      // 3. Check confirmations
+      const minConfirmations = MIN_CONFIRMATIONS[body.chain] || 1;
+      if (verification.details && verification.details.confirmations < minConfirmations) {
+        return errors.invalidRequest(requestId, {
+          code: 'PAYOUT_NOT_CONFIRMED_YET',
+          message: `Transaction needs at least ${minConfirmations} confirmations. Current: ${verification.details.confirmations}`,
+        });
+      }
+
+      console.log(`[OnChain Mode] Payout verified: ${body.payout_tx_hash}`, verification.details);
     }
 
     const now = new Date();
