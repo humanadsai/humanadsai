@@ -15,16 +15,17 @@
     .admin-header h1 { font-family: var(--font-mono); font-size: 1.5rem; }
 
     /* Wallet Connection */
-    .wallet-section { display: flex; align-items: center; gap: 12px; }
-    .wallet-btn { padding: 8px 16px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .wallet-section { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .wallet-btn { padding: 8px 16px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
     .wallet-btn:hover { opacity: 0.9; }
+    .wallet-btn:active { opacity: 0.7; }
     .wallet-btn.connected { background: rgba(52,199,89,0.2); color: #34c759; border: 1px solid rgba(52,199,89,0.3); }
     .wallet-info { font-family: var(--font-mono); font-size: 0.75rem; }
     .wallet-address { color: var(--color-text-muted); }
     .wallet-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; margin-left: 8px; }
     .wallet-badge.owner { background: rgba(255,107,53,0.2); color: #ff6b35; }
     .wallet-badge.not-owner { background: rgba(255,59,48,0.2); color: #ff3b30; }
-    .chain-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; margin-left: 4px; }
+    .chain-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; margin-left: 4px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .chain-badge.correct { background: rgba(52,199,89,0.2); color: #34c759; }
     .chain-badge.wrong { background: rgba(255,59,48,0.2); color: #ff3b30; }
 
@@ -59,8 +60,9 @@
     .faucet-amount-value { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 600; color: var(--color-primary); }
 
     /* Buttons */
-    .action-btn { padding: 12px 24px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-family: var(--font-mono); font-weight: 600; cursor: pointer; transition: opacity 0.2s; width: 100%; }
+    .action-btn { padding: 12px 24px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-family: var(--font-mono); font-weight: 600; cursor: pointer; transition: opacity 0.2s; width: 100%; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     .action-btn:hover { opacity: 0.9; }
+    .action-btn:active { opacity: 0.7; }
     .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .action-btn.mint { background: #34c759; }
     .action-btn.transfer { background: #007aff; }
@@ -77,7 +79,7 @@
 
     /* Table */
     .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-    .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; }
+    .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .filter-chip:hover, .filter-chip.active { border-color: var(--color-primary); color: var(--color-primary); }
     .data-table { width: 100%; border-collapse: collapse; }
     .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; }
@@ -105,9 +107,9 @@
     .tx-link:hover { text-decoration: underline; }
 
     /* Confirmation Modal */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
     .modal-overlay.show { display: flex; }
-    .modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; }
+    .modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 24px; max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; }
     .modal-title { font-family: var(--font-mono); font-size: 1.25rem; margin-bottom: 16px; }
     .modal-content { margin-bottom: 20px; }
     .modal-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; }
@@ -115,11 +117,33 @@
     .modal-label { color: var(--color-text-muted); }
     .modal-value { font-family: var(--font-mono); text-align: right; word-break: break-all; max-width: 200px; }
     .modal-actions { display: flex; gap: 12px; }
-    .modal-btn { flex: 1; padding: 12px; border-radius: 8px; font-family: var(--font-mono); font-weight: 600; cursor: pointer; }
+    .modal-btn { flex: 1; padding: 14px; border-radius: 8px; font-family: var(--font-mono); font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; font-size: 1rem; }
+    .modal-btn:active { opacity: 0.7; }
     .modal-btn.cancel { background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text); }
     .modal-btn.confirm { background: var(--color-primary); border: none; color: white; }
     .modal-btn.confirm.mint { background: #34c759; }
     .modal-btn.confirm.transfer { background: #007aff; }
+    .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Debug Panel */
+    .debug-panel { margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.7rem; font-family: var(--font-mono); }
+    .debug-toggle { cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; }
+    .debug-toggle:hover { color: var(--color-text); }
+    .debug-content { margin-top: 8px; display: none; }
+    .debug-content.show { display: block; }
+    .debug-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .debug-row:last-child { border-bottom: none; }
+    .debug-key { color: var(--color-text-muted); }
+    .debug-value { color: #34c759; word-break: break-all; max-width: 200px; text-align: right; }
+    .debug-value.error { color: #ff3b30; }
+    .debug-value.warn { color: #ff9500; }
+
+    /* Modal Status */
+    .modal-status { margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 0.8rem; display: none; }
+    .modal-status.show { display: block; }
+    .modal-status.info { background: rgba(0,122,255,0.2); color: #007aff; }
+    .modal-status.error { background: rgba(255,59,48,0.2); color: #ff3b30; }
+    .modal-status.success { background: rgba(52,199,89,0.2); color: #34c759; }
   </style>
 </head>
 <body>
@@ -146,9 +170,17 @@
     <div class="modal">
       <div class="modal-title" id="modal-title">Confirm Transaction</div>
       <div class="modal-content" id="modal-content"></div>
+      <div class="modal-status" id="modal-status"></div>
       <div class="modal-actions">
-        <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
-        <button class="modal-btn confirm" id="modal-confirm-btn" onclick="executeConfirmed()">Confirm</button>
+        <button class="modal-btn cancel" id="modal-cancel-btn">Cancel</button>
+        <button class="modal-btn confirm" id="modal-confirm-btn">Confirm</button>
+      </div>
+      <!-- Debug Panel -->
+      <div class="debug-panel">
+        <div class="debug-toggle" id="debug-toggle">
+          <span id="debug-arrow">+</span> Debug Info
+        </div>
+        <div class="debug-content" id="debug-content"></div>
       </div>
     </div>
   </div>
@@ -167,17 +199,17 @@
       ownerAddress: '0x64D6407757218ECbFc173C1efE0Fe7EdAaF67cC3',
       treasuryAddress: '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017',
       decimals: 6,
-      maxMintAmount: 1000000000, // 1 billion
-      defaultMintAmount: 1000000, // 1 million
+      maxMintAmount: 1000000000,
+      defaultMintAmount: 1000000,
       explorerUrl: 'https://sepolia.etherscan.io',
     };
 
     // ERC20 function selectors
     const SELECTORS = {
-      mint: '0x40c10f19', // mint(address,uint256)
-      transfer: '0xa9059cbb', // transfer(address,uint256)
-      balanceOf: '0x70a08231', // balanceOf(address)
-      totalSupply: '0x18160ddd', // totalSupply()
+      mint: '0x40c10f19',
+      transfer: '0xa9059cbb',
+      balanceOf: '0x70a08231',
+      totalSupply: '0x18160ddd',
     };
 
     // ============================================
@@ -189,38 +221,210 @@
     let currentFilter = null;
     let serverConfig = null;
     let pendingAction = null;
+    let pendingTxParams = null;
+    let debugInfo = {};
 
     // ============================================
-    // Wallet Connection
+    // Debug Logging
+    // ============================================
+    function log(level, message, data = null) {
+      const timestamp = new Date().toISOString();
+      const logEntry = { timestamp, level, message, data };
+      console[level === 'error' ? 'error' : 'log'](`[TokenOps] ${message}`, data || '');
+
+      // Store for debug panel
+      if (!window.tokenOpsLogs) window.tokenOpsLogs = [];
+      window.tokenOpsLogs.push(logEntry);
+      if (window.tokenOpsLogs.length > 50) window.tokenOpsLogs.shift();
+    }
+
+    function updateDebugPanel() {
+      const content = document.getElementById('debug-content');
+      if (!content) return;
+
+      const provider = window.ethereum;
+      debugInfo = {
+        hasWindowEthereum: !!provider,
+        providerType: provider ? (provider.isMetaMask ? 'MetaMask' : provider.isCoinbaseWallet ? 'Coinbase' : 'Unknown') : 'none',
+        chainId: currentChainId,
+        chainIdHex: currentChainId ? '0x' + currentChainId.toString(16) : null,
+        expectedChainId: CONFIG.chainId,
+        isCorrectChain: currentChainId === CONFIG.chainId,
+        selectedAddress: walletAddress,
+        isOwner: isOwner,
+        ownerAddress: CONFIG.ownerAddress,
+        contract: CONFIG.husdContract,
+      };
+
+      if (pendingTxParams) {
+        debugInfo.txParams = pendingTxParams;
+      }
+
+      content.innerHTML = Object.entries(debugInfo).map(([key, value]) => {
+        let valueClass = '';
+        if (key === 'hasWindowEthereum' && !value) valueClass = 'error';
+        if (key === 'isCorrectChain' && !value) valueClass = 'error';
+        if (key === 'isOwner' && !value) valueClass = 'warn';
+
+        const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+        return `<div class="debug-row"><span class="debug-key">${key}</span><span class="debug-value ${valueClass}">${displayValue}</span></div>`;
+      }).join('');
+    }
+
+    // ============================================
+    // Provider Management
+    // ============================================
+    function getProvider() {
+      if (typeof window.ethereum === 'undefined') {
+        log('error', 'No ethereum provider found');
+        return null;
+      }
+      return window.ethereum;
+    }
+
+    async function ensureConnected() {
+      const provider = getProvider();
+      if (!provider) {
+        throw new Error('No wallet detected. Please use MetaMask browser.');
+      }
+
+      log('info', 'Requesting accounts...');
+      try {
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        log('info', 'Accounts received', accounts);
+
+        if (!accounts || accounts.length === 0) {
+          throw new Error('No accounts returned. Please unlock your wallet.');
+        }
+
+        walletAddress = accounts[0].toLowerCase();
+        isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
+
+        return accounts[0];
+      } catch (e) {
+        log('error', 'eth_requestAccounts failed', { code: e.code, message: e.message });
+        throw new Error(`Wallet connection failed: ${e.message} (code: ${e.code || 'unknown'})`);
+      }
+    }
+
+    async function ensureCorrectChain() {
+      const provider = getProvider();
+      if (!provider) {
+        throw new Error('No wallet provider');
+      }
+
+      log('info', 'Checking chain ID...');
+      const chainIdHex = await provider.request({ method: 'eth_chainId' });
+      currentChainId = parseInt(chainIdHex, 16);
+      log('info', 'Current chain', { chainId: currentChainId, expected: CONFIG.chainId });
+
+      if (currentChainId !== CONFIG.chainId) {
+        log('info', 'Switching to Sepolia...');
+        try {
+          await provider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: CONFIG.chainIdHex }],
+          });
+          log('info', 'Chain switched successfully');
+        } catch (switchError) {
+          log('error', 'Chain switch failed', { code: switchError.code, message: switchError.message });
+
+          if (switchError.code === 4902) {
+            log('info', 'Adding Sepolia chain...');
+            try {
+              await provider.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: CONFIG.chainIdHex,
+                  chainName: 'Sepolia Testnet',
+                  nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                  rpcUrls: ['https://rpc.sepolia.org'],
+                  blockExplorerUrls: ['https://sepolia.etherscan.io'],
+                }],
+              });
+              log('info', 'Sepolia chain added');
+            } catch (addError) {
+              log('error', 'Failed to add Sepolia', { code: addError.code, message: addError.message });
+              throw new Error(`Failed to add Sepolia network: ${addError.message}`);
+            }
+          } else if (switchError.code === 4001) {
+            throw new Error('You rejected the network switch. Please switch to Sepolia manually.');
+          } else {
+            throw new Error(`Failed to switch network: ${switchError.message} (code: ${switchError.code})`);
+          }
+        }
+
+        // Re-check chain after switch
+        const newChainIdHex = await provider.request({ method: 'eth_chainId' });
+        currentChainId = parseInt(newChainIdHex, 16);
+
+        if (currentChainId !== CONFIG.chainId) {
+          throw new Error(`Still on wrong chain (${currentChainId}). Please switch to Sepolia manually.`);
+        }
+      }
+
+      return true;
+    }
+
+    async function estimateGas(txParams) {
+      const provider = getProvider();
+      if (!provider) throw new Error('No provider');
+
+      log('info', 'Estimating gas...', txParams);
+      try {
+        const gasEstimate = await provider.request({
+          method: 'eth_estimateGas',
+          params: [txParams],
+        });
+        log('info', 'Gas estimate', { gas: gasEstimate, decimal: parseInt(gasEstimate, 16) });
+        return gasEstimate;
+      } catch (e) {
+        log('error', 'Gas estimation failed', { code: e.code, message: e.message, data: e.data });
+
+        // Parse revert reason if available
+        let reason = e.message;
+        if (e.data && typeof e.data === 'string') {
+          reason += ` (data: ${e.data})`;
+        }
+        if (e.message.includes('execution reverted')) {
+          reason = 'Transaction would fail. Check: 1) You are the contract owner, 2) Sufficient balance';
+        }
+
+        throw new Error(`Transaction would fail: ${reason}`);
+      }
+    }
+
+    // ============================================
+    // Wallet Connection UI
     // ============================================
     async function connectWallet() {
-      if (typeof window.ethereum === 'undefined') {
-        alert('MetaMask is not installed. Please install MetaMask to use Owner functions.');
+      log('info', 'Connect wallet clicked');
+
+      const provider = getProvider();
+      if (!provider) {
+        alert('No wallet detected. Please open this page in MetaMask browser or install MetaMask extension.');
         return;
       }
 
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        walletAddress = accounts[0].toLowerCase();
-        isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
+        await ensureConnected();
+        await ensureCorrectChain();
 
-        // Get chain ID
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        currentChainId = parseInt(chainId, 16);
-
-        // Listen for account/chain changes
-        window.ethereum.on('accountsChanged', handleAccountsChanged);
-        window.ethereum.on('chainChanged', handleChainChanged);
+        // Listen for changes
+        provider.on('accountsChanged', handleAccountsChanged);
+        provider.on('chainChanged', handleChainChanged);
 
         updateWalletUI();
         await refreshOnchainData();
+        log('info', 'Wallet connected successfully');
       } catch (e) {
-        console.error('Wallet connection failed:', e);
-        alert('Failed to connect wallet: ' + e.message);
+        log('error', 'Wallet connection failed', { message: e.message });
+        alert('Failed to connect: ' + e.message);
       }
     }
 
     function handleAccountsChanged(accounts) {
+      log('info', 'Accounts changed', accounts);
       if (accounts.length === 0) {
         walletAddress = null;
         isOwner = false;
@@ -232,34 +436,19 @@
       refreshOnchainData();
     }
 
-    function handleChainChanged(chainId) {
-      currentChainId = parseInt(chainId, 16);
+    function handleChainChanged(chainIdHex) {
+      log('info', 'Chain changed', chainIdHex);
+      currentChainId = parseInt(chainIdHex, 16);
       updateWalletUI();
       refreshOnchainData();
     }
 
     async function switchToSepolia() {
       try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: CONFIG.chainIdHex }],
-        });
+        await ensureCorrectChain();
+        updateWalletUI();
       } catch (e) {
-        if (e.code === 4902) {
-          // Chain not added, add it
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: CONFIG.chainIdHex,
-              chainName: 'Sepolia Testnet',
-              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-              rpcUrls: ['https://rpc.sepolia.org'],
-              blockExplorerUrls: ['https://sepolia.etherscan.io'],
-            }],
-          });
-        } else {
-          throw e;
-        }
+        alert(e.message);
       }
     }
 
@@ -272,21 +461,24 @@
       if (walletAddress) {
         const shortAddr = walletAddress.substring(0, 6) + '...' + walletAddress.substring(38);
         walletSection.innerHTML = `
-          <button class="wallet-btn connected" onclick="connectWallet()">
-            ${shortAddr}
-          </button>
+          <button class="wallet-btn connected">${shortAddr}</button>
           <span class="wallet-badge ${isOwner ? 'owner' : 'not-owner'}">${isOwner ? 'OWNER' : 'NOT OWNER'}</span>
-          <span class="chain-badge ${isCorrectChain ? 'correct' : 'wrong'}" onclick="${isCorrectChain ? '' : 'switchToSepolia()'}" style="${isCorrectChain ? '' : 'cursor:pointer'}">
+          <span class="chain-badge ${isCorrectChain ? 'correct' : 'wrong'}" id="chain-badge">
             ${isCorrectChain ? 'Sepolia' : 'Wrong Chain!'}
           </span>
         `;
+
+        // Add click handler for wrong chain badge
+        if (!isCorrectChain) {
+          document.getElementById('chain-badge').addEventListener('click', switchToSepolia);
+        }
       } else {
         walletSection.innerHTML = `
-          <button class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+          <button class="wallet-btn" id="connect-wallet-btn">Connect Wallet</button>
         `;
+        document.getElementById('connect-wallet-btn').addEventListener('click', connectWallet);
       }
 
-      // Update button states
       updateButtonStates();
     }
 
@@ -327,13 +519,13 @@
     // On-chain Reads
     // ============================================
     async function readContract(selector, params = '') {
+      const provider = getProvider();
+      if (!provider) return null;
+
       const data = selector + params;
-      const result = await window.ethereum.request({
+      const result = await provider.request({
         method: 'eth_call',
-        params: [{
-          to: CONFIG.husdContract,
-          data: data,
-        }, 'latest'],
+        params: [{ to: CONFIG.husdContract, data }, 'latest'],
       });
       return result;
     }
@@ -341,10 +533,11 @@
     async function getTotalSupply() {
       try {
         const result = await readContract(SELECTORS.totalSupply);
+        if (!result) return null;
         const raw = BigInt(result);
         return Number(raw / BigInt(10 ** CONFIG.decimals));
       } catch (e) {
-        console.error('getTotalSupply error:', e);
+        log('error', 'getTotalSupply error', e.message);
         return null;
       }
     }
@@ -353,10 +546,11 @@
       try {
         const paddedAddress = address.toLowerCase().replace('0x', '').padStart(64, '0');
         const result = await readContract(SELECTORS.balanceOf, paddedAddress);
+        if (!result) return null;
         const raw = BigInt(result);
         return Number(raw / BigInt(10 ** CONFIG.decimals));
       } catch (e) {
-        console.error('getBalance error:', e);
+        log('error', 'getBalance error', e.message);
         return null;
       }
     }
@@ -364,33 +558,38 @@
     async function refreshOnchainData() {
       if (!walletAddress) return;
 
-      const [totalSupply, ownerBalance, treasuryBalance] = await Promise.all([
-        getTotalSupply(),
-        getBalance(CONFIG.ownerAddress),
-        getBalance(CONFIG.treasuryAddress),
-      ]);
+      try {
+        const [totalSupply, ownerBalance, treasuryBalance] = await Promise.all([
+          getTotalSupply(),
+          getBalance(CONFIG.ownerAddress),
+          getBalance(CONFIG.treasuryAddress),
+        ]);
 
-      // Update UI
-      const totalSupplyEl = document.getElementById('total-supply');
-      const ownerBalanceEl = document.getElementById('owner-balance');
-      const treasuryBalanceEl = document.getElementById('treasury-balance-live');
+        const totalSupplyEl = document.getElementById('total-supply');
+        const ownerBalanceEl = document.getElementById('owner-balance');
+        const treasuryBalanceEl = document.getElementById('treasury-balance-live');
 
-      if (totalSupplyEl && totalSupply !== null) {
-        totalSupplyEl.textContent = totalSupply.toLocaleString() + ' hUSD';
-      }
-      if (ownerBalanceEl && ownerBalance !== null) {
-        ownerBalanceEl.textContent = ownerBalance.toLocaleString() + ' hUSD';
-      }
-      if (treasuryBalanceEl && treasuryBalance !== null) {
-        treasuryBalanceEl.textContent = treasuryBalance.toLocaleString() + ' hUSD';
+        if (totalSupplyEl && totalSupply !== null) {
+          totalSupplyEl.textContent = totalSupply.toLocaleString() + ' hUSD';
+        }
+        if (ownerBalanceEl && ownerBalance !== null) {
+          ownerBalanceEl.textContent = ownerBalance.toLocaleString() + ' hUSD';
+        }
+        if (treasuryBalanceEl && treasuryBalance !== null) {
+          treasuryBalanceEl.textContent = treasuryBalance.toLocaleString() + ' hUSD';
+        }
+      } catch (e) {
+        log('error', 'refreshOnchainData error', e.message);
       }
     }
 
     // ============================================
-    // Owner Actions
+    // Modal Management
     // ============================================
-    function showConfirmModal(action, title, details, btnClass) {
+    function showConfirmModal(action, title, details, btnClass, txParams) {
       pendingAction = action;
+      pendingTxParams = txParams;
+
       document.getElementById('modal-title').textContent = title;
       document.getElementById('modal-content').innerHTML = details.map(d => `
         <div class="modal-row">
@@ -402,34 +601,113 @@
       const confirmBtn = document.getElementById('modal-confirm-btn');
       confirmBtn.className = 'modal-btn confirm ' + btnClass;
       confirmBtn.textContent = 'Confirm ' + (btnClass === 'mint' ? 'Mint' : 'Transfer');
+      confirmBtn.disabled = false;
+
+      // Reset status
+      const statusEl = document.getElementById('modal-status');
+      statusEl.className = 'modal-status';
+      statusEl.textContent = '';
+
+      // Update debug panel
+      updateDebugPanel();
 
       document.getElementById('confirm-modal').classList.add('show');
+      log('info', 'Modal shown', { title, txParams });
     }
 
     function closeModal() {
       document.getElementById('confirm-modal').classList.remove('show');
       pendingAction = null;
+      pendingTxParams = null;
+    }
+
+    function setModalStatus(message, type) {
+      const statusEl = document.getElementById('modal-status');
+      statusEl.className = 'modal-status show ' + type;
+      statusEl.textContent = message;
     }
 
     async function executeConfirmed() {
-      if (!pendingAction) return;
-      closeModal();
-      await pendingAction();
+      if (!pendingAction) {
+        log('error', 'No pending action');
+        return;
+      }
+
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      const cancelBtn = document.getElementById('modal-cancel-btn');
+
+      confirmBtn.disabled = true;
+      cancelBtn.disabled = true;
+      confirmBtn.textContent = 'Processing...';
+
+      setModalStatus('Preparing transaction...', 'info');
+      log('info', 'Execute confirmed clicked');
+
+      try {
+        // Step 1: Ensure wallet is connected
+        setModalStatus('Connecting wallet...', 'info');
+        await ensureConnected();
+        updateDebugPanel();
+
+        // Step 2: Ensure correct chain
+        setModalStatus('Checking network...', 'info');
+        await ensureCorrectChain();
+        updateDebugPanel();
+
+        // Step 3: Estimate gas (validates tx will succeed)
+        setModalStatus('Validating transaction...', 'info');
+        if (pendingTxParams) {
+          await estimateGas(pendingTxParams);
+        }
+
+        // Step 4: Execute the action
+        setModalStatus('Waiting for wallet confirmation...', 'info');
+        closeModal();
+        await pendingAction();
+
+      } catch (e) {
+        log('error', 'Transaction failed', { code: e.code, message: e.message });
+        setModalStatus(`Error: ${e.message}`, 'error');
+        confirmBtn.disabled = false;
+        cancelBtn.disabled = false;
+        confirmBtn.textContent = 'Retry';
+        updateDebugPanel();
+
+        // Add error to debug info
+        debugInfo.lastError = { code: e.code, message: e.message };
+        updateDebugPanel();
+      }
     }
 
+    // ============================================
+    // Owner Actions
+    // ============================================
     function prepareMint() {
+      log('info', 'Prepare mint clicked');
+
       const toSelect = document.getElementById('mint-to');
       const amountInput = document.getElementById('mint-amount');
       const to = toSelect.value;
       const amount = parseInt(amountInput.value) || CONFIG.defaultMintAmount;
 
-      // Validation
       if (amount <= 0 || amount > CONFIG.maxMintAmount) {
         showMintStatus(`Invalid amount. Must be 1 - ${CONFIG.maxMintAmount.toLocaleString()}`, 'error');
         return;
       }
 
-      const toLabel = to === CONFIG.ownerAddress ? 'Owner' : 'Treasury';
+      // Build tx params for gas estimation
+      const paddedTo = to.toLowerCase().replace('0x', '').padStart(64, '0');
+      const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
+      const paddedAmount = amountWei.toString(16).padStart(64, '0');
+      const data = SELECTORS.mint + paddedTo + paddedAmount;
+
+      const txParams = {
+        from: walletAddress,
+        to: CONFIG.husdContract,
+        data: data,
+      };
+
+      const toLabel = to.toLowerCase() === CONFIG.ownerAddress.toLowerCase() ? 'Owner' : 'Treasury';
       const toShort = to.substring(0, 10) + '...' + to.substring(36);
 
       showConfirmModal(
@@ -441,51 +719,67 @@
           { label: 'To', value: `${toLabel} (${toShort})` },
           { label: 'Amount', value: amount.toLocaleString() + ' hUSD' },
         ],
-        'mint'
+        'mint',
+        txParams
       );
     }
 
     async function executeMint(to, amount) {
       const btn = document.getElementById('mint-btn');
-      const statusDiv = document.getElementById('mint-status');
 
       btn.disabled = true;
       btn.textContent = 'Minting...';
-      showMintStatus('Waiting for MetaMask confirmation...', 'info');
+      showMintStatus('Sending transaction to MetaMask...', 'info');
+      log('info', 'Executing mint', { to, amount });
 
       try {
-        // Encode mint(address, uint256)
+        const provider = getProvider();
+        if (!provider) throw new Error('No wallet provider');
+
+        // Build transaction
         const paddedTo = to.toLowerCase().replace('0x', '').padStart(64, '0');
         const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
         const paddedAmount = amountWei.toString(16).padStart(64, '0');
         const data = SELECTORS.mint + paddedTo + paddedAmount;
 
-        const txHash = await window.ethereum.request({
+        const txParams = {
+          from: walletAddress,
+          to: CONFIG.husdContract,
+          data: data,
+        };
+
+        log('info', 'Sending eth_sendTransaction', txParams);
+
+        const txHash = await provider.request({
           method: 'eth_sendTransaction',
-          params: [{
-            from: walletAddress,
-            to: CONFIG.husdContract,
-            data: data,
-          }],
+          params: [txParams],
         });
+
+        log('info', 'Transaction sent', { txHash });
 
         showMintStatus(
           `Mint submitted! <a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank" class="tx-link">${txHash.substring(0, 20)}...</a>`,
           'success'
         );
 
-        // Log to backend (optional)
         logTokenOp('owner_mint', txHash, walletAddress, to, amount);
 
-        // Refresh data after delay
         setTimeout(() => {
           refreshOnchainData();
           loadTokenOps(currentFilter);
         }, 5000);
 
       } catch (e) {
-        console.error('Mint failed:', e);
-        showMintStatus(e.message || 'Mint failed', 'error');
+        log('error', 'Mint failed', { code: e.code, message: e.message });
+
+        let errorMsg = e.message;
+        if (e.code === 4001) {
+          errorMsg = 'Transaction rejected by user';
+        } else if (e.code === -32603) {
+          errorMsg = 'Internal error. Check if you are the contract owner.';
+        }
+
+        showMintStatus(`Failed: ${errorMsg} (code: ${e.code || 'unknown'})`, 'error');
       } finally {
         btn.disabled = false;
         updateButtonStates();
@@ -501,14 +795,27 @@
     }
 
     function prepareTransfer() {
+      log('info', 'Prepare transfer clicked');
+
       const amountInput = document.getElementById('transfer-amount');
       const amount = parseInt(amountInput.value) || CONFIG.defaultMintAmount;
 
-      // Validation
       if (amount <= 0 || amount > CONFIG.maxMintAmount) {
         showTransferStatus(`Invalid amount. Must be 1 - ${CONFIG.maxMintAmount.toLocaleString()}`, 'error');
         return;
       }
+
+      // Build tx params for gas estimation
+      const paddedTo = CONFIG.treasuryAddress.toLowerCase().replace('0x', '').padStart(64, '0');
+      const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
+      const paddedAmount = amountWei.toString(16).padStart(64, '0');
+      const data = SELECTORS.transfer + paddedTo + paddedAmount;
+
+      const txParams = {
+        from: walletAddress,
+        to: CONFIG.husdContract,
+        data: data,
+      };
 
       showConfirmModal(
         () => executeTransfer(amount),
@@ -520,51 +827,66 @@
           { label: 'To', value: 'Treasury (' + CONFIG.treasuryAddress.substring(0, 10) + '...)' },
           { label: 'Amount', value: amount.toLocaleString() + ' hUSD' },
         ],
-        'transfer'
+        'transfer',
+        txParams
       );
     }
 
     async function executeTransfer(amount) {
       const btn = document.getElementById('transfer-btn');
-      const statusDiv = document.getElementById('transfer-status');
 
       btn.disabled = true;
       btn.textContent = 'Transferring...';
-      showTransferStatus('Waiting for MetaMask confirmation...', 'info');
+      showTransferStatus('Sending transaction to MetaMask...', 'info');
+      log('info', 'Executing transfer', { amount });
 
       try {
-        // Encode transfer(address, uint256)
+        const provider = getProvider();
+        if (!provider) throw new Error('No wallet provider');
+
         const paddedTo = CONFIG.treasuryAddress.toLowerCase().replace('0x', '').padStart(64, '0');
         const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
         const paddedAmount = amountWei.toString(16).padStart(64, '0');
         const data = SELECTORS.transfer + paddedTo + paddedAmount;
 
-        const txHash = await window.ethereum.request({
+        const txParams = {
+          from: walletAddress,
+          to: CONFIG.husdContract,
+          data: data,
+        };
+
+        log('info', 'Sending eth_sendTransaction', txParams);
+
+        const txHash = await provider.request({
           method: 'eth_sendTransaction',
-          params: [{
-            from: walletAddress,
-            to: CONFIG.husdContract,
-            data: data,
-          }],
+          params: [txParams],
         });
+
+        log('info', 'Transaction sent', { txHash });
 
         showTransferStatus(
           `Transfer submitted! <a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank" class="tx-link">${txHash.substring(0, 20)}...</a>`,
           'success'
         );
 
-        // Log to backend
         logTokenOp('owner_transfer', txHash, walletAddress, CONFIG.treasuryAddress, amount);
 
-        // Refresh data after delay
         setTimeout(() => {
           refreshOnchainData();
           loadTokenOps(currentFilter);
         }, 5000);
 
       } catch (e) {
-        console.error('Transfer failed:', e);
-        showTransferStatus(e.message || 'Transfer failed', 'error');
+        log('error', 'Transfer failed', { code: e.code, message: e.message });
+
+        let errorMsg = e.message;
+        if (e.code === 4001) {
+          errorMsg = 'Transaction rejected by user';
+        } else if (e.code === -32603) {
+          errorMsg = 'Internal error. Check if you have sufficient balance.';
+        }
+
+        showTransferStatus(`Failed: ${errorMsg} (code: ${e.code || 'unknown'})`, 'error');
       } finally {
         btn.disabled = false;
         updateButtonStates();
@@ -591,12 +913,12 @@
             tx_hash: txHash,
             from_address: from,
             to_address: to,
-            amount_cents: amount * 100, // Convert to cents
+            amount_cents: amount * 100,
             chain_id: CONFIG.chainId,
           }),
         });
       } catch (e) {
-        console.error('Failed to log token op:', e);
+        log('error', 'Failed to log token op', e.message);
       }
     }
 
@@ -606,11 +928,9 @@
     async function loadBalances() {
       try {
         const res = await HumanAds.fetchApi('/api/admin/token-ops/balances');
-        if (res.success) {
-          return res.data;
-        }
+        if (res.success) return res.data;
       } catch (e) {
-        console.error('Failed to load balances:', e);
+        log('error', 'Failed to load balances', e.message);
       }
       return null;
     }
@@ -637,14 +957,12 @@
           <div class="admin-header">
             <h1>Token Ops (hUSD)</h1>
             <div class="wallet-section" id="wallet-section">
-              <button class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+              <button class="wallet-btn" id="connect-wallet-btn">Connect Wallet</button>
             </div>
           </div>
 
-          <!-- Owner Section -->
           <h2 class="section-title">Owner Operations (MetaMask)</h2>
           <div class="cards-grid">
-            <!-- Owner Mint Card -->
             <div class="card owner-card">
               <div class="card-header">
                 <span class="card-title">Owner Mint</span>
@@ -662,9 +980,7 @@
                   <input type="number" id="mint-amount" class="form-input" value="${CONFIG.defaultMintAmount}" min="1" max="${CONFIG.maxMintAmount}" />
                   <span class="form-hint">Max: ${CONFIG.maxMintAmount.toLocaleString()}</span>
                 </div>
-                <button class="action-btn mint" id="mint-btn" onclick="prepareMint()" disabled>
-                  Connect Wallet First
-                </button>
+                <button class="action-btn mint" id="mint-btn" disabled>Connect Wallet First</button>
                 <div id="mint-status"></div>
               </div>
               <div class="config-info">
@@ -679,10 +995,9 @@
               </div>
             </div>
 
-            <!-- Owner Transfer Card -->
             <div class="card owner-card">
               <div class="card-header">
-                <span class="card-title">Owner → Treasury Transfer</span>
+                <span class="card-title">Owner -> Treasury Transfer</span>
               </div>
               <div class="owner-form">
                 <div class="form-group">
@@ -694,9 +1009,7 @@
                   <label class="form-label">Amount (hUSD)</label>
                   <input type="number" id="transfer-amount" class="form-input" value="${CONFIG.defaultMintAmount}" min="1" max="${CONFIG.maxMintAmount}" />
                 </div>
-                <button class="action-btn transfer" id="transfer-btn" onclick="prepareTransfer()" disabled>
-                  Connect Wallet First
-                </button>
+                <button class="action-btn transfer" id="transfer-btn" disabled>Connect Wallet First</button>
                 <div id="transfer-status"></div>
               </div>
               <div class="config-info">
@@ -712,10 +1025,8 @@
             </div>
           </div>
 
-          <!-- Treasury Section -->
           <h2 class="section-title">Treasury Operations (Server)</h2>
           <div class="cards-grid">
-            <!-- Faucet Card -->
             <div class="card faucet-card">
               <div class="card-header">
                 <span class="card-title">Faucet (Advertiser)</span>
@@ -727,9 +1038,7 @@
                   <span class="faucet-amount-value">$${((serverConfig.faucet_amount_cents || 100000) / 100).toLocaleString()}</span>
                   <span style="color: var(--color-text-muted)">hUSD</span>
                 </div>
-                <button class="action-btn" onclick="sendFaucet()" id="faucet-btn">
-                  Send hUSD
-                </button>
+                <button class="action-btn" id="faucet-btn">Send hUSD</button>
                 <div id="faucet-status"></div>
               </div>
               <div class="config-info">
@@ -748,7 +1057,6 @@
               </div>
             </div>
 
-            <!-- Treasury Balance Card -->
             <div class="card">
               <div class="card-header">
                 <span class="card-title">Treasury Balance (Server)</span>
@@ -758,7 +1066,6 @@
               ${balances?.treasury?.address ? `<div class="config-info"><div class="config-row"><span class="config-label">Address:</span><span class="config-value">${balances.treasury.address.substring(0, 14)}...</span></div></div>` : ''}
             </div>
 
-            <!-- Admin Balance Card -->
             <div class="card">
               <div class="card-header">
                 <span class="card-title">Admin Balance (Server)</span>
@@ -772,12 +1079,12 @@
           <h2 class="section-title">Recent Operations (${ops.length})</h2>
 
           <div class="filters">
-            <span class="filter-chip ${!filter ? 'active' : ''}" onclick="loadTokenOps()">All</span>
-            <span class="filter-chip ${filter === 'faucet' ? 'active' : ''}" onclick="loadTokenOps('faucet')">Faucet</span>
-            <span class="filter-chip ${filter === 'mint' ? 'active' : ''}" onclick="loadTokenOps('mint')">Mint</span>
-            <span class="filter-chip ${filter === 'owner_mint' ? 'active' : ''}" onclick="loadTokenOps('owner_mint')">Owner Mint</span>
-            <span class="filter-chip ${filter === 'transfer' ? 'active' : ''}" onclick="loadTokenOps('transfer')">Transfer</span>
-            <span class="filter-chip ${filter === 'owner_transfer' ? 'active' : ''}" onclick="loadTokenOps('owner_transfer')">Owner Transfer</span>
+            <span class="filter-chip ${!filter ? 'active' : ''}" data-filter="">All</span>
+            <span class="filter-chip ${filter === 'faucet' ? 'active' : ''}" data-filter="faucet">Faucet</span>
+            <span class="filter-chip ${filter === 'mint' ? 'active' : ''}" data-filter="mint">Mint</span>
+            <span class="filter-chip ${filter === 'owner_mint' ? 'active' : ''}" data-filter="owner_mint">Owner Mint</span>
+            <span class="filter-chip ${filter === 'transfer' ? 'active' : ''}" data-filter="transfer">Transfer</span>
+            <span class="filter-chip ${filter === 'owner_transfer' ? 'active' : ''}" data-filter="owner_transfer">Owner Transfer</span>
           </div>
 
           <div class="table-container">
@@ -816,6 +1123,9 @@
           </div>
         `;
 
+        // Attach event listeners
+        attachEventListeners();
+
         // Update wallet UI if connected
         if (walletAddress) {
           updateWalletUI();
@@ -824,6 +1134,40 @@
       } catch (e) {
         content.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
       }
+    }
+
+    function attachEventListeners() {
+      // Connect wallet button
+      const connectBtn = document.getElementById('connect-wallet-btn');
+      if (connectBtn) {
+        connectBtn.addEventListener('click', connectWallet);
+      }
+
+      // Mint button
+      const mintBtn = document.getElementById('mint-btn');
+      if (mintBtn) {
+        mintBtn.addEventListener('click', prepareMint);
+      }
+
+      // Transfer button
+      const transferBtn = document.getElementById('transfer-btn');
+      if (transferBtn) {
+        transferBtn.addEventListener('click', prepareTransfer);
+      }
+
+      // Faucet button
+      const faucetBtn = document.getElementById('faucet-btn');
+      if (faucetBtn) {
+        faucetBtn.addEventListener('click', sendFaucet);
+      }
+
+      // Filter chips
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const filter = chip.dataset.filter || null;
+          loadTokenOps(filter);
+        });
+      });
     }
 
     async function sendFaucet() {
@@ -869,35 +1213,80 @@
     }
 
     // ============================================
+    // Modal Event Listeners
+    // ============================================
+    function initModalListeners() {
+      // Cancel button
+      document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+
+      // Confirm button - use both click and touchend for iOS
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      confirmBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        executeConfirmed();
+      });
+
+      // Debug toggle
+      document.getElementById('debug-toggle').addEventListener('click', () => {
+        const content = document.getElementById('debug-content');
+        const arrow = document.getElementById('debug-arrow');
+        if (content.classList.contains('show')) {
+          content.classList.remove('show');
+          arrow.textContent = '+';
+        } else {
+          content.classList.add('show');
+          arrow.textContent = '-';
+          updateDebugPanel();
+        }
+      });
+
+      // Close on overlay click
+      document.getElementById('confirm-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'confirm-modal') {
+          closeModal();
+        }
+      });
+    }
+
+    // ============================================
     // Initialization
     // ============================================
     (async function() {
+      log('info', 'Initializing Token Ops page');
+
       const meRes = await HumanAds.fetchApi('/me');
       if (!meRes.success || !meRes.data?.user?.is_admin) {
         window.location.href = '/admin';
         return;
       }
+
       await loadTokenOps();
       SideMenu.init(true, true);
+      initModalListeners();
 
       // Auto-connect if MetaMask is already connected
-      if (typeof window.ethereum !== 'undefined') {
+      const provider = getProvider();
+      if (provider) {
         try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          const accounts = await provider.request({ method: 'eth_accounts' });
           if (accounts.length > 0) {
+            log('info', 'Auto-connecting with existing session');
             walletAddress = accounts[0].toLowerCase();
             isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            const chainId = await provider.request({ method: 'eth_chainId' });
             currentChainId = parseInt(chainId, 16);
-            window.ethereum.on('accountsChanged', handleAccountsChanged);
-            window.ethereum.on('chainChanged', handleChainChanged);
+            provider.on('accountsChanged', handleAccountsChanged);
+            provider.on('chainChanged', handleChainChanged);
             updateWalletUI();
             refreshOnchainData();
           }
         } catch (e) {
-          console.log('Auto-connect check failed:', e);
+          log('error', 'Auto-connect failed', e.message);
         }
       }
+
+      log('info', 'Token Ops page initialized');
     })();
   </script>
 </body>
