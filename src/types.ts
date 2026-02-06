@@ -31,6 +31,7 @@ export interface Env {
   TREASURY_PRIVATE_KEY?: string;
   ADMIN_ADDRESS?: string;
   // Faucet configuration
+  FAUCET_CONTRACT?: string;
   FAUCET_PER_ADVERTISER?: string;
   FAUCET_COOLDOWN_SECONDS?: string;
 }
