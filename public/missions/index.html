@@ -274,14 +274,8 @@
           : 'Create an original sponsored post';
       }
 
-      // Build sample badge if this is a sample mission
-      const sampleBadgeHtml = mission.is_sample
-        ? `<span class="badge badge--sample">⚡ SAMPLE</span>`
-        : '';
-
       el.innerHTML = `
         <div class="mission-item-badges">
-          ${sampleBadgeHtml}
           <span class="badge badge--disclosure">Disclosure required</span>
           <span class="badge badge--type">${postType}</span>
         </div>
