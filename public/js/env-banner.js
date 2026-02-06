@@ -160,11 +160,10 @@
 
         .env-tooltip {
           display: none;
-          position: absolute;
-          top: calc(100% + 8px);
-          right: 0;
+          position: fixed;
           z-index: 1000;
-          min-width: 260px;
+          width: 280px;
+          max-width: calc(100vw - 24px);
           padding: 14px 16px;
           background: #1a1a2e;
           border: 1px solid rgba(47, 243, 255, 0.25);
@@ -233,6 +232,30 @@
       // Fallback: insert at top of body as a small inline bar
       chips.style.padding = '4px 12px';
       document.body.insertBefore(chips, document.body.firstChild);
+    }
+
+    // Position tooltip (fixed) so it never overflows the viewport
+    if (isTest) {
+      const chip = chips.querySelector('.env-chip-test');
+      const tip = chip && chip.querySelector('.env-tooltip');
+      if (chip && tip) {
+        const PAD = 12;
+        function positionTooltip() {
+          requestAnimationFrame(() => {
+            const cr = chip.getBoundingClientRect();
+            const tw = tip.offsetWidth;
+            // Place below chip, centered horizontally on chip
+            let left = cr.left + cr.width / 2 - tw / 2;
+            // Clamp left/right to stay within viewport
+            if (left < PAD) left = PAD;
+            if (left + tw > window.innerWidth - PAD) left = window.innerWidth - PAD - tw;
+            tip.style.top = (cr.bottom + 8) + 'px';
+            tip.style.left = left + 'px';
+          });
+        }
+        chip.addEventListener('mouseenter', positionTooltip);
+        chip.addEventListener('touchstart', positionTooltip, { passive: true });
+      }
     }
   }
 
