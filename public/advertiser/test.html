@@ -727,7 +727,7 @@
             name: 'hUSD (HumanAds Test)',
           },
         },
-        defaultToken: 'usdc',
+        defaultToken: 'husd',
       },
     };
 
@@ -793,7 +793,7 @@
       environment: null,
       payoutMode: 'ledger',
       chain: 'sepolia', // Only Sepolia supported
-      token: 'usdc', // Selected token key
+      token: 'husd', // Selected token key (hUSD only in test mode)
       dealId: null,
       applicationId: null,
       missionId: null,
@@ -1598,11 +1598,9 @@ contract HumanAdsTestUSD {
             <span class="label">Network</span>
             <span class="value">Sepolia (Testnet)</span>
           </div>
-          <div class="input-group">
-            <label>Token</label>
-            <select id="token-select" onchange="handleTokenChange(this.value)">
-              ${renderTokenOptions(state.chain)}
-            </select>
+          <div class="info-row">
+            <span class="label">Token</span>
+            <span class="value">hUSD (HumanAds Test)</span>
           </div>
           <div class="info-row">
             <span class="label">Payout Mode</span>
@@ -1853,37 +1851,17 @@ contract HumanAdsTestUSD {
       updateStepState(2); // Start at step B (Create Deal)
     }
 
-    // Render token options for a chain
+    // Token is fixed to hUSD in test mode
     function renderTokenOptions(chainKey) {
-      const tokens = getAvailableTokens(chainKey);
-      const defaultToken = CHAIN_CONFIG[chainKey]?.defaultToken || 'usdc';
-
-      if (tokens.length === 0) {
-        return '<option value="usdc" disabled>No tokens configured</option>';
-      }
-
-      return tokens.map(token => {
-        const selected = token.key === state.token || (token.key === defaultToken && !tokens.find(t => t.key === state.token));
-        const disabled = !token.address ? 'disabled' : '';
-        const label = token.address ? token.name : `${token.name} (Not Deployed)`;
-        return `<option value="${token.key}" ${selected ? 'selected' : ''} ${disabled}>${label}</option>`;
-      }).join('');
+      return '<option value="husd" selected>hUSD (HumanAds Test)</option>';
     }
 
-    // Chain is fixed to Sepolia - this function is kept for compatibility
+    // Chain is fixed to Sepolia, token is fixed to hUSD in test mode
     function handleChainChange(chainKey) {
       // Always normalize to sepolia (only supported chain)
       state.chain = normalizeChain(chainKey);
-
-      // Update token selector options
-      const tokenSelect = document.getElementById('token-select');
-      if (tokenSelect) {
-        tokenSelect.innerHTML = renderTokenOptions(state.chain);
-        const defaultToken = CHAIN_CONFIG[state.chain]?.defaultToken || 'usdc';
-        const availableTokens = getAvailableTokens(state.chain);
-        state.token = availableTokens.find(t => t.key === state.token)?.key || defaultToken;
-        tokenSelect.value = state.token;
-      }
+      // Force hUSD in test mode
+      state.token = 'husd';
 
       if (state.walletConnected) {
         switchToChain(state.chain);
