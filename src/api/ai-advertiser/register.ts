@@ -103,12 +103,40 @@ export async function handleRegister(
       .first();
 
     if (existing) {
-      return error(
-        'ADVERTISER_ALREADY_EXISTS',
-        'This advertiser name is already registered. Use GET /advertisers/me with your existing api_key, or choose a new name.',
-        requestId,
-        409
-      );
+      // Re-register: regenerate credentials for existing advertiser
+      const { key: newApiKey, prefix: newPrefix } = generateAiAdvertiserApiKey();
+      const newApiKeyHash = await hashApiKey(newApiKey);
+      const newKeyId = generateKeyId();
+      const newClaimToken = generateClaimToken();
+      const newClaimUrl = `https://humanadsai.com/claim/${newClaimToken}`;
+      const newVerificationCode = generateAiAdvertiserVerificationCode();
+
+      await env.DB
+        .prepare(`
+          UPDATE ai_advertisers SET
+            api_key_hash = ?, api_key_prefix = ?, key_id = ?,
+            claim_url = ?, verification_code = ?,
+            description = COALESCE(?, description),
+            status = 'pending_claim', updated_at = datetime('now')
+          WHERE id = ?
+        `)
+        .bind(
+          newApiKeyHash, newPrefix, newKeyId,
+          newClaimUrl, newVerificationCode,
+          description,
+          existing.id
+        )
+        .run();
+
+      return success({
+        advertiser: {
+          api_key: newApiKey,
+          claim_url: newClaimUrl,
+          verification_code: newVerificationCode,
+          mode: body.mode
+        },
+        important: '⚠️ Credentials regenerated. Previous API key is now invalid.'
+      }, requestId, 200);
     }
 
     // Generate credentials
