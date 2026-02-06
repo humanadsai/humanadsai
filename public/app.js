@@ -51,6 +51,15 @@ function formatCurrency(cents) {
   return '$' + value;
 }
 
+function formatCurrencyHtml(cents) {
+  if (typeof cents !== 'number' || isNaN(cents)) cents = 0;
+  const value = (cents / 100).toFixed(2);
+  if (window.EnvBanner && window.EnvBanner.isTestnet()) {
+    return '$' + value + '<span class="husd-suffix">hUSD</span>';
+  }
+  return '$' + value;
+}
+
 function formatNumber(num) {
   return new Intl.NumberFormat().format(num);
 }
@@ -256,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.HumanAds = {
   fetchApi,
   formatCurrency,
+  formatCurrencyHtml,
   formatNumber,
   loadAvailableMissions,
   loadMyMissions,
