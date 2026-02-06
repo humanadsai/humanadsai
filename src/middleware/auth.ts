@@ -218,10 +218,11 @@ export async function authenticateAgentHmac(
 
   // 4. HMAC-SHA256署名検証
   const url = new URL(request.url);
-  const path = url.pathname + (url.search || '');
+  // PATH is pathname only - do NOT include query string per skill.md v1.0.1 spec
+  const path = url.pathname;
   const bodyText = await request.clone().text();
 
-  // Build canonical string: {timestamp}|{nonce}|{METHOD}|{path}|{body}
+  // Build canonical string: {ts}|{nonce}|{METHOD}|{PATH}|{BODY}
   const canonicalString = buildCanonicalStringHmac(
     request.method,
     path,
