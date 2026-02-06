@@ -564,12 +564,10 @@
     function updateButtonStates() {
       const mintBtn = document.getElementById('mint-btn');
       const transferBtn = document.getElementById('transfer-btn');
-      const faucetBtn = document.getElementById('faucet-btn');
-      const canExecuteOwner = signerVerified && currentChainId === CONFIG.chainId && isOwner;
-      const canExecuteAny = signerVerified && currentChainId === CONFIG.chainId;
+      const canExecute = signerVerified && currentChainId === CONFIG.chainId && isOwner;
 
       if (mintBtn) {
-        mintBtn.disabled = !canExecuteOwner || mintInProgress;
+        mintBtn.disabled = !canExecute || mintInProgress;
         if (mintInProgress) mintBtn.textContent = 'Processing...';
         else if (!signerVerified) mintBtn.textContent = 'Connect Wallet First';
         else if (currentChainId !== CONFIG.chainId) mintBtn.textContent = 'Switch to Sepolia';
@@ -578,7 +576,7 @@
       }
 
       if (transferBtn) {
-        transferBtn.disabled = !canExecuteOwner || transferInProgress;
+        transferBtn.disabled = !canExecute || transferInProgress;
         if (transferInProgress) transferBtn.textContent = 'Processing...';
         else if (!signerVerified) transferBtn.textContent = 'Connect Wallet First';
         else if (currentChainId !== CONFIG.chainId) transferBtn.textContent = 'Switch to Sepolia';
@@ -586,13 +584,8 @@
         else transferBtn.textContent = 'Transfer to Treasury';
       }
 
-      if (faucetBtn) {
-        faucetBtn.disabled = !canExecuteAny || faucetInProgress;
-        if (faucetInProgress) faucetBtn.textContent = 'Processing...';
-        else if (!signerVerified) faucetBtn.textContent = 'Connect Wallet First';
-        else if (currentChainId !== CONFIG.chainId) faucetBtn.textContent = 'Switch to Sepolia';
-        else faucetBtn.textContent = 'Send hUSD';
-      }
+      // Auto-fill faucet address when wallet connects
+      autoFillFaucetAddress();
     }
 
     // ============================================
@@ -1007,24 +1000,36 @@
             </div>
           </div>
 
-          <h2 class="section-title">Faucet (MetaMask)</h2>
+          <h2 class="section-title">Treasury → Advertiser Faucet</h2>
           <div class="cards-grid">
             <div class="card faucet-card">
-              <div class="card-header"><span class="card-title">Send hUSD to Advertiser</span></div>
+              <div class="card-header"><span class="card-title">Send hUSD from Treasury</span></div>
               <div class="faucet-form">
-                <input type="text" id="faucet-address" class="faucet-input" placeholder="0x... Advertiser Address" />
                 <div class="form-group">
-                  <label class="form-label">Amount (hUSD)</label>
-                  <input type="number" id="faucet-amount" class="form-input" value="${(serverConfig.faucet_amount_cents || 100000) / 100}" min="1" max="${CONFIG.maxMintAmount}" />
+                  <label class="form-label">Advertiser Address</label>
+                  <input type="text" id="faucet-address" class="faucet-input" placeholder="0x... or connect wallet to auto-fill" />
+                  <span class="form-hint">Connect MetaMask to auto-fill address</span>
                 </div>
-                <button class="action-btn" id="faucet-btn" disabled>Connect Wallet First</button>
-                <div id="faucet-progress"></div>
+                <div class="faucet-amount">
+                  <span>Amount:</span>
+                  <span class="faucet-amount-value">$${((serverConfig.faucet_amount_cents || 100000) / 100).toLocaleString()}</span>
+                  <span style="color:var(--color-text-muted)">hUSD</span>
+                </div>
+                <button class="action-btn" id="faucet-btn" ${!serverConfig.has_treasury_key ? 'disabled' : ''}>
+                  ${serverConfig.has_treasury_key ? 'Send hUSD' : 'Treasury Key Not Set'}
+                </button>
                 <div id="faucet-status"></div>
               </div>
               <div class="config-info">
-                <div class="config-row"><span class="config-label">Signing:</span><span class="config-value">MetaMask (client-side)</span></div>
-                <div class="config-row"><span class="config-label">Gas:</span><span class="config-value">Connected wallet pays</span></div>
-                <div class="config-row"><span class="config-label">Contract:</span><span class="config-value">${CONFIG.husdContract.substring(0,14)}...</span></div>
+                <div class="config-row"><span class="config-label">From:</span><span class="config-value">Treasury (${CONFIG.treasuryAddress.substring(0,10)}...)</span></div>
+                <div class="config-row"><span class="config-label">Gas:</span><span class="config-value">Treasury pays</span></div>
+                <div class="config-row">
+                  <span class="config-label">Treasury Key:</span>
+                  <span class="config-value ${serverConfig.has_treasury_key ? 'status-ok' : 'status-error'}">
+                    ${serverConfig.has_treasury_key ? '✓ Configured' : '✗ Not set'}
+                  </span>
+                </div>
+                <div class="config-row"><span class="config-label">Mode:</span><span class="config-value">${serverConfig.payout_mode || 'ledger'}</span></div>
               </div>
             </div>
 
@@ -1083,26 +1088,29 @@
     }
 
     function attachEventListeners() {
-      // DIRECT mint/transfer/faucet - no modal, one click does everything via MetaMask
+      // DIRECT mint/transfer - no modal, one click does everything via MetaMask
       document.getElementById('mint-btn')?.addEventListener('click', directMint);
       document.getElementById('transfer-btn')?.addEventListener('click', directTransfer);
-      document.getElementById('faucet-btn')?.addEventListener('click', directFaucet);
+      document.getElementById('faucet-btn')?.addEventListener('click', sendFaucet);
       document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.addEventListener('click', () => loadTokenOps(chip.dataset.filter || null));
       });
+      // Auto-fill faucet address from connected wallet
+      autoFillFaucetAddress();
     }
 
-    let faucetInProgress = false;
+    function autoFillFaucetAddress() {
+      const input = document.getElementById('faucet-address');
+      if (input && walletAddress && !input.value) {
+        input.value = walletAddress;
+      }
+    }
 
-    async function directFaucet() {
-      if (faucetInProgress) return;
-
+    async function sendFaucet() {
       const addressInput = document.getElementById('faucet-address');
-      const amountInput = document.getElementById('faucet-amount');
       const btn = document.getElementById('faucet-btn');
       const statusDiv = document.getElementById('faucet-status');
       const address = addressInput.value.trim();
-      const amount = parseInt(amountInput?.value) || 1000;
 
       // Address validation: 0x + 40 hex chars
       if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
@@ -1111,110 +1119,44 @@
         return;
       }
 
-      if (amount <= 0 || amount > CONFIG.maxMintAmount) {
-        statusDiv.className = 'status-msg error';
-        statusDiv.textContent = `Invalid amount (1 - ${CONFIG.maxMintAmount.toLocaleString()})`;
-        return;
-      }
+      btn.disabled = true;
+      btn.textContent = 'Treasury sending...';
+      statusDiv.className = 'status-msg info';
+      statusDiv.innerHTML = 'Treasuryからトランザクション送信中... 15-30秒かかります';
 
-      faucetInProgress = true;
-      updateButtonStates();
-
-      const provider = getProvider();
-      if (!provider) {
-        statusDiv.className = 'status-msg error';
-        statusDiv.textContent = 'No wallet provider. Open in MetaMask browser.';
-        faucetInProgress = false;
-        updateButtonStates();
-        return;
-      }
-
-      const FAUCET_STEPS = [
-        { id: 'refresh', label: '1. Refresh accounts' },
-        { id: 'chain', label: '2. Check chain' },
-        { id: 'send', label: '3. Send to MetaMask' },
-        { id: 'confirm', label: '4. Waiting for confirmation' },
-      ];
-
-      let currentStep = 'refresh';
+      // AbortController for 60s timeout (on-chain tx can be slow)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       try {
-        // STEP 1: Refresh accounts
-        renderStepProgress('faucet-progress', FAUCET_STEPS, 'refresh');
-        const freshAddr = await getFreshAccounts();
-        walletAddress = freshAddr;
-
-        // STEP 2: Check chain
-        currentStep = 'chain';
-        renderStepProgress('faucet-progress', FAUCET_STEPS, 'chain');
-        const freshChain = await getFreshChainId();
-        currentChainId = freshChain;
-
-        if (freshChain !== CONFIG.chainId) {
-          throw new Error(`Wrong chain (${freshChain}). Need Sepolia (${CONFIG.chainId}).`);
-        }
-
-        // STEP 3: Build & send ERC20 transfer
-        currentStep = 'send';
-        renderStepProgress('faucet-progress', FAUCET_STEPS, 'send');
-
-        const paddedTo = address.toLowerCase().replace('0x', '').padStart(64, '0');
-        const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
-        const paddedAmount = amountWei.toString(16).padStart(64, '0');
-        const data = SELECTORS.transfer + paddedTo + paddedAmount;
-
-        const txParams = {
-          from: freshAddr,
-          to: CONFIG.husdContract,
-          data: data,
-          gas: CONFIG.defaultGasLimit,
-        };
-
-        log('info', 'Faucet eth_sendTransaction:', txParams);
-
-        // STEP 4: Send & wait for MetaMask confirmation
-        currentStep = 'confirm';
-        renderStepProgress('faucet-progress', FAUCET_STEPS, 'confirm');
-
-        const txHash = await provider.request({
-          method: 'eth_sendTransaction',
-          params: [txParams],
+        const res = await HumanAds.fetchApi('/api/admin/faucet', {
+          method: 'POST',
+          body: JSON.stringify({ advertiser_address: address }),
+          signal: controller.signal,
         });
 
-        log('info', 'Faucet TX broadcasted:', txHash);
+        clearTimeout(timeoutId);
 
-        // SUCCESS
-        renderStepProgress('faucet-progress', FAUCET_STEPS, 'done');
-        statusDiv.className = 'status-msg success';
-        statusDiv.innerHTML = `Sent ${amount.toLocaleString()} hUSD! <a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank" class="tx-link">${txHash.substring(0,20)}...</a>`;
-        addressInput.value = '';
-
-        // Log to server
-        logTokenOp('faucet', txHash, freshAddr, address, amount);
-
-        setTimeout(() => {
-          refreshOnchainData();
-          loadTokenOps(currentFilter);
-        }, 5000);
-
-      } catch (e) {
-        log('error', 'Faucet failed at step ' + currentStep, { code: e.code, message: e.message });
-
-        let errorMsg = e.message;
-        if (e.code === -32002) {
-          errorMsg = 'MetaMaskに保留中の確認があります。MetaMaskアプリを開いて処理してください。';
-          showPendingAlert();
-        } else if (e.code === 4001) {
-          errorMsg = 'Transaction rejected by user';
-        } else if (e.code === -32603) {
-          errorMsg = 'Internal error: ' + (e.data?.message || e.message);
+        if (res.success) {
+          statusDiv.className = 'status-msg success';
+          const amt = res.data.amount_cents ? `$${(res.data.amount_cents / 100).toLocaleString()}` : '';
+          statusDiv.innerHTML = `Sent ${amt} hUSD from Treasury! <a href="${CONFIG.explorerUrl}/tx/${res.data.tx_hash}" target="_blank" class="tx-link">${res.data.tx_hash?.substring(0,20) || 'pending'}...</a>`;
+          setTimeout(() => loadTokenOps(currentFilter), 3000);
+        } else {
+          statusDiv.className = 'status-msg error';
+          const errMsg = res.error?.message || 'Failed';
+          statusDiv.innerHTML = `${errMsg} <button class="action-btn" style="margin-top:8px;padding:8px 16px;font-size:0.75rem;" onclick="sendFaucet()">Retry</button>`;
         }
-
-        renderStepProgress('faucet-progress', FAUCET_STEPS, currentStep, currentStep, errorMsg);
-
+      } catch (e) {
+        clearTimeout(timeoutId);
+        statusDiv.className = 'status-msg error';
+        const errMsg = e.name === 'AbortError'
+          ? 'Request timed out (60s). The transaction may still be processing on-chain.'
+          : e.message;
+        statusDiv.innerHTML = `${errMsg} <button class="action-btn" style="margin-top:8px;padding:8px 16px;font-size:0.75rem;" onclick="sendFaucet()">Retry</button>`;
       } finally {
-        faucetInProgress = false;
-        updateButtonStates();
+        btn.disabled = !serverConfig?.has_treasury_key;
+        btn.textContent = serverConfig?.has_treasury_key ? 'Send hUSD' : 'Treasury Key Not Set';
       }
     }
 
