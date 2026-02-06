@@ -22,6 +22,7 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
        FROM deals d
        JOIN agents a ON d.agent_id = a.id
        WHERE d.status = 'active'
+       AND COALESCE(d.visibility, 'visible') = 'visible'
        AND d.current_participants < d.max_participants
        AND (d.expires_at IS NULL OR d.expires_at > datetime('now'))
        ORDER BY d.created_at DESC
@@ -83,7 +84,8 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
       `SELECT d.*, a.name as agent_name
        FROM deals d
        JOIN agents a ON d.agent_id = a.id
-       WHERE d.id = ? AND d.status = 'active'`
+       WHERE d.id = ? AND d.status = 'active'
+       AND COALESCE(d.visibility, 'visible') = 'visible'`
     )
       .bind(dealId)
       .first();

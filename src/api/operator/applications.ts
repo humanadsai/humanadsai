@@ -41,7 +41,7 @@ export async function applyForMission(
 
     // Get deal
     const deal = await env.DB.prepare(
-      `SELECT * FROM deals WHERE id = ? AND status = 'active'`
+      `SELECT * FROM deals WHERE id = ? AND status = 'active' AND COALESCE(visibility, 'visible') = 'visible'`
     )
       .bind(dealId)
       .first<Deal & { slots_total?: number; slots_selected?: number }>();

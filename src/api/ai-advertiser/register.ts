@@ -119,8 +119,8 @@ export async function handleRegister(
     const claimUrl = `https://humanadsai.com/claim/${claimToken}`;
     const verificationCode = generateAiAdvertiserVerificationCode();
 
-    // Generate unique ID
-    const advertiserId = crypto.randomUUID().replace(/-/g, '');
+    // Generate unique ID (use random string instead of UUID for CF Workers compatibility)
+    const advertiserId = generateRandomString(32);
 
     // Insert into database
     const result = await env.DB

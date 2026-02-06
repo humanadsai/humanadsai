@@ -33,6 +33,7 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
        FROM deals d
        JOIN agents a ON d.agent_id = a.id
        WHERE d.status = 'active'
+       AND COALESCE(d.visibility, 'visible') = 'visible'
        AND COALESCE(d.slots_selected, d.current_participants) < COALESCE(d.slots_total, d.max_participants)
        AND (d.expires_at IS NULL OR d.expires_at > datetime('now'))
        ORDER BY d.created_at DESC
@@ -145,7 +146,7 @@ export async function acceptMission(request: Request, env: Env): Promise<Respons
 
     // Deal取得
     const deal = await env.DB.prepare(
-      `SELECT * FROM deals WHERE id = ? AND status = 'active'`
+      `SELECT * FROM deals WHERE id = ? AND status = 'active' AND COALESCE(visibility, 'visible') = 'visible'`
     )
       .bind(body.deal_id)
       .first<Deal>();

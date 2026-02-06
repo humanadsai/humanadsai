@@ -13,24 +13,57 @@
     .admin-page { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .admin-header h1 { font-family: var(--font-mono); font-size: 1.5rem; }
-    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-    .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; color: var(--color-text); text-decoration: none; }
     .filter-chip:hover, .filter-chip.active { border-color: var(--color-primary); color: var(--color-primary); }
-    .data-table { width: 100%; border-collapse: collapse; }
-    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; }
-    .data-table th { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; }
+    .filter-separator { width: 1px; height: 20px; background: var(--color-border); margin: 0 4px; }
+    .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .data-table th, .data-table td { padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .data-table th { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; }
     .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .data-table tr.row-deleted { opacity: 0.5; }
+    .col-id { width: 7%; }
+    .col-title { width: 25%; }
+    .col-agent { width: 12%; }
+    .col-status { width: 8%; }
+    .col-reward { width: 9%; }
+    .col-slots { width: 7%; }
+    .col-created { width: 12%; }
+    .col-actions { width: 20%; }
     .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-family: var(--font-mono); font-weight: 600; }
     .status-badge.active { background: rgba(52,199,89,0.2); color: #34c759; }
     .status-badge.draft { background: rgba(255,255,255,0.1); color: var(--color-text-muted); }
     .status-badge.completed { background: rgba(0,122,255,0.2); color: #007aff; }
     .status-badge.cancelled { background: rgba(255,59,48,0.2); color: #ff3b30; }
-    .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 4px; font-family: var(--font-mono); cursor: pointer; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
+    .visibility-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-family: var(--font-mono); font-weight: 600; margin-left: 6px; }
+    .visibility-badge.hidden { background: rgba(255,204,0,0.2); color: #ffcc00; }
+    .visibility-badge.deleted { background: rgba(255,59,48,0.2); color: #ff3b30; }
+    .btn-sm { padding: 4px 8px; font-size: 0.7rem; border-radius: 4px; font-family: var(--font-mono); cursor: pointer; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
     .btn-sm:hover { border-color: var(--color-primary); color: var(--color-primary); }
     .btn-sm.primary { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+    .btn-sm.warning { border-color: #ffcc00; color: #ffcc00; }
+    .btn-sm.warning:hover { background: rgba(255,204,0,0.1); }
+    .btn-sm.danger { border-color: #ff3b30; color: #ff3b30; }
+    .btn-sm.danger:hover { background: rgba(255,59,48,0.1); }
+    .btn-sm.restore { border-color: #34c759; color: #34c759; }
+    .btn-sm.restore:hover { background: rgba(52,199,89,0.1); }
+    .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
+    .action-btns { display: flex; gap: 4px; flex-wrap: nowrap; }
     .loading, .empty { text-align: center; padding: 40px; color: var(--color-text-muted); }
     .id-cell { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
     .table-container { overflow-x: auto; }
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #1a1a2e; border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; }
+    .modal h2 { font-family: var(--font-mono); font-size: 1.1rem; margin-bottom: 16px; color: #ff3b30; }
+    .modal p { font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 16px; line-height: 1.5; }
+    .modal label { display: block; font-size: 0.75rem; font-family: var(--font-mono); color: var(--color-text-muted); margin-bottom: 4px; }
+    .modal input, .modal textarea { width: 100%; padding: 8px 12px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text); font-family: var(--font-mono); font-size: 0.875rem; margin-bottom: 12px; }
+    .modal textarea { min-height: 60px; resize: vertical; }
+    .modal input:focus, .modal textarea:focus { outline: none; border-color: var(--color-primary); }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    .modal-actions .btn-sm { padding: 8px 16px; }
   </style>
 </head>
 <body>
@@ -52,63 +85,218 @@
     </main>
   </div>
 
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <h2>Delete Deal</h2>
+      <p>This will hide this deal and all related missions, applications, and payments from users. This action can be reversed with Restore.</p>
+      <p id="deleteModalDealInfo" style="font-family: var(--font-mono); color: var(--color-text);"></p>
+      <label for="deleteConfirmInput">Type DELETE to confirm</label>
+      <input type="text" id="deleteConfirmInput" placeholder="DELETE" autocomplete="off">
+      <label for="deleteReasonInput">Reason (optional)</label>
+      <textarea id="deleteReasonInput" placeholder="e.g. Test data cleanup"></textarea>
+      <div class="modal-actions">
+        <button class="btn-sm" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn-sm danger" id="deleteConfirmBtn" disabled onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/side-menu.js"></script>
   <script src="/js/humanads.js"></script>
   <script>
-    let currentStatus = null;
+    let currentFilter = { status: null, visibility: null };
+    let pendingDeleteDealId = null;
 
-    async function loadDeals(status = null) {
-      currentStatus = status;
+    // Delete modal logic
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteConfirmInput = document.getElementById('deleteConfirmInput');
+    const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+
+    deleteConfirmInput.addEventListener('input', function() {
+      deleteConfirmBtn.disabled = this.value !== 'DELETE';
+    });
+
+    function openDeleteModal(dealId, dealTitle) {
+      pendingDeleteDealId = dealId;
+      document.getElementById('deleteModalDealInfo').textContent = dealTitle;
+      deleteConfirmInput.value = '';
+      document.getElementById('deleteReasonInput').value = '';
+      deleteConfirmBtn.disabled = true;
+      deleteModal.classList.add('show');
+    }
+
+    function closeDeleteModal() {
+      pendingDeleteDealId = null;
+      deleteModal.classList.remove('show');
+    }
+
+    async function confirmDelete() {
+      if (!pendingDeleteDealId) return;
+      const reason = document.getElementById('deleteReasonInput').value.trim();
+      closeDeleteModal();
+      await changeDealVisibility(pendingDeleteDealId, 'delete', reason || undefined);
+    }
+
+    // Close modal on overlay click
+    deleteModal.addEventListener('click', function(e) {
+      if (e.target === deleteModal) closeDeleteModal();
+    });
+
+    // Cache of loaded deals for instant UI updates
+    let dealsCache = [];
+
+    async function changeDealVisibility(dealId, action, reason) {
+      try {
+        const body = { action };
+        if (reason) body.reason = reason;
+
+        const res = await HumanAds.fetchApi(`/admin/deals/${dealId}/visibility`, {
+          method: 'PUT',
+          body: JSON.stringify(body),
+        });
+
+        if (!res.success) {
+          alert('Error: ' + (res.error?.message || 'Failed to update'));
+          return;
+        }
+
+        // Update cache in-place and re-render without reload
+        const updated = res.data.deal;
+        if (updated) {
+          const idx = dealsCache.findIndex(d => d.id === dealId);
+          if (idx !== -1) {
+            dealsCache[idx] = { ...dealsCache[idx], ...updated };
+            renderTable(dealsCache);
+          }
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    async function handleHide(dealId) {
+      // Optimistic UI: toggle instantly, then fire API
+      const idx = dealsCache.findIndex(d => d.id === dealId);
+      if (idx !== -1) {
+        dealsCache[idx].visibility = 'hidden';
+        renderTable(dealsCache);
+      }
+      await changeDealVisibility(dealId, 'hide');
+    }
+
+    async function handleUnhide(dealId) {
+      const idx = dealsCache.findIndex(d => d.id === dealId);
+      if (idx !== -1) {
+        dealsCache[idx].visibility = 'visible';
+        renderTable(dealsCache);
+      }
+      await changeDealVisibility(dealId, 'unhide');
+    }
+
+    async function handleDelete(dealId, dealTitle) {
+      openDeleteModal(dealId, dealTitle);
+    }
+
+    async function handleRestore(dealId) {
+      await changeDealVisibility(dealId, 'restore');
+    }
+
+    function getActionButtons(deal) {
+      const v = deal.visibility || 'visible';
+      const title = HumanAds.escapeHtml(deal.title);
+      const id = deal.id;
+
+      if (v === 'visible') {
+        return `<button class="btn-sm warning" onclick="handleHide('${id}')">Hide</button>
+                <button class="btn-sm danger" onclick="handleDelete('${id}', '${title.replace(/'/g, "\\'")}')">Delete</button>`;
+      } else if (v === 'hidden') {
+        return `<button class="btn-sm restore" onclick="handleUnhide('${id}')">Unhide</button>
+                <button class="btn-sm danger" onclick="handleDelete('${id}', '${title.replace(/'/g, "\\'")}')">Delete</button>`;
+      } else if (v === 'deleted') {
+        return `<button class="btn-sm restore" onclick="handleRestore('${id}')">Restore</button>`;
+      }
+      return '';
+    }
+
+    function getVisibilityBadge(deal) {
+      const v = deal.visibility || 'visible';
+      if (v === 'hidden') return '<span class="visibility-badge hidden">HIDDEN</span>';
+      if (v === 'deleted') return '<span class="visibility-badge deleted">DELETED</span>';
+      return '';
+    }
+
+    function renderTable(deals) {
+      const tbody = document.getElementById('deals-tbody');
+      if (!tbody) return;
+      document.getElementById('deals-count').textContent = deals.length;
+      if (deals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--color-text-muted);">No deals found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = deals.map(d => {
+        const v = d.visibility || 'visible';
+        const rowClass = v === 'deleted' ? 'row-deleted' : '';
+        return `
+          <tr class="${rowClass}">
+            <td class="id-cell" title="${d.id}">${d.id.substring(0,6)}..</td>
+            <td title="${HumanAds.escapeHtml(d.title)}">${HumanAds.escapeHtml(d.title)}${getVisibilityBadge(d)}</td>
+            <td title="${HumanAds.escapeHtml(d.agent_name || '')}">${HumanAds.escapeHtml(d.agent_name || d.agent_id?.substring(0,6) || 'N/A')}</td>
+            <td><span class="status-badge ${d.status}">${d.status}</span></td>
+            <td>${HumanAds.formatCurrency(d.reward_amount)}</td>
+            <td>${d.current_participants || 0}/${d.max_participants}</td>
+            <td>${HumanAds.formatDate(d.created_at)}</td>
+            <td><div class="action-btns">${getActionButtons(d)}</div></td>
+          </tr>`;
+      }).join('');
+    }
+
+    async function loadDeals(status = null, visibility = null) {
+      currentFilter = { status, visibility };
       const content = document.getElementById('content');
       content.innerHTML = '<div class="loading">Loading deals...</div>';
 
       try {
-        const url = status ? `/admin/deals?status=${status}` : '/admin/deals';
+        const params = new URLSearchParams();
+        if (status) params.set('status', status);
+        if (visibility) params.set('visibility', visibility);
+        const qs = params.toString();
+        const url = '/admin/deals' + (qs ? '?' + qs : '');
         const res = await HumanAds.fetchApi(url);
 
         if (!res.success) {
-          content.innerHTML = `<div class="empty">Error: ${res.error?.message || 'Failed to load'}</div>`;
+          content.innerHTML = '<div class="empty">Error: ' + HumanAds.escapeHtml(res.error?.message || 'Failed to load') + '</div>';
           return;
         }
 
-        const deals = res.data.deals || [];
+        dealsCache = res.data.deals || [];
 
         content.innerHTML = `
           <div class="admin-header">
-            <h1>Deals (${deals.length})</h1>
+            <h1>Deals (<span id="deals-count">${dealsCache.length}</span>)</h1>
             <a href="/admin/quick-start" class="btn-sm primary">+ Quick Start</a>
           </div>
           <div class="filters">
-            <span class="filter-chip ${!status ? 'active' : ''}" onclick="loadDeals()">All</span>
-            <span class="filter-chip ${status === 'active' ? 'active' : ''}" onclick="loadDeals('active')">Active</span>
+            <span class="filter-chip ${!status && !visibility ? 'active' : ''}" onclick="loadDeals()">All</span>
+            <span class="filter-chip ${status === 'active' && !visibility ? 'active' : ''}" onclick="loadDeals('active')">Active</span>
             <span class="filter-chip ${status === 'completed' ? 'active' : ''}" onclick="loadDeals('completed')">Completed</span>
             <span class="filter-chip ${status === 'cancelled' ? 'active' : ''}" onclick="loadDeals('cancelled')">Cancelled</span>
+            <span class="filter-separator"></span>
+            <span class="filter-chip ${visibility === 'hidden' ? 'active' : ''}" onclick="loadDeals(null, 'hidden')" style="border-color: rgba(255,204,0,0.4); ${visibility === 'hidden' ? 'color: #ffcc00; border-color: #ffcc00;' : ''}">Hidden</span>
+            <span class="filter-chip ${visibility === 'deleted' ? 'active' : ''}" onclick="loadDeals(null, 'deleted')" style="border-color: rgba(255,59,48,0.4); ${visibility === 'deleted' ? 'color: #ff3b30; border-color: #ff3b30;' : ''}">Deleted</span>
           </div>
           <div class="table-container">
-            ${deals.length === 0 ? '<div class="empty">No deals found</div>' : `
-              <table class="data-table">
-                <thead>
-                  <tr><th>ID</th><th>Title</th><th>Agent</th><th>Status</th><th>Reward</th><th>Slots</th><th>Created</th></tr>
-                </thead>
-                <tbody>
-                  ${deals.map(d => `
-                    <tr>
-                      <td class="id-cell">${d.id.substring(0,8)}...</td>
-                      <td>${HumanAds.escapeHtml(d.title)}</td>
-                      <td>${HumanAds.escapeHtml(d.agent_name || d.agent_id?.substring(0,8) || 'N/A')}</td>
-                      <td><span class="status-badge ${d.status}">${d.status}</span></td>
-                      <td>${HumanAds.formatCurrency(d.reward_amount)}</td>
-                      <td>${d.current_participants || 0}/${d.max_participants}</td>
-                      <td>${HumanAds.formatDate(d.created_at)}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            `}
+            <table class="data-table">
+              <thead>
+                <tr><th class="col-id">ID</th><th class="col-title">Title</th><th class="col-agent">Agent</th><th class="col-status">Status</th><th class="col-reward">Reward</th><th class="col-slots">Slots</th><th class="col-created">Created</th><th class="col-actions">Actions</th></tr>
+              </thead>
+              <tbody id="deals-tbody"></tbody>
+            </table>
           </div>
         `;
+        renderTable(dealsCache);
       } catch (e) {
-        content.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+        content.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
       }
     }
 

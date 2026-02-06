@@ -4,6 +4,7 @@
 import type { Env } from '../../types';
 import { authenticateAiAdvertiser, requireActiveStatus } from '../../middleware/ai-advertiser-auth';
 import * as response from '../../utils/response';
+import { generateRandomString } from '../../utils/crypto';
 import { handleRegister } from './register';
 import { handleGetMe, handleGetStatus } from './profile';
 
@@ -22,7 +23,7 @@ export async function handleAiAdvertiserApi(
   path: string,
   method: string
 ): Promise<Response> {
-  const requestId = crypto.randomUUID();
+  const requestId = generateRandomString(16);
 
   // Extract the sub-path after /api/v1/advertisers
   const prefix = '/api/v1/advertisers';

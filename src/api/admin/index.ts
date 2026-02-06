@@ -307,6 +307,7 @@ export async function listDeals(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const status = url.searchParams.get('status');
     const agentId = url.searchParams.get('agent_id');
+    const visibility = url.searchParams.get('visibility');
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100);
     const offset = parseInt(url.searchParams.get('offset') || '0');
 
@@ -321,6 +322,10 @@ export async function listDeals(request: Request, env: Env): Promise<Response> {
     if (agentId) {
       conditions.push('d.agent_id = ?');
       params.push(agentId);
+    }
+    if (visibility) {
+      conditions.push("COALESCE(d.visibility, 'visible') = ?");
+      params.push(visibility);
     }
 
     if (conditions.length > 0) {
@@ -440,6 +445,172 @@ export async function updateDealStatus(
     return success({ deal }, requestId);
   } catch (e) {
     console.error('Update deal status error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+// ============================================
+// Deal Visibility (Hide / Delete / Restore)
+// ============================================
+
+export async function updateDealVisibility(
+  request: Request,
+  env: Env,
+  dealId: string
+): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId, operator } = authResult.context!;
+
+  try {
+    const body = await request.json<{ action: string; reason?: string }>();
+
+    if (!body.action) {
+      return errors.invalidRequest(requestId, { message: 'action is required' });
+    }
+
+    const validActions = ['hide', 'unhide', 'delete', 'restore'];
+    if (!validActions.includes(body.action)) {
+      return errors.invalidRequest(requestId, {
+        message: `Invalid action. Must be one of: ${validActions.join(', ')}`,
+      });
+    }
+
+    // Get current deal
+    const deal = await env.DB.prepare('SELECT * FROM deals WHERE id = ?')
+      .bind(dealId)
+      .first<Deal>();
+
+    if (!deal) {
+      return errors.notFound(requestId, 'Deal');
+    }
+
+    const currentVisibility = deal.visibility || 'visible';
+
+    // State transition validation
+    const transitions: Record<string, { from: string[]; to: string }> = {
+      hide: { from: ['visible'], to: 'hidden' },
+      unhide: { from: ['hidden'], to: 'visible' },
+      delete: { from: ['visible', 'hidden'], to: 'deleted' },
+      restore: { from: ['deleted', 'hidden'], to: 'visible' },
+    };
+
+    const transition = transitions[body.action];
+    if (!transition.from.includes(currentVisibility)) {
+      return errors.invalidRequest(requestId, {
+        message: `Cannot ${body.action} a deal with visibility '${currentVisibility}'`,
+      });
+    }
+
+    const newVisibility = transition.to;
+
+    // Count related data for logging
+    const [missionCount, applicationCount, paymentCount] = await Promise.all([
+      env.DB.prepare('SELECT COUNT(*) as count FROM missions WHERE deal_id = ?').bind(dealId).first<{ count: number }>(),
+      env.DB.prepare('SELECT COUNT(*) as count FROM applications WHERE deal_id = ?').bind(dealId).first<{ count: number }>(),
+      env.DB.prepare(
+        `SELECT COUNT(*) as count FROM payments WHERE mission_id IN (SELECT id FROM missions WHERE deal_id = ?)`
+      ).bind(dealId).first<{ count: number }>(),
+    ]);
+
+    const relatedCounts = {
+      missions: missionCount?.count || 0,
+      applications: applicationCount?.count || 0,
+      payments: paymentCount?.count || 0,
+    };
+
+    // Update deal visibility
+    await env.DB.prepare(
+      `UPDATE deals SET
+        visibility = ?,
+        visibility_changed_at = datetime('now'),
+        visibility_changed_by = ?,
+        admin_note = COALESCE(?, admin_note),
+        updated_at = datetime('now')
+       WHERE id = ?`
+    )
+      .bind(newVisibility, operator.x_handle || operator.id, body.reason || null, dealId)
+      .run();
+
+    // Log admin action
+    await env.DB.prepare(
+      `INSERT INTO admin_actions (admin_id, admin_handle, action, target_type, target_id, previous_value, new_value, reason, metadata)
+       VALUES (?, ?, ?, 'deal', ?, ?, ?, ?, ?)`
+    )
+      .bind(
+        operator.id,
+        operator.x_handle || null,
+        body.action,
+        dealId,
+        currentVisibility,
+        newVisibility,
+        body.reason || null,
+        JSON.stringify({ related: relatedCounts, deal_title: deal.title })
+      )
+      .run();
+
+    const updated = await env.DB.prepare('SELECT d.*, a.name as agent_name FROM deals d LEFT JOIN agents a ON d.agent_id = a.id WHERE d.id = ?')
+      .bind(dealId)
+      .first();
+
+    return success({
+      deal: updated,
+      action: body.action,
+      previous_visibility: currentVisibility,
+      new_visibility: newVisibility,
+      related: relatedCounts,
+    }, requestId);
+  } catch (e) {
+    console.error('Update deal visibility error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+export async function getAdminActions(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  try {
+    const url = new URL(request.url);
+    const targetType = url.searchParams.get('target_type');
+    const targetId = url.searchParams.get('target_id');
+    const action = url.searchParams.get('action');
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100);
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+
+    let query = 'SELECT * FROM admin_actions';
+    const conditions: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (targetType) {
+      conditions.push('target_type = ?');
+      params.push(targetType);
+    }
+    if (targetId) {
+      conditions.push('target_id = ?');
+      params.push(targetId);
+    }
+    if (action) {
+      conditions.push('action = ?');
+      params.push(action);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+
+    const result = await env.DB.prepare(query)
+      .bind(...params, limit, offset)
+      .all();
+
+    return success({ actions: result.results, count: result.results.length }, requestId);
+  } catch (e) {
+    console.error('Get admin actions error:', e);
     return errors.internalError(requestId);
   }
 }
