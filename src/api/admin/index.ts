@@ -1222,6 +1222,15 @@ export async function handleFaucet(request: Request, env: Env): Promise<Response
   const { requestId, operator } = authResult.context!;
 
   try {
+    // FAIL-FAST: Check treasury key before any other operations
+    if (!hasTreasuryKey(env)) {
+      return errors.invalidRequest(requestId, {
+        code: 'TREASURY_KEY_NOT_SET',
+        message: 'Treasury private key is not configured. Set TREASURY_PRIVATE_KEY secret in Cloudflare Dashboard.',
+        help: 'Go to Workers & Pages > humanadsai > Settings > Variables > Secrets and add TREASURY_PRIVATE_KEY',
+      });
+    }
+
     const body = await request.json<{ advertiser_address: string }>();
 
     if (!body.advertiser_address) {
@@ -1453,6 +1462,55 @@ export async function logTokenOp(request: Request, env: Env): Promise<Response> 
     }, requestId);
   } catch (e) {
     console.error('Log token op error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
+ * GET /api/admin/env
+ * Get environment configuration status (secrets as booleans only)
+ */
+export async function getEnvStatus(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  try {
+    const config = getOnchainConfig(env);
+
+    return success({
+      // Secrets (boolean only - never expose actual values)
+      secrets: {
+        treasury_private_key: hasTreasuryKey(env),
+        x_client_id: !!env.X_CLIENT_ID,
+        x_client_secret: !!env.X_CLIENT_SECRET,
+        x_bearer_token: !!env.X_BEARER_TOKEN,
+        advertiser_test_key_id: !!env.ADVERTISER_TEST_KEY_ID,
+        advertiser_test_secret: !!env.ADVERTISER_TEST_SECRET,
+      },
+      // Environment variables
+      vars: {
+        environment: env.ENVIRONMENT || 'development',
+        payout_mode: env.PAYOUT_MODE || 'ledger',
+        chain_id: config.chainId,
+        evm_network: env.EVM_NETWORK || 'sepolia',
+        rpc_url_configured: !!env.RPC_URL,
+      },
+      // Addresses (public info)
+      addresses: {
+        treasury: config.treasuryAddress,
+        admin: config.adminAddress,
+        husd_contract: config.husdContract,
+      },
+      // Faucet config
+      faucet: {
+        amount_cents: config.faucetAmount,
+        cooldown_seconds: config.faucetCooldown,
+      },
+    }, requestId);
+  } catch (e) {
+    console.error('Get env status error:', e);
     return errors.internalError(requestId);
   }
 }

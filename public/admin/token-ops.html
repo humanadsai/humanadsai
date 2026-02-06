@@ -129,6 +129,9 @@
     .config-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
     .config-label { opacity: 0.7; }
     .config-value { font-family: var(--font-mono); }
+    .config-value.status-ok { color: #34c759; }
+    .config-value.status-error { color: #ff3b30; }
+    .config-hint { font-size: 0.65rem; color: #ff9500; line-height: 1.4; }
 
     /* Table */
     .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -998,12 +1001,25 @@
                   <span class="faucet-amount-value">$${((serverConfig.faucet_amount_cents || 100000) / 100).toLocaleString()}</span>
                   <span style="color:var(--color-text-muted)">hUSD</span>
                 </div>
-                <button class="action-btn" id="faucet-btn">Send hUSD</button>
+                <button class="action-btn" id="faucet-btn" ${!serverConfig.has_treasury_key ? 'disabled' : ''}>
+                  ${serverConfig.has_treasury_key ? 'Send hUSD' : 'Treasury Key Not Set'}
+                </button>
                 <div id="faucet-status"></div>
               </div>
               <div class="config-info">
                 <div class="config-row"><span class="config-label">Cooldown:</span><span class="config-value">${Math.floor((serverConfig.faucet_cooldown_seconds || 86400) / 3600)}h</span></div>
-                <div class="config-row"><span class="config-label">Treasury Key:</span><span class="config-value">${serverConfig.has_treasury_key ? 'Configured' : 'Not set'}</span></div>
+                <div class="config-row">
+                  <span class="config-label">Treasury Key:</span>
+                  <span class="config-value ${serverConfig.has_treasury_key ? 'status-ok' : 'status-error'}">
+                    ${serverConfig.has_treasury_key ? '✓ Configured' : '✗ Not set'}
+                  </span>
+                </div>
+                ${!serverConfig.has_treasury_key ? `
+                <div class="config-row" style="margin-top:8px;">
+                  <span class="config-hint">Set TREASURY_PRIVATE_KEY in Cloudflare Dashboard:<br>
+                  Workers & Pages → humanadsai → Settings → Variables → Secrets</span>
+                </div>
+                ` : ''}
                 <div class="config-row"><span class="config-label">Mode:</span><span class="config-value">${serverConfig.payout_mode || 'ledger'}</span></div>
               </div>
             </div>

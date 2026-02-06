@@ -91,6 +91,7 @@ import {
   getTokenOps,
   getTokenBalances,
   logTokenOp,
+  getEnvStatus,
 } from './api/admin/index';
 import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 
@@ -989,6 +990,11 @@ async function handleAdminApi(
   // POST /api/admin/token-ops/log - Log owner mint/transfer operation
   if (path === '/api/admin/token-ops/log' && method === 'POST') {
     return logTokenOp(request, env);
+  }
+
+  // GET /api/admin/env - Get environment status (secrets as booleans)
+  if (path === '/api/admin/env' && method === 'GET') {
+    return getEnvStatus(request, env);
   }
 
   // ============================================
