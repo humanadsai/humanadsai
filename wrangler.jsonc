@@ -52,7 +52,9 @@
     "ENVIRONMENT": "production",
     // Payout mode: "ledger" (simulated) or "onchain" (real transactions)
     // Use "ledger" for development/testing without real blockchain transactions
-    "PAYOUT_MODE": "onchain"
+    "PAYOUT_MODE": "onchain",
+    // Sepolia RPC (publicnode is more reliable than rpc.sepolia.org)
+    "RPC_URL": "https://ethereum-sepolia-rpc.publicnode.com"
   },
 
   // Development settings
