@@ -17,14 +17,48 @@ export default {
    */
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
+      const url = new URL(request.url);
+
+      // CSRF: Origin check for cookie-authenticated POST/PUT/DELETE
+      if (['POST', 'PUT', 'DELETE'].includes(request.method)) {
+        const path = url.pathname;
+
+        // Cookie-authenticated routes (Operator, User, Admin APIs)
+        const needsCsrfCheck =
+          path.startsWith('/api/operator/') ||
+          path.startsWith('/api/missions/') ||
+          path.startsWith('/api/my/') ||
+          path.startsWith('/api/applications/') ||
+          path.startsWith('/api/user/') ||
+          path.startsWith('/api/account/') ||
+          path.startsWith('/api/admin/');
+
+        if (needsCsrfCheck) {
+          const origin = request.headers.get('Origin');
+          const allowedOrigin = `${url.protocol}//${url.host}`;
+          if (origin && origin !== allowedOrigin) {
+            return Response.json(
+              { success: false, error: { code: 'CSRF_REJECTED', message: 'Cross-origin request rejected' } },
+              { status: 403 }
+            );
+          }
+        }
+      }
+
       const response = await handleRequest(request, env);
 
-      // CORS ヘッダ
+      // CORS ヘッダ（動的 Origin 検証）
+      const requestOrigin = request.headers.get('Origin');
+      const allowedOrigin = `${url.protocol}//${url.host}`;
+      const corsOrigin = requestOrigin === allowedOrigin ? requestOrigin : allowedOrigin;
+
       const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': corsOrigin,
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers':
           'Content-Type, Authorization, X-AdClaw-Timestamp, X-AdClaw-Nonce, X-AdClaw-Signature, X-AdClaw-Key-Id',
+        'Access-Control-Allow-Credentials': 'true',
+        'Vary': 'Origin',
       };
 
       // セキュリティヘッダ（Safe Browsing対策）

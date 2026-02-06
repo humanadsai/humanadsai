@@ -1,7 +1,7 @@
 import type { Env } from './types';
 import { errors, generateRequestId } from './utils/response';
 import { authenticateAgent } from './middleware/auth';
-import { rateLimitMiddleware } from './middleware/rate-limit';
+import { rateLimitMiddleware, checkRateLimit } from './middleware/rate-limit';
 import { SKILL_MD } from './content/skill-md';
 
 // Agent API
@@ -127,7 +127,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
   // CORS対応
   if (method === 'OPTIONS') {
-    return handleCors();
+    return handleCors(request);
   }
 
   try {
@@ -522,13 +522,31 @@ async function handleOperatorApi(
   path: string,
   method: string
 ): Promise<Response> {
+  // IP rate limit
+  const ipRateLimit = await rateLimitMiddleware(request, env);
+  if (!ipRateLimit.allowed) return ipRateLimit.error!;
+
+  // Operation-specific rate limits for high-risk endpoints
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (path === '/api/operator/register' && method === 'POST') {
+    const opResult = await checkRateLimit(env, ip, 'operator:register');
+    if (!opResult.allowed) return errors.rateLimited(generateRequestId(), opResult.retryAfter);
+  }
+  if (path === '/api/operator/verify' && method === 'POST') {
+    const opResult = await checkRateLimit(env, ip, 'operator:verify');
+    if (!opResult.allowed) return errors.rateLimited(generateRequestId(), opResult.retryAfter);
+  }
+
   // POST /api/operator/register
   if (path === '/api/operator/register' && method === 'POST') {
     return registerOperator(request, env);
   }
 
-  // POST /api/operator/verify
+  // POST /api/operator/verify (disabled in production — use X OAuth login)
   if (path === '/api/operator/verify' && method === 'POST') {
+    if (env.ENVIRONMENT === 'production') {
+      return errors.forbidden(generateRequestId(), 'Manual verification is disabled in production. Use X OAuth login.');
+    }
     return verifyOperator(request, env);
   }
 
@@ -623,6 +641,17 @@ async function handleUserApi(
   path: string,
   method: string
 ): Promise<Response> {
+  // IP rate limit
+  const ipRateLimit = await rateLimitMiddleware(request, env);
+  if (!ipRateLimit.allowed) return ipRateLimit.error!;
+
+  // Operation-specific rate limit for account deletion
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (path === '/api/account/delete' && method === 'POST') {
+    const opResult = await checkRateLimit(env, ip, 'account:delete');
+    if (!opResult.allowed) return errors.rateLimited(generateRequestId(), opResult.retryAfter);
+  }
+
   // GET /api/user/verify-code
   if (path === '/api/user/verify-code' && method === 'GET') {
     return getVerifyCode(request, env);
@@ -743,15 +772,22 @@ async function handlePublicApi(
 /**
  * CORS対応
  */
-function handleCors(): Response {
+function handleCors(request: Request): Response {
+  const url = new URL(request.url);
+  const requestOrigin = request.headers.get('Origin');
+  const allowedOrigin = `${url.protocol}//${url.host}`;
+  const corsOrigin = requestOrigin === allowedOrigin ? requestOrigin : allowedOrigin;
+
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': corsOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers':
         'Content-Type, Authorization, X-AdClaw-Timestamp, X-AdClaw-Nonce, X-AdClaw-Signature, X-AdClaw-Key-Id',
+      'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400',
+      'Vary': 'Origin',
     },
   });
 }
@@ -765,6 +801,17 @@ async function handleAuthApi(
   path: string,
   method: string
 ): Promise<Response> {
+  // IP rate limit
+  const ipRateLimit = await rateLimitMiddleware(request, env);
+  if (!ipRateLimit.allowed) return ipRateLimit.error!;
+
+  // Operation-specific rate limit for login
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (path === '/auth/x/login' && method === 'GET') {
+    const opResult = await checkRateLimit(env, ip, 'auth:login');
+    if (!opResult.allowed) return errors.rateLimited(generateRequestId(), opResult.retryAfter);
+  }
+
   // GET /auth/x/login
   if (path === '/auth/x/login' && method === 'GET') {
     return handleXLogin(request, env);

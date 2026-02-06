@@ -39,6 +39,26 @@ const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
     refillRate: 0.333,
     refillInterval: 3000,
   },
+  'auth:login': {
+    maxTokens: 10,
+    refillRate: 0.167,
+    refillInterval: 6000,
+  },
+  'operator:register': {
+    maxTokens: 5,
+    refillRate: 0.083,
+    refillInterval: 12000,
+  },
+  'operator:verify': {
+    maxTokens: 5,
+    refillRate: 0.083,
+    refillInterval: 12000,
+  },
+  'account:delete': {
+    maxTokens: 3,
+    refillRate: 0.05,
+    refillInterval: 20000,
+  },
 };
 
 export class RateLimiter implements DurableObject {
