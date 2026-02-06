@@ -1467,6 +1467,22 @@ export async function logTokenOp(request: Request, env: Env): Promise<Response> 
 }
 
 /**
+ * GET /api/admin/env-check
+ * Lightweight check for treasury key availability and payout mode
+ */
+export async function getEnvCheck(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  return success({
+    hasTreasuryKey: hasTreasuryKey(env),
+    mode: env.PAYOUT_MODE || 'ledger',
+  }, requestId);
+}
+
+/**
  * GET /api/admin/env
  * Get environment configuration status (secrets as booleans only)
  */
