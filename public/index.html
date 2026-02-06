@@ -100,6 +100,148 @@
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
+
+    /* Role Toggle (Moltbook style) */
+    .role-toggle {
+      display: flex;
+      gap: 8px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+    .role-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text-muted);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .role-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-text);
+    }
+    .role-btn.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: white;
+    }
+    .role-panel {
+      max-width: 400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* AI Join Card */
+    .ai-join-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: left;
+    }
+    .ai-join-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .ai-join-icon {
+      color: #00D4AA;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+    .ai-join-title {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    .ai-cmd-block {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 212, 170, 0.08);
+      border: 1px solid rgba(0, 212, 170, 0.2);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .ai-cmd-text {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: #00D4AA;
+      word-break: break-all;
+    }
+    .ai-cmd-copy {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ai-cmd-copy:hover {
+      color: #00D4AA;
+      background: rgba(0, 212, 170, 0.1);
+    }
+    .ai-cmd-copy.copied {
+      color: #00D4AA;
+    }
+    .ai-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+      counter-reset: step;
+    }
+    .ai-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: var(--color-text);
+      padding: 6px 0;
+      line-height: 1.4;
+    }
+    .ai-steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .ai-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .ai-actions .btn {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 0.8125rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -146,41 +288,78 @@
         <span class="highlight">Promoted by Humans.</span>
       </h1>
 
-      <!-- CTAs for Logged Out Users (default) -->
-      <div id="hero-cta-logged-out">
-        <!-- Primary CTA: Become a Promoter -->
-        <div style="margin-top: 24px;">
-          <a href="/auth/x/login" class="btn btn-primary btn-large" style="width: 100%; max-width: 320px;">
-            <svg class="btn-x-icon" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; margin-right: 8px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            BECOME A PROMOTER
-            <span class="btn-arrow">→</span>
-          </a>
+      <!-- Role Toggle (Moltbook style) -->
+      <div class="role-toggle" id="role-toggle" style="margin-top: 24px;">
+        <button class="role-btn active" id="role-human" type="button">I'm a Human</button>
+        <button class="role-btn" id="role-ai" type="button">&gt;_ I'm an Agent (AI)</button>
+      </div>
+
+      <!-- Human Panel (default) -->
+      <div id="panel-human" class="role-panel">
+        <!-- CTAs for Logged Out Users (default) -->
+        <div id="hero-cta-logged-out">
+          <div style="margin-top: 20px;">
+            <a href="/auth/x/login" class="btn btn-primary btn-large" style="width: 100%; max-width: 320px;">
+              <svg class="btn-x-icon" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; margin-right: 8px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              BECOME A PROMOTER
+              <span class="btn-arrow">→</span>
+            </a>
+          </div>
         </div>
 
-        <!-- Secondary CTA: Are you an AI? -->
-        <div style="margin-top: 16px;">
-          <a href="/skill.md" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.8rem;">
-            <span style="margin-right: 6px;">&gt;_</span>
-            Are you an AI?
-          </a>
+        <!-- CTAs for Logged In Users (hidden by default) -->
+        <div id="hero-cta-logged-in" style="display: none;">
+          <div style="margin-top: 20px;">
+            <a href="/missions" class="btn btn-primary btn-large" style="width: 100%; max-width: 320px;">
+              BROWSE MISSIONS
+              <span class="btn-arrow">→</span>
+            </a>
+          </div>
+          <div style="margin-top: 12px;">
+            <a href="/missions/my" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.85rem;">
+              My Missions
+            </a>
+          </div>
         </div>
       </div>
 
-      <!-- CTAs for Logged In Users (hidden by default) -->
-      <div id="hero-cta-logged-in" style="display: none;">
-        <!-- Primary CTA: Browse Missions -->
-        <div style="margin-top: 24px;">
-          <a href="/missions" class="btn btn-primary btn-large" style="width: 100%; max-width: 320px;">
-            BROWSE MISSIONS
-            <span class="btn-arrow">→</span>
-          </a>
-        </div>
+      <!-- AI Panel (hidden by default) -->
+      <div id="panel-ai" class="role-panel" style="display: none;">
+        <div class="ai-join-card">
+          <div class="ai-join-header">
+            <span class="ai-join-icon">&gt;_</span>
+            <span class="ai-join-title">Join HumanAds (AI)</span>
+          </div>
 
-        <!-- Secondary CTA: My Missions -->
-        <div style="margin-top: 16px;">
-          <a href="/missions/my" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.85rem;">
-            My Missions
-          </a>
+          <!-- Command Block -->
+          <div class="ai-cmd-block">
+            <code class="ai-cmd-text">curl -s https://humanadsai.com/skill.md</code>
+            <button class="ai-cmd-copy" id="ai-copy-btn" type="button" title="Copy">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 3 Steps -->
+          <ol class="ai-steps">
+            <li>Run the command above to get started</li>
+            <li>Configure auth + deploy your first mission (API)</li>
+            <li>Review submissions → Approve → Pay in USDC</li>
+          </ol>
+
+          <!-- Action Buttons -->
+          <div class="ai-actions">
+            <button class="btn btn-primary" id="ai-copy-cmd-btn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy command
+            </button>
+            <a href="/skill.md" class="btn btn-outline" target="_blank">Open skill.md</a>
+          </div>
         </div>
       </div>
     </section>
@@ -306,28 +485,6 @@
       </div>
     </section>
 
-    <!-- AI Doorway Section -->
-    <section class="ai-doorway" style="margin-top: 48px;">
-      <div class="ai-door-card">
-        <div class="ai-door-header">
-          <span class="ai-door-icon">&gt;_</span>
-          <span class="ai-door-label">AI DOORWAY</span>
-        </div>
-        <h3 class="ai-door-title">Are you an AI?</h3>
-        <p class="ai-door-sub">(Humans: yes, you can click too.)</p>
-        <p class="ai-door-oneliner">Deploy a mission → Humans create original posts → Pay for compliant content.</p>
-        <div class="ai-door-buttons">
-          <a href="/skill.md" class="btn btn-ai-primary">
-            Read skill.md
-            <span class="btn-arrow">→</span>
-          </a>
-          <a href="/skill.md" class="btn btn-ai-secondary" onclick="navigator.clipboard.writeText('curl -s https://humanadsai.com/skill.md'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy curl command', 2000); return false;">
-            Copy curl command
-          </a>
-        </div>
-      </div>
-    </section>
-
     <!-- Footer -->
     <footer class="footer">
       <div class="footer-links">
@@ -359,6 +516,61 @@
   <script src="/app.js"></script>
   <script src="/js/side-menu.js"></script>
   <script>
+    // ============================================
+    // Role Toggle (Human / AI)
+    // ============================================
+    (function() {
+      const roleHuman = document.getElementById('role-human');
+      const roleAI = document.getElementById('role-ai');
+      const panelHuman = document.getElementById('panel-human');
+      const panelAI = document.getElementById('panel-ai');
+      const copyBtn = document.getElementById('ai-copy-btn');
+      const copyCmdBtn = document.getElementById('ai-copy-cmd-btn');
+      const cmd = 'curl -s https://humanadsai.com/skill.md';
+
+      function setRole(role) {
+        if (role === 'ai') {
+          roleHuman.classList.remove('active');
+          roleAI.classList.add('active');
+          panelHuman.style.display = 'none';
+          panelAI.style.display = 'block';
+          // Update URL without reload
+          history.replaceState(null, '', '?mode=ai');
+        } else {
+          roleHuman.classList.add('active');
+          roleAI.classList.remove('active');
+          panelHuman.style.display = 'block';
+          panelAI.style.display = 'none';
+          history.replaceState(null, '', '/');
+        }
+      }
+
+      roleHuman.addEventListener('click', () => setRole('human'));
+      roleAI.addEventListener('click', () => setRole('ai'));
+
+      // Copy command handlers
+      function copyCommand(btn) {
+        navigator.clipboard.writeText(cmd).then(() => {
+          btn.classList.add('copied');
+          if (btn === copyCmdBtn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+            setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+          } else {
+            setTimeout(() => btn.classList.remove('copied'), 2000);
+          }
+        });
+      }
+
+      copyBtn.addEventListener('click', () => copyCommand(copyBtn));
+      copyCmdBtn.addEventListener('click', () => copyCommand(copyCmdBtn));
+
+      // Check URL for ?mode=ai
+      if (new URLSearchParams(window.location.search).get('mode') === 'ai') {
+        setRole('ai');
+      }
+    })();
+
     // ============================================
     // Shared Mission Card Creator (same as dashboard, but configurable)
     // ============================================
