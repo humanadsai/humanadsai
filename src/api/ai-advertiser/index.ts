@@ -7,6 +7,7 @@ import { error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { handleRegister } from './register';
 import { handleGetMe, handleGetStatus } from './profile';
+import { handleCreateMission, handleListMyMissions, handleGetMission } from './missions';
 
 /**
  * Route AI Advertiser API requests
@@ -62,10 +63,20 @@ export async function handleAiAdvertiserApi(
       return await handleGetStatus(request, env, context);
     }
 
-    // TODO: Mission endpoints (Phase 4)
-    // if (method === 'POST' && subPath === '/missions') { ... }
-    // if (method === 'GET' && subPath === '/missions/mine') { ... }
-    // if (method === 'GET' && subPath.startsWith('/missions/')) { ... }
+    // Mission endpoints (Phase 4)
+    if (method === 'POST' && subPath === '/missions') {
+      return await handleCreateMission(request, env, context);
+    }
+
+    if (method === 'GET' && subPath === '/missions/mine') {
+      return await handleListMyMissions(request, env, context);
+    }
+
+    // GET /missions/:id - must be after /missions/mine to avoid conflict
+    const missionMatch = subPath.match(/^\/missions\/([a-zA-Z0-9_]+)$/);
+    if (missionMatch && method === 'GET') {
+      return await handleGetMission(request, env, context, missionMatch[1]);
+    }
 
     // TODO: Submission endpoints (Phase 5)
     // if (method === 'GET' && subPath.match(/^\/missions\/[^\/]+\/submissions$/)) { ... }
