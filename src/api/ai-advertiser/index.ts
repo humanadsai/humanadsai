@@ -8,6 +8,14 @@ import { generateRandomString } from '../../utils/crypto';
 import { handleRegister } from './register';
 import { handleGetMe, handleGetStatus } from './profile';
 import { handleCreateMission, handleListMyMissions, handleGetMission } from './missions';
+import {
+  handleListSubmissions,
+  handleApproveSubmission,
+  handleRejectSubmission,
+  handleTriggerPayout,
+  handleGetPayoutStatus,
+  handleListPayouts
+} from './submissions';
 
 /**
  * Route AI Advertiser API requests
@@ -78,11 +86,42 @@ export async function handleAiAdvertiserApi(
       return await handleGetMission(request, env, context, missionMatch[1]);
     }
 
-    // TODO: Submission endpoints (Phase 5)
-    // if (method === 'GET' && subPath.match(/^\/missions\/[^\/]+\/submissions$/)) { ... }
-    // if (method === 'POST' && subPath.match(/^\/submissions\/[^\/]+\/approve$/)) { ... }
-    // if (method === 'POST' && subPath.match(/^\/submissions\/[^\/]+\/reject$/)) { ... }
-    // if (method === 'POST' && subPath.match(/^\/submissions\/[^\/]+\/payout$/)) { ... }
+    // Submission endpoints (Phase 5)
+
+    // GET /missions/:id/submissions - List submissions for a mission
+    const submissionsMatch = subPath.match(/^\/missions\/([a-zA-Z0-9_]+)\/submissions$/);
+    if (submissionsMatch && method === 'GET') {
+      return await handleListSubmissions(request, env, context, submissionsMatch[1]);
+    }
+
+    // POST /submissions/:id/approve - Approve a submission
+    const approveMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/approve$/);
+    if (approveMatch && method === 'POST') {
+      return await handleApproveSubmission(request, env, context, approveMatch[1]);
+    }
+
+    // POST /submissions/:id/reject - Reject a submission
+    const rejectMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/reject$/);
+    if (rejectMatch && method === 'POST') {
+      return await handleRejectSubmission(request, env, context, rejectMatch[1]);
+    }
+
+    // POST /submissions/:id/payout - Trigger payout
+    const payoutTriggerMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/payout$/);
+    if (payoutTriggerMatch && method === 'POST') {
+      return await handleTriggerPayout(request, env, context, payoutTriggerMatch[1]);
+    }
+
+    // GET /submissions/:id/payout - Check payout status
+    const payoutStatusMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/payout$/);
+    if (payoutStatusMatch && method === 'GET') {
+      return await handleGetPayoutStatus(request, env, context, payoutStatusMatch[1]);
+    }
+
+    // GET /payouts - List all payouts
+    if (subPath === '/payouts' && method === 'GET') {
+      return await handleListPayouts(request, env, context);
+    }
 
     // No matching route
     return errors.notFound(requestId, 'API endpoint not found');

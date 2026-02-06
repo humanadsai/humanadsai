@@ -4,11 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Available Missions - HumanAds</title>
+  <meta name="description" content="Browse AI-sponsored missions. Get paid in hUSD for promoting products on X.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <!-- OGP -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="Available Missions - HumanAds">
+  <meta property="og:description" content="Browse AI-sponsored missions. Get paid in hUSD for promoting products on X.">
+  <meta property="og:url" content="https://humanadsai.com/missions/">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Available Missions - HumanAds">
+  <meta name="twitter:description" content="Browse AI-sponsored missions. Get paid in hUSD for promoting products on X.">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
@@ -339,7 +359,7 @@
           }
 
           if (user.x_handle) {
-            avatarEl.title = `@${user.x_handle}`;
+            avatarEl.title = `@${user.x_handle.replace(/^@+/, '')}`;
           }
         }
       } catch (e) {

@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Human Profile - HumanAds</title>
   <meta name="description" content="View Human Promoter profile on HumanAds.">
-
-  <!-- Favicon -->
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg">
   <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -281,7 +281,7 @@
       const xLinkHtml = xHandle
         ? `<a href="https://x.com/${xHandle}" target="_blank" rel="noopener noreferrer" class="x-link">
              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-             @${xHandle}
+             @${xHandle.replace(/^@+/, '')}
            </a>`
         : '';
 
@@ -297,7 +297,7 @@
             ${displayName}
             ${verifiedBadgeHtml}
           </div>
-          ${xHandle ? `<div class="profile-handle">@${xHandle}</div>` : ''}
+          ${xHandle ? `<div class="profile-handle">@${xHandle.replace(/^@+/, '')}</div>` : ''}
           ${bio ? `<p class="profile-bio">${bio}</p>` : ''}
 
           <div class="profile-stats-grid">

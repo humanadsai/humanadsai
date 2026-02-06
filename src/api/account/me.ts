@@ -9,6 +9,7 @@
 import type { Env } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { authenticateOperator } from '../operator/register';
+import { cleanXHandle } from '../../utils/format';
 
 interface AccountMeResponse {
   profile: {
@@ -153,7 +154,7 @@ export async function getAccountMe(request: Request, env: Env): Promise<Response
       profile: {
         id: extendedOperator.id,
         display_name: extendedOperator.display_name,
-        x_handle: extendedOperator.x_handle,
+        x_handle: cleanXHandle(extendedOperator.x_handle),
         x_user_id: extendedOperator.x_user_id,
         x_profile_image_url: extendedOperator.x_profile_image_url,
         role: extendedOperator.role || 'user',

@@ -4,11 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AI Advertiser Test - HumanAds</title>
+  <meta name="description" content="Test AI advertiser integration on HumanAds.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     .test-page {
       padding: 16px;
@@ -94,6 +99,137 @@
       opacity: 0.5;
       pointer-events: none;
     }
+
+    /* PreStep cards — same look as .step-card but separate class to avoid updateStepState interference */
+    .prestep-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    .prestep-card.completed {
+      border-color: rgba(52, 199, 89, 0.5);
+      background: rgba(52, 199, 89, 0.05);
+    }
+    .prestep-card.active {
+      border-color: var(--color-primary);
+      background: rgba(255, 107, 53, 0.05);
+    }
+    .prestep-card.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .prestep-card .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .prestep-card .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .prestep-card.completed .step-number {
+      background: #34c759;
+      color: white;
+    }
+    .prestep-card.active .step-number {
+      background: var(--color-primary);
+      color: white;
+    }
+    .prestep-card .step-title {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .prestep-card .step-description {
+      color: var(--color-text-muted);
+      font-size: 0.8125rem;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .credentials-box {
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .credential-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.75rem;
+      gap: 8px;
+    }
+    .credential-item:last-child { border-bottom: none; }
+    .credential-item .cred-label {
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .credential-item .cred-value {
+      font-family: var(--font-mono);
+      word-break: break-all;
+      text-align: right;
+      flex: 1;
+      min-width: 0;
+    }
+    .credential-item .cred-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .prestep-warning {
+      background: rgba(255, 149, 0, 0.1);
+      border: 1px solid rgba(255, 149, 0, 0.3);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: #ff9500;
+      line-height: 1.4;
+    }
+    .prestep-section {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--color-border);
+    }
+    .prestep-section-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .prestep-navigate {
+      margin-top: 20px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .prestep-navigate .btn {
+      flex: 1;
+      min-width: 140px;
+    }
+
     .step-header {
       display: flex;
       align-items: center;
@@ -893,6 +1029,7 @@
         const input = document.getElementById(inputId);
         if (input && text) {
           input.value = text.trim();
+          input.dispatchEvent(new Event('input', { bubbles: true }));
         }
       } catch (e) {
         alert('Unable to paste. Please paste manually.');
@@ -989,6 +1126,723 @@ contract HumanAdsTestUSD {
 
     function copyContractCode(btnEl) {
       copyToClipboard(HUSD_CONTRACT_CODE, btnEl);
+    }
+
+    // ========== PreStep Functions ==========
+
+    /** Wait for env-banner.js to set window.EnvBanner (polling, max 3s) */
+    async function waitForEnvBanner(maxMs = 3000) {
+      const start = Date.now();
+      while (!window.EnvBanner && Date.now() - start < maxMs) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
+
+    /** Load saved credentials from localStorage */
+    function loadPreStepFromStorage() {
+      return {
+        apiKey: localStorage.getItem('humanads_test_api_key') || '',
+        claimUrl: localStorage.getItem('humanads_test_claim_url') || '',
+        verificationCode: localStorage.getItem('humanads_test_verification_code') || '',
+        advertiserName: localStorage.getItem('humanads_test_advertiser_name') || '',
+        xPostUrl: localStorage.getItem('humanads_test_x_post_url') || '',
+      };
+    }
+
+    /** Save credentials to localStorage */
+    function savePreStepToStorage(apiKey, claimUrl, verificationCode, advertiserName) {
+      localStorage.setItem('humanads_test_api_key', apiKey);
+      localStorage.setItem('humanads_test_claim_url', claimUrl);
+      localStorage.setItem('humanads_test_verification_code', verificationCode);
+      localStorage.setItem('humanads_test_advertiser_name', advertiserName);
+    }
+
+    /** Render PreStep into #content — single page with all steps */
+    function renderPreStep(envData) {
+      const content = document.getElementById('content');
+      const stored = loadPreStepFromStorage();
+      const hasApiKey = !!stored.apiKey;
+
+      content.innerHTML = `
+        <div class="test-header">
+          <h1>AI Advertiser Test</h1>
+          <p>Setup & E2E Payment Flow</p>
+        </div>
+
+        <!-- Step 0: Register -->
+        <div class="prestep-card ${hasApiKey ? 'completed' : 'active'}" id="prestep-0">
+          <div class="step-header">
+            <div class="step-number">${hasApiKey ? '&#10003;' : '0'}</div>
+            <div class="step-title">Register AI Advertiser</div>
+          </div>
+          ${hasApiKey ? renderPreStep0Completed(stored) : renderPreStep0Active()}
+        </div>
+
+        <!-- Step 1: Get Sepolia ETH -->
+        <div class="prestep-card active" id="prestep-1">
+          <div class="step-header">
+            <div class="step-number">1</div>
+            <div class="step-title">Get Sepolia ETH (for gas)</div>
+          </div>
+          <div class="step-description">You need Sepolia ETH to pay gas fees for claiming hUSD and sending transactions.</div>
+          <button class="btn" onclick="window.open('https://sepolia-faucet.pk910.de/', '_blank')">
+            Open Sepolia Faucet
+          </button>
+          <p style="font-size:0.75rem; color:var(--color-text-muted); margin-top:6px;">
+            Getting ETH may take a few minutes.
+          </p>
+        </div>
+
+        <!-- Step 2: Claim hUSD -->
+        <div class="prestep-card active" id="prestep-2">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <div class="step-title">Claim hUSD (Free)</div>
+          </div>
+          <div class="step-description">Connect MetaMask on Sepolia, then claim 1,000 hUSD. Gas is paid with Sepolia ETH.</div>
+          <div id="prestep-faucet-wallet" style="display:none; margin-bottom:8px; padding:8px 10px; border-radius:8px; background:rgba(52,199,89,0.1); border:1px solid rgba(52,199,89,0.3); font-size:0.75rem; font-family:var(--font-mono); color:#34c759; word-break:break-all;"></div>
+          <div class="btn-row">
+            <button class="btn wallet" id="btn-prestep-connect" onclick="connectPreStepWallet()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+              Connect MetaMask
+            </button>
+            <button class="btn primary" id="btn-prestep-claim" onclick="claimPreStepHusd()" disabled>
+              Claim 1,000 hUSD
+            </button>
+          </div>
+          <div id="prestep-faucet-status" style="margin-top:8px; font-size:0.75rem;"></div>
+          <div style="margin-top:8px; font-size:0.6875rem; color:var(--color-text-muted);">
+            <div>Network: <strong>Sepolia</strong> &bull; Token: <strong>hUSD</strong> &bull; Amount: <strong>1,000</strong></div>
+            <div style="font-family:var(--font-mono); word-break:break-all;">Faucet: 0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341</div>
+          </div>
+        </div>
+
+        <!-- E2E Payment Flow -->
+        <div style="margin-top:24px; padding-top:24px; border-top:2px solid var(--color-border);">
+          <div class="test-header" style="margin-bottom:16px;">
+            <h1 style="font-size:1.125rem;">E2E Payment Flow</h1>
+            <p>Steps A-G: Create deal, seed data, pay & confirm.</p>
+            <div class="env-badge ${state.payoutMode}">
+              <span class="dot"></span>
+              ${state.payoutMode === 'ledger' ? 'Ledger Mode (Simulated)' : 'Onchain Mode'}
+            </div>
+            <div class="wallet-status disconnected" id="wallet-status">
+              <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+              </svg>
+              Not Connected
+            </div>
+          </div>
+
+          <!-- Step A: Environment -->
+          <div class="step-card active" id="step-a">
+            <div class="step-header">
+              <div class="step-number">A</div>
+              <div class="step-title">Environment & Wallet</div>
+            </div>
+            <div class="step-description">Select token${isMobile && !isInMetaMaskBrowser ? '. Tap "Open MetaMask" to continue in the MetaMask app.' : ' and connect your wallet.'}</div>
+            <div class="info-row">
+              <span class="label">Network</span>
+              <span class="value">Sepolia (Testnet)</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Token</span>
+              <span class="value">hUSD (HumanAds Test)</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Payout Mode</span>
+              <span class="value">${state.payoutMode}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Treasury</span>
+              <span class="value" style="font-size:0.6875rem;">${truncate(state.treasuryAddress, 20)}</span>
+            </div>
+            ${isMobile && !isInMetaMaskBrowser ? `
+            <button class="btn metamask" onclick="openMetaMask()">
+              <svg width="16" height="16" viewBox="0 0 318 318" fill="currentColor">
+                <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
+                <path d="M44.4 35.5l98.7 74.6-17.5-44.3zm193.7 171.3l-26.5 40.6 56.7 15.6 16.3-55.3zm-213.1.9l16.2 55.3 56.7-15.6-26.5-40.6z"/>
+              </svg>
+              Open MetaMask
+            </button>
+            <button class="btn secondary" id="btn-connect-wallet" onclick="connectWallet()" style="margin-top:8px;">
+              Or connect via WalletConnect
+            </button>
+            ` : `
+            <button class="btn wallet" id="btn-connect-wallet" onclick="connectWallet()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+              </svg>
+              Connect Wallet
+            </button>
+            `}
+
+            <!-- hUSD Contract Deploy Helper -->
+            <div id="husd-deploy-helper" style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--color-border);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-size:0.75rem;color:var(--color-text-muted);">Need hUSD for testing?</span>
+                <button class="btn secondary" onclick="toggleContractCode()" style="padding:4px 8px;font-size:0.6875rem;">
+                  Show Contract Code
+                </button>
+              </div>
+              <div id="contract-code-section" style="display:none;">
+                <div style="background:var(--color-background-light);border-radius:8px;padding:12px;margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-family:var(--font-mono);font-size:0.75rem;font-weight:600;">HumanAdsTestUSD.sol</span>
+                    <button class="copy-btn" onclick="copyContractCode(this)">Copy All</button>
+                  </div>
+                  <pre id="contract-code" style="font-size:0.625rem;line-height:1.4;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0;color:var(--color-text-muted);"></pre>
+                </div>
+                <div style="font-size:0.6875rem;color:var(--color-text-muted);line-height:1.5;">
+                  <strong>Deploy Steps:</strong><br>
+                  1. Open <a href="https://remix.ethereum.org" target="_blank" style="color:var(--color-primary);">remix.ethereum.org</a><br>
+                  2. Create new file, paste code<br>
+                  3. Compile (0.8.20)<br>
+                  4. Deploy &rarr; Sepolia<br>
+                  5. mint(your_address, 100000000000000000000)<br>
+                  6. Copy contract address &rarr; set in Token dropdown
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step B: Create Deal -->
+          <div class="step-card disabled" id="step-b">
+            <div class="step-header">
+              <div class="step-number">B</div>
+              <div class="step-title">Create Mission</div>
+            </div>
+            <div class="step-description">Create a test deal as an AI advertiser.</div>
+            <div class="input-group">
+              <label>Reward Amount</label>
+              <select id="reward-amount">
+                <option value="500">$5.00</option>
+                <option value="1000">$10.00</option>
+              </select>
+            </div>
+            <button class="btn primary" onclick="createDeal()">
+              Create Test Deal
+            </button>
+            <div class="result-box" id="step-b-result"></div>
+          </div>
+
+          <!-- Step C: Seed Application -->
+          <div class="step-card disabled" id="step-c">
+            <div class="step-header">
+              <div class="step-number">C</div>
+              <div class="step-title">Seed Application</div>
+            </div>
+            <div class="step-description">Create test promoter and application.</div>
+            <div class="info-row" id="deal-id-row" style="display:none;">
+              <span class="label">Deal ID</span>
+              <span class="value highlight" id="display-deal-id">-</span>
+            </div>
+            <button class="btn primary" onclick="seedData()" disabled id="btn-seed">
+              Seed Test Promoter & Application
+            </button>
+            <div class="result-box" id="step-c-result"></div>
+          </div>
+
+          <!-- Step D: Select & Approve -->
+          <div class="step-card disabled" id="step-d">
+            <div class="step-header">
+              <div class="step-number">D</div>
+              <div class="step-title">Select & Approve</div>
+            </div>
+            <div class="step-description">Select application and approve for payment.</div>
+            <div class="info-row" id="app-id-row" style="display:none;">
+              <span class="label">Application ID</span>
+              <span class="value" id="display-app-id">-</span>
+            </div>
+            <div class="btn-row">
+              <button class="btn" onclick="selectApplication()" disabled id="btn-select">Select</button>
+              <button class="btn primary" onclick="approveMission()" disabled id="btn-approve">Approve</button>
+            </div>
+            <div class="result-box" id="step-d-result"></div>
+          </div>
+
+          <!-- Step E: Pay AUF (10%) -->
+          <div class="step-card disabled" id="step-e">
+            <div class="step-header">
+              <div class="step-number">E</div>
+              <div class="step-title">Pay AUF (10%)</div>
+            </div>
+            <div class="step-description">Pay the AUF to the treasury. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
+            <div class="payment-box" id="auf-payment-info" style="display:none;">
+              <div class="title">AUF Payment Details</div>
+              <div class="info-row-with-copy">
+                <span class="label">Network</span>
+                <div class="value-group">
+                  <span class="value" id="auf-chain">-</span>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">Token</span>
+                <div class="value-group">
+                  <span class="value" id="auf-token">hUSD</span>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">To</span>
+                <div class="value-group">
+                  <span class="value" id="auf-to" style="font-size:0.625rem;">-</span>
+                  <button class="copy-btn" onclick="copyToClipboard(state.aufPaymentInfo?.to_address || state.treasuryAddress, this)">Copy</button>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">Amount</span>
+                <div class="value-group">
+                  <span class="value highlight" id="auf-amount">-</span>
+                  <button class="copy-btn" onclick="copyToClipboard((state.aufAmountCents / 100).toFixed(2), this)">Copy</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn metamask" onclick="sendAuf()" disabled id="btn-send-auf">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+              Send AUF Payment
+            </button>
+            <div class="input-group" style="margin-top:12px;">
+              <label>AUF Transaction Hash</label>
+              <div class="input-with-paste">
+                <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
+                <button class="paste-btn" onclick="pasteToInput('auf-tx-hash')">Paste</button>
+              </div>
+            </div>
+            <button class="btn primary" onclick="unlockAddress()" disabled id="btn-unlock">
+              Verify & Unlock Address
+            </button>
+            <div class="result-box" id="step-e-result"></div>
+          </div>
+
+          <!-- Step F: Pay Promoter (90%) -->
+          <div class="step-card disabled" id="step-f">
+            <div class="step-header">
+              <div class="step-number">F</div>
+              <div class="step-title">Pay Promoter (90%)</div>
+            </div>
+            <div class="step-description">Send the payout to the promoter. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
+            <div class="payment-box" id="payout-payment-info" style="display:none;">
+              <div class="title">Payout Details</div>
+              <div class="info-row-with-copy">
+                <span class="label">Network</span>
+                <div class="value-group">
+                  <span class="value" id="payout-chain">-</span>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">Token</span>
+                <div class="value-group">
+                  <span class="value" id="payout-token">hUSD</span>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">To (Promoter)</span>
+                <div class="value-group">
+                  <span class="value" id="payout-to" style="font-size:0.625rem;">-</span>
+                  <button class="copy-btn" onclick="copyToClipboard(state.operatorWallet, this)">Copy</button>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">Amount</span>
+                <div class="value-group">
+                  <span class="value highlight" id="payout-amount">-</span>
+                  <button class="copy-btn" onclick="copyToClipboard((state.payoutAmountCents / 100).toFixed(2), this)">Copy</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn metamask" onclick="sendPayout()" disabled id="btn-send-payout">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+              Send Payout
+            </button>
+            <div class="input-group" style="margin-top:12px;">
+              <label>Payout Transaction Hash</label>
+              <div class="input-with-paste">
+                <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
+                <button class="paste-btn" onclick="pasteToInput('payout-tx-hash')">Paste</button>
+              </div>
+            </div>
+            <button class="btn primary" onclick="confirmPayout()" disabled id="btn-confirm">
+              Confirm Payout
+            </button>
+            <div class="result-box" id="step-f-result"></div>
+          </div>
+
+          <!-- Step G: Complete -->
+          <div class="step-card disabled" id="step-g">
+            <div class="step-header">
+              <div class="step-number">G</div>
+              <div class="step-title">Complete</div>
+            </div>
+            <div id="complete-content" style="display:none;">
+              <div class="complete-banner">
+                <h2>PAID</h2>
+                <p>E2E Payment Flow Complete!</p>
+              </div>
+              <button class="btn" onclick="startOver()">Start Over</button>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="timeline" id="timeline" style="display:none;">
+            <h3>Timeline</h3>
+            <div id="timeline-items"></div>
+          </div>
+        </div>
+      `;
+
+      updateStepState(2);
+    }
+
+    /** Render PreStep 0 when api_key is NOT yet saved */
+    function renderPreStep0Active() {
+      return `
+        <div class="step-description">Register to get your API key, Claim URL, and Verification Code.</div>
+        <div class="input-group">
+          <label>Advertiser Name <span style="color:#ff3b30;">*</span></label>
+          <input type="text" id="prestep-name" placeholder="e.g. MyTestAgent" maxlength="100">
+        </div>
+        <div class="input-group">
+          <label>Description (optional)</label>
+          <input type="text" id="prestep-desc" placeholder="What does your agent do?">
+        </div>
+        <div class="input-group">
+          <label>Mode</label>
+          <input type="text" value="test" readonly style="opacity:0.6;">
+        </div>
+        <button class="btn primary" id="btn-prestep-register" onclick="handleRegisterPreStep()">
+          Register
+        </button>
+        <div id="prestep-register-result" class="result-box"></div>
+      `;
+    }
+
+    /** Escape HTML entities */
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    /** Render PreStep 0 when api_key IS already saved */
+    function renderPreStep0Completed(stored) {
+      const eName = escHtml(stored.advertiserName);
+      const eKey = escHtml(stored.apiKey);
+      const eUrl = escHtml(stored.claimUrl);
+      const eCode = escHtml(stored.verificationCode);
+      return `
+        <div class="step-description">Registered successfully.</div>
+        <div class="credentials-box">
+          <div class="credential-item">
+            <span class="cred-label">Name</span>
+            <span class="cred-value">${eName}</span>
+          </div>
+          <div class="credential-item">
+            <span class="cred-label">API Key</span>
+            <span class="cred-value">${escHtml(stored.apiKey.slice(0, 20))}...</span>
+            <span class="cred-actions">
+              <button class="copy-btn" data-copy="apiKey" onclick="copyPreStepCredential(this)">Copy</button>
+            </span>
+          </div>
+          <div class="credential-item">
+            <span class="cred-label">Claim URL</span>
+            <span class="cred-value" style="font-size:0.6875rem;">${escHtml(stored.claimUrl.slice(0, 40))}...</span>
+            <span class="cred-actions">
+              <button class="copy-btn" data-copy="claimUrl" onclick="copyPreStepCredential(this)">Copy</button>
+            </span>
+          </div>
+          <div class="credential-item">
+            <span class="cred-label">Code</span>
+            <span class="cred-value">${eCode}</span>
+            <span class="cred-actions">
+              <button class="copy-btn" data-copy="verificationCode" onclick="copyPreStepCredential(this)">Copy</button>
+            </span>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn" onclick="copyCredentialsAsJson()">Copy as JSON</button>
+          <button class="btn secondary" onclick="resetPreStep()">&#8635; Re-register</button>
+        </div>
+
+        <!-- X Post Prompt -->
+        <div style="margin-top:16px; padding-top:16px; border-top:1px dashed var(--color-border);">
+          <div style="font-size:0.8125rem; font-weight:600; margin-bottom:8px;">Post on X</div>
+          <a class="btn" target="_blank" rel="noopener"
+             href="https://x.com/intent/tweet?text=${encodeURIComponent('Ads by AI.\nPromoted by Humans.\n\nCheck out my HumanAds Claim URL!\n\n' + stored.claimUrl + '\n\n@HumanAdsAI #HumanAds')}"
+             style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Post on X
+          </a>
+          <div class="input-group" style="margin-top:10px; margin-bottom:0;">
+            <label style="font-size:0.75rem;">X Post URL</label>
+            <div class="input-with-paste">
+              <input type="text" id="prestep-x-post-url" placeholder="https://x.com/you/status/..."
+                     value="${escHtml(stored.xPostUrl)}" />
+              <button class="paste-btn" onclick="pasteToInput('prestep-x-post-url')">Paste</button>
+            </div>
+          </div>
+          <button class="btn primary" onclick="verifyXPostUrl()" id="btn-verify-x-post" style="margin-top:8px;">
+            Verify
+          </button>
+          <div id="prestep-x-post-result" class="result-box" style="${stored.xPostUrl ? '' : 'display:none;'}">${stored.xPostUrl ? '<span style="color:#34c759;">&#10003; Verified</span> <span style="font-size:0.75rem;color:var(--color-text-muted);">' + escHtml(stored.xPostUrl) + '</span>' : ''}</div>
+        </div>
+      `;
+    }
+
+    /** Copy a specific credential field by data-copy attribute */
+    function copyPreStepCredential(btnEl) {
+      const field = btnEl.getAttribute('data-copy');
+      const stored = loadPreStepFromStorage();
+      const value = stored[field] || '';
+      copyToClipboard(value, btnEl);
+    }
+
+    /** Update prestep-card active/completed/disabled state */
+    function updatePreStepState(activeStep) {
+      document.querySelectorAll('.prestep-card').forEach((card, i) => {
+        card.classList.remove('active', 'completed', 'disabled');
+        if (i < activeStep) {
+          card.classList.add('completed');
+        } else if (i === activeStep) {
+          card.classList.add('active');
+        } else {
+          card.classList.add('disabled');
+        }
+      });
+    }
+
+    /** POST /api/v1/advertisers/register */
+    async function handleRegisterPreStep() {
+      const nameEl = document.getElementById('prestep-name');
+      const descEl = document.getElementById('prestep-desc');
+      const btn = document.getElementById('btn-prestep-register');
+      const resultEl = document.getElementById('prestep-register-result');
+
+      const name = (nameEl.value || '').trim();
+      if (!name) {
+        resultEl.className = 'result-box show error';
+        resultEl.innerHTML = '<strong>Error:</strong> Advertiser name is required.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Registering...';
+      resultEl.className = 'result-box';
+      resultEl.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/v1/advertisers/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            description: (descEl.value || '').trim() || undefined,
+            mode: 'test'
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          const adv = data.data.advertiser;
+          // Auto-save to localStorage
+          savePreStepToStorage(adv.api_key, adv.claim_url, adv.verification_code, name);
+
+          // Re-render to show completed state
+          renderPreStep(window._envData);
+        } else {
+          resultEl.className = 'result-box show error';
+          resultEl.innerHTML = '<strong>Error:</strong> ' + (data.error?.message || data.message || 'Registration failed.');
+          btn.disabled = false;
+          btn.innerHTML = 'Register';
+        }
+      } catch (e) {
+        resultEl.className = 'result-box show error';
+        resultEl.innerHTML = '<strong>Error:</strong> Network error. Please try again.';
+        btn.disabled = false;
+        btn.innerHTML = 'Register';
+      }
+    }
+
+    /** Copy all credentials as JSON */
+    function copyCredentialsAsJson() {
+      const stored = loadPreStepFromStorage();
+      const json = JSON.stringify({
+        api_key: stored.apiKey,
+        claim_url: stored.claimUrl,
+        verification_code: stored.verificationCode,
+        name: stored.advertiserName,
+      }, null, 2);
+      copyToClipboard(json);
+    }
+
+    /** Open the stored claim_url in a new tab */
+    function openClaimUrl() {
+      const url = localStorage.getItem('humanads_test_claim_url');
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        alert('No Claim URL saved. Complete Step 0 first.');
+      }
+    }
+
+    /** Clear PreStep credentials and re-render the register form */
+    /** Verify X Post URL format and save */
+    function verifyXPostUrl() {
+      const input = document.getElementById('prestep-x-post-url');
+      const resultEl = document.getElementById('prestep-x-post-result');
+      const url = (input.value || '').trim();
+
+      if (!url) {
+        resultEl.className = 'result-box show error';
+        resultEl.style.display = '';
+        resultEl.innerHTML = '<strong>Error:</strong> Please paste your X post URL.';
+        return;
+      }
+
+      // Validate x.com or twitter.com status URL
+      const xPattern = /^https?:\/\/(x\.com|twitter\.com)\/[^/]+\/status\/\d+/i;
+      if (!xPattern.test(url)) {
+        resultEl.className = 'result-box show error';
+        resultEl.style.display = '';
+        resultEl.innerHTML = '<strong>Error:</strong> Invalid URL format. Expected: https://x.com/username/status/123...';
+        return;
+      }
+
+      // Save and show success
+      localStorage.setItem('humanads_test_x_post_url', url);
+      resultEl.className = 'result-box show success';
+      resultEl.style.display = '';
+      resultEl.innerHTML = '<span style="color:#34c759;">&#10003; Verified</span> <span style="font-size:0.75rem;color:var(--color-text-muted);">' + url.replace(/</g,'&lt;') + '</span>';
+    }
+
+    function resetPreStep() {
+      ['humanads_test_api_key', 'humanads_test_claim_url', 'humanads_test_verification_code',
+       'humanads_test_advertiser_name', 'humanads_test_x_post_url'].forEach(k => localStorage.removeItem(k));
+      renderPreStep(window._envData);
+    }
+
+    // ========== PreStep Faucet Claim ==========
+    const FAUCET_CONTRACT = '0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341';
+    const FAUCET_CLAIM_OPEN_SELECTOR = '0x4b8bcb58'; // claimOpen()
+    const SEPOLIA_CHAIN_ID = 11155111;
+    const SEPOLIA_CHAIN_ID_HEX = '0xaa36a7';
+    let prestepWalletAddress = null;
+
+    async function connectPreStepWallet() {
+      const connectBtn = document.getElementById('btn-prestep-connect');
+      const claimBtn = document.getElementById('btn-prestep-claim');
+      const walletDiv = document.getElementById('prestep-faucet-wallet');
+      const statusDiv = document.getElementById('prestep-faucet-status');
+
+      if (!window.ethereum) {
+        statusDiv.innerHTML = '<span style="color:#ff3b30;">MetaMask not detected. Please install MetaMask.</span>';
+        return;
+      }
+
+      connectBtn.disabled = true;
+      connectBtn.innerHTML = '<span class="spinner"></span> Connecting...';
+
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (!accounts || accounts.length === 0) throw new Error('No accounts');
+
+        prestepWalletAddress = accounts[0];
+
+        // Switch to Sepolia if needed
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (parseInt(chainId, 16) !== SEPOLIA_CHAIN_ID) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
+            });
+          } catch (switchErr) {
+            statusDiv.innerHTML = '<span style="color:#ff9500;">Please switch to Sepolia network in MetaMask.</span>';
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = 'Connect MetaMask';
+            return;
+          }
+        }
+
+        walletDiv.style.display = 'block';
+        walletDiv.textContent = prestepWalletAddress;
+        connectBtn.classList.add('connected');
+        connectBtn.innerHTML = 'Connected';
+        claimBtn.disabled = false;
+        statusDiv.innerHTML = '';
+      } catch (e) {
+        const msg = e.code === 4001 ? 'Connection rejected.' : (e.message || 'Connection failed');
+        statusDiv.innerHTML = `<span style="color:#ff3b30;">${msg}</span>`;
+        connectBtn.disabled = false;
+        connectBtn.innerHTML = 'Connect MetaMask';
+      }
+    }
+
+    async function claimPreStepHusd() {
+      const claimBtn = document.getElementById('btn-prestep-claim');
+      const statusDiv = document.getElementById('prestep-faucet-status');
+
+      if (!prestepWalletAddress || !window.ethereum) {
+        statusDiv.innerHTML = '<span style="color:#ff3b30;">Connect MetaMask first.</span>';
+        return;
+      }
+
+      claimBtn.disabled = true;
+      claimBtn.innerHTML = '<span class="spinner"></span> Claiming...';
+      statusDiv.innerHTML = '<span style="color:var(--color-text-muted);">Pre-checking faucet...</span>';
+
+      try {
+        // Pre-check: simulate claimOpen() via eth_call
+        try {
+          await window.ethereum.request({
+            method: 'eth_call',
+            params: [{
+              from: prestepWalletAddress,
+              to: FAUCET_CONTRACT,
+              data: FAUCET_CLAIM_OPEN_SELECTOR,
+            }, 'latest'],
+          });
+        } catch (simErr) {
+          const reason = simErr?.data?.message || simErr?.message || 'Unknown error';
+          let hint = reason;
+          if (reason.includes('OpenClaimDisabled')) hint = 'Open claim is disabled on the faucet contract. Contact admin.';
+          else if (reason.includes('CooldownActive')) hint = 'Cooldown active. Please wait and try again.';
+          else if (reason.includes('AllowanceTooLow')) hint = 'Faucet allowance exhausted. Contact admin.';
+          else if (reason.includes('TreasuryBalanceLow')) hint = 'Treasury balance too low. Contact admin.';
+          else if (reason.includes('IsPaused')) hint = 'Faucet is paused. Contact admin.';
+          statusDiv.innerHTML = `<span style="color:#ff3b30;">Pre-check failed: ${hint}</span>`;
+          claimBtn.disabled = false;
+          claimBtn.innerHTML = 'Claim 1,000 hUSD';
+          return;
+        }
+
+        statusDiv.innerHTML = '<span style="color:var(--color-text-muted);">Confirm the transaction in MetaMask...</span>';
+
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: prestepWalletAddress,
+            to: FAUCET_CONTRACT,
+            data: FAUCET_CLAIM_OPEN_SELECTOR,
+          }],
+        });
+
+        statusDiv.innerHTML = `<span style="color:#34c759;">1,000 hUSD claimed!</span> <a href="https://sepolia.etherscan.io/tx/${txHash}" target="_blank" style="color:var(--color-primary); font-family:var(--font-mono); font-size:0.6875rem;">${txHash.substring(0, 18)}...</a>`;
+        claimBtn.innerHTML = 'Claimed!';
+        claimBtn.classList.add('success');
+      } catch (e) {
+        const msg = e.code === 4001 ? 'Transaction rejected by user.'
+          : (e.data?.message || e.message || 'Claim failed. Check MetaMask for details.');
+        statusDiv.innerHTML = `<span style="color:#ff3b30;">${msg}</span>`;
+        claimBtn.disabled = false;
+        claimBtn.innerHTML = 'Claim 1,000 hUSD';
+      }
     }
 
     function showResult(stepId, success, data) {
@@ -1574,290 +2428,6 @@ contract HumanAdsTestUSD {
       }
     }
 
-    function renderPage(envData) {
-      const content = document.getElementById('content');
-
-      content.innerHTML = `
-        <div class="test-header">
-          <h1>AI Advertiser Test</h1>
-          <p>E2E Payment Flow Wizard</p>
-          <div class="env-badge ${state.payoutMode}">
-            <span class="dot"></span>
-            ${state.payoutMode === 'ledger' ? 'Ledger Mode (Simulated)' : 'Onchain Mode'}
-          </div>
-          <div class="wallet-status disconnected" id="wallet-status">
-            <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
-            </svg>
-            Not Connected
-          </div>
-        </div>
-
-        <!-- Step A: Environment -->
-        <div class="step-card active" id="step-a">
-          <div class="step-header">
-            <div class="step-number">A</div>
-            <div class="step-title">Environment & Wallet</div>
-          </div>
-          <div class="step-description">Select token${isMobile && !isInMetaMaskBrowser ? '. Tap "Open MetaMask" to continue in the MetaMask app.' : ' and connect your wallet.'}</div>
-          <div class="info-row">
-            <span class="label">Network</span>
-            <span class="value">Sepolia (Testnet)</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Token</span>
-            <span class="value">hUSD (HumanAds Test)</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Payout Mode</span>
-            <span class="value">${state.payoutMode}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Treasury</span>
-            <span class="value" style="font-size:0.6875rem;">${truncate(state.treasuryAddress, 20)}</span>
-          </div>
-          ${isMobile && !isInMetaMaskBrowser ? `
-          <button class="btn metamask" onclick="openMetaMask()">
-            <svg width="16" height="16" viewBox="0 0 318 318" fill="currentColor">
-              <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
-              <path d="M44.4 35.5l98.7 74.6-17.5-44.3zm193.7 171.3l-26.5 40.6 56.7 15.6 16.3-55.3zm-213.1.9l16.2 55.3 56.7-15.6-26.5-40.6z"/>
-            </svg>
-            Open MetaMask
-          </button>
-          <button class="btn secondary" id="btn-connect-wallet" onclick="connectWallet()" style="margin-top:8px;">
-            Or connect via WalletConnect
-          </button>
-          ` : `
-          <button class="btn wallet" id="btn-connect-wallet" onclick="connectWallet()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
-            </svg>
-            Connect Wallet
-          </button>
-          `}
-
-          <!-- hUSD Contract Deploy Helper -->
-          <div id="husd-deploy-helper" style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--color-border);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:0.75rem;color:var(--color-text-muted);">Need hUSD for testing?</span>
-              <button class="btn secondary" onclick="toggleContractCode()" style="padding:4px 8px;font-size:0.6875rem;">
-                Show Contract Code
-              </button>
-            </div>
-            <div id="contract-code-section" style="display:none;">
-              <div style="background:var(--color-background-light);border-radius:8px;padding:12px;margin-bottom:8px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                  <span style="font-family:var(--font-mono);font-size:0.75rem;font-weight:600;">HumanAdsTestUSD.sol</span>
-                  <button class="copy-btn" onclick="copyContractCode(this)">Copy All</button>
-                </div>
-                <pre id="contract-code" style="font-size:0.625rem;line-height:1.4;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0;color:var(--color-text-muted);"></pre>
-              </div>
-              <div style="font-size:0.6875rem;color:var(--color-text-muted);line-height:1.5;">
-                <strong>Deploy Steps:</strong><br>
-                1. Open <a href="https://remix.ethereum.org" target="_blank" style="color:var(--color-primary);">remix.ethereum.org</a><br>
-                2. Create new file, paste code<br>
-                3. Compile (0.8.20)<br>
-                4. Deploy → Sepolia<br>
-                5. mint(your_address, 100000000000000000000)<br>
-                6. Copy contract address → set in Token dropdown
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step B: Create Deal -->
-        <div class="step-card disabled" id="step-b">
-          <div class="step-header">
-            <div class="step-number">B</div>
-            <div class="step-title">Create Mission</div>
-          </div>
-          <div class="step-description">Create a test deal as an AI advertiser.</div>
-          <div class="input-group">
-            <label>Reward Amount</label>
-            <select id="reward-amount">
-              <option value="500">$5.00</option>
-              <option value="1000">$10.00</option>
-            </select>
-          </div>
-          <button class="btn primary" onclick="createDeal()">
-            Create Test Deal
-          </button>
-          <div class="result-box" id="step-b-result"></div>
-        </div>
-
-        <!-- Step C: Seed Application -->
-        <div class="step-card disabled" id="step-c">
-          <div class="step-header">
-            <div class="step-number">C</div>
-            <div class="step-title">Seed Application</div>
-          </div>
-          <div class="step-description">Create test promoter and application.</div>
-          <div class="info-row" id="deal-id-row" style="display:none;">
-            <span class="label">Deal ID</span>
-            <span class="value highlight" id="display-deal-id">-</span>
-          </div>
-          <button class="btn primary" onclick="seedData()" disabled id="btn-seed">
-            Seed Test Promoter & Application
-          </button>
-          <div class="result-box" id="step-c-result"></div>
-        </div>
-
-        <!-- Step D: Select & Approve -->
-        <div class="step-card disabled" id="step-d">
-          <div class="step-header">
-            <div class="step-number">D</div>
-            <div class="step-title">Select & Approve</div>
-          </div>
-          <div class="step-description">Select application and approve for payment.</div>
-          <div class="info-row" id="app-id-row" style="display:none;">
-            <span class="label">Application ID</span>
-            <span class="value" id="display-app-id">-</span>
-          </div>
-          <div class="btn-row">
-            <button class="btn" onclick="selectApplication()" disabled id="btn-select">Select</button>
-            <button class="btn primary" onclick="approveMission()" disabled id="btn-approve">Approve</button>
-          </div>
-          <div class="result-box" id="step-d-result"></div>
-        </div>
-
-        <!-- Step E: Pay AUF (10%) -->
-        <div class="step-card disabled" id="step-e">
-          <div class="step-header">
-            <div class="step-number">E</div>
-            <div class="step-title">Pay AUF (10%)</div>
-          </div>
-          <div class="step-description">Pay the AUF to the treasury. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
-          <div class="payment-box" id="auf-payment-info" style="display:none;">
-            <div class="title">AUF Payment Details</div>
-            <div class="info-row-with-copy">
-              <span class="label">Network</span>
-              <div class="value-group">
-                <span class="value" id="auf-chain">-</span>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">Token</span>
-              <div class="value-group">
-                <span class="value" id="auf-token">hUSD</span>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">To</span>
-              <div class="value-group">
-                <span class="value" id="auf-to" style="font-size:0.625rem;">-</span>
-                <button class="copy-btn" onclick="copyToClipboard(state.aufPaymentInfo?.to_address || state.treasuryAddress, this)">Copy</button>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">Amount</span>
-              <div class="value-group">
-                <span class="value highlight" id="auf-amount">-</span>
-                <button class="copy-btn" onclick="copyToClipboard((state.aufAmountCents / 100).toFixed(2), this)">Copy</button>
-              </div>
-            </div>
-          </div>
-          <button class="btn metamask" onclick="sendAuf()" disabled id="btn-send-auf">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12l7 7 7-7"/>
-            </svg>
-            Send AUF Payment
-          </button>
-          <div class="input-group" style="margin-top:12px;">
-            <label>AUF Transaction Hash</label>
-            <div class="input-with-paste">
-              <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
-              <button class="paste-btn" onclick="pasteToInput('auf-tx-hash')">Paste</button>
-            </div>
-          </div>
-          <button class="btn primary" onclick="unlockAddress()" disabled id="btn-unlock">
-            Verify & Unlock Address
-          </button>
-          <div class="result-box" id="step-e-result"></div>
-        </div>
-
-        <!-- Step F: Pay Promoter (90%) -->
-        <div class="step-card disabled" id="step-f">
-          <div class="step-header">
-            <div class="step-number">F</div>
-            <div class="step-title">Pay Promoter (90%)</div>
-          </div>
-          <div class="step-description">Send the payout to the promoter. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
-          <div class="payment-box" id="payout-payment-info" style="display:none;">
-            <div class="title">Payout Details</div>
-            <div class="info-row-with-copy">
-              <span class="label">Network</span>
-              <div class="value-group">
-                <span class="value" id="payout-chain">-</span>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">Token</span>
-              <div class="value-group">
-                <span class="value" id="payout-token">hUSD</span>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">To (Promoter)</span>
-              <div class="value-group">
-                <span class="value" id="payout-to" style="font-size:0.625rem;">-</span>
-                <button class="copy-btn" onclick="copyToClipboard(state.operatorWallet, this)">Copy</button>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">Amount</span>
-              <div class="value-group">
-                <span class="value highlight" id="payout-amount">-</span>
-                <button class="copy-btn" onclick="copyToClipboard((state.payoutAmountCents / 100).toFixed(2), this)">Copy</button>
-              </div>
-            </div>
-          </div>
-          <button class="btn metamask" onclick="sendPayout()" disabled id="btn-send-payout">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12l7 7 7-7"/>
-            </svg>
-            Send Payout
-          </button>
-          <div class="input-group" style="margin-top:12px;">
-            <label>Payout Transaction Hash</label>
-            <div class="input-with-paste">
-              <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
-              <button class="paste-btn" onclick="pasteToInput('payout-tx-hash')">Paste</button>
-            </div>
-          </div>
-          <button class="btn primary" onclick="confirmPayout()" disabled id="btn-confirm">
-            Confirm Payout
-          </button>
-          <div class="result-box" id="step-f-result"></div>
-        </div>
-
-        <!-- Step G: Complete -->
-        <div class="step-card disabled" id="step-g">
-          <div class="step-header">
-            <div class="step-number">G</div>
-            <div class="step-title">Complete</div>
-          </div>
-          <div id="complete-content" style="display:none;">
-            <div class="complete-banner">
-              <h2>PAID</h2>
-              <p>E2E Payment Flow Complete!</p>
-            </div>
-            <button class="btn" onclick="startOver()">Start Over</button>
-          </div>
-        </div>
-
-        <!-- Timeline -->
-        <div class="timeline" id="timeline" style="display:none;">
-          <h3>Timeline</h3>
-          <div id="timeline-items"></div>
-        </div>
-      `;
-
-      updateStepState(2); // Start at step B (Create Deal)
-    }
 
     // Token is fixed to hUSD in test mode
     function renderTokenOptions(chainKey) {
@@ -2189,6 +2759,10 @@ contract HumanAdsTestUSD {
         payoutPaymentInfo: null,
       });
 
+      // Clean up PreStep localStorage keys
+      ['humanads_test_api_key', 'humanads_test_claim_url', 'humanads_test_verification_code',
+       'humanads_test_advertiser_name', 'humanads_test_x_post_url'].forEach(k => localStorage.removeItem(k));
+
       window.location.reload();
     }
 
@@ -2196,8 +2770,11 @@ contract HumanAdsTestUSD {
     (async function() {
       if (await checkAdmin()) {
         const envData = await loadEnvironment();
-        renderPage(envData);
         SideMenu.init(true, true);
+        window._envData = envData;
+
+        await waitForEnvBanner(3000);
+        renderPreStep(envData);
       }
     })();
   </script>

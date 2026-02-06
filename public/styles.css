@@ -1446,6 +1446,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  flex: 1;
 }
 
 .human-verified-badge {
@@ -1455,7 +1456,7 @@ body {
 }
 
 .human-carousel-handle {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 4px;
   font-size: 0.75rem;
@@ -1463,6 +1464,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .human-handle-x-icon {
