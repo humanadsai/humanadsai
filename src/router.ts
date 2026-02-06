@@ -90,6 +90,9 @@ import {
 } from './api/admin/index';
 import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 
+// Advertiser Test API
+import { handleAdvertiserTestApi } from './api/advertiser/test';
+
 /**
  * メインルーター
  */
@@ -134,6 +137,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
     if (path.startsWith('/api/user/') || path.startsWith('/api/account/')) {
       return handleUserApi(request, env, path, method);
+    }
+
+    // ============================================
+    // Advertiser Test API (/api/advertiser/test/...) - Admin-only
+    // ============================================
+
+    if (path.startsWith('/api/advertiser/test/')) {
+      return handleAdvertiserTestApi(request, env, path, method);
     }
 
     // ============================================
