@@ -19,39 +19,51 @@ export default {
     try {
       const response = await handleRequest(request, env);
 
-      // CORS ヘッダ
-      const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
+      // CORS ヘッダ - restrict origin to prevent cross-origin API abuse
+      const requestOrigin = request.headers.get('Origin') || '';
+      const allowedOrigins = [
+        'https://humanadsai.com',
+        'https://www.humanadsai.com',
+      ];
+      // Allow same-origin and configured origins; relax in development
+      const corsOrigin = allowedOrigins.includes(requestOrigin)
+        ? requestOrigin
+        : (env.ENVIRONMENT === 'development' ? (requestOrigin || '*') : 'https://humanadsai.com');
+      const corsHeaders: Record<string, string> = {
+        'Access-Control-Allow-Origin': corsOrigin,
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers':
           'Content-Type, Authorization, X-AdClaw-Timestamp, X-AdClaw-Nonce, X-AdClaw-Signature, X-AdClaw-Key-Id',
+        'Vary': 'Origin',
       };
+      // Only include credentials header when origin is explicitly allowed
+      if (allowedOrigins.includes(requestOrigin)) {
+        corsHeaders['Access-Control-Allow-Credentials'] = 'true';
+      }
 
-      // セキュリティヘッダ（Safe Browsing対策）
-      const securityHeaders = {
-        // XSS対策
+      // 基本セキュリティヘッダ（全レスポンスに適用）
+      const baseSecurityHeaders: Record<string, string> = {
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'X-XSS-Protection': '1; mode=block',
-        // HTTPS強制
+        // X-XSS-Protection: 0 - deprecated header, disable to avoid legacy browser quirks
+        'X-XSS-Protection': '0',
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-        // リファラーポリシー
         'Referrer-Policy': 'strict-origin-when-cross-origin',
-        // パーミッションポリシー（不要な機能を無効化）
         'Permissions-Policy': 'geolocation=(), microphone=(), camera=(), payment=()',
-        // CSP（Content Security Policy）- HTMLレスポンス用
-        'Content-Security-Policy': [
-          "default-src 'self'",
-          "script-src 'self' 'unsafe-inline'", // インラインスクリプト許可（既存コード互換）
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-          "font-src 'self' https://fonts.gstatic.com",
-          "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com",
-          "connect-src 'self'",
-          "frame-ancestors 'none'",
-          "form-action 'self'",
-          "base-uri 'self'",
-        ].join('; '),
       };
+
+      // CSP はHTMLレスポンスにのみ適用
+      const cspHeader = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline'", // インラインスクリプト許可（既存コード互換）
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com",
+        "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com",
+        "connect-src 'self'",
+        "frame-ancestors 'none'",
+        "form-action 'self'",
+        "base-uri 'self'",
+      ].join('; ');
 
       // 既存のヘッダにCORSとセキュリティヘッダを追加
       const newHeaders = new Headers(response.headers);
@@ -59,12 +71,15 @@ export default {
         newHeaders.set(key, value);
       });
 
-      // HTMLレスポンスにのみセキュリティヘッダを追加
+      // 基本セキュリティヘッダは全レスポンスに適用
+      Object.entries(baseSecurityHeaders).forEach(([key, value]) => {
+        newHeaders.set(key, value);
+      });
+
+      // CSPはHTMLレスポンスにのみ追加
       const contentType = response.headers.get('Content-Type') || '';
       if (contentType.includes('text/html') || !contentType) {
-        Object.entries(securityHeaders).forEach(([key, value]) => {
-          newHeaders.set(key, value);
-        });
+        newHeaders.set('Content-Security-Policy', cspHeader);
       }
 
       return new Response(response.body, {

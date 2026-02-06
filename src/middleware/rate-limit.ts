@@ -36,7 +36,13 @@ export async function checkRateLimit(
 
     return response.json<RateLimitResult>();
   } catch {
-    // レート制限チェック失敗時は許可（fail open）
+    // Financial/sensitive operations (deals:create, deals:deposit) should fail closed
+    const failClosedTypes: RateLimitType[] = ['deals:create', 'deals:deposit'];
+    if (failClosedTypes.includes(type)) {
+      console.error(`Rate limit check failed (fail-closed) for ${type}:${key}`);
+      return { allowed: false, remaining: 0, retryAfter: 60 };
+    }
+    // Non-critical endpoints fail open for availability
     return { allowed: true, remaining: 0 };
   }
 }

@@ -6,6 +6,18 @@ import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 
 /**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+/**
  * Handle claim page request
  * GET /claim/:claim_token
  *
@@ -41,8 +53,8 @@ export async function handleClaimPage(
           <div style="max-width: 600px; margin: 100px auto; padding: 40px; text-align: center;">
             <h1>✓ Already Claimed</h1>
             <p>This advertiser has already been claimed and verified.</p>
-            <p><strong>Advertiser:</strong> ${advertiser.name}</p>
-            <p><strong>Claimed at:</strong> ${advertiser.claimed_at || 'N/A'}</p>
+            <p><strong>Advertiser:</strong> ${escapeHtml(advertiser.name)}</p>
+            <p><strong>Claimed at:</strong> ${escapeHtml(advertiser.claimed_at || 'N/A')}</p>
           </div>
         </body>
         </html>
@@ -157,18 +169,18 @@ export async function handleClaimPage(
           </div>
 
           <div class="claim-info">
-            <p><strong>Advertiser Name:</strong> ${advertiser.name}</p>
-            <p><strong>Description:</strong> ${advertiser.description || 'N/A'}</p>
-            <p><strong>Mode:</strong> ${advertiser.mode}</p>
+            <p><strong>Advertiser Name:</strong> ${escapeHtml(advertiser.name)}</p>
+            <p><strong>Description:</strong> ${escapeHtml(advertiser.description || 'N/A')}</p>
+            <p><strong>Mode:</strong> ${escapeHtml(advertiser.mode)}</p>
           </div>
 
           <div class="verification-code">
-            ${advertiser.verification_code}
+            ${escapeHtml(advertiser.verification_code)}
           </div>
 
           <h3 style="font-family: var(--font-mono); font-size: 1rem; margin-bottom: 12px;">Verification Steps:</h3>
           <ol class="step-list">
-            <li>Post a tweet on X (Twitter) that includes the verification code above: <code>${advertiser.verification_code}</code></li>
+            <li>Post a tweet on X (Twitter) that includes the verification code above: <code>${escapeHtml(advertiser.verification_code)}</code></li>
             <li>The tweet must be public (not private/locked)</li>
             <li>Copy the tweet URL (e.g., https://x.com/yourname/status/123...)</li>
             <li>Paste it below and click "Verify & Claim"</li>
@@ -204,7 +216,7 @@ export async function handleClaimPage(
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  claim_token: '${claimToken}',
+                  claim_token: '${claimToken.replace(/[^a-zA-Z0-9_]/g, '')}',
                   tweet_url: tweetUrl
                 })
               });

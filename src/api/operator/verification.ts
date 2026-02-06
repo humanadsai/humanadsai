@@ -18,7 +18,10 @@ function getSessionToken(request: Request): string | null {
 
   const cookies = cookieHeader.split(';').map(c => c.trim());
   for (const cookie of cookies) {
-    const [name, value] = cookie.split('=');
+    const eqIdx = cookie.indexOf('=');
+    if (eqIdx === -1) continue;
+    const name = cookie.substring(0, eqIdx);
+    const value = cookie.substring(eqIdx + 1);
     if (name === 'session') {
       return value;
     }
@@ -96,9 +99,12 @@ async function getAuthenticatedOperator(
  */
 function generateVerifyCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  // Use cryptographically secure randomness instead of Math.random()
+  const randomBytes = new Uint8Array(6);
+  crypto.getRandomValues(randomBytes);
   let code = 'HADS_';
   for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(randomBytes[i] % chars.length);
   }
   return code;
 }

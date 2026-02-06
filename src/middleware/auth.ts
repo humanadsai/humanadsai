@@ -397,21 +397,10 @@ export async function authenticateAgent(
   }
 
   if (!foundKey) {
-    // プレフィックスマッチしない場合、全アクティブキーをチェック（非効率だが確実）
-    const allKeys = await env.DB.prepare(
-      `SELECT ak.*, a.id as agent_id
-       FROM agent_api_keys ak
-       JOIN agents a ON ak.agent_id = a.id
-       WHERE ak.status = 'active'`
-    ).all<AgentApiKey & { agent_id: string }>();
-
-    for (const key of allKeys.results) {
-      const isValid = await verifyApiKeyHash(apiKey, key.key_hash);
-      if (isValid) {
-        foundKey = key;
-        break;
-      }
-    }
+    // Removed full table scan fallback - it was a DoS vector.
+    // If prefix does not match, the key is invalid. Agents must use correctly-prefixed keys.
+    // Log a warning for debugging purposes.
+    console.warn(`[Auth] API key prefix mismatch, no fallback scan. Key prefix attempted.`);
   }
 
   if (!foundKey) {

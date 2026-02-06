@@ -126,7 +126,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
   // CORS対応
   if (method === 'OPTIONS') {
-    return handleCors();
+    return handleCors(request);
   }
 
   try {
@@ -717,17 +717,28 @@ async function handlePublicApi(
 /**
  * CORS対応
  */
-function handleCors(): Response {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers':
-        'Content-Type, Authorization, X-AdClaw-Timestamp, X-AdClaw-Nonce, X-AdClaw-Signature, X-AdClaw-Key-Id',
-      'Access-Control-Max-Age': '86400',
-    },
-  });
+function handleCors(request: Request): Response {
+  // CORS preflight should mirror the origin policy from index.ts
+  const requestOrigin = request.headers.get('Origin') || '';
+  const allowedOrigins = [
+    'https://humanadsai.com',
+    'https://www.humanadsai.com',
+  ];
+  const corsOrigin = allowedOrigins.includes(requestOrigin)
+    ? requestOrigin
+    : 'https://humanadsai.com';
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers':
+      'Content-Type, Authorization, X-AdClaw-Timestamp, X-AdClaw-Nonce, X-AdClaw-Signature, X-AdClaw-Key-Id',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+  };
+  if (allowedOrigins.includes(requestOrigin)) {
+    headers['Access-Control-Allow-Credentials'] = 'true';
+  }
+  return new Response(null, { status: 204, headers });
 }
 
 /**

@@ -32,6 +32,11 @@ export class NonceStore implements DurableObject {
     }
 
     if (request.method === 'DELETE' && path === '/clear') {
+      // Only allow clear in development/testing environments
+      const isDevRequest = request.headers.get('X-Internal-Dev-Key') === 'nonce-clear-allowed';
+      if (!isDevRequest) {
+        return new Response('Forbidden', { status: 403 });
+      }
       return this.handleClear();
     }
 
