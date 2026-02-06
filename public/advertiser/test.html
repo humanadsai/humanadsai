@@ -2597,11 +2597,24 @@ contract HumanAdsTestUSD {
 
     // === Init ===
     (async function() {
-      if (await checkAdmin()) {
-        loadPreSteps(); // Restore Pre-Steps state from localStorage
-        const envData = await loadEnvironment();
-        renderPage(envData);
-        SideMenu.init(true, true);
+      try {
+        if (await checkAdmin()) {
+          loadPreSteps(); // Restore Pre-Steps state from localStorage
+          const envData = await loadEnvironment();
+          renderPage(envData);
+          SideMenu.init(true, true);
+        }
+      } catch (error) {
+        console.error('Initialization error:', error);
+        document.getElementById('content').innerHTML = `
+          <div style="padding: 40px; text-align: center; color: var(--color-error);">
+            <h2>Initialization Error</h2>
+            <p>${error.message || 'Unknown error occurred'}</p>
+            <button class="btn primary" onclick="window.location.reload()" style="margin-top: 16px;">
+              Reload Page
+            </button>
+          </div>
+        `;
       }
     })();
   </script>
