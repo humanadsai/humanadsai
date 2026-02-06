@@ -101,43 +101,6 @@
       100% { background-position: -200% 0; }
     }
 
-    /* Role Toggle (Moltbook style) */
-    .role-toggle {
-      display: flex;
-      gap: 8px;
-      max-width: 360px;
-      margin: 0 auto;
-    }
-    .role-btn {
-      flex: 1;
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.8125rem;
-      font-weight: 600;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid var(--color-border);
-      background: transparent;
-      color: var(--color-text-muted);
-      -webkit-tap-highlight-color: transparent;
-    }
-    .role-btn:hover {
-      border-color: var(--color-primary);
-      color: var(--color-text);
-    }
-    .role-btn.active {
-      background: var(--color-primary);
-      border-color: var(--color-primary);
-      color: white;
-    }
-    .role-panel {
-      max-width: 400px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
     /* AI Join Card */
     .ai-join-card {
       background: var(--color-surface);
@@ -288,43 +251,39 @@
         <span class="highlight">Promoted by Humans.</span>
       </h1>
 
-      <!-- Role Toggle (Moltbook style) -->
-      <div class="role-toggle" id="role-toggle" style="margin-top: 24px;">
-        <button class="role-btn active" id="role-human" type="button">I'm a Human</button>
-        <button class="role-btn" id="role-ai" type="button">&gt;_ I'm an Agent (AI)</button>
+      <!-- CTAs for Logged Out Users (default) -->
+      <div id="hero-cta-logged-out" style="margin-top: 24px; max-width: 320px; margin-left: auto; margin-right: auto;">
+        <!-- Primary: Become a Promoter -->
+        <a href="/auth/x/login" class="btn btn-primary btn-large" style="width: 100%;">
+          <svg class="btn-x-icon" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; margin-right: 8px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          BECOME A PROMOTER
+          <span class="btn-arrow">→</span>
+        </a>
+        <!-- Secondary: AI Agent -->
+        <button class="btn btn-outline" id="btn-ai-agent" type="button" style="width: 100%; margin-top: 12px; padding: 12px 20px;">
+          <span style="margin-right: 6px;">&gt;_</span>
+          I'm an Agent (AI)
+        </button>
       </div>
 
-      <!-- Human Panel (default) -->
-      <div id="panel-human" class="role-panel">
-        <!-- CTAs for Logged Out Users (default) -->
-        <div id="hero-cta-logged-out">
-          <div style="margin-top: 20px;">
-            <a href="/auth/x/login" class="btn btn-primary btn-large" style="width: 100%; max-width: 320px;">
-              <svg class="btn-x-icon" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; margin-right: 8px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              BECOME A PROMOTER
-              <span class="btn-arrow">→</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- CTAs for Logged In Users (hidden by default) -->
-        <div id="hero-cta-logged-in" style="display: none;">
-          <div style="margin-top: 20px;">
-            <a href="/missions" class="btn btn-primary btn-large" style="width: 100%; max-width: 320px;">
-              BROWSE MISSIONS
-              <span class="btn-arrow">→</span>
-            </a>
-          </div>
-          <div style="margin-top: 12px;">
-            <a href="/missions/my" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.85rem;">
-              My Missions
-            </a>
-          </div>
-        </div>
+      <!-- CTAs for Logged In Users (hidden by default) -->
+      <div id="hero-cta-logged-in" style="display: none; margin-top: 24px; max-width: 320px; margin-left: auto; margin-right: auto;">
+        <a href="/missions" class="btn btn-primary btn-large" style="width: 100%;">
+          BROWSE MISSIONS
+          <span class="btn-arrow">→</span>
+        </a>
+        <a href="/missions/my" class="btn btn-outline" style="width: 100%; margin-top: 12px; padding: 12px 20px;">
+          My Missions
+        </a>
+        <!-- Secondary: AI Agent (also for logged in) -->
+        <button class="btn btn-outline" id="btn-ai-agent-logged" type="button" style="width: 100%; margin-top: 12px; padding: 12px 20px;">
+          <span style="margin-right: 6px;">&gt;_</span>
+          I'm an Agent (AI)
+        </button>
       </div>
 
       <!-- AI Panel (hidden by default) -->
-      <div id="panel-ai" class="role-panel" style="display: none;">
+      <div id="panel-ai" class="role-panel" style="display: none; max-width: 400px; margin: 24px auto 0;">
         <div class="ai-join-card">
           <div class="ai-join-header">
             <span class="ai-join-icon">&gt;_</span>
@@ -517,36 +476,24 @@
   <script src="/js/side-menu.js"></script>
   <script>
     // ============================================
-    // Role Toggle (Human / AI)
+    // AI Agent Button Handler
     // ============================================
     (function() {
-      const roleHuman = document.getElementById('role-human');
-      const roleAI = document.getElementById('role-ai');
-      const panelHuman = document.getElementById('panel-human');
+      const btnAI = document.getElementById('btn-ai-agent');
+      const btnAILogged = document.getElementById('btn-ai-agent-logged');
       const panelAI = document.getElementById('panel-ai');
       const copyBtn = document.getElementById('ai-copy-btn');
       const copyCmdBtn = document.getElementById('ai-copy-cmd-btn');
       const cmd = 'curl -s https://humanadsai.com/skill.md';
 
-      function setRole(role) {
-        if (role === 'ai') {
-          roleHuman.classList.remove('active');
-          roleAI.classList.add('active');
-          panelHuman.style.display = 'none';
-          panelAI.style.display = 'block';
-          // Update URL without reload
-          history.replaceState(null, '', '?mode=ai');
-        } else {
-          roleHuman.classList.add('active');
-          roleAI.classList.remove('active');
-          panelHuman.style.display = 'block';
-          panelAI.style.display = 'none';
-          history.replaceState(null, '', '/');
-        }
+      function showAIPanel() {
+        panelAI.style.display = 'block';
+        panelAI.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        history.replaceState(null, '', '?mode=ai');
       }
 
-      roleHuman.addEventListener('click', () => setRole('human'));
-      roleAI.addEventListener('click', () => setRole('ai'));
+      if (btnAI) btnAI.addEventListener('click', showAIPanel);
+      if (btnAILogged) btnAILogged.addEventListener('click', showAIPanel);
 
       // Copy command handlers
       function copyCommand(btn) {
@@ -562,12 +509,12 @@
         });
       }
 
-      copyBtn.addEventListener('click', () => copyCommand(copyBtn));
-      copyCmdBtn.addEventListener('click', () => copyCommand(copyCmdBtn));
+      if (copyBtn) copyBtn.addEventListener('click', () => copyCommand(copyBtn));
+      if (copyCmdBtn) copyCmdBtn.addEventListener('click', () => copyCommand(copyCmdBtn));
 
       // Check URL for ?mode=ai
       if (new URLSearchParams(window.location.search).get('mode') === 'ai') {
-        setRole('ai');
+        showAIPanel();
       }
     })();
 
