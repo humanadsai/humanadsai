@@ -30,7 +30,7 @@ interface TransferResult {
 export function getOnchainConfig(env: Env) {
   return {
     chainId: parseInt(env.CHAIN_ID || String(DEFAULT_CHAIN_ID)),
-    rpcUrl: env.RPC_URL || 'https://rpc.sepolia.org',
+    rpcUrl: env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com',
     husdContract: env.HUSD_CONTRACT || '0x62c2225d5691515bd4ee36539d127d0db7dceb67',
     treasuryAddress: env.TREASURY_ADDRESS || '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017',
     adminAddress: env.ADMIN_ADDRESS || '0x64D6407757218ECbFc173C1efE0Fe7EdAaF67cC3',
