@@ -3,7 +3,7 @@
 
 import type { Env } from '../../types';
 import { authenticateAiAdvertiser, requireActiveStatus } from '../../middleware/ai-advertiser-auth';
-import * as response from '../../utils/response';
+import { error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { handleRegister } from './register';
 import { handleGetMe, handleGetStatus } from './profile';
@@ -28,7 +28,7 @@ export async function handleAiAdvertiserApi(
   // Extract the sub-path after /api/v1/advertisers
   const prefix = '/api/v1/advertisers';
   if (!path.startsWith(prefix)) {
-    return response.notFound(requestId, 'API endpoint not found');
+    return errors.notFound(requestId, 'API endpoint not found');
   }
 
   const subPath = path.substring(prefix.length) || '/';
@@ -43,11 +43,11 @@ export async function handleAiAdvertiserApi(
     // Authenticate the request
     const authResult = await authenticateAiAdvertiser(request, env, requestId);
     if (!authResult.success || !authResult.context) {
-      return response.error(
+      return error(
+        'AUTHENTICATION_FAILED',
+        authResult.error!.hint || authResult.error!.message,
         requestId,
-        authResult.error!.status,
-        authResult.error!.message,
-        authResult.error!.hint
+        authResult.error!.status
       );
     }
 
@@ -74,9 +74,9 @@ export async function handleAiAdvertiserApi(
     // if (method === 'POST' && subPath.match(/^\/submissions\/[^\/]+\/payout$/)) { ... }
 
     // No matching route
-    return response.notFound(requestId, 'API endpoint not found');
+    return errors.notFound(requestId, 'API endpoint not found');
   } catch (e: any) {
     console.error('[AiAdvertiserApi] Unexpected error:', e);
-    return response.internalError(requestId, 'Internal server error', e.message);
+    return errors.internalError(requestId);
   }
 }

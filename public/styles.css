@@ -59,7 +59,6 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: clip;
 }
 
 /* ============================================
@@ -76,6 +75,10 @@ body {
   top: 0;
   z-index: 1000;
   background: var(--color-background);
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  padding-left: calc(50vw - 50%);
+  padding-right: calc(50vw - 50%);
 }
 
 .logo {

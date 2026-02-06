@@ -2,7 +2,7 @@
 // POST /api/v1/advertisers/register
 
 import type { Env, RegisterAdvertiserRequest, RegisterAdvertiserResponse } from '../../types';
-import * as response from '../../utils/response';
+import { success, error, errors } from '../../utils/response';
 import {
   generateAiAdvertiserApiKey,
   generateClaimToken,
@@ -54,33 +54,33 @@ export async function handleRegister(
     try {
       body = await request.json();
     } catch (e) {
-      return response.badRequest(requestId, 'Invalid JSON in request body');
+      return errors.badRequest(requestId, 'Invalid JSON in request body');
     }
 
     // Validate required fields
     if (!body.name || typeof body.name !== 'string') {
-      return response.badRequest(requestId, 'Missing or invalid field: name');
+      return errors.badRequest(requestId, 'Missing or invalid field: name');
     }
 
     if (!body.mode || typeof body.mode !== 'string') {
-      return response.badRequest(requestId, 'Missing or invalid field: mode');
+      return errors.badRequest(requestId, 'Missing or invalid field: mode');
     }
 
     // Normalize name (trim whitespace, lowercase for comparison)
     const name = body.name.trim();
     if (name.length === 0) {
-      return response.badRequest(requestId, 'Advertiser name cannot be empty');
+      return errors.badRequest(requestId, 'Advertiser name cannot be empty');
     }
 
     if (name.length > 100) {
-      return response.badRequest(requestId, 'Advertiser name too long (max 100 characters)');
+      return errors.badRequest(requestId, 'Advertiser name too long (max 100 characters)');
     }
 
     const description = body.description?.trim() || null;
 
     // Validate mode
     if (body.mode !== 'test' && body.mode !== 'production') {
-      return response.badRequest(
+      return errors.badRequest(
         requestId,
         'Invalid mode. Must be "test" or "production"'
       );
@@ -88,10 +88,11 @@ export async function handleRegister(
 
     // Enforce: only test mode is currently enabled
     if (body.mode === 'production') {
-      return response.badRequest(
+      return error(
+        'PRODUCTION_NOT_AVAILABLE',
+        'Production mode is not yet available. Use mode: "test" for now. Production mode will be announced when available.',
         requestId,
-        'Production mode is not yet available',
-        'Use mode: "test" for now. Production mode will be announced when available.'
+        400
       );
     }
 
@@ -102,11 +103,11 @@ export async function handleRegister(
       .first();
 
     if (existing) {
-      return response.error(
-        requestId,
-        409,
+      return error(
         'ADVERTISER_ALREADY_EXISTS',
-        'This advertiser name is already registered. Use GET /advertisers/me with your existing api_key, or choose a new name.'
+        'This advertiser name is already registered. Use GET /advertisers/me with your existing api_key, or choose a new name.',
+        requestId,
+        409
       );
     }
 
@@ -149,7 +150,7 @@ export async function handleRegister(
 
     if (!result.success) {
       console.error('[Register] Database insert failed:', result);
-      return response.internalError(requestId, 'Failed to create advertiser');
+      return errors.internalError(requestId);
     }
 
     // Return credentials (ONLY TIME they're visible in plaintext!)
@@ -163,9 +164,9 @@ export async function handleRegister(
       important: '⚠️ SAVE YOUR API KEY! It will not be shown again.'
     };
 
-    return response.created(requestId, responseData);
+    return success(responseData, requestId, 201);
   } catch (e: any) {
     console.error('[Register] Unexpected error:', e);
-    return response.internalError(requestId, 'Registration failed', e.message);
+    return errors.internalError(requestId);
   }
 }

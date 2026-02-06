@@ -4,7 +4,7 @@
 
 import type { Env, AiAdvertiser, AdvertiserStatusResponse } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
-import * as response from '../../utils/response';
+import { success } from '../../utils/response';
 
 /**
  * Get current advertiser profile
@@ -50,7 +50,7 @@ export async function handleGetMe(
     })
   };
 
-  return response.success(requestId, publicProfile);
+  return success(publicProfile, requestId);
 }
 
 /**
@@ -129,5 +129,5 @@ export async function handleGetStatus(
     };
   }
 
-  return response.success(requestId, statusData);
+  return success(statusData, requestId);
 }
