@@ -1795,31 +1795,58 @@ contract HumanAdsTestUSD {
 
       claimBtn.disabled = true;
       claimBtn.innerHTML = '<span class="spinner"></span> Claiming...';
+
+      // Verify Sepolia network before claiming
+      try {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (parseInt(chainId, 16) !== SEPOLIA_CHAIN_ID) {
+          statusDiv.innerHTML = '<span style="color:#ff9500;">Switching to Sepolia...</span>';
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
+          });
+        }
+      } catch (switchErr) {
+        statusDiv.innerHTML = '<span style="color:#ff3b30;">Please switch to Sepolia network in MetaMask.</span>';
+        claimBtn.disabled = false;
+        claimBtn.innerHTML = 'Claim 1,000 hUSD';
+        return;
+      }
+
       statusDiv.innerHTML = '<span style="color:var(--color-text-muted);">Pre-checking faucet...</span>';
 
       try {
-        // Pre-check: simulate claimOpen() via eth_call
+        // Pre-check: simulate claimOpen() via direct RPC (not MetaMask) for better error data
+        const KNOWN_ERRORS = {
+          'a09d560a': 'Open claim is disabled on the faucet contract. Contact admin.',
+          '5765e1b4': 'Cooldown active. Please wait 24h and try again.',
+          '6a5cfb6d': 'Faucet allowance exhausted. Contact admin.',
+          'e2dd561a': 'Treasury balance too low. Contact admin.',
+          'ee3675d4': 'Faucet is paused. Contact admin.',
+        };
         try {
-          await window.ethereum.request({
-            method: 'eth_call',
-            params: [{
-              from: prestepWalletAddress,
-              to: FAUCET_CONTRACT,
-              data: FAUCET_CLAIM_OPEN_SELECTOR,
-            }, 'latest'],
+          const rpcRes = await fetch('https://ethereum-sepolia-rpc.publicnode.com', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0', method: 'eth_call', id: 1,
+              params: [{ from: prestepWalletAddress, to: FAUCET_CONTRACT, data: FAUCET_CLAIM_OPEN_SELECTOR }, 'latest']
+            })
           });
-        } catch (simErr) {
-          const reason = simErr?.data?.message || simErr?.message || 'Unknown error';
-          let hint = reason;
-          if (reason.includes('OpenClaimDisabled')) hint = 'Open claim is disabled on the faucet contract. Contact admin.';
-          else if (reason.includes('CooldownActive')) hint = 'Cooldown active. Please wait and try again.';
-          else if (reason.includes('AllowanceTooLow')) hint = 'Faucet allowance exhausted. Contact admin.';
-          else if (reason.includes('TreasuryBalanceLow')) hint = 'Treasury balance too low. Contact admin.';
-          else if (reason.includes('IsPaused')) hint = 'Faucet is paused. Contact admin.';
-          statusDiv.innerHTML = `<span style="color:#ff3b30;">Pre-check failed: ${hint}</span>`;
-          claimBtn.disabled = false;
-          claimBtn.innerHTML = 'Claim 1,000 hUSD';
-          return;
+          const rpcData = await rpcRes.json();
+          if (rpcData.error) {
+            const revertData = rpcData.error.data || '';
+            const selector = typeof revertData === 'string' ? revertData.replace('0x','').substring(0,8) : '';
+            const hint = KNOWN_ERRORS[selector] || rpcData.error.message || 'Unknown contract error';
+            statusDiv.innerHTML = `<span style="color:#ff3b30;">${hint}</span>` +
+              (selector ? `<br><span style="font-size:0.625rem;color:var(--color-text-muted);">Error: 0x${selector}</span>` : '');
+            claimBtn.disabled = false;
+            claimBtn.innerHTML = 'Claim 1,000 hUSD';
+            return;
+          }
+        } catch (rpcErr) {
+          // RPC pre-check failed, proceed anyway and let MetaMask handle it
+          console.warn('Pre-check RPC failed, proceeding:', rpcErr);
         }
 
         statusDiv.innerHTML = '<span style="color:var(--color-text-muted);">Confirm the transaction in MetaMask...</span>';
