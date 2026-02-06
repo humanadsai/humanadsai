@@ -1424,30 +1424,23 @@ body {
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.human-carousel-name-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
+  min-width: 0;
 }
 
 .human-verified-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(0, 212, 255, 0.15);
-  color: var(--color-cyan);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.human-verified-badge svg {
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 .human-carousel-handle {
