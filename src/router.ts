@@ -87,6 +87,9 @@ import {
   getAuditLogs,
   getPayments,
   getFeeRecipients,
+  handleFaucet,
+  getTokenOps,
+  getTokenBalances,
 } from './api/admin/index';
 import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 
@@ -948,6 +951,25 @@ async function handleAdminApi(
   // GET /api/admin/payments - Get payments
   if (path === '/api/admin/payments' && method === 'GET') {
     return getPayments(request, env);
+  }
+
+  // ============================================
+  // Token Operations (hUSD)
+  // ============================================
+
+  // POST /api/admin/faucet - Send hUSD to advertiser
+  if (path === '/api/admin/faucet' && method === 'POST') {
+    return handleFaucet(request, env);
+  }
+
+  // GET /api/admin/token-ops - List token operations
+  if (path === '/api/admin/token-ops' && method === 'GET') {
+    return getTokenOps(request, env);
+  }
+
+  // GET /api/admin/token-ops/balances - Get treasury and admin balances
+  if (path === '/api/admin/token-ops/balances' && method === 'GET') {
+    return getTokenBalances(request, env);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

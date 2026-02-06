@@ -1196,3 +1196,205 @@ export async function getFeeRecipients(request: Request, env: Env): Promise<Resp
 
   return success({ fee_recipients: FEE_RECIPIENTS }, requestId);
 }
+
+// ============================================
+// Token Operations (hUSD Faucet)
+// ============================================
+
+import {
+  getOnchainConfig,
+  hasTreasuryKey,
+  getHusdBalance,
+  getEthBalance,
+  checkFaucetCooldown,
+  recordTokenOp,
+  updateTokenOpStatus,
+  transferHusd,
+} from '../../services/onchain';
+
+/**
+ * POST /api/admin/faucet
+ * Send hUSD from treasury to an advertiser address
+ */
+export async function handleFaucet(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId, operator } = authResult.context!;
+
+  try {
+    const body = await request.json<{ advertiser_address: string }>();
+
+    if (!body.advertiser_address) {
+      return errors.invalidRequest(requestId, { message: 'advertiser_address is required' });
+    }
+
+    // Validate address format
+    const address = body.advertiser_address.trim().toLowerCase();
+    if (!/^0x[a-f0-9]{40}$/i.test(address)) {
+      return errors.invalidRequest(requestId, { message: 'Invalid EVM address format' });
+    }
+
+    const config = getOnchainConfig(env);
+
+    // Check cooldown
+    const cooldown = await checkFaucetCooldown(env, address);
+    if (!cooldown.allowed) {
+      return errors.invalidRequest(requestId, {
+        code: 'FAUCET_COOLDOWN',
+        message: `Faucet cooldown active. Next available: ${cooldown.nextAvailable}`,
+        next_available: cooldown.nextAvailable,
+        last_faucet: cooldown.lastFaucet,
+      });
+    }
+
+    // Check treasury balance
+    const treasuryBalance = await getHusdBalance(env, config.treasuryAddress);
+    if (treasuryBalance < config.faucetAmount) {
+      return errors.invalidRequest(requestId, {
+        code: 'INSUFFICIENT_TREASURY',
+        message: `Treasury balance too low. Has: $${(treasuryBalance / 100).toFixed(2)}, needs: $${(config.faucetAmount / 100).toFixed(2)}`,
+        treasury_balance_cents: treasuryBalance,
+        required_cents: config.faucetAmount,
+      });
+    }
+
+    // Record pending operation
+    const opId = await recordTokenOp(env, {
+      opType: 'faucet',
+      fromAddress: config.treasuryAddress,
+      toAddress: address,
+      amountCents: config.faucetAmount,
+      status: 'pending',
+      operatorId: operator.id,
+    });
+
+    // Execute transfer
+    const result = await transferHusd(env, address, config.faucetAmount);
+
+    if (result.success) {
+      // Update to confirmed
+      await updateTokenOpStatus(env, opId, 'confirmed', result.txHash);
+
+      return success({
+        message: `Sent $${(config.faucetAmount / 100).toFixed(2)} hUSD to ${address}`,
+        tx_hash: result.txHash,
+        explorer_url: result.explorerUrl,
+        amount_cents: config.faucetAmount,
+        to_address: address,
+        op_id: opId,
+      }, requestId);
+    } else {
+      // Update to failed
+      await updateTokenOpStatus(env, opId, 'failed', undefined, result.error);
+
+      return errors.invalidRequest(requestId, {
+        code: 'TRANSFER_FAILED',
+        message: result.error || 'Transfer failed',
+        op_id: opId,
+      });
+    }
+  } catch (e) {
+    console.error('Faucet error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
+ * GET /api/admin/token-ops
+ * List token operations
+ */
+export async function getTokenOps(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  try {
+    const url = new URL(request.url);
+    const opType = url.searchParams.get('op_type');
+    const status = url.searchParams.get('status');
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100);
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+
+    let query = 'SELECT * FROM token_ops';
+    const conditions: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (opType) {
+      conditions.push('op_type = ?');
+      params.push(opType);
+    }
+
+    if (status) {
+      conditions.push('status = ?');
+      params.push(status);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+
+    const result = await env.DB.prepare(query)
+      .bind(...params, limit, offset)
+      .all();
+
+    return success({
+      token_ops: result.results,
+      count: result.results.length,
+    }, requestId);
+  } catch (e) {
+    console.error('Get token ops error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
+ * GET /api/admin/token-ops/balances
+ * Get treasury and admin token balances
+ */
+export async function getTokenBalances(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  try {
+    const config = getOnchainConfig(env);
+
+    const [treasuryHusd, treasuryEth, adminHusd, adminEth] = await Promise.all([
+      getHusdBalance(env, config.treasuryAddress),
+      getEthBalance(env, config.treasuryAddress),
+      getHusdBalance(env, config.adminAddress),
+      getEthBalance(env, config.adminAddress),
+    ]);
+
+    return success({
+      treasury: {
+        address: config.treasuryAddress,
+        husd_cents: treasuryHusd,
+        husd_display: `$${(treasuryHusd / 100).toFixed(2)}`,
+        eth: treasuryEth,
+      },
+      admin: {
+        address: config.adminAddress,
+        husd_cents: adminHusd,
+        husd_display: `$${(adminHusd / 100).toFixed(2)}`,
+        eth: adminEth,
+      },
+      config: {
+        chain_id: config.chainId,
+        husd_contract: config.husdContract,
+        faucet_amount_cents: config.faucetAmount,
+        faucet_cooldown_seconds: config.faucetCooldown,
+        has_treasury_key: hasTreasuryKey(env),
+        payout_mode: env.PAYOUT_MODE || 'ledger',
+      },
+    }, requestId);
+  } catch (e) {
+    console.error('Get token balances error:', e);
+    return errors.internalError(requestId);
+  }
+}

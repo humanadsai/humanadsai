@@ -22,6 +22,17 @@ export interface Env {
   // Advertiser Test API credentials (for /advertiser/test page)
   ADVERTISER_TEST_KEY_ID?: string;
   ADVERTISER_TEST_SECRET?: string;
+  // On-chain payment configuration (Sepolia)
+  CHAIN_ID?: string;
+  EVM_NETWORK?: string;
+  RPC_URL?: string;
+  HUSD_CONTRACT?: string;
+  TREASURY_ADDRESS?: string;
+  TREASURY_PRIVATE_KEY?: string;
+  ADMIN_ADDRESS?: string;
+  // Faucet configuration
+  FAUCET_PER_ADVERTISER?: string;
+  FAUCET_COOLDOWN_SECONDS?: string;
 }
 
 // ============================================
