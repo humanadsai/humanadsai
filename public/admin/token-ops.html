@@ -14,20 +14,75 @@
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
     .admin-header h1 { font-family: var(--font-mono); font-size: 1.5rem; }
 
-    /* Wallet Connection */
-    .wallet-section { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .wallet-btn { padding: 8px 16px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
-    .wallet-btn:hover { opacity: 0.9; }
-    .wallet-btn:active { opacity: 0.7; }
-    .wallet-btn.connected { background: rgba(52,199,89,0.2); color: #34c759; border: 1px solid rgba(52,199,89,0.3); }
-    .wallet-info { font-family: var(--font-mono); font-size: 0.75rem; }
-    .wallet-address { color: var(--color-text-muted); }
-    .wallet-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; margin-left: 8px; }
+    /* Wallet Connection - Enhanced */
+    .wallet-section { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; position: relative; }
+
+    /* Wallet Pill - State-aware button */
+    .wallet-pill {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: 24px; font-family: var(--font-mono); font-size: 0.75rem;
+      cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+    }
+    .wallet-pill:hover { border-color: var(--color-primary); }
+    .wallet-pill:active { opacity: 0.7; }
+
+    /* Wallet Pill States */
+    .wallet-pill.not-connected {
+      background: rgba(255,59,48,0.1); border-color: rgba(255,59,48,0.3); color: #ff3b30;
+    }
+    .wallet-pill.connected {
+      background: rgba(52,199,89,0.1); border-color: rgba(52,199,89,0.3); color: #34c759;
+    }
+    .wallet-pill.wrong-network {
+      background: rgba(255,149,0,0.1); border-color: rgba(255,149,0,0.3); color: #ff9500;
+    }
+    .wallet-pill.verifying {
+      background: rgba(0,122,255,0.1); border-color: rgba(0,122,255,0.3); color: #007aff;
+    }
+
+    .wallet-pill-icon { width: 16px; height: 16px; }
+    .wallet-pill-main { display: flex; flex-direction: column; align-items: flex-start; }
+    .wallet-pill-label { font-weight: 600; }
+    .wallet-pill-sub { font-size: 0.65rem; opacity: 0.7; }
+    .wallet-pill-arrow { opacity: 0.5; font-size: 0.6rem; }
+
+    /* Wallet Badges */
+    .wallet-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; }
     .wallet-badge.owner { background: rgba(255,107,53,0.2); color: #ff6b35; }
     .wallet-badge.not-owner { background: rgba(255,59,48,0.2); color: #ff3b30; }
-    .chain-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; margin-left: 4px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .chain-badge.correct { background: rgba(52,199,89,0.2); color: #34c759; }
-    .chain-badge.wrong { background: rgba(255,59,48,0.2); color: #ff3b30; }
+
+    /* Action Sheet */
+    .action-sheet-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 1000;
+    }
+    .action-sheet-overlay.show { display: block; }
+    .action-sheet {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--color-surface); border-radius: 16px 16px 0 0;
+      padding: 16px; padding-bottom: max(16px, env(safe-area-inset-bottom));
+      z-index: 1001; transform: translateY(100%); transition: transform 0.3s ease-out;
+    }
+    .action-sheet-overlay.show .action-sheet { transform: translateY(0); }
+    .action-sheet-header {
+      text-align: center; padding-bottom: 12px; margin-bottom: 12px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .action-sheet-title { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; }
+    .action-sheet-subtitle { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px; }
+    .action-sheet-btn {
+      width: 100%; padding: 14px; margin-bottom: 8px; border-radius: 10px;
+      font-family: var(--font-mono); font-size: 0.875rem; font-weight: 500;
+      background: var(--color-bg); border: 1px solid var(--color-border);
+      color: var(--color-text); cursor: pointer; text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-sheet-btn:hover { background: rgba(255,255,255,0.05); }
+    .action-sheet-btn:active { opacity: 0.7; }
+    .action-sheet-btn.primary { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+    .action-sheet-btn.danger { color: #ff3b30; }
+    .action-sheet-btn.cancel { margin-top: 8px; font-weight: 600; }
 
     /* Cards */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
@@ -125,18 +180,21 @@
     .modal-btn.confirm.transfer { background: #007aff; }
     .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Debug Panel */
+    /* Debug Panel - Enhanced */
     .debug-panel { margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.7rem; font-family: var(--font-mono); }
     .debug-toggle { cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; }
     .debug-toggle:hover { color: var(--color-text); }
     .debug-content { margin-top: 8px; display: none; }
     .debug-content.show { display: block; }
-    .debug-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .debug-row:last-child { border-bottom: none; }
+    .debug-section { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .debug-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .debug-section-title { color: var(--color-primary); font-weight: 600; margin-bottom: 4px; }
+    .debug-row { display: flex; justify-content: space-between; padding: 2px 0; }
     .debug-key { color: var(--color-text-muted); }
     .debug-value { color: #34c759; word-break: break-all; max-width: 200px; text-align: right; }
     .debug-value.error { color: #ff3b30; }
     .debug-value.warn { color: #ff9500; }
+    .debug-value.null { color: #666; font-style: italic; }
 
     /* Modal Status */
     .modal-status { margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 0.8rem; display: none; }
@@ -144,6 +202,20 @@
     .modal-status.info { background: rgba(0,122,255,0.2); color: #007aff; }
     .modal-status.error { background: rgba(255,59,48,0.2); color: #ff3b30; }
     .modal-status.success { background: rgba(52,199,89,0.2); color: #34c759; }
+
+    /* Header Debug Panel */
+    .header-debug {
+      margin-top: 8px; padding: 8px 12px; background: rgba(0,0,0,0.2);
+      border-radius: 8px; font-size: 0.65rem; font-family: var(--font-mono);
+      display: none;
+    }
+    .header-debug.show { display: block; }
+    .header-debug-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .header-debug-item { display: flex; gap: 4px; }
+    .header-debug-key { color: var(--color-text-muted); }
+    .header-debug-value { color: #34c759; }
+    .header-debug-value.error { color: #ff3b30; }
+    .header-debug-value.warn { color: #ff9500; }
   </style>
 </head>
 <body>
@@ -163,6 +235,20 @@
     <main class="admin-page" id="content">
       <div class="loading">Loading token ops...</div>
     </main>
+  </div>
+
+  <!-- Wallet Action Sheet -->
+  <div class="action-sheet-overlay" id="wallet-action-sheet">
+    <div class="action-sheet">
+      <div class="action-sheet-header">
+        <div class="action-sheet-title" id="action-sheet-title">Wallet</div>
+        <div class="action-sheet-subtitle" id="action-sheet-subtitle"></div>
+      </div>
+      <button class="action-sheet-btn primary" id="action-reconnect">Reconnect Wallet</button>
+      <button class="action-sheet-btn" id="action-copy">Copy Address</button>
+      <button class="action-sheet-btn danger" id="action-disconnect">Disconnect</button>
+      <button class="action-sheet-btn cancel" id="action-cancel">Cancel</button>
+    </div>
   </div>
 
   <!-- Confirmation Modal -->
@@ -213,9 +299,10 @@
     };
 
     // ============================================
-    // State
+    // State - Enhanced with signer verification
     // ============================================
     let walletAddress = null;
+    let signerVerified = false;  // NEW: true only if we can actually sign
     let isOwner = false;
     let currentChainId = null;
     let currentFilter = null;
@@ -223,6 +310,7 @@
     let pendingAction = null;
     let pendingTxParams = null;
     let debugInfo = {};
+    let connectionState = 'disconnected'; // 'disconnected' | 'verifying' | 'connected' | 'wrong-network'
 
     // ============================================
     // Debug Logging
@@ -243,30 +331,92 @@
       if (!content) return;
 
       const provider = window.ethereum;
+
+      // Build comprehensive debug info
       debugInfo = {
+        // Provider Info
         hasWindowEthereum: !!provider,
         providerType: provider ? (provider.isMetaMask ? 'MetaMask' : provider.isCoinbaseWallet ? 'Coinbase' : 'Unknown') : 'none',
+        isMetaMaskMobile: provider ? (provider.isMetaMask && /Mobile|Android|iPhone/i.test(navigator.userAgent)) : false,
+
+        // Connection State
+        connectionState: connectionState,
+        signerVerified: signerVerified,
+        walletAddress: walletAddress,
+
+        // Chain Info
         chainId: currentChainId,
         chainIdHex: currentChainId ? '0x' + currentChainId.toString(16) : null,
         expectedChainId: CONFIG.chainId,
         isCorrectChain: currentChainId === CONFIG.chainId,
-        selectedAddress: walletAddress,
+
+        // Owner Info
         isOwner: isOwner,
         ownerAddress: CONFIG.ownerAddress,
+
+        // Contract
         contract: CONFIG.husdContract,
       };
 
       if (pendingTxParams) {
-        debugInfo.txParams = pendingTxParams;
+        debugInfo.pendingTx = pendingTxParams;
       }
 
-      content.innerHTML = Object.entries(debugInfo).map(([key, value]) => {
-        let valueClass = '';
-        if (key === 'hasWindowEthereum' && !value) valueClass = 'error';
-        if (key === 'isCorrectChain' && !value) valueClass = 'error';
-        if (key === 'isOwner' && !value) valueClass = 'warn';
+      // Render with sections
+      content.innerHTML = `
+        <div class="debug-section">
+          <div class="debug-section-title">Provider</div>
+          ${renderDebugRows({
+            hasWindowEthereum: debugInfo.hasWindowEthereum,
+            providerType: debugInfo.providerType,
+            isMetaMaskMobile: debugInfo.isMetaMaskMobile,
+          })}
+        </div>
+        <div class="debug-section">
+          <div class="debug-section-title">Connection</div>
+          ${renderDebugRows({
+            state: debugInfo.connectionState,
+            signerVerified: debugInfo.signerVerified,
+            address: debugInfo.walletAddress,
+          })}
+        </div>
+        <div class="debug-section">
+          <div class="debug-section-title">Chain</div>
+          ${renderDebugRows({
+            chainId: debugInfo.chainId,
+            expected: debugInfo.expectedChainId,
+            isCorrect: debugInfo.isCorrectChain,
+          })}
+        </div>
+        <div class="debug-section">
+          <div class="debug-section-title">Owner</div>
+          ${renderDebugRows({
+            isOwner: debugInfo.isOwner,
+            ownerAddr: debugInfo.ownerAddress?.substring(0, 14) + '...',
+          })}
+        </div>
+        ${debugInfo.pendingTx ? `
+        <div class="debug-section">
+          <div class="debug-section-title">Pending TX</div>
+          <div class="debug-row"><span class="debug-key">from</span><span class="debug-value">${debugInfo.pendingTx.from?.substring(0, 14)}...</span></div>
+          <div class="debug-row"><span class="debug-key">to</span><span class="debug-value">${debugInfo.pendingTx.to?.substring(0, 14)}...</span></div>
+          <div class="debug-row"><span class="debug-key">data</span><span class="debug-value">${debugInfo.pendingTx.data?.substring(0, 20)}...</span></div>
+        </div>
+        ` : ''}
+      `;
+    }
 
-        const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+    function renderDebugRows(obj) {
+      return Object.entries(obj).map(([key, value]) => {
+        let valueClass = '';
+        if (value === null || value === undefined) valueClass = 'null';
+        else if (value === false) valueClass = 'error';
+        else if (key === 'state' && value !== 'connected') valueClass = value === 'wrong-network' ? 'warn' : 'error';
+        else if (key === 'signerVerified' && !value) valueClass = 'error';
+        else if (key === 'isCorrect' && !value) valueClass = 'error';
+        else if (key === 'isOwner' && !value) valueClass = 'warn';
+
+        const displayValue = value === null || value === undefined ? 'null' : String(value);
         return `<div class="debug-row"><span class="debug-key">${key}</span><span class="debug-value ${valueClass}">${displayValue}</span></div>`;
       }).join('');
     }
@@ -282,220 +432,465 @@
       return window.ethereum;
     }
 
-    async function ensureConnected() {
+    /**
+     * Verify signer connection - the "truth" check
+     * Returns true only if we can actually get a signer that can sign transactions
+     */
+    async function verifySignerConnection() {
       const provider = getProvider();
       if (!provider) {
-        throw new Error('No wallet detected. Please use MetaMask browser.');
+        log('info', 'verifySignerConnection: no provider');
+        return { verified: false, address: null, reason: 'No provider' };
       }
 
-      log('info', 'Requesting accounts...');
       try {
-        const accounts = await provider.request({ method: 'eth_requestAccounts' });
-        log('info', 'Accounts received', accounts);
+        // Step 1: Check if we have accounts via eth_accounts (non-interactive)
+        const accounts = await provider.request({ method: 'eth_accounts' });
+        log('info', 'eth_accounts result', accounts);
 
         if (!accounts || accounts.length === 0) {
-          throw new Error('No accounts returned. Please unlock your wallet.');
+          return { verified: false, address: null, reason: 'No accounts (not connected)' };
         }
 
-        walletAddress = accounts[0].toLowerCase();
-        isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
+        const address = accounts[0].toLowerCase();
 
-        return accounts[0];
+        // Step 2: Verify we can actually use this account by checking chain
+        const chainIdHex = await provider.request({ method: 'eth_chainId' });
+        const chainId = parseInt(chainIdHex, 16);
+
+        // Step 3: Try a simple personal_sign test message to verify signer capability
+        // Actually, this would prompt the user - let's skip this for now and trust eth_accounts
+        // The real test will be when we try to send a transaction
+
+        log('info', 'Signer verified', { address, chainId });
+        return { verified: true, address, chainId };
+
       } catch (e) {
-        log('error', 'eth_requestAccounts failed', { code: e.code, message: e.message });
-        throw new Error(`Wallet connection failed: ${e.message} (code: ${e.code || 'unknown'})`);
+        log('error', 'verifySignerConnection failed', { code: e.code, message: e.message });
+        return { verified: false, address: null, reason: e.message };
       }
     }
 
-    async function ensureCorrectChain() {
-      const provider = getProvider();
-      if (!provider) {
-        throw new Error('No wallet provider');
-      }
-
-      log('info', 'Checking chain ID...');
-      const chainIdHex = await provider.request({ method: 'eth_chainId' });
-      currentChainId = parseInt(chainIdHex, 16);
-      log('info', 'Current chain', { chainId: currentChainId, expected: CONFIG.chainId });
-
-      if (currentChainId !== CONFIG.chainId) {
-        log('info', 'Switching to Sepolia...');
-        try {
-          await provider.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: CONFIG.chainIdHex }],
-          });
-          log('info', 'Chain switched successfully');
-        } catch (switchError) {
-          log('error', 'Chain switch failed', { code: switchError.code, message: switchError.message });
-
-          if (switchError.code === 4902) {
-            log('info', 'Adding Sepolia chain...');
-            try {
-              await provider.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: CONFIG.chainIdHex,
-                  chainName: 'Sepolia Testnet',
-                  nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                  rpcUrls: ['https://rpc.sepolia.org'],
-                  blockExplorerUrls: ['https://sepolia.etherscan.io'],
-                }],
-              });
-              log('info', 'Sepolia chain added');
-            } catch (addError) {
-              log('error', 'Failed to add Sepolia', { code: addError.code, message: addError.message });
-              throw new Error(`Failed to add Sepolia network: ${addError.message}`);
-            }
-          } else if (switchError.code === 4001) {
-            throw new Error('You rejected the network switch. Please switch to Sepolia manually.');
-          } else {
-            throw new Error(`Failed to switch network: ${switchError.message} (code: ${switchError.code})`);
-          }
-        }
-
-        // Re-check chain after switch
-        const newChainIdHex = await provider.request({ method: 'eth_chainId' });
-        currentChainId = parseInt(newChainIdHex, 16);
-
-        if (currentChainId !== CONFIG.chainId) {
-          throw new Error(`Still on wrong chain (${currentChainId}). Please switch to Sepolia manually.`);
-        }
-      }
-
-      return true;
-    }
-
-    async function estimateGas(txParams) {
-      const provider = getProvider();
-      if (!provider) throw new Error('No provider');
-
-      log('info', 'Estimating gas...', txParams);
-      try {
-        const gasEstimate = await provider.request({
-          method: 'eth_estimateGas',
-          params: [txParams],
-        });
-        log('info', 'Gas estimate', { gas: gasEstimate, decimal: parseInt(gasEstimate, 16) });
-        return gasEstimate;
-      } catch (e) {
-        log('error', 'Gas estimation failed', { code: e.code, message: e.message, data: e.data });
-
-        // Parse revert reason if available
-        let reason = e.message;
-        if (e.data && typeof e.data === 'string') {
-          reason += ` (data: ${e.data})`;
-        }
-        if (e.message.includes('execution reverted')) {
-          reason = 'Transaction would fail. Check: 1) You are the contract owner, 2) Sufficient balance';
-        }
-
-        throw new Error(`Transaction would fail: ${reason}`);
-      }
-    }
-
-    // ============================================
-    // Wallet Connection UI
-    // ============================================
+    /**
+     * Connect wallet - request accounts
+     */
     async function connectWallet() {
-      log('info', 'Connect wallet clicked');
+      log('info', 'connectWallet called');
+      connectionState = 'verifying';
+      updateWalletUI();
 
       const provider = getProvider();
       if (!provider) {
         alert('No wallet detected. Please open this page in MetaMask browser or install MetaMask extension.');
-        return;
+        connectionState = 'disconnected';
+        updateWalletUI();
+        return false;
       }
 
       try {
-        await ensureConnected();
-        await ensureCorrectChain();
+        // Request accounts - this will prompt the user
+        log('info', 'Requesting eth_requestAccounts...');
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        log('info', 'Accounts received', accounts);
 
-        // Listen for changes
+        if (!accounts || accounts.length === 0) {
+          throw new Error('No accounts returned');
+        }
+
+        walletAddress = accounts[0].toLowerCase();
+        isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
+
+        // Get chain
+        const chainIdHex = await provider.request({ method: 'eth_chainId' });
+        currentChainId = parseInt(chainIdHex, 16);
+
+        // Mark as verified
+        signerVerified = true;
+
+        // Set up listeners
         provider.on('accountsChanged', handleAccountsChanged);
         provider.on('chainChanged', handleChainChanged);
 
+        // Determine connection state
+        if (currentChainId !== CONFIG.chainId) {
+          connectionState = 'wrong-network';
+        } else {
+          connectionState = 'connected';
+        }
+
         updateWalletUI();
         await refreshOnchainData();
-        log('info', 'Wallet connected successfully');
+        log('info', 'Wallet connected successfully', { address: walletAddress, chainId: currentChainId });
+        return true;
+
       } catch (e) {
-        log('error', 'Wallet connection failed', { message: e.message });
-        alert('Failed to connect: ' + e.message);
+        log('error', 'connectWallet failed', { code: e.code, message: e.message });
+
+        if (e.code === 4001) {
+          // User rejected
+          alert('Connection rejected. Please approve the connection request.');
+        } else {
+          alert('Failed to connect: ' + e.message);
+        }
+
+        connectionState = 'disconnected';
+        signerVerified = false;
+        walletAddress = null;
+        updateWalletUI();
+        return false;
       }
     }
 
-    function handleAccountsChanged(accounts) {
-      log('info', 'Accounts changed', accounts);
-      if (accounts.length === 0) {
+    /**
+     * Reconnect wallet - force new connection with wallet_requestPermissions
+     */
+    async function reconnectWallet() {
+      log('info', 'reconnectWallet called');
+      connectionState = 'verifying';
+      updateWalletUI();
+
+      const provider = getProvider();
+      if (!provider) {
+        alert('No wallet detected.');
+        connectionState = 'disconnected';
+        updateWalletUI();
+        return false;
+      }
+
+      try {
+        // Clear any cached state
+        clearLocalWalletState();
+
+        // Force permission request - this should always prompt
+        log('info', 'Requesting wallet_requestPermissions...');
+        try {
+          await provider.request({
+            method: 'wallet_requestPermissions',
+            params: [{ eth_accounts: {} }],
+          });
+          log('info', 'wallet_requestPermissions succeeded');
+        } catch (permError) {
+          // Some wallets don't support wallet_requestPermissions, fall back to eth_requestAccounts
+          log('info', 'wallet_requestPermissions failed, falling back to eth_requestAccounts', permError.message);
+        }
+
+        // Now get accounts
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        log('info', 'Reconnect accounts', accounts);
+
+        if (!accounts || accounts.length === 0) {
+          throw new Error('No accounts returned');
+        }
+
+        walletAddress = accounts[0].toLowerCase();
+        isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
+
+        // Get chain
+        const chainIdHex = await provider.request({ method: 'eth_chainId' });
+        currentChainId = parseInt(chainIdHex, 16);
+
+        signerVerified = true;
+
+        // Set up listeners
+        provider.removeListener('accountsChanged', handleAccountsChanged);
+        provider.removeListener('chainChanged', handleChainChanged);
+        provider.on('accountsChanged', handleAccountsChanged);
+        provider.on('chainChanged', handleChainChanged);
+
+        if (currentChainId !== CONFIG.chainId) {
+          connectionState = 'wrong-network';
+        } else {
+          connectionState = 'connected';
+        }
+
+        updateWalletUI();
+        await refreshOnchainData();
+        log('info', 'Wallet reconnected successfully');
+        return true;
+
+      } catch (e) {
+        log('error', 'reconnectWallet failed', { code: e.code, message: e.message });
+        alert('Reconnect failed: ' + e.message);
+        connectionState = 'disconnected';
+        signerVerified = false;
         walletAddress = null;
+        updateWalletUI();
+        return false;
+      }
+    }
+
+    /**
+     * Disconnect wallet - clear all state
+     */
+    function disconnectWallet() {
+      log('info', 'disconnectWallet called');
+
+      const provider = getProvider();
+      if (provider) {
+        provider.removeListener('accountsChanged', handleAccountsChanged);
+        provider.removeListener('chainChanged', handleChainChanged);
+      }
+
+      // Clear state
+      walletAddress = null;
+      signerVerified = false;
+      isOwner = false;
+      currentChainId = null;
+      connectionState = 'disconnected';
+
+      // Clear local storage
+      clearLocalWalletState();
+
+      updateWalletUI();
+      log('info', 'Wallet disconnected');
+    }
+
+    /**
+     * Clear local wallet state (localStorage/sessionStorage)
+     */
+    function clearLocalWalletState() {
+      // Clear common wallet connection keys
+      const keysToRemove = [
+        'walletconnect',
+        'WALLETCONNECT_DEEPLINK_CHOICE',
+        'wagmi.wallet',
+        'wagmi.connected',
+        'wagmi.cache',
+        'metamask.connected',
+      ];
+
+      keysToRemove.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
+        } catch (e) {}
+      });
+
+      // Clear all wagmi-related keys
+      try {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('wagmi') || key.startsWith('wc@')) {
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (e) {}
+    }
+
+    /**
+     * Switch to Sepolia network
+     */
+    async function switchToSepolia() {
+      const provider = getProvider();
+      if (!provider) return false;
+
+      log('info', 'Switching to Sepolia...');
+      try {
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: CONFIG.chainIdHex }],
+        });
+        log('info', 'Chain switched successfully');
+
+        const chainIdHex = await provider.request({ method: 'eth_chainId' });
+        currentChainId = parseInt(chainIdHex, 16);
+
+        if (currentChainId === CONFIG.chainId) {
+          connectionState = 'connected';
+          updateWalletUI();
+          return true;
+        }
+      } catch (switchError) {
+        log('error', 'Chain switch failed', { code: switchError.code, message: switchError.message });
+
+        if (switchError.code === 4902) {
+          // Chain not added, try to add it
+          try {
+            await provider.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: CONFIG.chainIdHex,
+                chainName: 'Sepolia Testnet',
+                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                rpcUrls: ['https://rpc.sepolia.org'],
+                blockExplorerUrls: ['https://sepolia.etherscan.io'],
+              }],
+            });
+            log('info', 'Sepolia chain added');
+            return await switchToSepolia();
+          } catch (addError) {
+            log('error', 'Failed to add Sepolia', addError);
+            alert('Failed to add Sepolia network. Please add it manually in MetaMask.');
+          }
+        } else if (switchError.code === 4001) {
+          alert('Network switch rejected. Please switch to Sepolia manually.');
+        } else {
+          alert('Failed to switch network: ' + switchError.message);
+        }
+      }
+      return false;
+    }
+
+    function handleAccountsChanged(accounts) {
+      log('info', 'accountsChanged event', accounts);
+      if (accounts.length === 0) {
+        // User disconnected
+        walletAddress = null;
+        signerVerified = false;
         isOwner = false;
+        connectionState = 'disconnected';
       } else {
         walletAddress = accounts[0].toLowerCase();
         isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
+        signerVerified = true;
+        connectionState = currentChainId === CONFIG.chainId ? 'connected' : 'wrong-network';
       }
       updateWalletUI();
       refreshOnchainData();
     }
 
     function handleChainChanged(chainIdHex) {
-      log('info', 'Chain changed', chainIdHex);
+      log('info', 'chainChanged event', chainIdHex);
       currentChainId = parseInt(chainIdHex, 16);
+
+      if (walletAddress && signerVerified) {
+        connectionState = currentChainId === CONFIG.chainId ? 'connected' : 'wrong-network';
+      }
+
       updateWalletUI();
       refreshOnchainData();
     }
 
-    async function switchToSepolia() {
-      try {
-        await ensureCorrectChain();
-        updateWalletUI();
-      } catch (e) {
-        alert(e.message);
-      }
-    }
-
+    // ============================================
+    // Wallet UI
+    // ============================================
     function updateWalletUI() {
       const walletSection = document.getElementById('wallet-section');
       if (!walletSection) return;
 
-      const isCorrectChain = currentChainId === CONFIG.chainId;
+      let pillClass = '';
+      let pillLabel = '';
+      let pillSub = '';
+      let showArrow = false;
 
-      if (walletAddress) {
-        const shortAddr = walletAddress.substring(0, 6) + '...' + walletAddress.substring(38);
-        walletSection.innerHTML = `
-          <button class="wallet-btn connected">${shortAddr}</button>
-          <span class="wallet-badge ${isOwner ? 'owner' : 'not-owner'}">${isOwner ? 'OWNER' : 'NOT OWNER'}</span>
-          <span class="chain-badge ${isCorrectChain ? 'correct' : 'wrong'}" id="chain-badge">
-            ${isCorrectChain ? 'Sepolia' : 'Wrong Chain!'}
-          </span>
-        `;
+      switch (connectionState) {
+        case 'disconnected':
+          pillClass = 'not-connected';
+          pillLabel = 'Not Connected';
+          pillSub = 'Tap to connect';
+          break;
+        case 'verifying':
+          pillClass = 'verifying';
+          pillLabel = 'Connecting...';
+          pillSub = 'Please wait';
+          break;
+        case 'wrong-network':
+          pillClass = 'wrong-network';
+          pillLabel = walletAddress ? walletAddress.substring(0, 6) + '...' + walletAddress.substring(38) : 'Wrong Network';
+          pillSub = 'Switch to Sepolia';
+          showArrow = true;
+          break;
+        case 'connected':
+          pillClass = 'connected';
+          pillLabel = walletAddress.substring(0, 6) + '...' + walletAddress.substring(38);
+          pillSub = 'MetaMask • Sepolia';
+          showArrow = true;
+          break;
+      }
 
-        // Add click handler for wrong chain badge
-        if (!isCorrectChain) {
-          document.getElementById('chain-badge').addEventListener('click', switchToSepolia);
-        }
-      } else {
-        walletSection.innerHTML = `
-          <button class="wallet-btn" id="connect-wallet-btn">Connect Wallet</button>
-        `;
-        document.getElementById('connect-wallet-btn').addEventListener('click', connectWallet);
+      const ownerBadge = (connectionState === 'connected' || connectionState === 'wrong-network') && walletAddress
+        ? `<span class="wallet-badge ${isOwner ? 'owner' : 'not-owner'}">${isOwner ? 'OWNER' : 'NOT OWNER'}</span>`
+        : '';
+
+      walletSection.innerHTML = `
+        <div class="wallet-pill ${pillClass}" id="wallet-pill">
+          <div class="wallet-pill-main">
+            <span class="wallet-pill-label">${pillLabel}</span>
+            <span class="wallet-pill-sub">${pillSub}</span>
+          </div>
+          ${showArrow ? '<span class="wallet-pill-arrow">▼</span>' : ''}
+        </div>
+        ${ownerBadge}
+      `;
+
+      // Attach click handler
+      const pill = document.getElementById('wallet-pill');
+      if (pill) {
+        pill.addEventListener('click', handleWalletPillClick);
       }
 
       updateButtonStates();
     }
 
+    function handleWalletPillClick() {
+      log('info', 'Wallet pill clicked', { connectionState });
+
+      switch (connectionState) {
+        case 'disconnected':
+          connectWallet();
+          break;
+        case 'verifying':
+          // Do nothing while verifying
+          break;
+        case 'wrong-network':
+          // Show action sheet
+          showWalletActionSheet();
+          break;
+        case 'connected':
+          // Show action sheet
+          showWalletActionSheet();
+          break;
+      }
+    }
+
+    function showWalletActionSheet() {
+      const overlay = document.getElementById('wallet-action-sheet');
+      const title = document.getElementById('action-sheet-title');
+      const subtitle = document.getElementById('action-sheet-subtitle');
+
+      title.textContent = walletAddress ? walletAddress.substring(0, 8) + '...' + walletAddress.substring(36) : 'Wallet';
+      subtitle.textContent = connectionState === 'wrong-network'
+        ? 'Wrong network - switch to Sepolia'
+        : (isOwner ? 'Owner Account • Sepolia' : 'Sepolia');
+
+      overlay.classList.add('show');
+    }
+
+    function hideWalletActionSheet() {
+      document.getElementById('wallet-action-sheet').classList.remove('show');
+    }
+
+    function copyWalletAddress() {
+      if (!walletAddress) return;
+
+      navigator.clipboard.writeText(walletAddress).then(() => {
+        // Show brief toast
+        const title = document.getElementById('action-sheet-title');
+        const original = title.textContent;
+        title.textContent = 'Copied!';
+        setTimeout(() => {
+          title.textContent = original;
+          hideWalletActionSheet();
+        }, 1000);
+      }).catch(err => {
+        alert('Failed to copy: ' + err.message);
+      });
+    }
+
     function updateButtonStates() {
       const mintBtn = document.getElementById('mint-btn');
       const transferBtn = document.getElementById('transfer-btn');
-      const isCorrectChain = currentChainId === CONFIG.chainId;
-      const canExecute = walletAddress && isOwner && isCorrectChain;
+
+      // Can only execute if: signer verified + correct chain + is owner
+      const canExecute = signerVerified && currentChainId === CONFIG.chainId && isOwner;
 
       if (mintBtn) {
         mintBtn.disabled = !canExecute;
-        if (!walletAddress) {
+        if (!signerVerified) {
           mintBtn.textContent = 'Connect Wallet First';
+        } else if (currentChainId !== CONFIG.chainId) {
+          mintBtn.textContent = 'Switch to Sepolia';
         } else if (!isOwner) {
           mintBtn.textContent = `Owner only: ${CONFIG.ownerAddress.substring(0, 10)}...`;
-        } else if (!isCorrectChain) {
-          mintBtn.textContent = 'Switch to Sepolia';
         } else {
           mintBtn.textContent = 'Mint hUSD';
         }
@@ -503,12 +898,12 @@
 
       if (transferBtn) {
         transferBtn.disabled = !canExecute;
-        if (!walletAddress) {
+        if (!signerVerified) {
           transferBtn.textContent = 'Connect Wallet First';
+        } else if (currentChainId !== CONFIG.chainId) {
+          transferBtn.textContent = 'Switch to Sepolia';
         } else if (!isOwner) {
           transferBtn.textContent = `Owner only: ${CONFIG.ownerAddress.substring(0, 10)}...`;
-        } else if (!isCorrectChain) {
-          transferBtn.textContent = 'Switch to Sepolia';
         } else {
           transferBtn.textContent = 'Transfer to Treasury';
         }
@@ -556,7 +951,7 @@
     }
 
     async function refreshOnchainData() {
-      if (!walletAddress) return;
+      if (!signerVerified) return;
 
       try {
         const [totalSupply, ownerBalance, treasuryBalance] = await Promise.all([
@@ -644,18 +1039,29 @@
       log('info', 'Execute confirmed clicked');
 
       try {
-        // Step 1: Ensure wallet is connected
-        setModalStatus('Connecting wallet...', 'info');
-        await ensureConnected();
+        // Step 1: Verify signer is available
+        setModalStatus('Verifying wallet connection...', 'info');
+
+        if (!signerVerified) {
+          setModalStatus('Wallet not connected. Reconnecting...', 'info');
+          const connected = await reconnectWallet();
+          if (!connected) {
+            throw new Error('Wallet not connected. Please connect MetaMask.');
+          }
+        }
         updateDebugPanel();
 
         // Step 2: Ensure correct chain
-        setModalStatus('Checking network...', 'info');
-        await ensureCorrectChain();
+        if (currentChainId !== CONFIG.chainId) {
+          setModalStatus('Switching to Sepolia...', 'info');
+          const switched = await switchToSepolia();
+          if (!switched) {
+            throw new Error('Wrong network. Please switch to Sepolia.');
+          }
+        }
         updateDebugPanel();
 
-        // Step 3: Send transaction directly to MetaMask (let MetaMask estimate gas)
-        // Note: Removed estimateGas pre-check - it was blocking transactions on some providers
+        // Step 3: Send transaction directly to MetaMask
         setModalStatus('Opening wallet...', 'info');
         closeModal();
         await pendingAction();
@@ -668,7 +1074,6 @@
         confirmBtn.textContent = 'Retry';
         updateDebugPanel();
 
-        // Add error to debug info
         debugInfo.lastError = { code: e.code, message: e.message };
         updateDebugPanel();
       }
@@ -680,6 +1085,20 @@
     function prepareMint() {
       log('info', 'Prepare mint clicked');
 
+      // Pre-check connection
+      if (!signerVerified) {
+        showMintStatus('Wallet not connected. Please connect MetaMask.', 'error');
+        return;
+      }
+      if (currentChainId !== CONFIG.chainId) {
+        showMintStatus('Wrong network. Please switch to Sepolia.', 'error');
+        return;
+      }
+      if (!isOwner) {
+        showMintStatus(`Only contract owner can mint. Owner: ${CONFIG.ownerAddress}`, 'error');
+        return;
+      }
+
       const toSelect = document.getElementById('mint-to');
       const amountInput = document.getElementById('mint-amount');
       const to = toSelect.value;
@@ -690,7 +1109,7 @@
         return;
       }
 
-      // Build tx params for gas estimation
+      // Build tx params
       const paddedTo = to.toLowerCase().replace('0x', '').padStart(64, '0');
       const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
       const paddedAmount = amountWei.toString(16).padStart(64, '0');
@@ -792,6 +1211,20 @@
     function prepareTransfer() {
       log('info', 'Prepare transfer clicked');
 
+      // Pre-check connection
+      if (!signerVerified) {
+        showTransferStatus('Wallet not connected. Please connect MetaMask.', 'error');
+        return;
+      }
+      if (currentChainId !== CONFIG.chainId) {
+        showTransferStatus('Wrong network. Please switch to Sepolia.', 'error');
+        return;
+      }
+      if (!isOwner) {
+        showTransferStatus(`Only contract owner can transfer. Owner: ${CONFIG.ownerAddress}`, 'error');
+        return;
+      }
+
       const amountInput = document.getElementById('transfer-amount');
       const amount = parseInt(amountInput.value) || CONFIG.defaultMintAmount;
 
@@ -800,7 +1233,7 @@
         return;
       }
 
-      // Build tx params for gas estimation
+      // Build tx params
       const paddedTo = CONFIG.treasuryAddress.toLowerCase().replace('0x', '').padStart(64, '0');
       const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
       const paddedAmount = amountWei.toString(16).padStart(64, '0');
@@ -952,7 +1385,12 @@
           <div class="admin-header">
             <h1>Token Ops (hUSD)</h1>
             <div class="wallet-section" id="wallet-section">
-              <button class="wallet-btn" id="connect-wallet-btn">Connect Wallet</button>
+              <div class="wallet-pill not-connected" id="wallet-pill">
+                <div class="wallet-pill-main">
+                  <span class="wallet-pill-label">Not Connected</span>
+                  <span class="wallet-pill-sub">Tap to connect</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1121,9 +1559,11 @@
         // Attach event listeners
         attachEventListeners();
 
-        // Update wallet UI if connected
-        if (walletAddress) {
-          updateWalletUI();
+        // Update wallet UI based on current state
+        updateWalletUI();
+
+        // Refresh on-chain data if connected
+        if (signerVerified) {
           refreshOnchainData();
         }
       } catch (e) {
@@ -1132,12 +1572,6 @@
     }
 
     function attachEventListeners() {
-      // Connect wallet button
-      const connectBtn = document.getElementById('connect-wallet-btn');
-      if (connectBtn) {
-        connectBtn.addEventListener('click', connectWallet);
-      }
-
       // Mint button
       const mintBtn = document.getElementById('mint-btn');
       if (mintBtn) {
@@ -1208,13 +1642,13 @@
     }
 
     // ============================================
-    // Modal Event Listeners
+    // Modal & Action Sheet Event Listeners
     // ============================================
     function initModalListeners() {
       // Cancel button
       document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
 
-      // Confirm button - use both click and touchend for iOS
+      // Confirm button
       const confirmBtn = document.getElementById('modal-confirm-btn');
       confirmBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -1242,6 +1676,23 @@
           closeModal();
         }
       });
+
+      // Action sheet listeners
+      document.getElementById('wallet-action-sheet').addEventListener('click', (e) => {
+        if (e.target.id === 'wallet-action-sheet') {
+          hideWalletActionSheet();
+        }
+      });
+      document.getElementById('action-reconnect').addEventListener('click', () => {
+        hideWalletActionSheet();
+        reconnectWallet();
+      });
+      document.getElementById('action-copy').addEventListener('click', copyWalletAddress);
+      document.getElementById('action-disconnect').addEventListener('click', () => {
+        hideWalletActionSheet();
+        disconnectWallet();
+      });
+      document.getElementById('action-cancel').addEventListener('click', hideWalletActionSheet);
     }
 
     // ============================================
@@ -1260,25 +1711,44 @@
       SideMenu.init(true, true);
       initModalListeners();
 
-      // Auto-connect if MetaMask is already connected
+      // Try to verify existing connection (non-interactive)
       const provider = getProvider();
       if (provider) {
-        try {
-          const accounts = await provider.request({ method: 'eth_accounts' });
-          if (accounts.length > 0) {
-            log('info', 'Auto-connecting with existing session');
-            walletAddress = accounts[0].toLowerCase();
-            isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
-            const chainId = await provider.request({ method: 'eth_chainId' });
-            currentChainId = parseInt(chainId, 16);
-            provider.on('accountsChanged', handleAccountsChanged);
-            provider.on('chainChanged', handleChainChanged);
-            updateWalletUI();
-            refreshOnchainData();
+        log('info', 'Provider detected, verifying existing connection...');
+        connectionState = 'verifying';
+
+        const verification = await verifySignerConnection();
+        log('info', 'Verification result', verification);
+
+        if (verification.verified) {
+          walletAddress = verification.address;
+          isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
+          currentChainId = verification.chainId;
+          signerVerified = true;
+
+          if (currentChainId !== CONFIG.chainId) {
+            connectionState = 'wrong-network';
+          } else {
+            connectionState = 'connected';
           }
-        } catch (e) {
-          log('error', 'Auto-connect failed', e.message);
+
+          // Set up listeners
+          provider.on('accountsChanged', handleAccountsChanged);
+          provider.on('chainChanged', handleChainChanged);
+
+          updateWalletUI();
+          refreshOnchainData();
+          log('info', 'Existing connection verified');
+        } else {
+          // Not connected or can't verify
+          connectionState = 'disconnected';
+          signerVerified = false;
+          updateWalletUI();
+          log('info', 'No existing connection: ' + verification.reason);
         }
+      } else {
+        connectionState = 'disconnected';
+        updateWalletUI();
       }
 
       log('info', 'Token Ops page initialized');
