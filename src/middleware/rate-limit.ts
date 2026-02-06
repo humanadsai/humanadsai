@@ -2,7 +2,8 @@ import type { Env } from '../types';
 import { errors, generateRequestId } from '../utils/response';
 import { writeAuditLog, extractAuditInfo } from '../services/audit';
 
-export type RateLimitType = 'ip' | 'apiKey' | 'deals:create' | 'deals:deposit';
+export type RateLimitType = 'ip' | 'apiKey' | 'deals:create' | 'deals:deposit'
+  | 'auth:login' | 'operator:register' | 'operator:verify' | 'account:delete';
 
 export interface RateLimitResult {
   allowed: boolean;
