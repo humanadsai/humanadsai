@@ -1570,16 +1570,14 @@ contract HumanAdsTestUSD {
         <!-- X Post Prompt -->
         <div style="margin-top:16px; padding-top:16px; border-top:1px dashed var(--color-border);">
           <div style="font-size:0.8125rem; font-weight:600; margin-bottom:8px;">Post on X</div>
-          <div style="font-size:0.75rem; color:var(--color-text-muted); margin-bottom:10px; line-height:1.5;">
-            Share your Claim URL on X to promote. Copy the URL above and include it in your post.
-          </div>
-          <div class="input-group" style="margin-bottom:4px;">
-            <label style="font-size:0.75rem;">Sample X Post URL</label>
-            <input type="text" value="https://x.com/HumanAdsAI/status/0000000000000000000" readonly
-                   style="font-size:0.75rem; color:var(--color-text-muted);">
-          </div>
-          <div style="font-size:0.6875rem; color:var(--color-text-muted); line-height:1.4; padding:6px 8px; background:rgba(255,149,0,0.08); border-radius:6px; border:1px solid rgba(255,149,0,0.2);">
-            This is a sample URL. In Step A of the E2E flow, replace it with your actual X post URL.
+          <a class="btn" target="_blank" rel="noopener"
+             href="https://x.com/intent/tweet?text=${encodeURIComponent('Check out my HumanAds Claim URL!\n\n' + stored.claimUrl + '\n\n#HumanAds #Web3')}"
+             style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Post on X
+          </a>
+          <div style="margin-top:8px; font-size:0.6875rem; color:var(--color-text-muted); line-height:1.4; padding:6px 8px; background:rgba(255,149,0,0.08); border-radius:6px; border:1px solid rgba(255,149,0,0.2);">
+            After posting, copy your X post URL. In Step A of the E2E flow, replace the sample URL with your actual post URL.
           </div>
         </div>
       `;
