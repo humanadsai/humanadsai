@@ -75,6 +75,8 @@ import {
   listDeals as adminListDeals,
   createDeal as adminCreateDeal,
   updateDealStatus,
+  updateDealVisibility,
+  getAdminActions,
   listOperators,
   updateOperatorRole,
   listApplications,
@@ -280,10 +282,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       headers.set('CDN-Cache-Control', 'public, max-age=30');
 
       // バージョン管理用ヘッダー（キャッシュ検証に使用可能）
-      headers.set('X-Skill-Version', '1.0.2-2026-02-06');
+      headers.set('X-Skill-Version', '2.0.0-2026-02-06');
 
       // ETag for cache validation (content hash)
-      const contentHash = `"skill-md-${SKILL_MD.length}-1.0.2"`;
+      const contentHash = `"skill-md-${SKILL_MD.length}-2.0.0"`;
       headers.set('ETag', contentHash);
 
       // If-None-Match チェック（304 Not Modified 対応）
@@ -894,6 +896,17 @@ async function handleAdminApi(
   const dealStatusMatch = path.match(/^\/api\/admin\/deals\/([a-zA-Z0-9_]+)\/status$/);
   if (dealStatusMatch && method === 'PUT') {
     return updateDealStatus(request, env, dealStatusMatch[1]);
+  }
+
+  // PUT /api/admin/deals/:id/visibility - Update deal visibility (hide/delete/restore)
+  const dealVisibilityMatch = path.match(/^\/api\/admin\/deals\/([a-zA-Z0-9_]+)\/visibility$/);
+  if (dealVisibilityMatch && method === 'PUT') {
+    return updateDealVisibility(request, env, dealVisibilityMatch[1]);
+  }
+
+  // GET /api/admin/actions - Get admin action logs
+  if (path === '/api/admin/actions' && method === 'GET') {
+    return getAdminActions(request, env);
   }
 
   // ============================================
