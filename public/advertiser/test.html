@@ -1205,14 +1205,24 @@ contract HumanAdsTestUSD {
           </div>
 
           <div class="prestep-section">
-            <div class="prestep-section-title">B. Claim hUSD</div>
-            <button class="btn" onclick="openClaimUrl()" id="btn-open-claim">
-              Open Claim Page
-            </button>
-            <div style="margin-top:8px; font-size:0.75rem; color:var(--color-text-muted);">
-              <div>Network: <strong>Sepolia</strong></div>
-              <div>Token: <strong>hUSD</strong></div>
-              <div style="font-family:var(--font-mono); word-break:break-all;">Contract: 0x62C2225D5691515BD4ee36539D127d0dB7dCeb67</div>
+            <div class="prestep-section-title">B. Claim hUSD (via Faucet Contract)</div>
+            <div style="font-size:0.75rem; color:var(--color-text-muted); margin-bottom:8px; line-height:1.4;">
+              Connect MetaMask on Sepolia, then claim 1,000 hUSD. Gas is paid with Sepolia ETH.
+            </div>
+            <div id="prestep-faucet-wallet" style="display:none; margin-bottom:8px; padding:8px 10px; border-radius:8px; background:rgba(52,199,89,0.1); border:1px solid rgba(52,199,89,0.3); font-size:0.75rem; font-family:var(--font-mono); color:#34c759; word-break:break-all;"></div>
+            <div class="btn-row">
+              <button class="btn wallet" id="btn-prestep-connect" onclick="connectPreStepWallet()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+                Connect MetaMask
+              </button>
+              <button class="btn primary" id="btn-prestep-claim" onclick="claimPreStepHusd()" disabled>
+                Claim 1,000 hUSD
+              </button>
+            </div>
+            <div id="prestep-faucet-status" style="margin-top:8px; font-size:0.75rem;"></div>
+            <div style="margin-top:8px; font-size:0.6875rem; color:var(--color-text-muted);">
+              <div>Network: <strong>Sepolia</strong> &bull; Token: <strong>hUSD</strong> &bull; Amount: <strong>1,000</strong></div>
+              <div style="font-family:var(--font-mono); word-break:break-all;">Faucet: 0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341</div>
             </div>
           </div>
 
@@ -1465,6 +1475,98 @@ contract HumanAdsTestUSD {
     function backToSetup() {
       localStorage.removeItem('humanads_test_prestep_complete');
       renderPreStep(window._envData);
+    }
+
+    // ========== PreStep Faucet Claim ==========
+    const FAUCET_CONTRACT = '0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341';
+    const FAUCET_CLAIM_OPEN_SELECTOR = '0x4b8bcb58'; // claimOpen()
+    const SEPOLIA_CHAIN_ID = 11155111;
+    const SEPOLIA_CHAIN_ID_HEX = '0xaa36a7';
+    let prestepWalletAddress = null;
+
+    async function connectPreStepWallet() {
+      const connectBtn = document.getElementById('btn-prestep-connect');
+      const claimBtn = document.getElementById('btn-prestep-claim');
+      const walletDiv = document.getElementById('prestep-faucet-wallet');
+      const statusDiv = document.getElementById('prestep-faucet-status');
+
+      if (!window.ethereum) {
+        statusDiv.innerHTML = '<span style="color:#ff3b30;">MetaMask not detected. Please install MetaMask.</span>';
+        return;
+      }
+
+      connectBtn.disabled = true;
+      connectBtn.innerHTML = '<span class="spinner"></span> Connecting...';
+
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (!accounts || accounts.length === 0) throw new Error('No accounts');
+
+        prestepWalletAddress = accounts[0];
+
+        // Switch to Sepolia if needed
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (parseInt(chainId, 16) !== SEPOLIA_CHAIN_ID) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
+            });
+          } catch (switchErr) {
+            statusDiv.innerHTML = '<span style="color:#ff9500;">Please switch to Sepolia network in MetaMask.</span>';
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = 'Connect MetaMask';
+            return;
+          }
+        }
+
+        walletDiv.style.display = 'block';
+        walletDiv.textContent = prestepWalletAddress;
+        connectBtn.classList.add('connected');
+        connectBtn.innerHTML = 'Connected';
+        claimBtn.disabled = false;
+        statusDiv.innerHTML = '';
+      } catch (e) {
+        const msg = e.code === 4001 ? 'Connection rejected.' : (e.message || 'Connection failed');
+        statusDiv.innerHTML = `<span style="color:#ff3b30;">${msg}</span>`;
+        connectBtn.disabled = false;
+        connectBtn.innerHTML = 'Connect MetaMask';
+      }
+    }
+
+    async function claimPreStepHusd() {
+      const claimBtn = document.getElementById('btn-prestep-claim');
+      const statusDiv = document.getElementById('prestep-faucet-status');
+
+      if (!prestepWalletAddress || !window.ethereum) {
+        statusDiv.innerHTML = '<span style="color:#ff3b30;">Connect MetaMask first.</span>';
+        return;
+      }
+
+      claimBtn.disabled = true;
+      claimBtn.innerHTML = '<span class="spinner"></span> Claiming...';
+      statusDiv.innerHTML = '<span style="color:var(--color-text-muted);">Confirm the transaction in MetaMask...</span>';
+
+      try {
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: prestepWalletAddress,
+            to: FAUCET_CONTRACT,
+            data: FAUCET_CLAIM_OPEN_SELECTOR,
+            gas: '0x30000',
+          }],
+        });
+
+        statusDiv.innerHTML = `<span style="color:#34c759;">1,000 hUSD claimed!</span> <a href="https://sepolia.etherscan.io/tx/${txHash}" target="_blank" style="color:var(--color-primary); font-family:var(--font-mono); font-size:0.6875rem;">${txHash.substring(0, 18)}...</a>`;
+        claimBtn.innerHTML = 'Claimed!';
+        claimBtn.classList.add('success');
+      } catch (e) {
+        const msg = e.code === 4001 ? 'Transaction rejected.' : (e.message || 'Claim failed');
+        statusDiv.innerHTML = `<span style="color:#ff3b30;">${msg}</span>`;
+        claimBtn.disabled = false;
+        claimBtn.innerHTML = 'Claim 1,000 hUSD';
+      }
     }
 
     /** Mark PreStep complete and hand off to existing renderPage */
