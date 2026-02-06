@@ -1,9 +1,12 @@
 /**
  * On-chain token operations service
- * Handles hUSD transfers on Sepolia using raw RPC calls
+ * Handles hUSD transfers on Sepolia using viem
  */
 
 import type { Env } from '../types';
+import { createWalletClient, http, parseAbi, type Hex } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { sepolia } from 'viem/chains';
 
 // hUSD ERC20 ABI for transfer
 const TRANSFER_SELECTOR = '0xa9059cbb'; // transfer(address,uint256)
@@ -131,9 +134,15 @@ function encodeTransferData(toAddress: string, amountCents: number): string {
 }
 
 /**
- * Sign and send a raw transaction
- * Note: This uses the secp256k1 signing which needs to be implemented
- * For now, we'll return a simulated hash in ledger mode
+ * Redact 64-character hex strings from error messages (private key leak prevention)
+ */
+function redactSecrets(message: string): string {
+  return message.replace(/[0-9a-fA-F]{64}/g, '[REDACTED]');
+}
+
+/**
+ * Transfer hUSD using viem wallet client
+ * Signs and sends ERC20 transfer on-chain (Sepolia)
  */
 export async function transferHusd(
   env: Env,
@@ -162,38 +171,42 @@ export async function transferHusd(
   }
 
   try {
-    // Get nonce
-    const nonce = await rpcCall(config.rpcUrl, 'eth_getTransactionCount', [
-      config.treasuryAddress,
-      'latest',
-    ]) as string;
+    // Normalize private key with 0x prefix
+    const rawKey = env.TREASURY_PRIVATE_KEY.trim();
+    const privateKey: Hex = rawKey.startsWith('0x') ? rawKey as Hex : `0x${rawKey}`;
 
-    // Get gas price
-    const gasPrice = await rpcCall(config.rpcUrl, 'eth_gasPrice', []) as string;
+    // Derive account from private key
+    const account = privateKeyToAccount(privateKey);
 
-    // Encode transfer data
-    const data = encodeTransferData(toAddress, amountCents);
+    // Verify derived address matches configured TREASURY_ADDRESS (fail-fast on config mismatch)
+    if (account.address.toLowerCase() !== config.treasuryAddress.toLowerCase()) {
+      console.error('Treasury address mismatch: derived address does not match TREASURY_ADDRESS');
+      return {
+        success: false,
+        error: 'Treasury key/address mismatch. The private key does not correspond to the configured TREASURY_ADDRESS.',
+      };
+    }
 
-    // Build transaction
-    const tx = {
-      nonce,
-      gasPrice,
-      gasLimit: '0x' + DEFAULT_GAS_LIMIT.toString(16),
-      to: config.husdContract,
-      value: '0x0',
-      data,
-      chainId: config.chainId,
-    };
+    // Create wallet client with timeout and retry
+    const client = createWalletClient({
+      account,
+      chain: sepolia,
+      transport: http(config.rpcUrl, {
+        timeout: 20_000,
+        retryCount: 1,
+      }),
+    });
 
-    // Sign transaction using the private key
-    // Note: Full implementation would use ethers.js or manual secp256k1 signing
-    // For Workers, we need a lightweight crypto approach
-    const signedTx = await signTransaction(tx, env.TREASURY_PRIVATE_KEY);
+    // Convert cents to base units (6 decimals): 1 cent = 10_000 base units
+    const amountBaseUnits = BigInt(amountCents) * BigInt(10_000);
 
-    // Send transaction
-    const txHash = await rpcCall(config.rpcUrl, 'eth_sendRawTransaction', [
-      signedTx,
-    ]) as string;
+    // Execute ERC20 transfer via writeContract
+    const txHash = await client.writeContract({
+      address: config.husdContract as Hex,
+      abi: parseAbi(['function transfer(address to, uint256 amount) returns (bool)']),
+      functionName: 'transfer',
+      args: [toAddress as Hex, amountBaseUnits],
+    });
 
     return {
       success: true,
@@ -201,37 +214,14 @@ export async function transferHusd(
       explorerUrl: `${config.explorerUrl}/tx/${txHash}`,
     };
   } catch (e) {
-    const error = e instanceof Error ? e.message : 'Unknown error';
+    const rawError = e instanceof Error ? e.message : 'Unknown error';
+    const error = redactSecrets(rawError);
     console.error('transferHusd error:', error);
     return {
       success: false,
       error,
     };
   }
-}
-
-/**
- * Sign a transaction with the private key
- * Simplified implementation - in production, use a proper signing library
- */
-async function signTransaction(tx: {
-  nonce: string;
-  gasPrice: string;
-  gasLimit: string;
-  to: string;
-  value: string;
-  data: string;
-  chainId: number;
-}, privateKey: string): Promise<string> {
-  // This is a placeholder - proper implementation requires:
-  // 1. RLP encoding the transaction
-  // 2. Keccak256 hashing
-  // 3. ECDSA signing with secp256k1
-  // 4. Appending v, r, s to the encoded transaction
-
-  // For MVP, we'll throw an error indicating proper signing is needed
-  // In production, use a crypto library compatible with Workers
-  throw new Error('On-chain signing requires ethers.js or similar library. Use ledger mode for testing.');
 }
 
 /**

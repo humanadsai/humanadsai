@@ -1094,22 +1094,33 @@
       const statusDiv = document.getElementById('faucet-status');
       const address = addressInput.value.trim();
 
-      if (!address || !address.startsWith('0x')) {
+      // Address validation: 0x + 40 hex chars
+      if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
         statusDiv.className = 'status-msg error';
-        statusDiv.textContent = 'Enter valid 0x address';
+        statusDiv.textContent = 'Enter valid EVM address (0x + 40 hex characters)';
         return;
       }
 
       btn.disabled = true;
-      btn.textContent = 'Sending...';
-      statusDiv.className = '';
-      statusDiv.textContent = '';
+      const isOnchain = serverConfig && serverConfig.payout_mode === 'onchain';
+      btn.textContent = isOnchain ? 'Sending to Sepolia...' : 'Sending...';
+      statusDiv.className = 'status-msg info';
+      statusDiv.innerHTML = isOnchain
+        ? 'Sepoliaにトランザクション送信中... 15-30秒かかります'
+        : 'Processing...';
+
+      // AbortController for 45s timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
 
       try {
         const res = await HumanAds.fetchApi('/api/admin/faucet', {
           method: 'POST',
-          body: JSON.stringify({ advertiser_address: address })
+          body: JSON.stringify({ advertiser_address: address }),
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (res.success) {
           statusDiv.className = 'status-msg success';
@@ -1119,14 +1130,19 @@
           setTimeout(() => loadTokenOps(currentFilter), 2000);
         } else {
           statusDiv.className = 'status-msg error';
-          statusDiv.textContent = res.error?.message || 'Failed';
+          const errMsg = res.error?.message || 'Failed';
+          statusDiv.innerHTML = `${errMsg} <button class="action-btn" style="margin-top:8px;padding:8px 16px;font-size:0.75rem;" onclick="sendFaucet()">Retry</button>`;
         }
       } catch (e) {
+        clearTimeout(timeoutId);
         statusDiv.className = 'status-msg error';
-        statusDiv.textContent = e.message;
+        const errMsg = e.name === 'AbortError'
+          ? 'Request timed out (45s). The transaction may still be processing on-chain.'
+          : e.message;
+        statusDiv.innerHTML = `${errMsg} <button class="action-btn" style="margin-top:8px;padding:8px 16px;font-size:0.75rem;" onclick="sendFaucet()">Retry</button>`;
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Send hUSD';
+        btn.disabled = !serverConfig?.has_treasury_key;
+        btn.textContent = serverConfig?.has_treasury_key ? 'Send hUSD' : 'Treasury Key Not Set';
       }
     }
 
