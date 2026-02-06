@@ -909,6 +909,92 @@
       window.location.href = deepLink;
     }
 
+    // hUSD Contract Code for easy deployment
+    const HUSD_CONTRACT_CODE = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+/**
+ * HumanAds Test USD (hUSD)
+ * - decimals=6 (USDC compatible)
+ * - owner only mint
+ * - Sepolia testnet
+ */
+contract HumanAdsTestUSD {
+    string public name = "HumanAds Test USD";
+    string public symbol = "hUSD";
+    uint8 public decimals = 6;
+
+    uint256 public totalSupply;
+    address public owner;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed holder, address indexed spender, uint256 value);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "only owner");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function mint(address to, uint256 amount) external onlyOwner {
+        totalSupply += amount;
+        balanceOf[to] += amount;
+        emit Transfer(address(0), to, amount);
+    }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        uint256 allowed = allowance[from][msg.sender];
+        require(allowed >= amount, "allowance");
+        require(balanceOf[from] >= amount, "balance");
+
+        allowance[from][msg.sender] = allowed - amount;
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+
+        emit Transfer(from, to, amount);
+        return true;
+    }
+
+    function setOwner(address newOwner) external onlyOwner {
+        owner = newOwner;
+    }
+}`;
+
+    function toggleContractCode() {
+      const section = document.getElementById('contract-code-section');
+      const codeEl = document.getElementById('contract-code');
+      if (section.style.display === 'none') {
+        section.style.display = 'block';
+        codeEl.textContent = HUSD_CONTRACT_CODE;
+      } else {
+        section.style.display = 'none';
+      }
+    }
+
+    function copyContractCode(btnEl) {
+      copyToClipboard(HUSD_CONTRACT_CODE, btnEl);
+    }
+
     function showResult(stepId, success, data) {
       const el = document.getElementById(`${stepId}-result`);
       if (!el) return;
@@ -1554,6 +1640,34 @@
             Connect Wallet
           </button>
           `}
+
+          <!-- hUSD Contract Deploy Helper -->
+          <div id="husd-deploy-helper" style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--color-border);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:0.75rem;color:var(--color-text-muted);">Need hUSD for testing?</span>
+              <button class="btn secondary" onclick="toggleContractCode()" style="padding:4px 8px;font-size:0.6875rem;">
+                Show Contract Code
+              </button>
+            </div>
+            <div id="contract-code-section" style="display:none;">
+              <div style="background:var(--color-background-light);border-radius:8px;padding:12px;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <span style="font-family:var(--font-mono);font-size:0.75rem;font-weight:600;">HumanAdsTestUSD.sol</span>
+                  <button class="copy-btn" onclick="copyContractCode(this)">Copy All</button>
+                </div>
+                <pre id="contract-code" style="font-size:0.625rem;line-height:1.4;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0;color:var(--color-text-muted);"></pre>
+              </div>
+              <div style="font-size:0.6875rem;color:var(--color-text-muted);line-height:1.5;">
+                <strong>Deploy Steps:</strong><br>
+                1. Open <a href="https://remix.ethereum.org" target="_blank" style="color:var(--color-primary);">remix.ethereum.org</a><br>
+                2. Create new file, paste code<br>
+                3. Compile (0.8.20)<br>
+                4. Deploy → Sepolia<br>
+                5. mint(your_address, 100000000000000000000)<br>
+                6. Copy contract address → set in Token dropdown
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Step B: Create Deal -->
