@@ -587,6 +587,7 @@ export interface AdminPayoutTestRequest {
   mode: 'ledger' | 'testnet' | 'mainnet';
   chain?: string;
   token?: string;
+  execute?: boolean; // When true, actually send onchain transaction (testnet/mainnet)
 }
 
 // Fee Recipient Configuration

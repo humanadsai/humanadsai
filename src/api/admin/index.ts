@@ -1084,69 +1084,159 @@ export async function testPayout(
       .first<{ evm_wallet_address: string | null; solana_wallet_address: string | null }>();
 
     // Only Sepolia supported for testnet
-    const chain = 'sepolia';
+    const chain = body.mode === 'mainnet' ? 'base' : 'sepolia';
     const token = body.token || 'USDC';
     const payoutConfig = getPayoutConfig(env);
+    const aufAmount = Math.floor(mission.reward_amount * (mission.auf_percentage / 100));
+    const payoutAmount = mission.reward_amount - aufAmount;
 
+    // If execute=true, actually send onchain transactions
+    if (body.execute && (body.mode === 'testnet' || body.mode === 'mainnet')) {
+      if (!hasTreasuryKey(env)) {
+        return errors.invalidRequest(requestId, {
+          message: 'TREASURY_PRIVATE_KEY is not configured. Cannot execute onchain transactions.',
+        });
+      }
+
+      if (!operator?.evm_wallet_address) {
+        return errors.invalidRequest(requestId, {
+          message: 'Operator has no EVM wallet address configured.',
+        });
+      }
+
+      // Temporarily override PAYOUT_MODE to 'onchain' so transferHusd executes real tx
+      const originalPayoutMode = env.PAYOUT_MODE;
+      (env as unknown as Record<string, unknown>).PAYOUT_MODE = 'onchain';
+
+      const txResults: {
+        auf_tx?: { success: boolean; txHash?: string; explorerUrl?: string; error?: string };
+        payout_tx?: { success: boolean; txHash?: string; explorerUrl?: string; error?: string };
+      } = {};
+
+      try {
+        // 1. AUF fee transfer (treasury → fee recipient)
+        if (aufAmount > 0) {
+          const aufResult = await transferHusd(env, FEE_RECIPIENTS.evm, aufAmount);
+          txResults.auf_tx = aufResult;
+
+          // Record the token op
+          await recordTokenOp(env, {
+            opType: 'transfer',
+            fromAddress: getOnchainConfig(env).treasuryAddress,
+            toAddress: FEE_RECIPIENTS.evm,
+            amountCents: aufAmount,
+            txHash: aufResult.txHash,
+            status: aufResult.success ? 'submitted' : 'failed',
+            errorMessage: aufResult.error,
+          });
+        }
+
+        // 2. Payout transfer (treasury → operator)
+        if (payoutAmount > 0) {
+          const payoutResult = await transferHusd(env, operator.evm_wallet_address, payoutAmount);
+          txResults.payout_tx = payoutResult;
+
+          // Record the token op
+          await recordTokenOp(env, {
+            opType: 'transfer',
+            fromAddress: getOnchainConfig(env).treasuryAddress,
+            toAddress: operator.evm_wallet_address,
+            amountCents: payoutAmount,
+            txHash: payoutResult.txHash,
+            status: payoutResult.success ? 'submitted' : 'failed',
+            errorMessage: payoutResult.error,
+            operatorId: mission.operator_id,
+          });
+        }
+
+        // Update mission status to paid if both succeeded
+        const allSuccess = (!txResults.auf_tx || txResults.auf_tx.success) &&
+                           (!txResults.payout_tx || txResults.payout_tx.success);
+        if (allSuccess) {
+          await env.DB.prepare(
+            "UPDATE missions SET status = 'paid', paid_at = datetime('now') WHERE id = ?"
+          ).bind(body.mission_id).run();
+        }
+
+        return success({
+          mode: body.mode,
+          chain,
+          token,
+          execute: true,
+          auf_amount_cents: aufAmount,
+          payout_amount_cents: payoutAmount,
+          treasury_address: getOnchainConfig(env).treasuryAddress,
+          operator_address: operator.evm_wallet_address,
+          transactions: txResults,
+          all_success: allSuccess,
+          message: allSuccess
+            ? `Onchain payout executed successfully on ${chain}`
+            : 'Some transactions failed. Check transaction details.',
+        }, requestId);
+      } finally {
+        // Restore original PAYOUT_MODE
+        (env as unknown as Record<string, unknown>).PAYOUT_MODE = originalPayoutMode;
+      }
+    }
+
+    // Preview mode (execute=false or ledger mode) - return calculation only
     let result: {
       mode: string;
       chain: string;
       token: string;
+      execute: boolean;
       auf_amount_cents: number;
       payout_amount_cents: number;
       treasury_address: string;
       operator_address: string | null;
       simulated_auf_tx?: string;
       simulated_payout_tx?: string;
+      has_treasury_key: boolean;
       message: string;
     };
 
     if (body.mode === 'ledger') {
-      // Simulated payout - no real blockchain transaction
-      const aufAmount = Math.floor(mission.reward_amount * (mission.auf_percentage / 100));
-      const payoutAmount = mission.reward_amount - aufAmount;
-
       result = {
         mode: 'ledger',
         chain,
         token,
+        execute: false,
         auf_amount_cents: aufAmount,
         payout_amount_cents: payoutAmount,
         treasury_address: FEE_RECIPIENTS.evm,
         operator_address: operator?.evm_wallet_address || null,
         simulated_auf_tx: generateSimulatedTxHash(),
         simulated_payout_tx: generateSimulatedTxHash(),
+        has_treasury_key: hasTreasuryKey(env),
         message: 'Ledger mode: transactions are simulated, no real funds transferred',
       };
     } else if (body.mode === 'testnet') {
-      // Testnet payout - real transaction on test network
-      const aufAmount = Math.floor(mission.reward_amount * (mission.auf_percentage / 100));
-      const payoutAmount = mission.reward_amount - aufAmount;
-
       result = {
         mode: 'testnet',
         chain,
         token,
+        execute: false,
         auf_amount_cents: aufAmount,
         payout_amount_cents: payoutAmount,
-        treasury_address: FEE_RECIPIENTS.evm,
+        treasury_address: getOnchainConfig(env).treasuryAddress,
         operator_address: operator?.evm_wallet_address || null,
-        message: 'Testnet mode: use testnet faucet to fund transactions. Chain: sepolia',
+        has_treasury_key: hasTreasuryKey(env),
+        message: hasTreasuryKey(env)
+          ? 'Preview: click Execute to send real hUSD on Sepolia testnet'
+          : 'TREASURY_PRIVATE_KEY not set. Configure it to execute testnet transactions.',
       };
     } else {
-      // Mainnet payout - real transaction
-      const aufAmount = Math.floor(mission.reward_amount * (mission.auf_percentage / 100));
-      const payoutAmount = mission.reward_amount - aufAmount;
-
       result = {
         mode: 'mainnet',
-        chain: 'base', // Default to Base for mainnet
+        chain,
         token,
+        execute: false,
         auf_amount_cents: aufAmount,
         payout_amount_cents: payoutAmount,
-        treasury_address: FEE_RECIPIENTS.evm,
+        treasury_address: getOnchainConfig(env).treasuryAddress,
         operator_address: operator?.evm_wallet_address || null,
-        message: 'Mainnet mode: REAL funds will be transferred!',
+        has_treasury_key: hasTreasuryKey(env),
+        message: 'Mainnet mode: REAL funds will be transferred! Use with caution.',
       };
     }
 
@@ -1236,6 +1326,129 @@ export async function runScenario(
           },
           message: 'Full lifecycle created. Mission is ready for submission testing.',
         };
+      },
+
+      // Full lifecycle with real onchain payout (testnet)
+      'full-lifecycle-onchain': async () => {
+        // Check prerequisites
+        if (!hasTreasuryKey(env)) {
+          return {
+            success: false,
+            error: 'TREASURY_PRIVATE_KEY is not configured. Cannot execute onchain payout.',
+          };
+        }
+
+        // 1. Run the standard full-lifecycle to create all entities
+        const lifecycleResult = await scenarios['full-lifecycle']() as {
+          success: boolean;
+          error?: string;
+          created?: { agent_id: string; deal_id: string; operator_id: string; application_id: string; mission_id: string };
+        };
+
+        if (!lifecycleResult.success || !lifecycleResult.created) {
+          return {
+            success: false,
+            error: lifecycleResult.error || 'Failed to create lifecycle entities',
+            scenario: 'full-lifecycle-onchain',
+          };
+        }
+
+        const { mission_id, deal_id, operator_id } = lifecycleResult.created;
+
+        // 2. Submit the mission
+        await env.DB.prepare(
+          "UPDATE missions SET status = 'submitted', submission_url = 'https://x.com/test/status/scenario123', submitted_at = datetime('now') WHERE id = ?"
+        ).bind(mission_id).run();
+
+        // 3. Verify the mission
+        await env.DB.prepare(
+          "UPDATE missions SET status = 'verified', verified_at = datetime('now') WHERE id = ?"
+        ).bind(mission_id).run();
+
+        // 4. Execute onchain payout
+        const deal = await env.DB.prepare(
+          'SELECT reward_amount, auf_percentage FROM deals WHERE id = ?'
+        ).bind(deal_id).first<{ reward_amount: number; auf_percentage: number }>();
+
+        const operator = await env.DB.prepare(
+          'SELECT evm_wallet_address FROM operators WHERE id = ?'
+        ).bind(operator_id).first<{ evm_wallet_address: string | null }>();
+
+        if (!operator?.evm_wallet_address) {
+          return {
+            success: false,
+            error: 'Operator has no EVM wallet address. Cannot execute onchain payout.',
+            scenario: 'full-lifecycle-onchain',
+            steps_completed: ['lifecycle', 'submit', 'verify'],
+            created: lifecycleResult.created,
+          };
+        }
+
+        const aufAmount = Math.floor(deal!.reward_amount * (deal!.auf_percentage / 100));
+        const payoutAmount = deal!.reward_amount - aufAmount;
+
+        // Temporarily set PAYOUT_MODE to onchain
+        const originalPayoutMode = env.PAYOUT_MODE;
+        (env as unknown as Record<string, unknown>).PAYOUT_MODE = 'onchain';
+
+        const txResults: {
+          auf_tx?: { success: boolean; txHash?: string; explorerUrl?: string; error?: string };
+          payout_tx?: { success: boolean; txHash?: string; explorerUrl?: string; error?: string };
+        } = {};
+
+        try {
+          // AUF fee
+          if (aufAmount > 0) {
+            txResults.auf_tx = await transferHusd(env, FEE_RECIPIENTS.evm, aufAmount);
+            await recordTokenOp(env, {
+              opType: 'transfer',
+              fromAddress: getOnchainConfig(env).treasuryAddress,
+              toAddress: FEE_RECIPIENTS.evm,
+              amountCents: aufAmount,
+              txHash: txResults.auf_tx.txHash,
+              status: txResults.auf_tx.success ? 'submitted' : 'failed',
+              errorMessage: txResults.auf_tx.error,
+            });
+          }
+
+          // Operator payout
+          if (payoutAmount > 0) {
+            txResults.payout_tx = await transferHusd(env, operator.evm_wallet_address, payoutAmount);
+            await recordTokenOp(env, {
+              opType: 'transfer',
+              fromAddress: getOnchainConfig(env).treasuryAddress,
+              toAddress: operator.evm_wallet_address,
+              amountCents: payoutAmount,
+              txHash: txResults.payout_tx.txHash,
+              status: txResults.payout_tx.success ? 'submitted' : 'failed',
+              errorMessage: txResults.payout_tx.error,
+              operatorId: operator_id,
+            });
+          }
+
+          const allSuccess = (!txResults.auf_tx || txResults.auf_tx.success) &&
+                             (!txResults.payout_tx || txResults.payout_tx.success);
+
+          if (allSuccess) {
+            await env.DB.prepare(
+              "UPDATE missions SET status = 'paid', paid_at = datetime('now') WHERE id = ?"
+            ).bind(mission_id).run();
+          }
+
+          return {
+            success: true,
+            scenario: 'full-lifecycle-onchain',
+            created: lifecycleResult.created,
+            steps: ['agent', 'deal', 'application', 'mission', 'submit', 'verify', 'onchain-payout'],
+            transactions: txResults,
+            all_success: allSuccess,
+            message: allSuccess
+              ? 'Full lifecycle with onchain payout completed successfully on Sepolia!'
+              : 'Lifecycle completed but some transactions failed. Check transaction details.',
+          };
+        } finally {
+          (env as unknown as Record<string, unknown>).PAYOUT_MODE = originalPayoutMode;
+        }
       },
 
       // Quick test setup

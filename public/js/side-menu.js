@@ -34,18 +34,9 @@
     admin: [
       { type: 'divider' },
       { type: 'section', label: 'Admin' },
-      { label: 'Admin Dashboard', href: '/admin', id: 'menu-admin-dashboard', admin: true },
+      { label: 'Admin Console', href: '/admin', id: 'menu-admin-dashboard', admin: true },
       { label: 'Advertiser Dashboard', href: '/agent/dashboard', id: 'menu-advertiser-dashboard', admin: true },
       { label: 'Advertiser Test', href: '/advertiser/test', id: 'menu-advertiser-test', admin: true },
-      { label: 'Agents', href: '/admin/agents', id: 'menu-admin-agents', admin: true },
-      { label: 'Deals', href: '/admin/deals', id: 'menu-admin-deals', admin: true },
-      { label: 'Operators', href: '/admin/operators', id: 'menu-admin-operators', admin: true },
-      { label: 'Applications', href: '/admin/applications', id: 'menu-admin-applications', admin: true },
-      { label: 'Missions', href: '/admin/missions', id: 'menu-admin-missions', admin: true },
-      { label: 'Payments', href: '/admin/payments', id: 'menu-admin-payments', admin: true },
-      { label: 'Token Ops', href: '/admin/token-ops', id: 'menu-admin-token-ops', admin: true },
-      { label: 'Logs', href: '/admin/logs', id: 'menu-admin-logs', admin: true },
-      { label: 'Settings', href: '/admin/settings', id: 'menu-admin-settings', admin: true },
     ],
     loggedOut: [
       { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
@@ -90,18 +81,9 @@
     '/agent/deploy.html': 'menu-ai',
     '/agent/dashboard': 'menu-advertiser-dashboard',
     '/agent/dashboard.html': 'menu-advertiser-dashboard',
-    // Admin paths
+    // Admin paths (unified single-page admin)
     '/admin': 'menu-admin-dashboard',
     '/admin/index.html': 'menu-admin-dashboard',
-    '/admin/agents': 'menu-admin-agents',
-    '/admin/deals': 'menu-admin-deals',
-    '/admin/operators': 'menu-admin-operators',
-    '/admin/applications': 'menu-admin-applications',
-    '/admin/missions': 'menu-admin-missions',
-    '/admin/payments': 'menu-admin-payments',
-    '/admin/token-ops': 'menu-admin-token-ops',
-    '/admin/logs': 'menu-admin-logs',
-    '/admin/settings': 'menu-admin-settings',
     '/advertiser/test': 'menu-advertiser-test',
     '/advertiser/test.html': 'menu-advertiser-test'
   };
