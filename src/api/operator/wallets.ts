@@ -5,9 +5,22 @@
  * POST /api/operator/wallets - Update operator wallet addresses
  */
 
+import { getAddress } from 'viem';
 import type { Env } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { sha256Hex } from '../../utils/crypto';
+
+/**
+ * Normalize EVM address to EIP-55 checksum format
+ */
+function toChecksumAddress(address: string): string {
+  try {
+    return getAddress(address);
+  } catch {
+    // If normalization fails, return as-is (validation already passed regex)
+    return address;
+  }
+}
 
 /**
  * Get session token from cookie
@@ -112,12 +125,17 @@ export async function updateOperatorWallets(request: Request, env: Env): Promise
     return errors.invalidRequest(requestId, 'Invalid JSON body');
   }
 
-  const { evm_wallet_address, solana_wallet_address } = body;
+  // Trim whitespace from addresses
+  const evm_wallet_address = body.evm_wallet_address?.trim() || null;
+  const solana_wallet_address = body.solana_wallet_address?.trim() || null;
 
-  // Validate EVM address
+  // Validate EVM address format
   if (evm_wallet_address && !/^0x[a-fA-F0-9]{40}$/.test(evm_wallet_address)) {
     return errors.invalidRequest(requestId, 'Invalid EVM address format');
   }
+
+  // Normalize EVM address to EIP-55 checksum format
+  const normalizedEvmAddress = evm_wallet_address ? toChecksumAddress(evm_wallet_address) : null;
 
   // Validate Solana address (basic check)
   if (solana_wallet_address && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(solana_wallet_address)) {
@@ -140,7 +158,7 @@ export async function updateOperatorWallets(request: Request, env: Env): Promise
       `).run();
     }
 
-    // Update wallet addresses
+    // Update wallet addresses (EVM address stored in EIP-55 checksum format)
     await env.DB.prepare(`
       UPDATE operators
       SET evm_wallet_address = ?,
@@ -149,7 +167,7 @@ export async function updateOperatorWallets(request: Request, env: Env): Promise
       WHERE id = ?
     `)
       .bind(
-        evm_wallet_address || null,
+        normalizedEvmAddress,
         solana_wallet_address || null,
         operator.id
       )
@@ -157,7 +175,7 @@ export async function updateOperatorWallets(request: Request, env: Env): Promise
 
     return success({
       message: 'Wallet addresses updated',
-      evm_wallet_address: evm_wallet_address || null,
+      evm_wallet_address: normalizedEvmAddress,
       solana_wallet_address: solana_wallet_address || null,
     }, requestId);
   } catch (e) {
