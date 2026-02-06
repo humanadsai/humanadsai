@@ -14,10 +14,8 @@
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
     .admin-header h1 { font-family: var(--font-mono); font-size: 1.5rem; }
 
-    /* Wallet Connection - Enhanced */
+    /* Wallet Connection */
     .wallet-section { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; position: relative; }
-
-    /* Wallet Pill - State-aware button */
     .wallet-pill {
       display: flex; align-items: center; gap: 8px; padding: 8px 12px;
       background: var(--color-surface); border: 1px solid var(--color-border);
@@ -26,37 +24,20 @@
     }
     .wallet-pill:hover { border-color: var(--color-primary); }
     .wallet-pill:active { opacity: 0.7; }
-
-    /* Wallet Pill States */
-    .wallet-pill.not-connected {
-      background: rgba(255,59,48,0.1); border-color: rgba(255,59,48,0.3); color: #ff3b30;
-    }
-    .wallet-pill.connected {
-      background: rgba(52,199,89,0.1); border-color: rgba(52,199,89,0.3); color: #34c759;
-    }
-    .wallet-pill.wrong-network {
-      background: rgba(255,149,0,0.1); border-color: rgba(255,149,0,0.3); color: #ff9500;
-    }
-    .wallet-pill.verifying {
-      background: rgba(0,122,255,0.1); border-color: rgba(0,122,255,0.3); color: #007aff;
-    }
-
-    .wallet-pill-icon { width: 16px; height: 16px; }
+    .wallet-pill.not-connected { background: rgba(255,59,48,0.1); border-color: rgba(255,59,48,0.3); color: #ff3b30; }
+    .wallet-pill.connected { background: rgba(52,199,89,0.1); border-color: rgba(52,199,89,0.3); color: #34c759; }
+    .wallet-pill.wrong-network { background: rgba(255,149,0,0.1); border-color: rgba(255,149,0,0.3); color: #ff9500; }
+    .wallet-pill.verifying { background: rgba(0,122,255,0.1); border-color: rgba(0,122,255,0.3); color: #007aff; }
     .wallet-pill-main { display: flex; flex-direction: column; align-items: flex-start; }
     .wallet-pill-label { font-weight: 600; }
     .wallet-pill-sub { font-size: 0.65rem; opacity: 0.7; }
     .wallet-pill-arrow { opacity: 0.5; font-size: 0.6rem; }
-
-    /* Wallet Badges */
     .wallet-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; }
     .wallet-badge.owner { background: rgba(255,107,53,0.2); color: #ff6b35; }
     .wallet-badge.not-owner { background: rgba(255,59,48,0.2); color: #ff3b30; }
 
     /* Action Sheet */
-    .action-sheet-overlay {
-      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5); z-index: 1000;
-    }
+    .action-sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
     .action-sheet-overlay.show { display: block; }
     .action-sheet {
       position: fixed; bottom: 0; left: 0; right: 0;
@@ -65,20 +46,15 @@
       z-index: 1001; transform: translateY(100%); transition: transform 0.3s ease-out;
     }
     .action-sheet-overlay.show .action-sheet { transform: translateY(0); }
-    .action-sheet-header {
-      text-align: center; padding-bottom: 12px; margin-bottom: 12px;
-      border-bottom: 1px solid var(--color-border);
-    }
+    .action-sheet-header { text-align: center; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--color-border); }
     .action-sheet-title { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; }
     .action-sheet-subtitle { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px; }
     .action-sheet-btn {
       width: 100%; padding: 14px; margin-bottom: 8px; border-radius: 10px;
       font-family: var(--font-mono); font-size: 0.875rem; font-weight: 500;
       background: var(--color-bg); border: 1px solid var(--color-border);
-      color: var(--color-text); cursor: pointer; text-align: center;
-      -webkit-tap-highlight-color: transparent;
+      color: var(--color-text); cursor: pointer; text-align: center; -webkit-tap-highlight-color: transparent;
     }
-    .action-sheet-btn:hover { background: rgba(255,255,255,0.05); }
     .action-sheet-btn:active { opacity: 0.7; }
     .action-sheet-btn.primary { background: var(--color-primary); border-color: var(--color-primary); color: white; }
     .action-sheet-btn.danger { color: #ff3b30; }
@@ -91,8 +67,6 @@
     .card-title { font-family: var(--font-mono); font-size: 0.875rem; color: var(--color-text-muted); text-transform: uppercase; }
     .card-value { font-family: var(--font-mono); font-size: 1.75rem; font-weight: 600; }
     .card-sub { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; }
-
-    /* Owner Cards */
     .owner-card { background: linear-gradient(135deg, rgba(52,199,89,0.1) 0%, rgba(0,122,255,0.05) 100%); border-color: rgba(52,199,89,0.3); }
     .owner-form { display: flex; flex-direction: column; gap: 12px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
@@ -100,17 +74,13 @@
     .form-input { width: 100%; padding: 12px; font-family: var(--font-mono); font-size: 0.875rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text); }
     .form-input:focus { outline: none; border-color: var(--color-primary); }
     .form-input:disabled { opacity: 0.5; cursor: not-allowed; }
-    .form-input::placeholder { color: var(--color-text-muted); }
     .form-select { width: 100%; padding: 12px; font-family: var(--font-mono); font-size: 0.875rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text); cursor: pointer; }
     .form-hint { font-size: 0.7rem; color: var(--color-text-muted); }
     .form-hint.fixed { background: rgba(255,149,0,0.1); padding: 4px 8px; border-radius: 4px; }
-
-    /* Faucet Form */
     .faucet-card { background: linear-gradient(135deg, rgba(255,107,53,0.1) 0%, rgba(255,149,0,0.05) 100%); border-color: rgba(255,107,53,0.3); }
     .faucet-form { display: flex; flex-direction: column; gap: 12px; }
     .faucet-input { width: 100%; padding: 12px; font-family: var(--font-mono); font-size: 0.875rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text); }
     .faucet-input:focus { outline: none; border-color: var(--color-primary); }
-    .faucet-input::placeholder { color: var(--color-text-muted); }
     .faucet-amount { display: flex; align-items: center; gap: 8px; }
     .faucet-amount-value { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 600; color: var(--color-primary); }
 
@@ -121,10 +91,38 @@
     .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .action-btn.mint { background: #34c759; }
     .action-btn.transfer { background: #007aff; }
+
+    /* Step Progress */
+    .step-progress { margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; }
+    .step-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+    .step-icon { width: 18px; text-align: center; }
+    .step-icon.pending { color: var(--color-text-muted); }
+    .step-icon.active { color: #007aff; }
+    .step-icon.done { color: #34c759; }
+    .step-icon.error { color: #ff3b30; }
+    .step-text { flex: 1; }
+    .step-text.active { color: #007aff; font-weight: 600; }
+    .step-text.error { color: #ff3b30; }
+
+    /* Status Messages */
     .status-msg { font-size: 0.75rem; padding: 8px; border-radius: 4px; margin-top: 8px; word-break: break-all; }
     .status-msg.success { background: rgba(52,199,89,0.2); color: #34c759; }
     .status-msg.error { background: rgba(255,59,48,0.2); color: #ff3b30; }
     .status-msg.info { background: rgba(0,122,255,0.2); color: #007aff; }
+    .status-msg.warning { background: rgba(255,149,0,0.2); color: #ff9500; }
+
+    /* Pending Alert Banner */
+    .pending-alert {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: #ff3b30; color: white; padding: 12px 16px;
+      font-family: var(--font-mono); font-size: 0.8rem; text-align: center;
+      z-index: 2000; display: none;
+    }
+    .pending-alert.show { display: block; }
+    .pending-alert-btn {
+      margin-left: 12px; padding: 4px 12px; background: white; color: #ff3b30;
+      border: none; border-radius: 4px; font-weight: 600; cursor: pointer;
+    }
 
     /* Config Info */
     .config-info { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); }
@@ -156,69 +154,17 @@
     .address-cell { font-family: var(--font-mono); font-size: 0.7rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
     .table-container { overflow-x: auto; }
     .section-title { font-family: var(--font-mono); font-size: 1rem; margin: 24px 0 16px; }
-
-    /* TX Hash link */
     .tx-link { color: var(--color-primary); text-decoration: none; font-family: var(--font-mono); font-size: 0.7rem; }
     .tx-link:hover { text-decoration: underline; }
-
-    /* Confirmation Modal */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
-    .modal-overlay.show { display: flex; }
-    .modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 24px; max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; }
-    .modal-title { font-family: var(--font-mono); font-size: 1.25rem; margin-bottom: 16px; }
-    .modal-content { margin-bottom: 20px; }
-    .modal-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; }
-    .modal-row:last-child { border-bottom: none; }
-    .modal-label { color: var(--color-text-muted); }
-    .modal-value { font-family: var(--font-mono); text-align: right; word-break: break-all; max-width: 200px; }
-    .modal-actions { display: flex; gap: 12px; }
-    .modal-btn { flex: 1; padding: 14px; border-radius: 8px; font-family: var(--font-mono); font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; font-size: 1rem; }
-    .modal-btn:active { opacity: 0.7; }
-    .modal-btn.cancel { background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text); }
-    .modal-btn.confirm { background: var(--color-primary); border: none; color: white; }
-    .modal-btn.confirm.mint { background: #34c759; }
-    .modal-btn.confirm.transfer { background: #007aff; }
-    .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Debug Panel - Enhanced */
-    .debug-panel { margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.7rem; font-family: var(--font-mono); }
-    .debug-toggle { cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; }
-    .debug-toggle:hover { color: var(--color-text); }
-    .debug-content { margin-top: 8px; display: none; }
-    .debug-content.show { display: block; }
-    .debug-section { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .debug-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-    .debug-section-title { color: var(--color-primary); font-weight: 600; margin-bottom: 4px; }
-    .debug-row { display: flex; justify-content: space-between; padding: 2px 0; }
-    .debug-key { color: var(--color-text-muted); }
-    .debug-value { color: #34c759; word-break: break-all; max-width: 200px; text-align: right; }
-    .debug-value.error { color: #ff3b30; }
-    .debug-value.warn { color: #ff9500; }
-    .debug-value.null { color: #666; font-style: italic; }
-
-    /* Modal Status */
-    .modal-status { margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 0.8rem; display: none; }
-    .modal-status.show { display: block; }
-    .modal-status.info { background: rgba(0,122,255,0.2); color: #007aff; }
-    .modal-status.error { background: rgba(255,59,48,0.2); color: #ff3b30; }
-    .modal-status.success { background: rgba(52,199,89,0.2); color: #34c759; }
-
-    /* Header Debug Panel */
-    .header-debug {
-      margin-top: 8px; padding: 8px 12px; background: rgba(0,0,0,0.2);
-      border-radius: 8px; font-size: 0.65rem; font-family: var(--font-mono);
-      display: none;
-    }
-    .header-debug.show { display: block; }
-    .header-debug-row { display: flex; gap: 16px; flex-wrap: wrap; }
-    .header-debug-item { display: flex; gap: 4px; }
-    .header-debug-key { color: var(--color-text-muted); }
-    .header-debug-value { color: #34c759; }
-    .header-debug-value.error { color: #ff3b30; }
-    .header-debug-value.warn { color: #ff9500; }
   </style>
 </head>
 <body>
+  <!-- Pending Alert Banner -->
+  <div class="pending-alert" id="pending-alert">
+    MetaMaskに保留中の確認があります。
+    <button class="pending-alert-btn" onclick="window.location.href='metamask://'>MetaMaskを開く</button>
+  </div>
+
   <div class="app">
     <header class="header">
       <a href="/" class="logo">
@@ -231,10 +177,7 @@
     </header>
     <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
     <div class="menu-overlay" id="menu-overlay"></div>
-
-    <main class="admin-page" id="content">
-      <div class="loading">Loading token ops...</div>
-    </main>
+    <main class="admin-page" id="content"><div class="loading">Loading token ops...</div></main>
   </div>
 
   <!-- Wallet Action Sheet -->
@@ -248,26 +191,6 @@
       <button class="action-sheet-btn" id="action-copy">Copy Address</button>
       <button class="action-sheet-btn danger" id="action-disconnect">Disconnect</button>
       <button class="action-sheet-btn cancel" id="action-cancel">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Confirmation Modal -->
-  <div class="modal-overlay" id="confirm-modal">
-    <div class="modal">
-      <div class="modal-title" id="modal-title">Confirm Transaction</div>
-      <div class="modal-content" id="modal-content"></div>
-      <div class="modal-status" id="modal-status"></div>
-      <div class="modal-actions">
-        <button class="modal-btn cancel" id="modal-cancel-btn">Cancel</button>
-        <button class="modal-btn confirm" id="modal-confirm-btn">Confirm</button>
-      </div>
-      <!-- Debug Panel -->
-      <div class="debug-panel">
-        <div class="debug-toggle" id="debug-toggle">
-          <span id="debug-arrow">+</span> Debug Info
-        </div>
-        <div class="debug-content" id="debug-content"></div>
-      </div>
     </div>
   </div>
 
@@ -288,137 +211,92 @@
       maxMintAmount: 1000000000,
       defaultMintAmount: 1000000,
       explorerUrl: 'https://sepolia.etherscan.io',
+      defaultGasLimit: '0x30000', // 196608 - plenty for ERC20 mint
     };
 
     // ERC20 function selectors
     const SELECTORS = {
-      mint: '0x40c10f19',
-      transfer: '0xa9059cbb',
-      balanceOf: '0x70a08231',
-      totalSupply: '0x18160ddd',
+      mint: '0x40c10f19',      // mint(address,uint256)
+      transfer: '0xa9059cbb',  // transfer(address,uint256)
+      balanceOf: '0x70a08231', // balanceOf(address)
+      totalSupply: '0x18160ddd', // totalSupply()
+      owner: '0x8da5cb5b',     // owner() - Ownable
     };
 
     // ============================================
-    // State - Enhanced with signer verification
+    // State
     // ============================================
     let walletAddress = null;
-    let signerVerified = false;  // NEW: true only if we can actually sign
+    let signerVerified = false;
     let isOwner = false;
     let currentChainId = null;
     let currentFilter = null;
     let serverConfig = null;
-    let pendingAction = null;
-    let pendingTxParams = null;
-    let debugInfo = {};
-    let connectionState = 'disconnected'; // 'disconnected' | 'verifying' | 'connected' | 'wrong-network'
+    let connectionState = 'disconnected';
+    let mintInProgress = false;
+    let transferInProgress = false;
 
     // ============================================
-    // Debug Logging
+    // Logging
     // ============================================
     function log(level, message, data = null) {
-      const timestamp = new Date().toISOString();
-      const logEntry = { timestamp, level, message, data };
-      console[level === 'error' ? 'error' : 'log'](`[TokenOps] ${message}`, data || '');
-
-      // Store for debug panel
-      if (!window.tokenOpsLogs) window.tokenOpsLogs = [];
-      window.tokenOpsLogs.push(logEntry);
-      if (window.tokenOpsLogs.length > 50) window.tokenOpsLogs.shift();
+      const ts = new Date().toISOString().substr(11, 12);
+      console[level === 'error' ? 'error' : 'log'](`[${ts}] ${message}`, data || '');
     }
 
-    function updateDebugPanel() {
-      const content = document.getElementById('debug-content');
-      if (!content) return;
+    // ============================================
+    // Step Progress UI
+    // ============================================
+    const MINT_STEPS = [
+      { id: 'refresh', label: '1. Refresh accounts' },
+      { id: 'chain', label: '2. Check chain' },
+      { id: 'owner', label: '3. Verify owner on-chain' },
+      { id: 'send', label: '4. Send to MetaMask' },
+      { id: 'confirm', label: '5. Waiting for confirmation' },
+    ];
 
-      const provider = window.ethereum;
+    function renderStepProgress(containerId, steps, currentStep, errorStep = null, errorMsg = null) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
 
-      // Build comprehensive debug info
-      debugInfo = {
-        // Provider Info
-        hasWindowEthereum: !!provider,
-        providerType: provider ? (provider.isMetaMask ? 'MetaMask' : provider.isCoinbaseWallet ? 'Coinbase' : 'Unknown') : 'none',
-        isMetaMaskMobile: provider ? (provider.isMetaMask && /Mobile|Android|iPhone/i.test(navigator.userAgent)) : false,
+      const currentIdx = steps.findIndex(s => s.id === currentStep);
+      const errorIdx = errorStep ? steps.findIndex(s => s.id === errorStep) : -1;
 
-        // Connection State
-        connectionState: connectionState,
-        signerVerified: signerVerified,
-        walletAddress: walletAddress,
+      container.innerHTML = `
+        <div class="step-progress">
+          ${steps.map((step, idx) => {
+            let iconClass = 'pending';
+            let icon = '○';
+            let textClass = '';
 
-        // Chain Info
-        chainId: currentChainId,
-        chainIdHex: currentChainId ? '0x' + currentChainId.toString(16) : null,
-        expectedChainId: CONFIG.chainId,
-        isCorrectChain: currentChainId === CONFIG.chainId,
+            if (errorIdx >= 0 && idx === errorIdx) {
+              iconClass = 'error';
+              icon = '✗';
+              textClass = 'error';
+            } else if (idx < currentIdx || (currentStep === 'done' && idx < steps.length)) {
+              iconClass = 'done';
+              icon = '✓';
+            } else if (idx === currentIdx && currentStep !== 'done') {
+              iconClass = 'active';
+              icon = '◉';
+              textClass = 'active';
+            }
 
-        // Owner Info
-        isOwner: isOwner,
-        ownerAddress: CONFIG.ownerAddress,
-
-        // Contract
-        contract: CONFIG.husdContract,
-      };
-
-      if (pendingTxParams) {
-        debugInfo.pendingTx = pendingTxParams;
-      }
-
-      // Render with sections
-      content.innerHTML = `
-        <div class="debug-section">
-          <div class="debug-section-title">Provider</div>
-          ${renderDebugRows({
-            hasWindowEthereum: debugInfo.hasWindowEthereum,
-            providerType: debugInfo.providerType,
-            isMetaMaskMobile: debugInfo.isMetaMaskMobile,
-          })}
+            return `
+              <div class="step-item">
+                <span class="step-icon ${iconClass}">${icon}</span>
+                <span class="step-text ${textClass}">${step.label}</span>
+              </div>
+            `;
+          }).join('')}
+          ${errorMsg ? `<div class="status-msg error" style="margin-top:8px">${errorMsg}</div>` : ''}
         </div>
-        <div class="debug-section">
-          <div class="debug-section-title">Connection</div>
-          ${renderDebugRows({
-            state: debugInfo.connectionState,
-            signerVerified: debugInfo.signerVerified,
-            address: debugInfo.walletAddress,
-          })}
-        </div>
-        <div class="debug-section">
-          <div class="debug-section-title">Chain</div>
-          ${renderDebugRows({
-            chainId: debugInfo.chainId,
-            expected: debugInfo.expectedChainId,
-            isCorrect: debugInfo.isCorrectChain,
-          })}
-        </div>
-        <div class="debug-section">
-          <div class="debug-section-title">Owner</div>
-          ${renderDebugRows({
-            isOwner: debugInfo.isOwner,
-            ownerAddr: debugInfo.ownerAddress?.substring(0, 14) + '...',
-          })}
-        </div>
-        ${debugInfo.pendingTx ? `
-        <div class="debug-section">
-          <div class="debug-section-title">Pending TX</div>
-          <div class="debug-row"><span class="debug-key">from</span><span class="debug-value">${debugInfo.pendingTx.from?.substring(0, 14)}...</span></div>
-          <div class="debug-row"><span class="debug-key">to</span><span class="debug-value">${debugInfo.pendingTx.to?.substring(0, 14)}...</span></div>
-          <div class="debug-row"><span class="debug-key">data</span><span class="debug-value">${debugInfo.pendingTx.data?.substring(0, 20)}...</span></div>
-        </div>
-        ` : ''}
       `;
     }
 
-    function renderDebugRows(obj) {
-      return Object.entries(obj).map(([key, value]) => {
-        let valueClass = '';
-        if (value === null || value === undefined) valueClass = 'null';
-        else if (value === false) valueClass = 'error';
-        else if (key === 'state' && value !== 'connected') valueClass = value === 'wrong-network' ? 'warn' : 'error';
-        else if (key === 'signerVerified' && !value) valueClass = 'error';
-        else if (key === 'isCorrect' && !value) valueClass = 'error';
-        else if (key === 'isOwner' && !value) valueClass = 'warn';
-
-        const displayValue = value === null || value === undefined ? 'null' : String(value);
-        return `<div class="debug-row"><span class="debug-key">${key}</span><span class="debug-value ${valueClass}">${displayValue}</span></div>`;
-      }).join('');
+    function clearStepProgress(containerId) {
+      const container = document.getElementById(containerId);
+      if (container) container.innerHTML = '';
     }
 
     // ============================================
@@ -426,113 +304,82 @@
     // ============================================
     function getProvider() {
       if (typeof window.ethereum === 'undefined') {
-        log('error', 'No ethereum provider found');
+        log('error', 'No ethereum provider');
         return null;
       }
       return window.ethereum;
     }
 
-    /**
-     * Verify signer connection - the "truth" check
-     * Returns true only if we can actually get a signer that can sign transactions
-     */
-    async function verifySignerConnection() {
+    async function getFreshAccounts() {
       const provider = getProvider();
-      if (!provider) {
-        log('info', 'verifySignerConnection: no provider');
-        return { verified: false, address: null, reason: 'No provider' };
+      if (!provider) throw new Error('No wallet provider');
+
+      log('info', 'eth_requestAccounts...');
+      const accounts = await provider.request({ method: 'eth_requestAccounts' });
+      log('info', 'Accounts:', accounts);
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts returned');
       }
-
-      try {
-        // Step 1: Check if we have accounts via eth_accounts (non-interactive)
-        const accounts = await provider.request({ method: 'eth_accounts' });
-        log('info', 'eth_accounts result', accounts);
-
-        if (!accounts || accounts.length === 0) {
-          return { verified: false, address: null, reason: 'No accounts (not connected)' };
-        }
-
-        const address = accounts[0].toLowerCase();
-
-        // Step 2: Verify we can actually use this account by checking chain
-        const chainIdHex = await provider.request({ method: 'eth_chainId' });
-        const chainId = parseInt(chainIdHex, 16);
-
-        // Step 3: Try a simple personal_sign test message to verify signer capability
-        // Actually, this would prompt the user - let's skip this for now and trust eth_accounts
-        // The real test will be when we try to send a transaction
-
-        log('info', 'Signer verified', { address, chainId });
-        return { verified: true, address, chainId };
-
-      } catch (e) {
-        log('error', 'verifySignerConnection failed', { code: e.code, message: e.message });
-        return { verified: false, address: null, reason: e.message };
-      }
+      return accounts[0].toLowerCase();
     }
 
-    /**
-     * Connect wallet - request accounts
-     */
+    async function getFreshChainId() {
+      const provider = getProvider();
+      if (!provider) throw new Error('No wallet provider');
+
+      const chainIdHex = await provider.request({ method: 'eth_chainId' });
+      return parseInt(chainIdHex, 16);
+    }
+
+    async function getOnchainOwner() {
+      const provider = getProvider();
+      if (!provider) throw new Error('No wallet provider');
+
+      log('info', 'Reading owner() from contract...');
+      const result = await provider.request({
+        method: 'eth_call',
+        params: [{ to: CONFIG.husdContract, data: SELECTORS.owner }, 'latest'],
+      });
+      // Result is 32 bytes padded address
+      const ownerAddr = '0x' + result.slice(26).toLowerCase();
+      log('info', 'On-chain owner:', ownerAddr);
+      return ownerAddr;
+    }
+
+    // ============================================
+    // Wallet Connection
+    // ============================================
     async function connectWallet() {
-      log('info', 'connectWallet called');
+      log('info', 'connectWallet');
       connectionState = 'verifying';
       updateWalletUI();
 
       const provider = getProvider();
       if (!provider) {
-        alert('No wallet detected. Please open this page in MetaMask browser or install MetaMask extension.');
+        alert('No wallet detected. Please open in MetaMask browser.');
         connectionState = 'disconnected';
         updateWalletUI();
         return false;
       }
 
       try {
-        // Request accounts - this will prompt the user
-        log('info', 'Requesting eth_requestAccounts...');
-        const accounts = await provider.request({ method: 'eth_requestAccounts' });
-        log('info', 'Accounts received', accounts);
-
-        if (!accounts || accounts.length === 0) {
-          throw new Error('No accounts returned');
-        }
-
-        walletAddress = accounts[0].toLowerCase();
+        walletAddress = await getFreshAccounts();
+        currentChainId = await getFreshChainId();
         isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
-
-        // Get chain
-        const chainIdHex = await provider.request({ method: 'eth_chainId' });
-        currentChainId = parseInt(chainIdHex, 16);
-
-        // Mark as verified
         signerVerified = true;
 
-        // Set up listeners
         provider.on('accountsChanged', handleAccountsChanged);
         provider.on('chainChanged', handleChainChanged);
 
-        // Determine connection state
-        if (currentChainId !== CONFIG.chainId) {
-          connectionState = 'wrong-network';
-        } else {
-          connectionState = 'connected';
-        }
-
+        connectionState = currentChainId === CONFIG.chainId ? 'connected' : 'wrong-network';
         updateWalletUI();
-        await refreshOnchainData();
-        log('info', 'Wallet connected successfully', { address: walletAddress, chainId: currentChainId });
+        refreshOnchainData();
         return true;
-
       } catch (e) {
-        log('error', 'connectWallet failed', { code: e.code, message: e.message });
-
-        if (e.code === 4001) {
-          // User rejected
-          alert('Connection rejected. Please approve the connection request.');
-        } else {
-          alert('Failed to connect: ' + e.message);
-        }
-
+        log('error', 'Connect failed', e);
+        if (e.code === 4001) alert('Connection rejected');
+        else alert('Failed: ' + e.message);
         connectionState = 'disconnected';
         signerVerified = false;
         walletAddress = null;
@@ -541,75 +388,48 @@
       }
     }
 
-    /**
-     * Reconnect wallet - force new connection with wallet_requestPermissions
-     */
     async function reconnectWallet() {
-      log('info', 'reconnectWallet called');
+      log('info', 'reconnectWallet');
       connectionState = 'verifying';
       updateWalletUI();
 
       const provider = getProvider();
       if (!provider) {
-        alert('No wallet detected.');
+        alert('No wallet detected');
         connectionState = 'disconnected';
         updateWalletUI();
         return false;
       }
 
       try {
-        // Clear any cached state
-        clearLocalWalletState();
+        // Clear cached state
+        ['walletconnect', 'wagmi.wallet', 'wagmi.connected'].forEach(k => {
+          try { localStorage.removeItem(k); sessionStorage.removeItem(k); } catch(e) {}
+        });
 
-        // Force permission request - this should always prompt
-        log('info', 'Requesting wallet_requestPermissions...');
+        // Force permission request
         try {
-          await provider.request({
-            method: 'wallet_requestPermissions',
-            params: [{ eth_accounts: {} }],
-          });
-          log('info', 'wallet_requestPermissions succeeded');
-        } catch (permError) {
-          // Some wallets don't support wallet_requestPermissions, fall back to eth_requestAccounts
-          log('info', 'wallet_requestPermissions failed, falling back to eth_requestAccounts', permError.message);
+          await provider.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] });
+        } catch (e) {
+          log('info', 'wallet_requestPermissions failed, trying eth_requestAccounts');
         }
 
-        // Now get accounts
-        const accounts = await provider.request({ method: 'eth_requestAccounts' });
-        log('info', 'Reconnect accounts', accounts);
-
-        if (!accounts || accounts.length === 0) {
-          throw new Error('No accounts returned');
-        }
-
-        walletAddress = accounts[0].toLowerCase();
+        walletAddress = await getFreshAccounts();
+        currentChainId = await getFreshChainId();
         isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
-
-        // Get chain
-        const chainIdHex = await provider.request({ method: 'eth_chainId' });
-        currentChainId = parseInt(chainIdHex, 16);
-
         signerVerified = true;
 
-        // Set up listeners
         provider.removeListener('accountsChanged', handleAccountsChanged);
         provider.removeListener('chainChanged', handleChainChanged);
         provider.on('accountsChanged', handleAccountsChanged);
         provider.on('chainChanged', handleChainChanged);
 
-        if (currentChainId !== CONFIG.chainId) {
-          connectionState = 'wrong-network';
-        } else {
-          connectionState = 'connected';
-        }
-
+        connectionState = currentChainId === CONFIG.chainId ? 'connected' : 'wrong-network';
         updateWalletUI();
-        await refreshOnchainData();
-        log('info', 'Wallet reconnected successfully');
+        refreshOnchainData();
         return true;
-
       } catch (e) {
-        log('error', 'reconnectWallet failed', { code: e.code, message: e.message });
+        log('error', 'Reconnect failed', e);
         alert('Reconnect failed: ' + e.message);
         connectionState = 'disconnected';
         signerVerified = false;
@@ -619,121 +439,24 @@
       }
     }
 
-    /**
-     * Disconnect wallet - clear all state
-     */
     function disconnectWallet() {
-      log('info', 'disconnectWallet called');
-
+      log('info', 'disconnectWallet');
       const provider = getProvider();
       if (provider) {
         provider.removeListener('accountsChanged', handleAccountsChanged);
         provider.removeListener('chainChanged', handleChainChanged);
       }
-
-      // Clear state
       walletAddress = null;
       signerVerified = false;
       isOwner = false;
       currentChainId = null;
       connectionState = 'disconnected';
-
-      // Clear local storage
-      clearLocalWalletState();
-
       updateWalletUI();
-      log('info', 'Wallet disconnected');
-    }
-
-    /**
-     * Clear local wallet state (localStorage/sessionStorage)
-     */
-    function clearLocalWalletState() {
-      // Clear common wallet connection keys
-      const keysToRemove = [
-        'walletconnect',
-        'WALLETCONNECT_DEEPLINK_CHOICE',
-        'wagmi.wallet',
-        'wagmi.connected',
-        'wagmi.cache',
-        'metamask.connected',
-      ];
-
-      keysToRemove.forEach(key => {
-        try {
-          localStorage.removeItem(key);
-          sessionStorage.removeItem(key);
-        } catch (e) {}
-      });
-
-      // Clear all wagmi-related keys
-      try {
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('wagmi') || key.startsWith('wc@')) {
-            localStorage.removeItem(key);
-          }
-        });
-      } catch (e) {}
-    }
-
-    /**
-     * Switch to Sepolia network
-     */
-    async function switchToSepolia() {
-      const provider = getProvider();
-      if (!provider) return false;
-
-      log('info', 'Switching to Sepolia...');
-      try {
-        await provider.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: CONFIG.chainIdHex }],
-        });
-        log('info', 'Chain switched successfully');
-
-        const chainIdHex = await provider.request({ method: 'eth_chainId' });
-        currentChainId = parseInt(chainIdHex, 16);
-
-        if (currentChainId === CONFIG.chainId) {
-          connectionState = 'connected';
-          updateWalletUI();
-          return true;
-        }
-      } catch (switchError) {
-        log('error', 'Chain switch failed', { code: switchError.code, message: switchError.message });
-
-        if (switchError.code === 4902) {
-          // Chain not added, try to add it
-          try {
-            await provider.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: CONFIG.chainIdHex,
-                chainName: 'Sepolia Testnet',
-                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                rpcUrls: ['https://rpc.sepolia.org'],
-                blockExplorerUrls: ['https://sepolia.etherscan.io'],
-              }],
-            });
-            log('info', 'Sepolia chain added');
-            return await switchToSepolia();
-          } catch (addError) {
-            log('error', 'Failed to add Sepolia', addError);
-            alert('Failed to add Sepolia network. Please add it manually in MetaMask.');
-          }
-        } else if (switchError.code === 4001) {
-          alert('Network switch rejected. Please switch to Sepolia manually.');
-        } else {
-          alert('Failed to switch network: ' + switchError.message);
-        }
-      }
-      return false;
     }
 
     function handleAccountsChanged(accounts) {
-      log('info', 'accountsChanged event', accounts);
+      log('info', 'accountsChanged', accounts);
       if (accounts.length === 0) {
-        // User disconnected
         walletAddress = null;
         signerVerified = false;
         isOwner = false;
@@ -749,13 +472,11 @@
     }
 
     function handleChainChanged(chainIdHex) {
-      log('info', 'chainChanged event', chainIdHex);
+      log('info', 'chainChanged', chainIdHex);
       currentChainId = parseInt(chainIdHex, 16);
-
       if (walletAddress && signerVerified) {
         connectionState = currentChainId === CONFIG.chainId ? 'connected' : 'wrong-network';
       }
-
       updateWalletUI();
       refreshOnchainData();
     }
@@ -764,13 +485,10 @@
     // Wallet UI
     // ============================================
     function updateWalletUI() {
-      const walletSection = document.getElementById('wallet-section');
-      if (!walletSection) return;
+      const section = document.getElementById('wallet-section');
+      if (!section) return;
 
-      let pillClass = '';
-      let pillLabel = '';
-      let pillSub = '';
-      let showArrow = false;
+      let pillClass, pillLabel, pillSub, showArrow = false;
 
       switch (connectionState) {
         case 'disconnected':
@@ -785,23 +503,23 @@
           break;
         case 'wrong-network':
           pillClass = 'wrong-network';
-          pillLabel = walletAddress ? walletAddress.substring(0, 6) + '...' + walletAddress.substring(38) : 'Wrong Network';
+          pillLabel = walletAddress ? walletAddress.substring(0,6) + '...' + walletAddress.substring(38) : 'Wrong Network';
           pillSub = 'Switch to Sepolia';
           showArrow = true;
           break;
         case 'connected':
           pillClass = 'connected';
-          pillLabel = walletAddress.substring(0, 6) + '...' + walletAddress.substring(38);
+          pillLabel = walletAddress.substring(0,6) + '...' + walletAddress.substring(38);
           pillSub = 'MetaMask • Sepolia';
           showArrow = true;
           break;
       }
 
-      const ownerBadge = (connectionState === 'connected' || connectionState === 'wrong-network') && walletAddress
+      const badge = (connectionState === 'connected' || connectionState === 'wrong-network') && walletAddress
         ? `<span class="wallet-badge ${isOwner ? 'owner' : 'not-owner'}">${isOwner ? 'OWNER' : 'NOT OWNER'}</span>`
         : '';
 
-      walletSection.innerHTML = `
+      section.innerHTML = `
         <div class="wallet-pill ${pillClass}" id="wallet-pill">
           <div class="wallet-pill-main">
             <span class="wallet-pill-label">${pillLabel}</span>
@@ -809,50 +527,22 @@
           </div>
           ${showArrow ? '<span class="wallet-pill-arrow">▼</span>' : ''}
         </div>
-        ${ownerBadge}
+        ${badge}
       `;
 
-      // Attach click handler
-      const pill = document.getElementById('wallet-pill');
-      if (pill) {
-        pill.addEventListener('click', handleWalletPillClick);
-      }
-
+      document.getElementById('wallet-pill')?.addEventListener('click', handleWalletPillClick);
       updateButtonStates();
     }
 
     function handleWalletPillClick() {
-      log('info', 'Wallet pill clicked', { connectionState });
-
-      switch (connectionState) {
-        case 'disconnected':
-          connectWallet();
-          break;
-        case 'verifying':
-          // Do nothing while verifying
-          break;
-        case 'wrong-network':
-          // Show action sheet
-          showWalletActionSheet();
-          break;
-        case 'connected':
-          // Show action sheet
-          showWalletActionSheet();
-          break;
-      }
+      if (connectionState === 'disconnected') connectWallet();
+      else if (connectionState === 'connected' || connectionState === 'wrong-network') showWalletActionSheet();
     }
 
     function showWalletActionSheet() {
-      const overlay = document.getElementById('wallet-action-sheet');
-      const title = document.getElementById('action-sheet-title');
-      const subtitle = document.getElementById('action-sheet-subtitle');
-
-      title.textContent = walletAddress ? walletAddress.substring(0, 8) + '...' + walletAddress.substring(36) : 'Wallet';
-      subtitle.textContent = connectionState === 'wrong-network'
-        ? 'Wrong network - switch to Sepolia'
-        : (isOwner ? 'Owner Account • Sepolia' : 'Sepolia');
-
-      overlay.classList.add('show');
+      document.getElementById('action-sheet-title').textContent = walletAddress ? walletAddress.substring(0,8) + '...' + walletAddress.substring(36) : 'Wallet';
+      document.getElementById('action-sheet-subtitle').textContent = connectionState === 'wrong-network' ? 'Wrong network' : (isOwner ? 'Owner • Sepolia' : 'Sepolia');
+      document.getElementById('wallet-action-sheet').classList.add('show');
     }
 
     function hideWalletActionSheet() {
@@ -861,53 +551,296 @@
 
     function copyWalletAddress() {
       if (!walletAddress) return;
-
       navigator.clipboard.writeText(walletAddress).then(() => {
-        // Show brief toast
         const title = document.getElementById('action-sheet-title');
-        const original = title.textContent;
         title.textContent = 'Copied!';
-        setTimeout(() => {
-          title.textContent = original;
-          hideWalletActionSheet();
-        }, 1000);
-      }).catch(err => {
-        alert('Failed to copy: ' + err.message);
+        setTimeout(() => hideWalletActionSheet(), 800);
       });
     }
 
     function updateButtonStates() {
       const mintBtn = document.getElementById('mint-btn');
       const transferBtn = document.getElementById('transfer-btn');
-
-      // Can only execute if: signer verified + correct chain + is owner
       const canExecute = signerVerified && currentChainId === CONFIG.chainId && isOwner;
 
       if (mintBtn) {
-        mintBtn.disabled = !canExecute;
-        if (!signerVerified) {
-          mintBtn.textContent = 'Connect Wallet First';
-        } else if (currentChainId !== CONFIG.chainId) {
-          mintBtn.textContent = 'Switch to Sepolia';
-        } else if (!isOwner) {
-          mintBtn.textContent = `Owner only: ${CONFIG.ownerAddress.substring(0, 10)}...`;
-        } else {
-          mintBtn.textContent = 'Mint hUSD';
-        }
+        mintBtn.disabled = !canExecute || mintInProgress;
+        if (mintInProgress) mintBtn.textContent = 'Processing...';
+        else if (!signerVerified) mintBtn.textContent = 'Connect Wallet First';
+        else if (currentChainId !== CONFIG.chainId) mintBtn.textContent = 'Switch to Sepolia';
+        else if (!isOwner) mintBtn.textContent = `Owner only`;
+        else mintBtn.textContent = 'Mint hUSD';
       }
 
       if (transferBtn) {
-        transferBtn.disabled = !canExecute;
-        if (!signerVerified) {
-          transferBtn.textContent = 'Connect Wallet First';
-        } else if (currentChainId !== CONFIG.chainId) {
-          transferBtn.textContent = 'Switch to Sepolia';
-        } else if (!isOwner) {
-          transferBtn.textContent = `Owner only: ${CONFIG.ownerAddress.substring(0, 10)}...`;
-        } else {
-          transferBtn.textContent = 'Transfer to Treasury';
-        }
+        transferBtn.disabled = !canExecute || transferInProgress;
+        if (transferInProgress) transferBtn.textContent = 'Processing...';
+        else if (!signerVerified) transferBtn.textContent = 'Connect Wallet First';
+        else if (currentChainId !== CONFIG.chainId) transferBtn.textContent = 'Switch to Sepolia';
+        else if (!isOwner) transferBtn.textContent = `Owner only`;
+        else transferBtn.textContent = 'Transfer to Treasury';
       }
+    }
+
+    // ============================================
+    // Pending Alert
+    // ============================================
+    function showPendingAlert() {
+      document.getElementById('pending-alert').classList.add('show');
+    }
+
+    function hidePendingAlert() {
+      document.getElementById('pending-alert').classList.remove('show');
+    }
+
+    // ============================================
+    // Direct Mint - ALL IN ONE CLICK HANDLER
+    // ============================================
+    async function directMint() {
+      if (mintInProgress) return;
+
+      const toSelect = document.getElementById('mint-to');
+      const amountInput = document.getElementById('mint-amount');
+      const to = toSelect?.value || CONFIG.ownerAddress;
+      const amount = parseInt(amountInput?.value) || CONFIG.defaultMintAmount;
+
+      log('info', '=== MINT_CLICK ===', { time: new Date().toISOString(), to, amount, walletAddress, currentChainId, isOwner });
+
+      if (amount <= 0 || amount > CONFIG.maxMintAmount) {
+        showMintStatus(`Invalid amount (1 - ${CONFIG.maxMintAmount.toLocaleString()})`, 'error');
+        return;
+      }
+
+      mintInProgress = true;
+      updateButtonStates();
+
+      const provider = getProvider();
+      if (!provider) {
+        showMintStatus('No wallet provider. Open in MetaMask browser.', 'error');
+        mintInProgress = false;
+        updateButtonStates();
+        return;
+      }
+
+      let currentStep = 'refresh';
+
+      try {
+        // STEP 1: Refresh accounts
+        renderStepProgress('mint-progress', MINT_STEPS, 'refresh');
+        const freshAddr = await getFreshAccounts();
+        walletAddress = freshAddr;
+        log('info', 'Fresh address:', freshAddr);
+
+        // STEP 2: Check chain
+        currentStep = 'chain';
+        renderStepProgress('mint-progress', MINT_STEPS, 'chain');
+        const freshChain = await getFreshChainId();
+        currentChainId = freshChain;
+        log('info', 'Fresh chainId:', freshChain);
+
+        if (freshChain !== CONFIG.chainId) {
+          throw new Error(`Wrong chain (${freshChain}). Need Sepolia (${CONFIG.chainId}).`);
+        }
+
+        // STEP 3: Verify owner on-chain
+        currentStep = 'owner';
+        renderStepProgress('mint-progress', MINT_STEPS, 'owner');
+        const onchainOwner = await getOnchainOwner();
+
+        if (onchainOwner !== freshAddr) {
+          throw new Error(`Not owner. On-chain owner: ${onchainOwner}, your address: ${freshAddr}`);
+        }
+        isOwner = true;
+        updateWalletUI();
+
+        // STEP 4: Build & send transaction
+        currentStep = 'send';
+        renderStepProgress('mint-progress', MINT_STEPS, 'send');
+
+        const paddedTo = to.toLowerCase().replace('0x', '').padStart(64, '0');
+        const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
+        const paddedAmount = amountWei.toString(16).padStart(64, '0');
+        const data = SELECTORS.mint + paddedTo + paddedAmount;
+
+        const txParams = {
+          from: freshAddr,
+          to: CONFIG.husdContract,
+          data: data,
+          gas: CONFIG.defaultGasLimit, // Fixed gas - skip estimateGas
+        };
+
+        log('info', 'eth_sendTransaction params:', txParams);
+
+        // STEP 5: Send & wait for MetaMask
+        currentStep = 'confirm';
+        renderStepProgress('mint-progress', MINT_STEPS, 'confirm');
+
+        const txHash = await provider.request({
+          method: 'eth_sendTransaction',
+          params: [txParams],
+        });
+
+        log('info', 'TX broadcasted:', txHash);
+
+        // SUCCESS
+        renderStepProgress('mint-progress', MINT_STEPS, 'done');
+        showMintStatus(
+          `✅ Mint submitted! <a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank" class="tx-link">${txHash.substring(0,20)}...</a>`,
+          'success'
+        );
+
+        logTokenOp('owner_mint', txHash, freshAddr, to, amount);
+
+        setTimeout(() => {
+          refreshOnchainData();
+          loadTokenOps(currentFilter);
+        }, 5000);
+
+      } catch (e) {
+        log('error', 'Mint failed at step ' + currentStep, { code: e.code, message: e.message, data: e.data });
+
+        let errorMsg = e.message;
+
+        // Handle specific error codes
+        if (e.code === -32002) {
+          // Pending request in MetaMask
+          errorMsg = 'MetaMaskに保留中の確認があります。MetaMaskアプリを開いて処理してください。';
+          showPendingAlert();
+        } else if (e.code === 4001) {
+          errorMsg = 'Transaction rejected by user';
+        } else if (e.code === -32603) {
+          errorMsg = 'Internal error: ' + (e.data?.message || e.message);
+        } else if (e.message?.includes('execution reverted')) {
+          errorMsg = 'Transaction would revert: ' + e.message;
+        }
+
+        renderStepProgress('mint-progress', MINT_STEPS, currentStep, currentStep, errorMsg);
+
+      } finally {
+        mintInProgress = false;
+        updateButtonStates();
+      }
+    }
+
+    // ============================================
+    // Direct Transfer
+    // ============================================
+    async function directTransfer() {
+      if (transferInProgress) return;
+
+      const amountInput = document.getElementById('transfer-amount');
+      const amount = parseInt(amountInput?.value) || CONFIG.defaultMintAmount;
+
+      log('info', '=== TRANSFER_CLICK ===', { time: new Date().toISOString(), amount, walletAddress, currentChainId, isOwner });
+
+      if (amount <= 0 || amount > CONFIG.maxMintAmount) {
+        showTransferStatus(`Invalid amount (1 - ${CONFIG.maxMintAmount.toLocaleString()})`, 'error');
+        return;
+      }
+
+      transferInProgress = true;
+      updateButtonStates();
+
+      const provider = getProvider();
+      if (!provider) {
+        showTransferStatus('No wallet provider', 'error');
+        transferInProgress = false;
+        updateButtonStates();
+        return;
+      }
+
+      let currentStep = 'refresh';
+
+      try {
+        // STEP 1: Refresh
+        renderStepProgress('transfer-progress', MINT_STEPS, 'refresh');
+        const freshAddr = await getFreshAccounts();
+        walletAddress = freshAddr;
+
+        // STEP 2: Chain
+        currentStep = 'chain';
+        renderStepProgress('transfer-progress', MINT_STEPS, 'chain');
+        const freshChain = await getFreshChainId();
+        currentChainId = freshChain;
+
+        if (freshChain !== CONFIG.chainId) {
+          throw new Error(`Wrong chain (${freshChain}). Need Sepolia.`);
+        }
+
+        // STEP 3: Verify owner (for transfer, user just needs balance, but we check anyway)
+        currentStep = 'owner';
+        renderStepProgress('transfer-progress', MINT_STEPS, 'owner');
+        // For transfer we just check they have the tokens - skip owner check
+
+        // STEP 4: Send
+        currentStep = 'send';
+        renderStepProgress('transfer-progress', MINT_STEPS, 'send');
+
+        const paddedTo = CONFIG.treasuryAddress.toLowerCase().replace('0x', '').padStart(64, '0');
+        const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
+        const paddedAmount = amountWei.toString(16).padStart(64, '0');
+        const data = SELECTORS.transfer + paddedTo + paddedAmount;
+
+        const txParams = {
+          from: freshAddr,
+          to: CONFIG.husdContract,
+          data: data,
+          gas: CONFIG.defaultGasLimit,
+        };
+
+        log('info', 'eth_sendTransaction params:', txParams);
+
+        // STEP 5: Confirm
+        currentStep = 'confirm';
+        renderStepProgress('transfer-progress', MINT_STEPS, 'confirm');
+
+        const txHash = await provider.request({
+          method: 'eth_sendTransaction',
+          params: [txParams],
+        });
+
+        log('info', 'TX broadcasted:', txHash);
+
+        renderStepProgress('transfer-progress', MINT_STEPS, 'done');
+        showTransferStatus(
+          `✅ Transfer submitted! <a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank" class="tx-link">${txHash.substring(0,20)}...</a>`,
+          'success'
+        );
+
+        logTokenOp('owner_transfer', txHash, freshAddr, CONFIG.treasuryAddress, amount);
+
+        setTimeout(() => {
+          refreshOnchainData();
+          loadTokenOps(currentFilter);
+        }, 5000);
+
+      } catch (e) {
+        log('error', 'Transfer failed at step ' + currentStep, { code: e.code, message: e.message });
+
+        let errorMsg = e.message;
+        if (e.code === -32002) {
+          errorMsg = 'MetaMaskに保留中の確認があります。';
+          showPendingAlert();
+        } else if (e.code === 4001) {
+          errorMsg = 'Rejected by user';
+        }
+
+        renderStepProgress('transfer-progress', MINT_STEPS, currentStep, currentStep, errorMsg);
+
+      } finally {
+        transferInProgress = false;
+        updateButtonStates();
+      }
+    }
+
+    function showMintStatus(msg, type) {
+      const el = document.getElementById('mint-status');
+      if (el) { el.className = 'status-msg ' + type; el.innerHTML = msg; }
+    }
+
+    function showTransferStatus(msg, type) {
+      const el = document.getElementById('transfer-status');
+      if (el) { el.className = 'status-msg ' + type; el.innerHTML = msg; }
     }
 
     // ============================================
@@ -916,11 +849,9 @@
     async function readContract(selector, params = '') {
       const provider = getProvider();
       if (!provider) return null;
-
-      const data = selector + params;
       const result = await provider.request({
         method: 'eth_call',
-        params: [{ to: CONFIG.husdContract, data }, 'latest'],
+        params: [{ to: CONFIG.husdContract, data: selector + params }, 'latest'],
       });
       return result;
     }
@@ -929,404 +860,34 @@
       try {
         const result = await readContract(SELECTORS.totalSupply);
         if (!result) return null;
-        const raw = BigInt(result);
-        return Number(raw / BigInt(10 ** CONFIG.decimals));
-      } catch (e) {
-        log('error', 'getTotalSupply error', e.message);
-        return null;
-      }
+        return Number(BigInt(result) / BigInt(10 ** CONFIG.decimals));
+      } catch { return null; }
     }
 
     async function getBalance(address) {
       try {
-        const paddedAddress = address.toLowerCase().replace('0x', '').padStart(64, '0');
-        const result = await readContract(SELECTORS.balanceOf, paddedAddress);
+        const padded = address.toLowerCase().replace('0x', '').padStart(64, '0');
+        const result = await readContract(SELECTORS.balanceOf, padded);
         if (!result) return null;
-        const raw = BigInt(result);
-        return Number(raw / BigInt(10 ** CONFIG.decimals));
-      } catch (e) {
-        log('error', 'getBalance error', e.message);
-        return null;
-      }
+        return Number(BigInt(result) / BigInt(10 ** CONFIG.decimals));
+      } catch { return null; }
     }
 
     async function refreshOnchainData() {
       if (!signerVerified) return;
-
       try {
-        const [totalSupply, ownerBalance, treasuryBalance] = await Promise.all([
+        const [supply, ownerBal, treasuryBal] = await Promise.all([
           getTotalSupply(),
           getBalance(CONFIG.ownerAddress),
           getBalance(CONFIG.treasuryAddress),
         ]);
-
-        const totalSupplyEl = document.getElementById('total-supply');
-        const ownerBalanceEl = document.getElementById('owner-balance');
-        const treasuryBalanceEl = document.getElementById('treasury-balance-live');
-
-        if (totalSupplyEl && totalSupply !== null) {
-          totalSupplyEl.textContent = totalSupply.toLocaleString() + ' hUSD';
-        }
-        if (ownerBalanceEl && ownerBalance !== null) {
-          ownerBalanceEl.textContent = ownerBalance.toLocaleString() + ' hUSD';
-        }
-        if (treasuryBalanceEl && treasuryBalance !== null) {
-          treasuryBalanceEl.textContent = treasuryBalance.toLocaleString() + ' hUSD';
-        }
-      } catch (e) {
-        log('error', 'refreshOnchainData error', e.message);
-      }
-    }
-
-    // ============================================
-    // Modal Management
-    // ============================================
-    function showConfirmModal(action, title, details, btnClass, txParams) {
-      pendingAction = action;
-      pendingTxParams = txParams;
-
-      document.getElementById('modal-title').textContent = title;
-      document.getElementById('modal-content').innerHTML = details.map(d => `
-        <div class="modal-row">
-          <span class="modal-label">${d.label}</span>
-          <span class="modal-value">${d.value}</span>
-        </div>
-      `).join('');
-
-      const confirmBtn = document.getElementById('modal-confirm-btn');
-      confirmBtn.className = 'modal-btn confirm ' + btnClass;
-      confirmBtn.textContent = 'Confirm ' + (btnClass === 'mint' ? 'Mint' : 'Transfer');
-      confirmBtn.disabled = false;
-
-      // Reset status
-      const statusEl = document.getElementById('modal-status');
-      statusEl.className = 'modal-status';
-      statusEl.textContent = '';
-
-      // Update debug panel
-      updateDebugPanel();
-
-      document.getElementById('confirm-modal').classList.add('show');
-      log('info', 'Modal shown', { title, txParams });
-    }
-
-    function closeModal() {
-      document.getElementById('confirm-modal').classList.remove('show');
-      pendingAction = null;
-      pendingTxParams = null;
-    }
-
-    function setModalStatus(message, type) {
-      const statusEl = document.getElementById('modal-status');
-      statusEl.className = 'modal-status show ' + type;
-      statusEl.textContent = message;
-    }
-
-    async function executeConfirmed() {
-      if (!pendingAction) {
-        log('error', 'No pending action');
-        return;
-      }
-
-      const confirmBtn = document.getElementById('modal-confirm-btn');
-      const cancelBtn = document.getElementById('modal-cancel-btn');
-
-      confirmBtn.disabled = true;
-      cancelBtn.disabled = true;
-      confirmBtn.textContent = 'Processing...';
-
-      setModalStatus('Preparing transaction...', 'info');
-      log('info', 'Execute confirmed clicked');
-
-      try {
-        // Step 1: Verify signer is available
-        setModalStatus('Verifying wallet connection...', 'info');
-
-        if (!signerVerified) {
-          setModalStatus('Wallet not connected. Reconnecting...', 'info');
-          const connected = await reconnectWallet();
-          if (!connected) {
-            throw new Error('Wallet not connected. Please connect MetaMask.');
-          }
-        }
-        updateDebugPanel();
-
-        // Step 2: Ensure correct chain
-        if (currentChainId !== CONFIG.chainId) {
-          setModalStatus('Switching to Sepolia...', 'info');
-          const switched = await switchToSepolia();
-          if (!switched) {
-            throw new Error('Wrong network. Please switch to Sepolia.');
-          }
-        }
-        updateDebugPanel();
-
-        // Step 3: Send transaction directly to MetaMask
-        setModalStatus('Opening wallet...', 'info');
-        closeModal();
-        await pendingAction();
-
-      } catch (e) {
-        log('error', 'Transaction failed', { code: e.code, message: e.message });
-        setModalStatus(`Error: ${e.message}`, 'error');
-        confirmBtn.disabled = false;
-        cancelBtn.disabled = false;
-        confirmBtn.textContent = 'Retry';
-        updateDebugPanel();
-
-        debugInfo.lastError = { code: e.code, message: e.message };
-        updateDebugPanel();
-      }
-    }
-
-    // ============================================
-    // Owner Actions
-    // ============================================
-    function prepareMint() {
-      log('info', 'Prepare mint clicked');
-
-      // Pre-check connection
-      if (!signerVerified) {
-        showMintStatus('Wallet not connected. Please connect MetaMask.', 'error');
-        return;
-      }
-      if (currentChainId !== CONFIG.chainId) {
-        showMintStatus('Wrong network. Please switch to Sepolia.', 'error');
-        return;
-      }
-      if (!isOwner) {
-        showMintStatus(`Only contract owner can mint. Owner: ${CONFIG.ownerAddress}`, 'error');
-        return;
-      }
-
-      const toSelect = document.getElementById('mint-to');
-      const amountInput = document.getElementById('mint-amount');
-      const to = toSelect.value;
-      const amount = parseInt(amountInput.value) || CONFIG.defaultMintAmount;
-
-      if (amount <= 0 || amount > CONFIG.maxMintAmount) {
-        showMintStatus(`Invalid amount. Must be 1 - ${CONFIG.maxMintAmount.toLocaleString()}`, 'error');
-        return;
-      }
-
-      // Build tx params
-      const paddedTo = to.toLowerCase().replace('0x', '').padStart(64, '0');
-      const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
-      const paddedAmount = amountWei.toString(16).padStart(64, '0');
-      const data = SELECTORS.mint + paddedTo + paddedAmount;
-
-      const txParams = {
-        from: walletAddress,
-        to: CONFIG.husdContract,
-        data: data,
-      };
-
-      const toLabel = to.toLowerCase() === CONFIG.ownerAddress.toLowerCase() ? 'Owner' : 'Treasury';
-      const toShort = to.substring(0, 10) + '...' + to.substring(36);
-
-      showConfirmModal(
-        () => executeMint(to, amount),
-        'Confirm Mint',
-        [
-          { label: 'Network', value: CONFIG.chainName },
-          { label: 'Contract', value: CONFIG.husdContract.substring(0, 14) + '...' },
-          { label: 'To', value: `${toLabel} (${toShort})` },
-          { label: 'Amount', value: amount.toLocaleString() + ' hUSD' },
-        ],
-        'mint',
-        txParams
-      );
-    }
-
-    async function executeMint(to, amount) {
-      const btn = document.getElementById('mint-btn');
-
-      btn.disabled = true;
-      btn.textContent = 'Minting...';
-      showMintStatus('Sending transaction to MetaMask...', 'info');
-      log('info', 'Executing mint', { to, amount });
-
-      try {
-        const provider = getProvider();
-        if (!provider) throw new Error('No wallet provider');
-
-        // Build transaction
-        const paddedTo = to.toLowerCase().replace('0x', '').padStart(64, '0');
-        const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
-        const paddedAmount = amountWei.toString(16).padStart(64, '0');
-        const data = SELECTORS.mint + paddedTo + paddedAmount;
-
-        const txParams = {
-          from: walletAddress,
-          to: CONFIG.husdContract,
-          data: data,
-        };
-
-        log('info', 'Sending eth_sendTransaction', txParams);
-
-        const txHash = await provider.request({
-          method: 'eth_sendTransaction',
-          params: [txParams],
-        });
-
-        log('info', 'Transaction sent', { txHash });
-
-        showMintStatus(
-          `Mint submitted! <a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank" class="tx-link">${txHash.substring(0, 20)}...</a>`,
-          'success'
-        );
-
-        logTokenOp('owner_mint', txHash, walletAddress, to, amount);
-
-        setTimeout(() => {
-          refreshOnchainData();
-          loadTokenOps(currentFilter);
-        }, 5000);
-
-      } catch (e) {
-        log('error', 'Mint failed', { code: e.code, message: e.message });
-
-        let errorMsg = e.message;
-        if (e.code === 4001) {
-          errorMsg = 'Transaction rejected by user';
-        } else if (e.code === -32603) {
-          errorMsg = 'Internal error. Check if you are the contract owner.';
-        }
-
-        showMintStatus(`Failed: ${errorMsg} (code: ${e.code || 'unknown'})`, 'error');
-      } finally {
-        btn.disabled = false;
-        updateButtonStates();
-      }
-    }
-
-    function showMintStatus(message, type) {
-      const statusDiv = document.getElementById('mint-status');
-      if (statusDiv) {
-        statusDiv.className = 'status-msg ' + type;
-        statusDiv.innerHTML = message;
-      }
-    }
-
-    function prepareTransfer() {
-      log('info', 'Prepare transfer clicked');
-
-      // Pre-check connection
-      if (!signerVerified) {
-        showTransferStatus('Wallet not connected. Please connect MetaMask.', 'error');
-        return;
-      }
-      if (currentChainId !== CONFIG.chainId) {
-        showTransferStatus('Wrong network. Please switch to Sepolia.', 'error');
-        return;
-      }
-      if (!isOwner) {
-        showTransferStatus(`Only contract owner can transfer. Owner: ${CONFIG.ownerAddress}`, 'error');
-        return;
-      }
-
-      const amountInput = document.getElementById('transfer-amount');
-      const amount = parseInt(amountInput.value) || CONFIG.defaultMintAmount;
-
-      if (amount <= 0 || amount > CONFIG.maxMintAmount) {
-        showTransferStatus(`Invalid amount. Must be 1 - ${CONFIG.maxMintAmount.toLocaleString()}`, 'error');
-        return;
-      }
-
-      // Build tx params
-      const paddedTo = CONFIG.treasuryAddress.toLowerCase().replace('0x', '').padStart(64, '0');
-      const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
-      const paddedAmount = amountWei.toString(16).padStart(64, '0');
-      const data = SELECTORS.transfer + paddedTo + paddedAmount;
-
-      const txParams = {
-        from: walletAddress,
-        to: CONFIG.husdContract,
-        data: data,
-      };
-
-      showConfirmModal(
-        () => executeTransfer(amount),
-        'Confirm Transfer',
-        [
-          { label: 'Network', value: CONFIG.chainName },
-          { label: 'Contract', value: CONFIG.husdContract.substring(0, 14) + '...' },
-          { label: 'From', value: 'Owner (' + CONFIG.ownerAddress.substring(0, 10) + '...)' },
-          { label: 'To', value: 'Treasury (' + CONFIG.treasuryAddress.substring(0, 10) + '...)' },
-          { label: 'Amount', value: amount.toLocaleString() + ' hUSD' },
-        ],
-        'transfer',
-        txParams
-      );
-    }
-
-    async function executeTransfer(amount) {
-      const btn = document.getElementById('transfer-btn');
-
-      btn.disabled = true;
-      btn.textContent = 'Transferring...';
-      showTransferStatus('Sending transaction to MetaMask...', 'info');
-      log('info', 'Executing transfer', { amount });
-
-      try {
-        const provider = getProvider();
-        if (!provider) throw new Error('No wallet provider');
-
-        const paddedTo = CONFIG.treasuryAddress.toLowerCase().replace('0x', '').padStart(64, '0');
-        const amountWei = BigInt(amount) * BigInt(10 ** CONFIG.decimals);
-        const paddedAmount = amountWei.toString(16).padStart(64, '0');
-        const data = SELECTORS.transfer + paddedTo + paddedAmount;
-
-        const txParams = {
-          from: walletAddress,
-          to: CONFIG.husdContract,
-          data: data,
-        };
-
-        log('info', 'Sending eth_sendTransaction', txParams);
-
-        const txHash = await provider.request({
-          method: 'eth_sendTransaction',
-          params: [txParams],
-        });
-
-        log('info', 'Transaction sent', { txHash });
-
-        showTransferStatus(
-          `Transfer submitted! <a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank" class="tx-link">${txHash.substring(0, 20)}...</a>`,
-          'success'
-        );
-
-        logTokenOp('owner_transfer', txHash, walletAddress, CONFIG.treasuryAddress, amount);
-
-        setTimeout(() => {
-          refreshOnchainData();
-          loadTokenOps(currentFilter);
-        }, 5000);
-
-      } catch (e) {
-        log('error', 'Transfer failed', { code: e.code, message: e.message });
-
-        let errorMsg = e.message;
-        if (e.code === 4001) {
-          errorMsg = 'Transaction rejected by user';
-        } else if (e.code === -32603) {
-          errorMsg = 'Internal error. Check if you have sufficient balance.';
-        }
-
-        showTransferStatus(`Failed: ${errorMsg} (code: ${e.code || 'unknown'})`, 'error');
-      } finally {
-        btn.disabled = false;
-        updateButtonStates();
-      }
-    }
-
-    function showTransferStatus(message, type) {
-      const statusDiv = document.getElementById('transfer-status');
-      if (statusDiv) {
-        statusDiv.className = 'status-msg ' + type;
-        statusDiv.innerHTML = message;
-      }
+        const supplyEl = document.getElementById('total-supply');
+        const ownerEl = document.getElementById('owner-balance');
+        const treasuryEl = document.getElementById('treasury-balance-live');
+        if (supplyEl && supply !== null) supplyEl.textContent = supply.toLocaleString() + ' hUSD';
+        if (ownerEl && ownerBal !== null) ownerEl.textContent = ownerBal.toLocaleString() + ' hUSD';
+        if (treasuryEl && treasuryBal !== null) treasuryEl.textContent = treasuryBal.toLocaleString() + ' hUSD';
+      } catch (e) { log('error', 'refreshOnchainData', e); }
     }
 
     // ============================================
@@ -1336,18 +897,9 @@
       try {
         await HumanAds.fetchApi('/api/admin/token-ops/log', {
           method: 'POST',
-          body: JSON.stringify({
-            type,
-            tx_hash: txHash,
-            from_address: from,
-            to_address: to,
-            amount_cents: amount * 100,
-            chain_id: CONFIG.chainId,
-          }),
+          body: JSON.stringify({ type, tx_hash: txHash, from_address: from, to_address: to, amount_cents: amount * 100, chain_id: CONFIG.chainId }),
         });
-      } catch (e) {
-        log('error', 'Failed to log token op', e.message);
-      }
+      } catch (e) { log('error', 'logTokenOp failed', e); }
     }
 
     // ============================================
@@ -1357,9 +909,7 @@
       try {
         const res = await HumanAds.fetchApi('/api/admin/token-ops/balances');
         if (res.success) return res.data;
-      } catch (e) {
-        log('error', 'Failed to load balances', e.message);
-      }
+      } catch (e) { log('error', 'loadBalances', e); }
       return null;
     }
 
@@ -1374,7 +924,7 @@
         ]);
 
         if (!opsRes.success) {
-          content.innerHTML = `<div class="empty">Error: ${opsRes.error?.message || 'Failed to load'}</div>`;
+          content.innerHTML = `<div class="empty">Error: ${opsRes.error?.message || 'Failed'}</div>`;
           return;
         }
 
@@ -1384,28 +934,19 @@
         content.innerHTML = `
           <div class="admin-header">
             <h1>Token Ops (hUSD)</h1>
-            <div class="wallet-section" id="wallet-section">
-              <div class="wallet-pill not-connected" id="wallet-pill">
-                <div class="wallet-pill-main">
-                  <span class="wallet-pill-label">Not Connected</span>
-                  <span class="wallet-pill-sub">Tap to connect</span>
-                </div>
-              </div>
-            </div>
+            <div class="wallet-section" id="wallet-section"></div>
           </div>
 
           <h2 class="section-title">Owner Operations (MetaMask)</h2>
           <div class="cards-grid">
             <div class="card owner-card">
-              <div class="card-header">
-                <span class="card-title">Owner Mint</span>
-              </div>
+              <div class="card-header"><span class="card-title">Owner Mint</span></div>
               <div class="owner-form">
                 <div class="form-group">
                   <label class="form-label">Mint To</label>
                   <select id="mint-to" class="form-select">
-                    <option value="${CONFIG.ownerAddress}">Owner (${CONFIG.ownerAddress.substring(0, 10)}...)</option>
-                    <option value="${CONFIG.treasuryAddress}">Treasury (${CONFIG.treasuryAddress.substring(0, 10)}...)</option>
+                    <option value="${CONFIG.ownerAddress}">Owner (${CONFIG.ownerAddress.substring(0,10)}...)</option>
+                    <option value="${CONFIG.treasuryAddress}">Treasury (${CONFIG.treasuryAddress.substring(0,10)}...)</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -1414,46 +955,34 @@
                   <span class="form-hint">Max: ${CONFIG.maxMintAmount.toLocaleString()}</span>
                 </div>
                 <button class="action-btn mint" id="mint-btn" disabled>Connect Wallet First</button>
+                <div id="mint-progress"></div>
                 <div id="mint-status"></div>
               </div>
               <div class="config-info">
-                <div class="config-row">
-                  <span class="config-label">Total Supply:</span>
-                  <span class="config-value" id="total-supply">-</span>
-                </div>
-                <div class="config-row">
-                  <span class="config-label">Owner Balance:</span>
-                  <span class="config-value" id="owner-balance">-</span>
-                </div>
+                <div class="config-row"><span class="config-label">Total Supply:</span><span class="config-value" id="total-supply">-</span></div>
+                <div class="config-row"><span class="config-label">Owner Balance:</span><span class="config-value" id="owner-balance">-</span></div>
               </div>
             </div>
 
             <div class="card owner-card">
-              <div class="card-header">
-                <span class="card-title">Owner -> Treasury Transfer</span>
-              </div>
+              <div class="card-header"><span class="card-title">Owner → Treasury Transfer</span></div>
               <div class="owner-form">
                 <div class="form-group">
                   <label class="form-label">To (Fixed)</label>
                   <input type="text" class="form-input" value="${CONFIG.treasuryAddress}" disabled />
-                  <span class="form-hint fixed">Treasury address - cannot be changed</span>
+                  <span class="form-hint fixed">Treasury address</span>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Amount (hUSD)</label>
                   <input type="number" id="transfer-amount" class="form-input" value="${CONFIG.defaultMintAmount}" min="1" max="${CONFIG.maxMintAmount}" />
                 </div>
                 <button class="action-btn transfer" id="transfer-btn" disabled>Connect Wallet First</button>
+                <div id="transfer-progress"></div>
                 <div id="transfer-status"></div>
               </div>
               <div class="config-info">
-                <div class="config-row">
-                  <span class="config-label">Treasury Balance:</span>
-                  <span class="config-value" id="treasury-balance-live">-</span>
-                </div>
-                <div class="config-row">
-                  <span class="config-label">Contract:</span>
-                  <span class="config-value">${CONFIG.husdContract.substring(0, 10)}...</span>
-                </div>
+                <div class="config-row"><span class="config-label">Treasury Balance:</span><span class="config-value" id="treasury-balance-live">-</span></div>
+                <div class="config-row"><span class="config-label">Contract:</span><span class="config-value">${CONFIG.husdContract.substring(0,10)}...</span></div>
               </div>
             </div>
           </div>
@@ -1461,91 +990,59 @@
           <h2 class="section-title">Treasury Operations (Server)</h2>
           <div class="cards-grid">
             <div class="card faucet-card">
-              <div class="card-header">
-                <span class="card-title">Faucet (Advertiser)</span>
-              </div>
+              <div class="card-header"><span class="card-title">Faucet (Advertiser)</span></div>
               <div class="faucet-form">
                 <input type="text" id="faucet-address" class="faucet-input" placeholder="0x... Advertiser Address" />
                 <div class="faucet-amount">
                   <span>Amount:</span>
                   <span class="faucet-amount-value">$${((serverConfig.faucet_amount_cents || 100000) / 100).toLocaleString()}</span>
-                  <span style="color: var(--color-text-muted)">hUSD</span>
+                  <span style="color:var(--color-text-muted)">hUSD</span>
                 </div>
                 <button class="action-btn" id="faucet-btn">Send hUSD</button>
                 <div id="faucet-status"></div>
               </div>
               <div class="config-info">
-                <div class="config-row">
-                  <span class="config-label">Cooldown:</span>
-                  <span class="config-value">${Math.floor((serverConfig.faucet_cooldown_seconds || 86400) / 3600)}h</span>
-                </div>
-                <div class="config-row">
-                  <span class="config-label">Treasury Key:</span>
-                  <span class="config-value">${serverConfig.has_treasury_key ? 'Configured' : 'Not set'}</span>
-                </div>
-                <div class="config-row">
-                  <span class="config-label">Mode:</span>
-                  <span class="config-value">${serverConfig.payout_mode || 'ledger'}</span>
-                </div>
+                <div class="config-row"><span class="config-label">Cooldown:</span><span class="config-value">${Math.floor((serverConfig.faucet_cooldown_seconds || 86400) / 3600)}h</span></div>
+                <div class="config-row"><span class="config-label">Treasury Key:</span><span class="config-value">${serverConfig.has_treasury_key ? 'Configured' : 'Not set'}</span></div>
+                <div class="config-row"><span class="config-label">Mode:</span><span class="config-value">${serverConfig.payout_mode || 'ledger'}</span></div>
               </div>
             </div>
 
             <div class="card">
-              <div class="card-header">
-                <span class="card-title">Treasury Balance (Server)</span>
-              </div>
+              <div class="card-header"><span class="card-title">Treasury Balance (Server)</span></div>
               <div class="card-value">${balances?.treasury ? balances.treasury.husd_display : '-'}</div>
               <div class="card-sub">hUSD (${balances?.treasury?.eth || '0'} ETH for gas)</div>
-              ${balances?.treasury?.address ? `<div class="config-info"><div class="config-row"><span class="config-label">Address:</span><span class="config-value">${balances.treasury.address.substring(0, 14)}...</span></div></div>` : ''}
+              ${balances?.treasury?.address ? `<div class="config-info"><div class="config-row"><span class="config-label">Address:</span><span class="config-value">${balances.treasury.address.substring(0,14)}...</span></div></div>` : ''}
             </div>
 
             <div class="card">
-              <div class="card-header">
-                <span class="card-title">Admin Balance (Server)</span>
-              </div>
+              <div class="card-header"><span class="card-title">Admin Balance (Server)</span></div>
               <div class="card-value">${balances?.admin ? balances.admin.husd_display : '-'}</div>
               <div class="card-sub">hUSD (${balances?.admin?.eth || '0'} ETH for gas)</div>
-              ${balances?.admin?.address ? `<div class="config-info"><div class="config-row"><span class="config-label">Address:</span><span class="config-value">${balances.admin.address.substring(0, 14)}...</span></div></div>` : ''}
             </div>
           </div>
 
           <h2 class="section-title">Recent Operations (${ops.length})</h2>
-
           <div class="filters">
             <span class="filter-chip ${!filter ? 'active' : ''}" data-filter="">All</span>
             <span class="filter-chip ${filter === 'faucet' ? 'active' : ''}" data-filter="faucet">Faucet</span>
-            <span class="filter-chip ${filter === 'mint' ? 'active' : ''}" data-filter="mint">Mint</span>
             <span class="filter-chip ${filter === 'owner_mint' ? 'active' : ''}" data-filter="owner_mint">Owner Mint</span>
-            <span class="filter-chip ${filter === 'transfer' ? 'active' : ''}" data-filter="transfer">Transfer</span>
             <span class="filter-chip ${filter === 'owner_transfer' ? 'active' : ''}" data-filter="owner_transfer">Owner Transfer</span>
           </div>
 
           <div class="table-container">
-            ${ops.length === 0 ? '<div class="empty">No token operations found</div>' : `
+            ${ops.length === 0 ? '<div class="empty">No operations</div>' : `
               <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Type</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Amount</th>
-                    <th>TX Hash</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>ID</th><th>Type</th><th>From</th><th>To</th><th>Amount</th><th>TX Hash</th><th>Status</th><th>Created</th></tr></thead>
                 <tbody>
                   ${ops.map(op => `
                     <tr>
                       <td class="id-cell">${op.id.substring(0,8)}...</td>
                       <td><span class="type-badge ${op.op_type}">${op.op_type}</span></td>
-                      <td class="address-cell" title="${op.from_address || ''}">${op.from_address ? op.from_address.substring(0, 10) + '...' : '-'}</td>
-                      <td class="address-cell" title="${op.to_address}">${op.to_address ? op.to_address.substring(0, 10) + '...' : '-'}</td>
+                      <td class="address-cell">${op.from_address ? op.from_address.substring(0,10)+'...' : '-'}</td>
+                      <td class="address-cell">${op.to_address ? op.to_address.substring(0,10)+'...' : '-'}</td>
                       <td>${HumanAds.formatCurrency(op.amount_cents)}</td>
-                      <td>${op.tx_hash ? (op.tx_hash.startsWith('SIMULATED_') ?
-                        `<span class="id-cell">${op.tx_hash.substring(0, 16)}...</span>` :
-                        `<a href="${CONFIG.explorerUrl}/tx/${op.tx_hash}" target="_blank" class="tx-link">${op.tx_hash.substring(0, 10)}...</a>`) : '-'}</td>
+                      <td>${op.tx_hash ? (op.tx_hash.startsWith('SIMULATED_') ? `<span class="id-cell">${op.tx_hash.substring(0,16)}...</span>` : `<a href="${CONFIG.explorerUrl}/tx/${op.tx_hash}" target="_blank" class="tx-link">${op.tx_hash.substring(0,10)}...</a>`) : '-'}</td>
                       <td><span class="status-badge ${op.status}">${op.status}</span></td>
                       <td>${HumanAds.formatDate(op.created_at)}</td>
                     </tr>
@@ -1556,46 +1053,22 @@
           </div>
         `;
 
-        // Attach event listeners
         attachEventListeners();
-
-        // Update wallet UI based on current state
         updateWalletUI();
+        if (signerVerified) refreshOnchainData();
 
-        // Refresh on-chain data if connected
-        if (signerVerified) {
-          refreshOnchainData();
-        }
       } catch (e) {
         content.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
       }
     }
 
     function attachEventListeners() {
-      // Mint button
-      const mintBtn = document.getElementById('mint-btn');
-      if (mintBtn) {
-        mintBtn.addEventListener('click', prepareMint);
-      }
-
-      // Transfer button
-      const transferBtn = document.getElementById('transfer-btn');
-      if (transferBtn) {
-        transferBtn.addEventListener('click', prepareTransfer);
-      }
-
-      // Faucet button
-      const faucetBtn = document.getElementById('faucet-btn');
-      if (faucetBtn) {
-        faucetBtn.addEventListener('click', sendFaucet);
-      }
-
-      // Filter chips
+      // DIRECT mint/transfer - no modal, one click does everything
+      document.getElementById('mint-btn')?.addEventListener('click', directMint);
+      document.getElementById('transfer-btn')?.addEventListener('click', directTransfer);
+      document.getElementById('faucet-btn')?.addEventListener('click', sendFaucet);
       document.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          const filter = chip.dataset.filter || null;
-          loadTokenOps(filter);
-        });
+        chip.addEventListener('click', () => loadTokenOps(chip.dataset.filter || null));
       });
     }
 
@@ -1603,11 +1076,11 @@
       const addressInput = document.getElementById('faucet-address');
       const btn = document.getElementById('faucet-btn');
       const statusDiv = document.getElementById('faucet-status');
-
       const address = addressInput.value.trim();
+
       if (!address || !address.startsWith('0x')) {
         statusDiv.className = 'status-msg error';
-        statusDiv.textContent = 'Please enter a valid 0x address';
+        statusDiv.textContent = 'Enter valid 0x address';
         return;
       }
 
@@ -1624,13 +1097,13 @@
 
         if (res.success) {
           statusDiv.className = 'status-msg success';
-          const amount = res.data.amount_cents ? `$${(res.data.amount_cents / 100).toLocaleString()}` : '';
-          statusDiv.innerHTML = `Sent ${amount} hUSD! <a href="${CONFIG.explorerUrl}/tx/${res.data.tx_hash}" target="_blank" class="tx-link">${res.data.tx_hash?.substring(0, 20) || 'pending'}...</a>`;
+          const amt = res.data.amount_cents ? `$${(res.data.amount_cents / 100).toLocaleString()}` : '';
+          statusDiv.innerHTML = `Sent ${amt} hUSD! <a href="${CONFIG.explorerUrl}/tx/${res.data.tx_hash}" target="_blank" class="tx-link">${res.data.tx_hash?.substring(0,20) || 'pending'}...</a>`;
           addressInput.value = '';
           setTimeout(() => loadTokenOps(currentFilter), 2000);
         } else {
           statusDiv.className = 'status-msg error';
-          statusDiv.textContent = res.error?.message || 'Faucet failed';
+          statusDiv.textContent = res.error?.message || 'Failed';
         }
       } catch (e) {
         statusDiv.className = 'status-msg error';
@@ -1642,56 +1115,15 @@
     }
 
     // ============================================
-    // Modal & Action Sheet Event Listeners
+    // Action Sheet Listeners
     // ============================================
-    function initModalListeners() {
-      // Cancel button
-      document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
-
-      // Confirm button
-      const confirmBtn = document.getElementById('modal-confirm-btn');
-      confirmBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        executeConfirmed();
-      });
-
-      // Debug toggle
-      document.getElementById('debug-toggle').addEventListener('click', () => {
-        const content = document.getElementById('debug-content');
-        const arrow = document.getElementById('debug-arrow');
-        if (content.classList.contains('show')) {
-          content.classList.remove('show');
-          arrow.textContent = '+';
-        } else {
-          content.classList.add('show');
-          arrow.textContent = '-';
-          updateDebugPanel();
-        }
-      });
-
-      // Close on overlay click
-      document.getElementById('confirm-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'confirm-modal') {
-          closeModal();
-        }
-      });
-
-      // Action sheet listeners
+    function initActionSheetListeners() {
       document.getElementById('wallet-action-sheet').addEventListener('click', (e) => {
-        if (e.target.id === 'wallet-action-sheet') {
-          hideWalletActionSheet();
-        }
+        if (e.target.id === 'wallet-action-sheet') hideWalletActionSheet();
       });
-      document.getElementById('action-reconnect').addEventListener('click', () => {
-        hideWalletActionSheet();
-        reconnectWallet();
-      });
+      document.getElementById('action-reconnect').addEventListener('click', () => { hideWalletActionSheet(); reconnectWallet(); });
       document.getElementById('action-copy').addEventListener('click', copyWalletAddress);
-      document.getElementById('action-disconnect').addEventListener('click', () => {
-        hideWalletActionSheet();
-        disconnectWallet();
-      });
+      document.getElementById('action-disconnect').addEventListener('click', () => { hideWalletActionSheet(); disconnectWallet(); });
       document.getElementById('action-cancel').addEventListener('click', hideWalletActionSheet);
     }
 
@@ -1699,7 +1131,7 @@
     // Initialization
     // ============================================
     (async function() {
-      log('info', 'Initializing Token Ops page');
+      log('info', 'Init Token Ops');
 
       const meRes = await HumanAds.fetchApi('/me');
       if (!meRes.success || !meRes.data?.user?.is_admin) {
@@ -1709,49 +1141,28 @@
 
       await loadTokenOps();
       SideMenu.init(true, true);
-      initModalListeners();
+      initActionSheetListeners();
 
-      // Try to verify existing connection (non-interactive)
+      // Auto-verify existing connection
       const provider = getProvider();
       if (provider) {
-        log('info', 'Provider detected, verifying existing connection...');
-        connectionState = 'verifying';
-
-        const verification = await verifySignerConnection();
-        log('info', 'Verification result', verification);
-
-        if (verification.verified) {
-          walletAddress = verification.address;
-          isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
-          currentChainId = verification.chainId;
-          signerVerified = true;
-
-          if (currentChainId !== CONFIG.chainId) {
-            connectionState = 'wrong-network';
-          } else {
-            connectionState = 'connected';
+        try {
+          const accounts = await provider.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            walletAddress = accounts[0].toLowerCase();
+            currentChainId = await getFreshChainId();
+            isOwner = walletAddress === CONFIG.ownerAddress.toLowerCase();
+            signerVerified = true;
+            connectionState = currentChainId === CONFIG.chainId ? 'connected' : 'wrong-network';
+            provider.on('accountsChanged', handleAccountsChanged);
+            provider.on('chainChanged', handleChainChanged);
+            updateWalletUI();
+            refreshOnchainData();
           }
-
-          // Set up listeners
-          provider.on('accountsChanged', handleAccountsChanged);
-          provider.on('chainChanged', handleChainChanged);
-
-          updateWalletUI();
-          refreshOnchainData();
-          log('info', 'Existing connection verified');
-        } else {
-          // Not connected or can't verify
-          connectionState = 'disconnected';
-          signerVerified = false;
-          updateWalletUI();
-          log('info', 'No existing connection: ' + verification.reason);
-        }
-      } else {
-        connectionState = 'disconnected';
-        updateWalletUI();
+        } catch (e) { log('error', 'Auto-connect failed', e); }
       }
 
-      log('info', 'Token Ops page initialized');
+      log('info', 'Token Ops ready');
     })();
   </script>
 </body>
