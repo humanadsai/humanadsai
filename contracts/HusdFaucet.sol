@@ -4,25 +4,29 @@ pragma solidity ^0.8.20;
 /**
  * @title HusdFaucet
  * @author HumanAds
- * @notice Advertiser calls claim() to receive hUSD from Treasury.
- *         Advertiser pays gas. Treasury pays tokens via approve + transferFrom.
+ * @notice Faucet for distributing hUSD to approved advertisers.
+ *
+ * Two claim modes:
+ *   - claimWithSignature(): EIP-712 signed ticket from admin (primary, recommended)
+ *   - claimOpen(): Simple cooldown-based faucet (can be disabled via openClaimEnabled)
  *
  * Setup:
  *   1. Deploy this contract
  *   2. Treasury calls husd.approve(thisContract, type(uint256).max)
- *   3. Advertiser calls claim() → receives claimAmount of hUSD
+ *   3. Admin signs claim tickets off-chain → advertiser calls claimWithSignature()
  *
  * Security:
- *   - ReentrancyGuard on claim()
+ *   - ReentrancyGuard on all claim paths
  *   - SafeERC20 for non-standard token compatibility
  *   - Pausable for emergency stop
  *   - 2-step ownership transfer
- *   - Max claim amount cap
- *   - EOA-only claim (no contract callers)
+ *   - EIP-712 signature verification (Sybil-resistant, AA/Safe wallet compatible)
+ *   - Per-address nonce for replay protection
+ *   - Pre-transfer allowance/balance checks with descriptive errors
  */
 
 // ============================================
-// Minimal OpenZeppelin interfaces (Remix-friendly, no imports needed)
+// Minimal interfaces (Remix-friendly, no imports needed)
 // ============================================
 
 interface IERC20 {
@@ -32,15 +36,16 @@ interface IERC20 {
     function allowance(address owner, address spender) external view returns (uint256);
 }
 
-/**
- * @dev SafeERC20: handles tokens that don't return bool (e.g. USDT)
- */
 library SafeERC20 {
+    error SafeERC20TransferFromFailed(address token, address from, address to, uint256 amount);
+
     function safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal {
         (bool success, bytes memory data) = address(token).call(
             abi.encodeWithSelector(token.transferFrom.selector, from, to, amount)
         );
-        require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeERC20: transferFrom failed");
+        if (!success || (data.length != 0 && !abi.decode(data, (bool)))) {
+            revert SafeERC20TransferFromFailed(address(token), from, to, amount);
+        }
     }
 }
 
@@ -50,47 +55,68 @@ contract HusdFaucet {
     // ============================================
     // Constants
     // ============================================
-    /// @notice Maximum claimAmount that owner can set (10,000 hUSD = 10_000_000_000 base units)
-    uint256 public constant MAX_CLAIM_AMOUNT = 10_000_000_000;
+    uint256 public constant MAX_CLAIM_AMOUNT = 10_000_000_000;  // 10,000 hUSD (6 decimals)
+    uint256 public constant MIN_COOLDOWN = 60;                   // 1 minute minimum
+
+    // EIP-712
+    bytes32 public constant CLAIM_TYPEHASH =
+        keccak256("Claim(address recipient,uint256 amount,uint256 deadline,uint256 nonce)");
+
+    // ============================================
+    // Immutables
+    // ============================================
+    IERC20 public immutable husd;
+    bytes32 public immutable DOMAIN_SEPARATOR;
 
     // ============================================
     // State
     // ============================================
-    IERC20 public immutable husd;
     address public treasury;
     address public owner;
-    address public pendingOwner;           // 2-step ownership transfer
-    uint256 public claimAmount;            // base units (6 decimals: 1000 hUSD = 1_000_000_000)
-    uint256 public cooldown;               // seconds between claims per address
-    bool public paused;                    // emergency pause
-    uint256 public totalClaimed;           // cumulative tokens distributed
-    uint256 private _reentrancyStatus;     // 1 = not entered, 2 = entered
+    address public pendingOwner;
+    address public signer;              // admin who signs claim tickets
+    uint256 public openClaimAmount;     // amount for open claims (cooldown-based)
+    uint256 public cooldown;            // seconds between open claims
+    bool public paused;
+    bool public openClaimEnabled;       // toggle for simple faucet mode
+    uint256 public totalClaimed;
+    uint256 private _reentrancyStatus;
 
-    mapping(address => uint256) public lastClaim;
-    mapping(address => uint256) public claimCount;  // total claims per address
+    mapping(address => uint256) public nonces;       // EIP-712 replay protection
+    mapping(address => uint256) public lastClaim;    // cooldown tracking (open claims)
+    mapping(address => uint256) public claimCount;   // total claims per address
+    mapping(address => uint256) public totalReceived; // total tokens received per address
 
     // ============================================
     // Events
     // ============================================
-    event Claimed(address indexed claimer, uint256 amount, uint256 timestamp);
-    event ClaimAmountUpdated(uint256 oldAmount, uint256 newAmount);
+    event Claimed(address indexed claimer, uint256 amount, uint256 timestamp, bool withSignature);
+    event OpenClaimAmountUpdated(uint256 oldAmount, uint256 newAmount);
     event CooldownUpdated(uint256 oldCooldown, uint256 newCooldown);
     event TreasuryUpdated(address oldTreasury, address newTreasury);
+    event SignerUpdated(address oldSigner, address newSigner);
+    event OpenClaimToggled(bool enabled);
     event OwnershipTransferStarted(address indexed previousOwner, address indexed newOwner);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event Paused(address account);
     event Unpaused(address account);
 
     // ============================================
-    // Errors (custom errors save gas vs require strings)
+    // Errors
     // ============================================
     error NotOwner();
     error NotPendingOwner();
     error IsPaused();
+    error OpenClaimDisabled();
     error CooldownActive(uint256 nextClaimAt);
     error ZeroAddress();
-    error AmountExceedsMax(uint256 amount, uint256 max);
-    error OnlyEOA();
+    error AmountTooLarge(uint256 amount, uint256 max);
+    error AmountZero();
+    error CooldownTooShort(uint256 cooldown, uint256 min);
+    error SignatureExpired(uint256 deadline);
+    error InvalidSignature();
+    error AllowanceTooLow(uint256 available, uint256 required);
+    error TreasuryBalanceLow(uint256 available, uint256 required);
 
     // ============================================
     // Modifiers
@@ -116,81 +142,167 @@ contract HusdFaucet {
     // Constructor
     // ============================================
     /**
-     * @param _husd        hUSD token contract address
-     * @param _treasury    Treasury address (must approve this contract)
-     * @param _claimAmount Amount per claim in base units (6 decimals)
-     * @param _cooldown    Seconds between claims per address (e.g. 86400 = 24h)
+     * @param _husd           hUSD token contract
+     * @param _treasury       Treasury address (must approve this contract)
+     * @param _signer         Admin address that signs claim tickets
+     * @param _openClaimAmt   Amount for open claims in base units (6 decimals)
+     * @param _cooldown       Seconds between open claims (>= MIN_COOLDOWN)
      */
     constructor(
         address _husd,
         address _treasury,
-        uint256 _claimAmount,
+        address _signer,
+        uint256 _openClaimAmt,
         uint256 _cooldown
     ) {
         if (_husd == address(0)) revert ZeroAddress();
         if (_treasury == address(0)) revert ZeroAddress();
-        if (_claimAmount == 0 || _claimAmount > MAX_CLAIM_AMOUNT) {
-            revert AmountExceedsMax(_claimAmount, MAX_CLAIM_AMOUNT);
-        }
+        if (_signer == address(0)) revert ZeroAddress();
+        if (_openClaimAmt == 0) revert AmountZero();
+        if (_openClaimAmt > MAX_CLAIM_AMOUNT) revert AmountTooLarge(_openClaimAmt, MAX_CLAIM_AMOUNT);
+        if (_cooldown < MIN_COOLDOWN) revert CooldownTooShort(_cooldown, MIN_COOLDOWN);
 
         husd = IERC20(_husd);
         treasury = _treasury;
-        claimAmount = _claimAmount;
+        signer = _signer;
+        openClaimAmount = _openClaimAmt;
         cooldown = _cooldown;
         owner = msg.sender;
+        openClaimEnabled = false;  // disabled by default, use signature mode
         _reentrancyStatus = 1;
+
+        DOMAIN_SEPARATOR = keccak256(abi.encode(
+            keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+            keccak256("HusdFaucet"),
+            keccak256("1"),
+            block.chainid,
+            address(this)
+        ));
     }
 
     // ============================================
-    // Core
+    // Core: EIP-712 Signed Claim (Primary)
     // ============================================
 
     /**
-     * @notice Claim hUSD from treasury. Caller pays gas, receives tokens.
-     * @dev CEI pattern + ReentrancyGuard + SafeERC20. EOA-only.
+     * @notice Claim hUSD with admin-signed ticket. Caller pays gas.
+     * @dev    EIP-712 signature prevents Sybil and controls distribution.
+     *         Compatible with EOA, AA wallets, Safe, etc.
+     * @param amount   Token amount in base units
+     * @param deadline Block timestamp after which signature expires
+     * @param signature EIP-712 signature from signer (65 bytes: r+s+v)
      */
-    function claim() external nonReentrant whenNotPaused {
-        // EOA-only: prevent contract-based Sybil bots
-        if (msg.sender != tx.origin) revert OnlyEOA();
+    function claimWithSignature(
+        uint256 amount,
+        uint256 deadline,
+        bytes calldata signature
+    ) external nonReentrant whenNotPaused {
+        // Validate
+        if (block.timestamp > deadline) revert SignatureExpired(deadline);
+        if (amount == 0) revert AmountZero();
+        if (amount > MAX_CLAIM_AMOUNT) revert AmountTooLarge(amount, MAX_CLAIM_AMOUNT);
+
+        // Consume nonce (replay protection)
+        uint256 nonce = nonces[msg.sender];
+        nonces[msg.sender] = nonce + 1;
+
+        // Verify EIP-712 signature
+        bytes32 structHash = keccak256(abi.encode(
+            CLAIM_TYPEHASH,
+            msg.sender,
+            amount,
+            deadline,
+            nonce
+        ));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, structHash));
+        address recovered = _recover(digest, signature);
+        if (recovered == address(0) || recovered != signer) revert InvalidSignature();
+
+        // Execute transfer
+        _executeClaim(msg.sender, amount, true);
+    }
+
+    // ============================================
+    // Core: Open Claim (Simple faucet, toggle-able)
+    // ============================================
+
+    /**
+     * @notice Simple cooldown-based claim. Must be enabled by owner.
+     * @dev    For testing/bootstrapping. Disable in production via openClaimEnabled.
+     */
+    function claimOpen() external nonReentrant whenNotPaused {
+        if (!openClaimEnabled) revert OpenClaimDisabled();
 
         uint256 last = lastClaim[msg.sender];
         if (last != 0 && block.timestamp < last + cooldown) {
             revert CooldownActive(last + cooldown);
         }
 
-        // Effects (before interaction - CEI)
-        uint256 amount = claimAmount;
         lastClaim[msg.sender] = block.timestamp;
-        claimCount[msg.sender] += 1;
+        _executeClaim(msg.sender, openClaimAmount, false);
+    }
+
+    // ============================================
+    // Internal
+    // ============================================
+
+    function _executeClaim(address recipient, uint256 amount, bool withSignature) internal {
+        // Pre-checks with descriptive errors (costs gas but saves debug time)
+        uint256 allowanceAvailable = husd.allowance(treasury, address(this));
+        if (allowanceAvailable < amount) revert AllowanceTooLow(allowanceAvailable, amount);
+
+        uint256 balanceAvailable = husd.balanceOf(treasury);
+        if (balanceAvailable < amount) revert TreasuryBalanceLow(balanceAvailable, amount);
+
+        // Effects
+        claimCount[recipient] += 1;
+        totalReceived[recipient] += amount;
         totalClaimed += amount;
 
         // Interaction
-        husd.safeTransferFrom(treasury, msg.sender, amount);
+        husd.safeTransferFrom(treasury, recipient, amount);
 
-        emit Claimed(msg.sender, amount, block.timestamp);
+        emit Claimed(recipient, amount, block.timestamp, withSignature);
+    }
+
+    function _recover(bytes32 digest, bytes calldata signature) internal pure returns (address) {
+        if (signature.length != 65) return address(0);
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := calldataload(signature.offset)
+            s := calldataload(add(signature.offset, 32))
+            v := byte(0, calldataload(add(signature.offset, 64)))
+        }
+
+        // EIP-2: restrict s to lower half order to prevent signature malleability
+        if (uint256(s) > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
+            return address(0);
+        }
+        if (v != 27 && v != 28) return address(0);
+
+        return ecrecover(digest, v, r, s);
     }
 
     // ============================================
     // View
     // ============================================
 
-    /**
-     * @notice Check if an address can claim now
-     * @param account Address to check
-     * @return allowed True if claim is available
-     * @return nextClaimAt Timestamp when next claim is available (0 if allowed)
-     */
-    function canClaim(address account) external view returns (bool allowed, uint256 nextClaimAt) {
+    /// @notice Check if address can use open claim
+    function canClaimOpen(address account) external view returns (bool allowed, uint256 nextClaimAt) {
+        if (!openClaimEnabled) return (false, 0);
         uint256 last = lastClaim[account];
-        // Never claimed → allowed
-        if (last == 0) {
-            return (true, 0);
-        }
+        if (last == 0) return (true, 0);
         uint256 next = last + cooldown;
-        if (block.timestamp >= next) {
-            return (true, 0);
-        }
+        if (block.timestamp >= next) return (true, 0);
         return (false, next);
+    }
+
+    /// @notice Current nonce for an address (needed to build EIP-712 signature)
+    function getNonce(address account) external view returns (uint256) {
+        return nonces[account];
     }
 
     /// @notice Remaining treasury allowance for this faucet
@@ -203,65 +315,69 @@ contract HusdFaucet {
         return husd.balanceOf(treasury);
     }
 
-    /// @notice Number of claims an address has made
-    function getClaimCount(address account) external view returns (uint256) {
-        return claimCount[account];
-    }
-
     // ============================================
-    // Admin
+    // Admin: Configuration
     // ============================================
 
-    /// @notice Update claim amount (capped by MAX_CLAIM_AMOUNT, non-zero)
-    function setClaimAmount(uint256 _amount) external onlyOwner {
-        if (_amount == 0 || _amount > MAX_CLAIM_AMOUNT) {
-            revert AmountExceedsMax(_amount, MAX_CLAIM_AMOUNT);
-        }
-        emit ClaimAmountUpdated(claimAmount, _amount);
-        claimAmount = _amount;
+    function setOpenClaimAmount(uint256 _amount) external onlyOwner {
+        if (_amount == 0) revert AmountZero();
+        if (_amount > MAX_CLAIM_AMOUNT) revert AmountTooLarge(_amount, MAX_CLAIM_AMOUNT);
+        emit OpenClaimAmountUpdated(openClaimAmount, _amount);
+        openClaimAmount = _amount;
     }
 
-    /// @notice Update cooldown period
     function setCooldown(uint256 _cooldown) external onlyOwner {
+        if (_cooldown < MIN_COOLDOWN) revert CooldownTooShort(_cooldown, MIN_COOLDOWN);
         emit CooldownUpdated(cooldown, _cooldown);
         cooldown = _cooldown;
     }
 
-    /// @notice Update treasury address
     function setTreasury(address _treasury) external onlyOwner {
         if (_treasury == address(0)) revert ZeroAddress();
         emit TreasuryUpdated(treasury, _treasury);
         treasury = _treasury;
+        // Auto-pause to prevent claims against unapproved treasury
+        if (!paused) {
+            paused = true;
+            emit Paused(msg.sender);
+        }
+    }
+
+    function setSigner(address _signer) external onlyOwner {
+        if (_signer == address(0)) revert ZeroAddress();
+        emit SignerUpdated(signer, _signer);
+        signer = _signer;
+    }
+
+    function setOpenClaimEnabled(bool _enabled) external onlyOwner {
+        openClaimEnabled = _enabled;
+        emit OpenClaimToggled(_enabled);
     }
 
     // ============================================
-    // Pause
+    // Admin: Pause
     // ============================================
 
-    /// @notice Pause claims (emergency stop)
     function pause() external onlyOwner {
         paused = true;
         emit Paused(msg.sender);
     }
 
-    /// @notice Unpause claims
     function unpause() external onlyOwner {
         paused = false;
         emit Unpaused(msg.sender);
     }
 
     // ============================================
-    // 2-Step Ownership Transfer
+    // Admin: 2-Step Ownership Transfer
     // ============================================
 
-    /// @notice Start ownership transfer (new owner must call acceptOwnership)
     function transferOwnership(address _newOwner) external onlyOwner {
         if (_newOwner == address(0)) revert ZeroAddress();
         pendingOwner = _newOwner;
         emit OwnershipTransferStarted(owner, _newOwner);
     }
 
-    /// @notice Accept ownership (must be called by pending owner)
     function acceptOwnership() external {
         if (msg.sender != pendingOwner) revert NotPendingOwner();
         emit OwnershipTransferred(owner, msg.sender);
