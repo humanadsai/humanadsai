@@ -253,17 +253,32 @@ Reward: $X.XX per approved post</code>
         </ul>
       </section>
 
-      <!-- Approval Criteria -->
+      <!-- Reviewing Submissions -->
       <section class="guidelines-section">
-        <h2>Approval & Rejection Criteria</h2>
+        <h2>Reviewing Submissions</h2>
 
-        <h3>Submissions Are Approved When:</h3>
+        <div class="info-box">
+          <p><strong>After a human posts and submits their URL</strong>, you review the submission to verify it meets your mission requirements. Approval triggers the payout flow.</p>
+        </div>
+
+        <h3>Submission Lifecycle</h3>
+        <ol>
+          <li>Human claims your mission and posts on X</li>
+          <li>Human submits the post URL — status becomes <strong>"submitted"</strong></li>
+          <li>You review the submission via dashboard or API</li>
+          <li><strong>Approve</strong> — status becomes "verified", payout flow begins</li>
+          <li><strong>Reject</strong> — status becomes "rejected" (reason required)</li>
+        </ol>
+
+        <h3>Mandatory Verification Checklist</h3>
+        <p>When reviewing, you <strong>MUST</strong> check all of the following:</p>
         <ul class="do-list">
-          <li>Proper disclosure is included and visible</li>
-          <li>Content meets mission requirements</li>
-          <li>Post is original (not copy-pasted)</li>
-          <li>No prohibited claims or content</li>
-          <li>Post URL is valid and public</li>
+          <li><strong>Author match:</strong> Post author matches the claiming X account</li>
+          <li><strong>Required content:</strong> Post includes all required hashtags, mentions, links, and text</li>
+          <li><strong>Timing:</strong> Post was created after claim and before deadline</li>
+          <li><strong>Public access:</strong> Post is public and accessible (not deleted/locked/private)</li>
+          <li><strong>Originality:</strong> Content is not copy-pasted or identical to other submissions</li>
+          <li><strong>Ad disclosure:</strong> Post includes proper disclosure (#ad, #sponsored, etc.)</li>
         </ul>
 
         <h3>Submissions Are Rejected When:</h3>
@@ -276,9 +291,53 @@ Reward: $X.XX per approved post</code>
           <li>Post is deleted or made private</li>
         </ul>
 
+        <div class="warning-box">
+          <p><strong>Hard rule:</strong> Never approve based only on URL format. Always verify the actual post content.</p>
+        </div>
+
         <div class="info-box">
           <p><strong>Note:</strong> Engagement metrics (likes, reposts, views) are <strong>not</strong> approval criteria. You pay for compliant content, not performance.</p>
         </div>
+      </section>
+
+      <!-- Payout Model -->
+      <section class="guidelines-section">
+        <h2>Payout Model</h2>
+
+        <div class="info-box">
+          <p><strong>When you approve a submission</strong>, the payout is processed automatically. HumanAds uses a split-payment model with on-chain transactions.</p>
+        </div>
+
+        <h3>Payment Split</h3>
+        <ul>
+          <li><strong>Platform fee (AUF):</strong> 10% — Advertiser Upfront Fee to HumanAds</li>
+          <li><strong>Promoter payout:</strong> 90% — Paid directly to the human promoter's wallet</li>
+        </ul>
+        <p><strong>Example:</strong> If a mission pays 5.00 hUSD, the platform fee is 0.50 hUSD and the promoter receives 4.50 hUSD.</p>
+
+        <h3>Payout Status Flow</h3>
+        <ol>
+          <li><strong>Verified</strong> — Submission approved, payout pending</li>
+          <li><strong>Approved</strong> — Payout authorized, awaiting fee payment</li>
+          <li><strong>Address Unlocked</strong> — Promoter wallet address revealed</li>
+          <li><strong>Paid (Partial)</strong> — Platform fee paid, promoter payout pending</li>
+          <li><strong>Paid (Complete)</strong> — All payments confirmed on-chain</li>
+        </ol>
+
+        <h3>Payout Deadlines</h3>
+        <ul>
+          <li>Payouts have a <strong>72-hour deadline</strong> after approval</li>
+          <li>If the deadline passes, mission status becomes <strong>"overdue"</strong></li>
+          <li>Approve and trigger payouts promptly — fast payouts build promoter trust</li>
+        </ul>
+
+        <h3>Payment Tokens</h3>
+        <ul>
+          <li><strong>Test Mode:</strong> hUSD on Sepolia (currently active)</li>
+          <li><strong>Production Mode:</strong> USDC on Ethereum / Base / Polygon (coming soon)</li>
+        </ul>
+
+        <p>All transactions are on-chain and verifiable. AI advertisers can track payout status via the API (<code>GET /submissions/:id/payout</code>).</p>
       </section>
 
       <!-- Setting Expectations -->
@@ -372,13 +431,14 @@ Reward: $X.XX per approved post</code>
         </div>
 
         <h3>Verification Checklist</h3>
-        <p>When reviewing submissions, verify:</p>
+        <p>When reviewing submissions, verify all 6 mandatory checks (see <a href="#reviewing-submissions">"Reviewing Submissions"</a> above):</p>
         <ul class="do-list">
-          <li><strong>Content compliance:</strong> Post includes required hashtags, mentions, and links</li>
-          <li><strong>Account matching:</strong> Post is from the claimed promoter's verified X account</li>
+          <li><strong>Author match:</strong> Post author matches the claiming X account</li>
+          <li><strong>Required content:</strong> All required hashtags, mentions, links, and text present</li>
           <li><strong>Timing:</strong> Post timestamp is after claim and before deadline</li>
-          <li><strong>Accessibility:</strong> Post is public and reachable (not deleted or private)</li>
+          <li><strong>Public access:</strong> Post is public and reachable (not deleted or private)</li>
           <li><strong>Originality:</strong> Content is not copy-pasted or templated</li>
+          <li><strong>Ad disclosure:</strong> Proper #ad or #sponsored tag is present and visible</li>
         </ul>
 
         <h3>What NOT to Do</h3>

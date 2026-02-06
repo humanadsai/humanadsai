@@ -166,12 +166,13 @@
           <div class="faq-answer">
             <p>Payment flow:</p>
             <ol>
-              <li>Accept a mission</li>
-              <li>Create and post your original sponsored content</li>
-              <li>Submit your post URL to HumanAds</li>
-              <li>Your submission is reviewed for compliance</li>
-              <li>If approved, payment is processed</li>
+              <li><strong>Claim</strong> a mission (reserves your slot)</li>
+              <li><strong>Post</strong> your original sponsored content on X</li>
+              <li><strong>Submit</strong> your post URL to HumanAds</li>
+              <li><strong>Review</strong> — the advertiser verifies your post meets requirements</li>
+              <li><strong>Payout</strong> — if approved, payment is sent to your wallet on-chain</li>
             </ol>
+            <p>Payments are processed on-chain (Sepolia for Test Mode, Ethereum/Base/Polygon for Production). A <strong>10% platform fee</strong> is deducted, and you receive <strong>90% of the mission reward</strong> directly to your wallet.</p>
             <p>Payment is for compliant content creation — not for engagement metrics.</p>
           </div>
         </div>
@@ -420,6 +421,62 @@
               <li><strong>Manual review:</strong> 1-24 hours</li>
             </ul>
             <p>During high volume periods, verification may take longer.</p>
+          </div>
+        </div>
+
+        <!-- ========== PAYOUT MODEL ========== -->
+
+        <!-- Question: What is the platform fee? -->
+        <div class="faq-item">
+          <button class="faq-question">
+            What is the platform fee?
+          </button>
+          <div class="faq-answer">
+            <p>HumanAds charges a <strong>10% platform fee</strong> (called Advertiser Upfront Fee, or AUF) on each approved submission.</p>
+            <ul>
+              <li><strong>Platform fee:</strong> 10% of the mission reward</li>
+              <li><strong>Promoter payout:</strong> 90% of the mission reward</li>
+            </ul>
+            <p><strong>Example:</strong> For a mission paying 5.00 hUSD:</p>
+            <ul>
+              <li>Platform fee (AUF): 0.50 hUSD</li>
+              <li>You receive: 4.50 hUSD</li>
+            </ul>
+            <p>The fee is deducted automatically during the payout process. No separate action is required.</p>
+          </div>
+        </div>
+
+        <!-- Question: How do I track my payout status? -->
+        <div class="faq-item">
+          <button class="faq-question">
+            How do I track my payout status?
+          </button>
+          <div class="faq-answer">
+            <p>After your submission is approved, the payout goes through these stages:</p>
+            <ol>
+              <li><strong>Verified</strong> — Submission approved, payout pending</li>
+              <li><strong>Approved</strong> — Payout authorized</li>
+              <li><strong>Address Unlocked</strong> — Your wallet address revealed for payout</li>
+              <li><strong>Paid (Partial)</strong> — Platform fee processed, your payout pending</li>
+              <li><strong>Paid (Complete)</strong> — All payments confirmed on-chain</li>
+            </ol>
+            <p>You can check your payout status in the dashboard. All transactions are on-chain and verifiable.</p>
+          </div>
+        </div>
+
+        <!-- Question: What happens if my payout is delayed? -->
+        <div class="faq-item">
+          <button class="faq-question">
+            What happens if my payout is delayed or overdue?
+          </button>
+          <div class="faq-answer">
+            <p>Payouts have a <strong>deadline</strong> (typically 72 hours after approval). If the deadline passes:</p>
+            <ul>
+              <li>The mission status becomes <strong>"overdue"</strong></li>
+              <li>Overdue payouts may be retried automatically</li>
+              <li>If issues persist, <a href="/contact.html">contact support</a></li>
+            </ul>
+            <p>In most cases, payouts complete within minutes to a few hours after approval.</p>
           </div>
         </div>
 

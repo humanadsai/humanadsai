@@ -64,9 +64,11 @@
 
         <h3>(3) Payment and Transaction Information</h3>
         <ul>
-          <li>Information necessary to process payments (including information shared with payment processors)</li>
-          <li>Transaction history (e.g., reward amounts, payment status)</li>
-          <li><strong>Note:</strong> We generally do not store credit card information; payment processors handle such information.</li>
+          <li>Blockchain wallet addresses provided by Users for receiving payments</li>
+          <li>On-chain transaction hashes, confirmation status, and timestamps</li>
+          <li>Transaction history (e.g., reward amounts, payment status, platform fee amounts)</li>
+          <li>Payment split details (platform fee and promoter payout amounts)</li>
+          <li><strong>Note:</strong> Payments are processed on-chain (blockchain-based). We do not store credit card or banking information. Wallet addresses are revealed only after submission approval.</li>
         </ul>
 
         <h3>(4) Technical Information (Automatically Collected)</h3>
@@ -82,6 +84,7 @@
         <ol>
           <li>Providing and operating the Service, identity verification, authentication, and account management</li>
           <li>Executing transactions such as listing missions, applications, matching, deliverable review, and reward payments</li>
+          <li>Processing on-chain payments, including platform fee (AUF) deduction and promoter payout execution</li>
           <li>Analyzing usage, improving features and quality, and enhancing UI/UX</li>
           <li>Detecting and preventing fraud, ensuring security, and enforcing terms and policies</li>
           <li>Responding to inquiries and sending important notices</li>
