@@ -1721,18 +1721,6 @@ body {
   flex: 0 0 auto;
 }
 
-/* Sample Badge - Orange gradient, prominent */
-.badge--sample {
-  background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%);
-  color: #000;
-  animation: badge-pulse 2s infinite;
-}
-
-@keyframes badge-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.02); }
-}
-
 /* Disclosure Badge - Brown/orange tint */
 .badge--disclosure {
   background: rgba(120, 74, 44, 0.55);
