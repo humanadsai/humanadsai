@@ -12,6 +12,7 @@ export interface PaymentProfile {
   id: PaymentProfileId;
   name: string;
   isTestnet: boolean;
+  isSelectable: boolean; // If false, profile is hidden from selection UI
   chain: {
     id: number;
     name: string;
@@ -44,6 +45,7 @@ export const PAYMENT_PROFILES: Record<PaymentProfileId, PaymentProfile> = {
     id: 'TEST_SEPOLIA_HUSD',
     name: 'Test (Sepolia hUSD)',
     isTestnet: true,
+    isSelectable: true, // Active for tonight's launch
     chain: {
       id: 11155111,
       name: 'Sepolia',
@@ -73,6 +75,7 @@ export const PAYMENT_PROFILES: Record<PaymentProfileId, PaymentProfile> = {
     id: 'PROD_BASE_USDC',
     name: 'Production (Base USDC)',
     isTestnet: false,
+    isSelectable: false, // Not ready - treasury not configured
     chain: {
       id: 8453,
       name: 'Base',
@@ -102,6 +105,7 @@ export const PAYMENT_PROFILES: Record<PaymentProfileId, PaymentProfile> = {
     id: 'PROD_ETH_USDC',
     name: 'Production (Ethereum USDC)',
     isTestnet: false,
+    isSelectable: false, // Not ready - treasury not configured
     chain: {
       id: 1,
       name: 'Ethereum',
@@ -184,12 +188,15 @@ export async function getPaymentProfileConfig(env: Env): Promise<{
   const profileId = (configRow?.value || 'TEST_SEPOLIA_HUSD') as PaymentProfileId;
   const profile = PAYMENT_PROFILES[profileId] || PAYMENT_PROFILES.TEST_SEPOLIA_HUSD;
 
+  // Filter to only show selectable profiles
+  const selectableProfiles = Object.values(PAYMENT_PROFILES).filter(p => p.isSelectable);
+
   return {
     current: profile,
     updatedBy: configRow?.updated_by || null,
     updatedAt: configRow?.updated_at || null,
     reason: configRow?.reason || null,
-    available: Object.values(PAYMENT_PROFILES),
+    available: selectableProfiles,
   };
 }
 
