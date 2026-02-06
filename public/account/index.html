@@ -416,11 +416,9 @@
                   ${payout_wallets.evm_address ? truncateAddress(payout_wallets.evm_address) : 'Not set'}
                 </span>
               </div>
-              <div class="info-item">
+              <div class="info-item" style="opacity: 0.5;">
                 <span class="label">Solana Address</span>
-                <span class="value ${!payout_wallets.solana_address ? 'not-set' : ''}" title="${payout_wallets.solana_address || ''}">
-                  ${payout_wallets.solana_address ? truncateAddress(payout_wallets.solana_address) : 'Not set'}
-                </span>
+                <span class="value not-set">Coming soon</span>
               </div>
             </div>
             <a href="/settings/payout" class="manage-link">

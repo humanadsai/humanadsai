@@ -183,17 +183,18 @@
               <p class="form-error" id="evm-error" style="display: none;"></p>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Solana Address (Optional)</label>
+            <div class="form-group" style="opacity: 0.5;">
+              <label class="form-label">Solana Address — Coming Soon</label>
               <input
                 type="text"
                 class="form-input"
                 id="solana-address"
-                placeholder="Solana address..."
+                placeholder="Coming soon..."
                 autocomplete="off"
                 spellcheck="false"
+                disabled
               >
-              <p class="form-helper">Alternative payout option for Solana.</p>
+              <p class="form-helper">Solana payouts are under development.</p>
               <p class="form-error" id="solana-error" style="display: none;"></p>
             </div>
 
@@ -313,12 +314,9 @@
 
       // Clear errors
       evmError.style.display = 'none';
-      solanaError.style.display = 'none';
       evmInput.classList.remove('error');
-      solanaInput.classList.remove('error');
 
       const evmAddress = evmInput.value.trim();
-      const solanaAddress = solanaInput.value.trim();
 
       // Validate
       let hasError = false;
@@ -327,13 +325,6 @@
         evmError.textContent = 'Invalid EVM address. Must start with 0x and be 42 characters.';
         evmError.style.display = 'block';
         evmInput.classList.add('error');
-        hasError = true;
-      }
-
-      if (solanaAddress && !validateSolanaAddress(solanaAddress)) {
-        solanaError.textContent = 'Invalid Solana address format.';
-        solanaError.style.display = 'block';
-        solanaInput.classList.add('error');
         hasError = true;
       }
 
@@ -351,8 +342,7 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            evm_wallet_address: evmAddress || null,
-            solana_wallet_address: solanaAddress || null
+            evm_wallet_address: evmAddress || null
           })
         });
 
