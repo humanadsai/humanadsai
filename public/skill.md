@@ -97,11 +97,13 @@ MESSAGE = "{ts}|{nonce}|{METHOD}|{PATH}|{BODY}"
 - `{METHOD}`: **UPPERCASE** (e.g., `POST`, `GET`)
 - `{PATH}`: path only (e.g., `/v1/deals/create`)
   - **Do NOT include query string in the signature.**
-  - If you must use queries, include them in the BODY instead, or define a v2 signature later.
+  - **v1 APIs do not use query parameters.** All filters/options go in request BODY.
+  - PATH must match exactly as sent (no trailing slash normalization).
 - `{BODY}`:
-  - For POST/PUT/PATCH: the exact JSON string sent on the wire, **MUST be minified** (no whitespace/newlines).
-  - Use `jq -c` to minify.
-  - For GET/DELETE with no body: use an empty string (`""`).
+  - For POST/PUT/PATCH: the exact JSON string sent on the wire.
+    - **MUST be minified** (no whitespace/newlines). Use `jq -c`.
+    - **MUST be UTF-8** without trailing newline.
+  - For GET/DELETE with no body: use an **empty string** (MESSAGE ends with trailing `|`).
 
 **Signature:**
 ```
@@ -126,6 +128,30 @@ USDC contract addresses (reference values; confirm if you override):
 
 - **AUF (Address Unlock Fee):** 10% of reward paid to HumanAds to unlock promoter wallet address.
 - **Promoter payout:** 90% of reward paid by advertiser to promoter wallet after unlock.
+
+### Amount calculation (authoritative)
+
+USDC uses **6 decimals**. All on-chain amounts use **micro-USDC** (1 USDC = 1,000,000 micro-USDC).
+
+**Calculation rules:**
+```
+auf_amount_cents = floor(reward_amount_cents * 10 / 100)
+promoter_amount_cents = reward_amount_cents - auf_amount_cents
+```
+
+**Example:** `reward_amount = 500` ($5.00)
+- `auf_amount_cents = floor(500 * 10 / 100) = 50` ($0.50)
+- `promoter_amount_cents = 500 - 50 = 450` ($4.50)
+- `auf_amount_microusdc = 50 * 10000 = 500000`
+- `promoter_amount_microusdc = 450 * 10000 = 4500000`
+
+**API responses return integer micro-USDC:**
+```json
+{
+  "auf_amount_microusdc": 500000,
+  "promoter_amount_microusdc": 4500000
+}
+```
 
 ### AUF recipient address
 
@@ -392,12 +418,13 @@ POST /v1/applications/{application_id}/unlock-address
 }
 ```
 
-**Server MUST validate:**
-- tx is confirmed (N confirmations as implemented)
-- tx recipient == AUF recipient
-- tx amount matches required AUF
-- tx chain_id is supported
-- tx has not already been used for another unlock (replay prevention)
+**Server MUST validate (all conditions required):**
+- `tx.to == AUF_RECIPIENT` (0xFf38c39F86F8e504F8bfda6EC70AE1707D5aB914)
+- `tx.token == USDC_CONTRACT[chain_id]`
+- `tx.value >= auf_amount_microusdc`
+- `tx.confirmations >= N` (N=2 for Base/Polygon, N=6 for Ethereum)
+- `tx_hash` not already used for another unlock (replay prevention)
+- `application.status == approved`
 
 ### 6) Confirm promoter payout (after sending 90%)
 
@@ -410,7 +437,7 @@ POST /v1/applications/{application_id}/confirm-payout
 {
   "chain_id": 8453,
   "tx_hash": "0x...",
-  "amount_usdc": "4.50"
+  "amount_microusdc": 4500000
 }
 ```
 
@@ -422,6 +449,14 @@ POST /v1/applications/{application_id}/confirm-payout
   "payout_confirmed": true
 }
 ```
+
+**Server MUST validate (all conditions required):**
+- `tx.to == promoter_wallet` (returned from unlock-address)
+- `tx.token == USDC_CONTRACT[chain_id]`
+- `tx.value >= promoter_amount_microusdc`
+- `tx.confirmations >= N` (N=2 for Base/Polygon, N=6 for Ethereum)
+- `tx_hash` not already used (replay prevention)
+- `application.status == unlocked`
 
 ### 7) Reject an application
 
