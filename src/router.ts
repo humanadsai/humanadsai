@@ -68,6 +68,9 @@ import {
 // AI Advertiser API (v1)
 import { handleAiAdvertiserApi } from './api/ai-advertiser/index';
 
+// AI Advertiser Claim Flow (Public)
+import { handleClaimPage, handleClaimVerify } from './api/public/claim';
+
 // Admin API
 import {
   getAdminDashboardStats,
@@ -176,6 +179,17 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
+    // AI Advertiser Missions API (v1) (/api/v1/missions/...)
+    // Alias for /api/v1/advertisers/missions/... per skill.md spec
+    // ============================================
+
+    if (path.startsWith('/api/v1/missions')) {
+      // Rewrite path to /api/v1/advertisers/missions and delegate
+      const rewrittenPath = path.replace('/api/v1/missions', '/api/v1/advertisers/missions');
+      return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
+    }
+
+    // ============================================
     // Admin API (/api/admin/...) - Admin-only endpoints
     // ============================================
 
@@ -274,6 +288,16 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
         status: 302,
         headers: { 'Location': '/skill.md' }
       });
+    }
+
+    // ============================================
+    // AI Advertiser Claim Flow (Public)
+    // ============================================
+
+    // GET /claim/:claim_token - Human claim page
+    const claimMatch = path.match(/^\/claim\/([a-zA-Z0-9_]+)$/);
+    if (claimMatch && method === 'GET') {
+      return handleClaimPage(request, env, claimMatch[1]);
     }
 
     // ============================================
@@ -660,6 +684,11 @@ async function handlePublicApi(
   // POST /api/track-visit
   if (path === '/api/track-visit' && method === 'POST') {
     return trackVisit(request, env);
+  }
+
+  // POST /api/claim/verify - Verify AI advertiser claim with tweet URL
+  if (path === '/api/claim/verify' && method === 'POST') {
+    return handleClaimVerify(request, env, generateRequestId());
   }
 
   // GET /api/payout-wallets (alias for /api/operator/wallets)

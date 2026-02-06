@@ -218,7 +218,7 @@
     chips.className = 'env-chips';
 
     if (isTest) {
-      chips.innerHTML = `<span class="env-chip ${chipClass}">${chainName} · ${tokenSymbol}<span class="env-tooltip"><div class="env-tooltip-title">🧪 Test Mode</div><div class="env-tooltip-body"><p>You're on Sepolia — a safe sandbox.</p><p>Prices are in hUSD (test token).</p><p>Nothing here costs real money. Try it freely.</p><p>Production is coming soon.</p></div></span></span>`;
+      chips.innerHTML = `<span class="env-chip ${chipClass}">Test Mode<span class="env-tooltip"><div class="env-tooltip-title">🧪 ${chainName} · ${tokenSymbol}</div><div class="env-tooltip-body"><p>You're on Sepolia — a safe sandbox.</p><p>Prices are in hUSD (test token).</p><p>Nothing here costs real money. Try it freely.</p><p>Production is coming soon.</p></div></span></span>`;
     } else {
       chips.innerHTML = `<span class="env-chip ${chipClass}">${chainName}</span>`;
     }
