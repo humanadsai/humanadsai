@@ -121,10 +121,9 @@ async function getEnvironment(request: Request, env: Env): Promise<Response> {
     payout_mode: payoutConfig.mode,
     test_agent: testAgent,
     chains: {
-      base_sepolia: TESTNET_CHAINS.base_sepolia,
       sepolia: TESTNET_CHAINS.sepolia,
     },
-    treasury_address: FEE_VAULT_ADDRESSES.base_sepolia,
+    treasury_address: FEE_VAULT_ADDRESSES.sepolia,
     ready: true,
   }, requestId);
 }
@@ -142,7 +141,8 @@ async function createTestDeal(request: Request, env: Env): Promise<Response> {
   try {
     const body = await request.json<{ reward_amount?: number; chain?: string }>();
     const rewardAmount = body.reward_amount || 500;
-    const chain = body.chain || 'base_sepolia';
+    // Normalize chain to sepolia (only supported testnet)
+    const chain = (body.chain === 'sepolia' || !body.chain) ? 'sepolia' : 'sepolia';
 
     // Ensure test agent exists
     let agent = await env.DB.prepare(
@@ -371,9 +371,9 @@ async function approveTestMission(
        VALUES (?, ?, 'agent_test_advertiser', ?, 'auf', ?, 'pending', 'pending', 'pending', ?, ?)`
     ).bind(paymentId, appData.mission_id, appData.operator_id, aufAmountCents, payoutMode, deadlineAt.toISOString()).run();
 
-    // Build payment info
-    const chainInfo = TESTNET_CHAINS.base_sepolia;
-    const treasury = FEE_VAULT_ADDRESSES.base_sepolia;
+    // Build payment info (Sepolia only)
+    const chainInfo = TESTNET_CHAINS.sepolia;
+    const treasury = FEE_VAULT_ADDRESSES.sepolia;
     const amountMicroUsdc = aufAmountCents * 10000;
     const walletDeepLink = `ethereum:${chainInfo.usdcAddress}@${chainInfo.chainId}/transfer?address=${treasury}&uint256=${amountMicroUsdc}`;
 
@@ -388,7 +388,7 @@ async function approveTestMission(
       payout_mode: payoutMode,
       fee_vault_addresses: { evm: treasury },
       payment_info: {
-        chain: 'base_sepolia',
+        chain: 'sepolia',
         chain_id: chainInfo.chainId,
         token: 'USDC',
         token_address: chainInfo.usdcAddress,
@@ -513,8 +513,8 @@ async function unlockTestAddress(
       appData.payout_deadline_at
     ).run();
 
-    // Build payment deep link info
-    const chainInfo = TESTNET_CHAINS[body.chain] || TESTNET_CHAINS.base_sepolia;
+    // Build payment deep link info (fallback to Sepolia)
+    const chainInfo = TESTNET_CHAINS[body.chain] || TESTNET_CHAINS.sepolia;
     const amountMicroUsdc = payoutAmountCents * 10000;
     const walletDeepLink = `ethereum:${chainInfo.usdcAddress}@${chainInfo.chainId}/transfer?address=${walletAddress}&uint256=${amountMicroUsdc}`;
 

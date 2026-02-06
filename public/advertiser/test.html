@@ -703,27 +703,9 @@
     // WalletConnect Project ID (public - for HumanAds)
     const WALLETCONNECT_PROJECT_ID = '3c95ec9b803a06e64a9c5f24ef906cdc';
 
-    // Chain configurations with user-friendly names
-    // Each chain supports multiple tokens
+    // Chain configurations - Sepolia only
+    // Base Sepolia has been removed; all requests fallback to Sepolia
     const CHAIN_CONFIG = {
-      base_sepolia: {
-        chainId: 84532,
-        chainIdHex: '0x14a34',
-        name: 'Base Sepolia (Testnet)',
-        shortName: 'Base Sepolia',
-        rpcUrl: 'https://sepolia.base.org',
-        blockExplorer: 'https://sepolia.basescan.org',
-        tokens: {
-          usdc: {
-            address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-            decimals: 6,
-            symbol: 'USDC',
-            name: 'USDC (Official)',
-          },
-          // hUSDC can be added here after deployment
-        },
-        defaultToken: 'usdc',
-      },
       sepolia: {
         chainId: 11155111,
         chainIdHex: '0xaa36a7',
@@ -745,8 +727,22 @@
             name: 'hUSD (HumanAds Test)',
           },
         },
+        defaultToken: 'usdc',
       },
     };
+
+    // Default chain (only Sepolia supported)
+    const DEFAULT_CHAIN = 'sepolia';
+
+    // Normalize chain key - fallback deprecated chains to sepolia
+    function normalizeChain(chainKey) {
+      // Fallback base_sepolia or any unknown chain to sepolia
+      if (!CHAIN_CONFIG[chainKey]) {
+        console.log(`Chain "${chainKey}" not supported, falling back to sepolia`);
+        return DEFAULT_CHAIN;
+      }
+      return chainKey;
+    }
 
     // Helper to get current token config
     function getTokenConfig(chainKey, tokenKey) {
@@ -796,7 +792,7 @@
     const state = {
       environment: null,
       payoutMode: 'ledger',
-      chain: 'base_sepolia',
+      chain: 'sepolia', // Only Sepolia supported
       token: 'usdc', // Selected token key
       dealId: null,
       applicationId: null,
@@ -1367,7 +1363,7 @@ contract HumanAdsTestUSD {
         const wcProvider = await EthereumProvider.init({
           projectId: WALLETCONNECT_PROJECT_ID,
           chains: [chainConfig.chainId],
-          optionalChains: [84532, 11155111], // Base Sepolia, Sepolia
+          optionalChains: [11155111], // Sepolia only
           showQrModal: true,
           qrModalOptions: {
             themeMode: 'dark',
@@ -1597,13 +1593,10 @@ contract HumanAdsTestUSD {
             <div class="step-number">A</div>
             <div class="step-title">Environment & Wallet</div>
           </div>
-          <div class="step-description">Select testnet chain${isMobile && !isInMetaMaskBrowser ? '. Tap "Open MetaMask" to continue in the MetaMask app.' : ' and connect your wallet.'}</div>
-          <div class="input-group">
-            <label>Chain</label>
-            <select id="chain-select" onchange="handleChainChange(this.value)">
-              <option value="base_sepolia" selected>Base Sepolia (Testnet) - Recommended</option>
-              <option value="sepolia">Sepolia (Testnet)</option>
-            </select>
+          <div class="step-description">Select token${isMobile && !isInMetaMaskBrowser ? '. Tap "Open MetaMask" to continue in the MetaMask app.' : ' and connect your wallet.'}</div>
+          <div class="info-row">
+            <span class="label">Network</span>
+            <span class="value">Sepolia (Testnet)</span>
           </div>
           <div class="input-group">
             <label>Token</label>
@@ -1877,22 +1870,23 @@ contract HumanAdsTestUSD {
       }).join('');
     }
 
+    // Chain is fixed to Sepolia - this function is kept for compatibility
     function handleChainChange(chainKey) {
-      state.chain = chainKey;
+      // Always normalize to sepolia (only supported chain)
+      state.chain = normalizeChain(chainKey);
 
       // Update token selector options
       const tokenSelect = document.getElementById('token-select');
       if (tokenSelect) {
-        tokenSelect.innerHTML = renderTokenOptions(chainKey);
-        // Reset to default token for the new chain
-        const defaultToken = CHAIN_CONFIG[chainKey]?.defaultToken || 'usdc';
-        const availableTokens = getAvailableTokens(chainKey);
+        tokenSelect.innerHTML = renderTokenOptions(state.chain);
+        const defaultToken = CHAIN_CONFIG[state.chain]?.defaultToken || 'usdc';
+        const availableTokens = getAvailableTokens(state.chain);
         state.token = availableTokens.find(t => t.key === state.token)?.key || defaultToken;
         tokenSelect.value = state.token;
       }
 
       if (state.walletConnected) {
-        switchToChain(chainKey);
+        switchToChain(state.chain);
       }
     }
 

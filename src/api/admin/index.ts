@@ -901,7 +901,8 @@ export async function testPayout(
       .bind(mission.operator_id)
       .first<{ evm_wallet_address: string | null; solana_wallet_address: string | null }>();
 
-    const chain = body.chain || 'base_sepolia';
+    // Only Sepolia supported for testnet
+    const chain = 'sepolia';
     const token = body.token || 'USDC';
     const payoutConfig = getPayoutConfig(env);
 
@@ -948,7 +949,7 @@ export async function testPayout(
         payout_amount_cents: payoutAmount,
         treasury_address: FEE_RECIPIENTS.evm,
         operator_address: operator?.evm_wallet_address || null,
-        message: 'Testnet mode: use testnet faucet to fund transactions. Chains: sepolia, base_sepolia',
+        message: 'Testnet mode: use testnet faucet to fund transactions. Chain: sepolia',
       };
     } else {
       // Mainnet payout - real transaction
