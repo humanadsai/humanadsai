@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Ops - Admin - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .admin-page { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .admin-header h1 { font-family: var(--font-mono); font-size: 1.5rem; }
+
+    /* Cards */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .card-title { font-family: var(--font-mono); font-size: 0.875rem; color: var(--color-text-muted); text-transform: uppercase; }
+    .card-value { font-family: var(--font-mono); font-size: 1.75rem; font-weight: 600; }
+    .card-sub { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; }
+
+    /* Faucet Form */
+    .faucet-card { background: linear-gradient(135deg, rgba(255,107,53,0.1) 0%, rgba(255,149,0,0.05) 100%); border-color: rgba(255,107,53,0.3); }
+    .faucet-form { display: flex; flex-direction: column; gap: 12px; }
+    .faucet-input { width: 100%; padding: 12px; font-family: var(--font-mono); font-size: 0.875rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-text); }
+    .faucet-input:focus { outline: none; border-color: var(--color-primary); }
+    .faucet-input::placeholder { color: var(--color-text-muted); }
+    .faucet-amount { display: flex; align-items: center; gap: 8px; }
+    .faucet-amount-value { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 600; color: var(--color-primary); }
+    .faucet-btn { padding: 12px 24px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-family: var(--font-mono); font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .faucet-btn:hover { opacity: 0.9; }
+    .faucet-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .faucet-status { font-size: 0.75rem; padding: 8px; border-radius: 4px; }
+    .faucet-status.success { background: rgba(52,199,89,0.2); color: #34c759; }
+    .faucet-status.error { background: rgba(255,59,48,0.2); color: #ff3b30; }
+
+    /* Config Info */
+    .config-info { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); }
+    .config-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .config-label { opacity: 0.7; }
+    .config-value { font-family: var(--font-mono); }
+
+    /* Table */
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; }
+    .filter-chip:hover, .filter-chip.active { border-color: var(--color-primary); color: var(--color-primary); }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; }
+    .data-table th { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; }
+    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-family: var(--font-mono); font-weight: 600; }
+    .status-badge.confirmed { background: rgba(52,199,89,0.2); color: #34c759; }
+    .status-badge.submitted { background: rgba(0,122,255,0.2); color: #007aff; }
+    .status-badge.pending { background: rgba(255,149,0,0.2); color: #ff9500; }
+    .status-badge.failed { background: rgba(255,59,48,0.2); color: #ff3b30; }
+    .type-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.65rem; font-family: var(--font-mono); }
+    .type-badge.faucet { background: rgba(255,107,53,0.2); color: #ff6b35; }
+    .type-badge.mint { background: rgba(52,199,89,0.2); color: #34c759; }
+    .type-badge.transfer { background: rgba(0,122,255,0.2); color: #007aff; }
+    .loading, .empty { text-align: center; padding: 40px; color: var(--color-text-muted); }
+    .id-cell { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
+    .address-cell { font-family: var(--font-mono); font-size: 0.7rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+    .table-container { overflow-x: auto; }
+    .section-title { font-family: var(--font-mono); font-size: 1rem; margin: 24px 0 16px; }
+
+    /* TX Hash link */
+    .tx-link { color: var(--color-primary); text-decoration: none; font-family: var(--font-mono); font-size: 0.7rem; }
+    .tx-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/><circle cx="14" cy="20" r="4" fill="#FF6B35"/><path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="admin-page" id="content">
+      <div class="loading">Loading token ops...</div>
+    </main>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script src="/js/humanads.js"></script>
+  <script>
+    let currentFilter = null;
+    let config = null;
+
+    async function loadBalances() {
+      try {
+        const res = await HumanAds.fetchApi('/api/admin/token-ops/balances');
+        if (res.success) {
+          return res.data;
+        }
+      } catch (e) {
+        console.error('Failed to load balances:', e);
+      }
+      return null;
+    }
+
+    async function loadTokenOps(filter = null) {
+      currentFilter = filter;
+      const content = document.getElementById('content');
+
+      try {
+        // Load balances and ops in parallel
+        const [balances, opsRes] = await Promise.all([
+          loadBalances(),
+          HumanAds.fetchApi(filter ? `/api/admin/token-ops?op_type=${filter}` : '/api/admin/token-ops')
+        ]);
+
+        if (!opsRes.success) {
+          content.innerHTML = `<div class="empty">Error: ${opsRes.error?.message || 'Failed to load'}</div>`;
+          return;
+        }
+
+        const ops = opsRes.data.token_ops || [];
+        config = balances?.config || {};
+
+        content.innerHTML = `
+          <div class="admin-header">
+            <h1>Token Ops (hUSD)</h1>
+          </div>
+
+          <div class="cards-grid">
+            <!-- Faucet Card -->
+            <div class="card faucet-card">
+              <div class="card-header">
+                <span class="card-title">Faucet (Advertiser)</span>
+              </div>
+              <div class="faucet-form">
+                <input type="text" id="faucet-address" class="faucet-input" placeholder="0x... Advertiser Address" />
+                <div class="faucet-amount">
+                  <span>Amount:</span>
+                  <span class="faucet-amount-value">$${((config.faucet_amount_cents || 100000) / 100).toLocaleString()}</span>
+                  <span style="color: var(--color-text-muted)">hUSD</span>
+                </div>
+                <button class="faucet-btn" onclick="sendFaucet()" id="faucet-btn">
+                  Send hUSD
+                </button>
+                <div id="faucet-status"></div>
+              </div>
+              <div class="config-info">
+                <div class="config-row">
+                  <span class="config-label">Cooldown:</span>
+                  <span class="config-value">${Math.floor((config.faucet_cooldown_seconds || 86400) / 3600)}h</span>
+                </div>
+                <div class="config-row">
+                  <span class="config-label">Treasury:</span>
+                  <span class="config-value">${balances?.treasury?.address ? balances.treasury.address.substring(0, 10) + '...' : 'Not configured'}</span>
+                </div>
+                <div class="config-row">
+                  <span class="config-label">Mode:</span>
+                  <span class="config-value">${config.payout_mode || 'ledger'}</span>
+                </div>
+                <div class="config-row">
+                  <span class="config-label">Treasury Key:</span>
+                  <span class="config-value">${config.has_treasury_key ? 'Configured' : 'Not set'}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Treasury Balance Card -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Treasury Balance</span>
+              </div>
+              <div class="card-value">${balances?.treasury ? balances.treasury.husd_display : '-'}</div>
+              <div class="card-sub">hUSD (${balances?.treasury?.eth || '0'} ETH for gas)</div>
+              ${balances?.treasury?.address ? `<div class="config-info"><div class="config-row"><span class="config-label">Address:</span><span class="config-value">${balances.treasury.address.substring(0, 14)}...</span></div></div>` : ''}
+            </div>
+
+            <!-- Admin Balance Card -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Admin Balance</span>
+              </div>
+              <div class="card-value">${balances?.admin ? balances.admin.husd_display : '-'}</div>
+              <div class="card-sub">hUSD (${balances?.admin?.eth || '0'} ETH for gas)</div>
+              ${balances?.admin?.address ? `<div class="config-info"><div class="config-row"><span class="config-label">Address:</span><span class="config-value">${balances.admin.address.substring(0, 14)}...</span></div></div>` : ''}
+            </div>
+          </div>
+
+          <h2 class="section-title">Recent Operations (${ops.length})</h2>
+
+          <div class="filters">
+            <span class="filter-chip ${!filter ? 'active' : ''}" onclick="loadTokenOps()">All</span>
+            <span class="filter-chip ${filter === 'faucet' ? 'active' : ''}" onclick="loadTokenOps('faucet')">Faucet</span>
+            <span class="filter-chip ${filter === 'mint' ? 'active' : ''}" onclick="loadTokenOps('mint')">Mint</span>
+            <span class="filter-chip ${filter === 'transfer' ? 'active' : ''}" onclick="loadTokenOps('transfer')">Transfer</span>
+          </div>
+
+          <div class="table-container">
+            ${ops.length === 0 ? '<div class="empty">No token operations found</div>' : `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>To</th>
+                    <th>Amount</th>
+                    <th>TX Hash</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${ops.map(op => `
+                    <tr>
+                      <td class="id-cell">${op.id.substring(0,8)}...</td>
+                      <td><span class="type-badge ${op.op_type}">${op.op_type}</span></td>
+                      <td class="address-cell" title="${op.to_address}">${op.to_address ? op.to_address.substring(0, 10) + '...' : '-'}</td>
+                      <td>${HumanAds.formatCurrency(op.amount_cents)}</td>
+                      <td>${op.tx_hash ? (op.tx_hash.startsWith('SIMULATED_') ?
+                        `<span class="id-cell">${op.tx_hash.substring(0, 16)}...</span>` :
+                        `<a href="https://sepolia.etherscan.io/tx/${op.tx_hash}" target="_blank" class="tx-link">${op.tx_hash.substring(0, 10)}...</a>`) : '-'}</td>
+                      <td><span class="status-badge ${op.status}">${op.status}</span></td>
+                      <td>${HumanAds.formatDate(op.created_at)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `}
+          </div>
+        `;
+      } catch (e) {
+        content.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+      }
+    }
+
+    async function sendFaucet() {
+      const addressInput = document.getElementById('faucet-address');
+      const btn = document.getElementById('faucet-btn');
+      const statusDiv = document.getElementById('faucet-status');
+
+      const address = addressInput.value.trim();
+      if (!address || !address.startsWith('0x')) {
+        statusDiv.className = 'faucet-status error';
+        statusDiv.textContent = 'Please enter a valid 0x address';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      statusDiv.className = '';
+      statusDiv.textContent = '';
+
+      try {
+        const res = await HumanAds.fetchApi('/api/admin/faucet', {
+          method: 'POST',
+          body: JSON.stringify({ advertiser_address: address })
+        });
+
+        if (res.success) {
+          statusDiv.className = 'faucet-status success';
+          const amount = res.data.amount_cents ? `$${(res.data.amount_cents / 100).toLocaleString()}` : '';
+          statusDiv.textContent = `Sent ${amount} hUSD! TX: ${res.data.tx_hash?.substring(0, 20) || 'pending'}...`;
+          addressInput.value = '';
+          // Reload data after a short delay
+          setTimeout(() => loadTokenOps(currentFilter), 2000);
+        } else {
+          statusDiv.className = 'faucet-status error';
+          statusDiv.textContent = res.error?.message || 'Faucet failed';
+        }
+      } catch (e) {
+        statusDiv.className = 'faucet-status error';
+        statusDiv.textContent = e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send hUSD';
+      }
+    }
+
+    (async function() {
+      const meRes = await HumanAds.fetchApi('/me');
+      if (!meRes.success || !meRes.data?.user?.is_admin) {
+        window.location.href = '/admin';
+        return;
+      }
+      loadTokenOps();
+      SideMenu.init(true, true);
+    })();
+  </script>
+</body>
+</html>

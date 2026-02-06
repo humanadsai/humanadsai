@@ -19,6 +19,16 @@ import type {
 import { success, errors, generateRequestId } from '../../utils/response';
 import { requireAdmin } from '../../middleware/admin';
 import { getPayoutConfig, generateSimulatedTxHash } from '../../config/payout';
+import {
+  getOnchainConfig,
+  hasTreasuryKey,
+  getHusdBalance,
+  getEthBalance,
+  checkFaucetCooldown,
+  recordTokenOp,
+  updateTokenOpStatus,
+  transferHusd,
+} from '../../services/onchain';
 
 // Fee recipient addresses
 const FEE_RECIPIENTS: FeeRecipientConfig = {
@@ -1200,17 +1210,6 @@ export async function getFeeRecipients(request: Request, env: Env): Promise<Resp
 // ============================================
 // Token Operations (hUSD Faucet)
 // ============================================
-
-import {
-  getOnchainConfig,
-  hasTreasuryKey,
-  getHusdBalance,
-  getEthBalance,
-  checkFaucetCooldown,
-  recordTokenOp,
-  updateTokenOpStatus,
-  transferHusd,
-} from '../../services/onchain';
 
 /**
  * POST /api/admin/faucet
