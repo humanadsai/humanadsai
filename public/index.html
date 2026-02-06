@@ -774,7 +774,7 @@
         : '<span class="human-carousel-avatar-placeholder">👤</span>';
 
       const verifiedBadgeHtml = isVerified
-        ? `<span class="human-verified-badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Verified</span>`
+        ? `<svg class="human-verified-badge" viewBox="0 0 22 22" title="Verified" aria-label="Verified account" role="img"><circle cx="11" cy="11" r="11" fill="#1D9BF0"/><path d="M9.5 14.25L6.75 11.5l-.88.88L9.5 16l7-7-.88-.88z" fill="white"/></svg>`
         : '';
 
       const hasMetrics = followersCount > 0 || followingCount > 0;
@@ -792,7 +792,7 @@
         <div class="human-carousel-header">
           <div class="human-carousel-avatar">${avatarHtml}</div>
           <div class="human-carousel-info">
-            <div class="human-carousel-name">${displayName}${verifiedBadgeHtml}</div>
+            <div class="human-carousel-name"><span class="human-carousel-name-text">${displayName}</span>${verifiedBadgeHtml}</div>
             <div class="human-carousel-handle"><svg class="human-handle-x-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>${xHandle}</div>
           </div>
         </div>
