@@ -1137,16 +1137,6 @@ contract HumanAdsTestUSD {
       }
     }
 
-    /** Return true when TestMode AND prestep not yet completed */
-    function isPreStepNeeded() {
-      try {
-        if (!window.EnvBanner || !window.EnvBanner.isTestnet()) return false;
-      } catch (e) {
-        return false;
-      }
-      return localStorage.getItem('humanads_test_prestep_complete') !== 'true';
-    }
-
     /** Load saved credentials from localStorage */
     function loadPreStepFromStorage() {
       return {
@@ -1173,8 +1163,8 @@ contract HumanAdsTestUSD {
 
       content.innerHTML = `
         <div class="test-header">
-          <h1>Test Mode Setup</h1>
-          <p>Complete these steps before running the E2E Payment Flow.</p>
+          <h1>AI Advertiser Test</h1>
+          <p>Setup & E2E Payment Flow</p>
         </div>
 
         <!-- Step 0: Register -->
@@ -1225,13 +1215,288 @@ contract HumanAdsTestUSD {
           </div>
         </div>
 
-        <!-- Proceed -->
-        <div style="margin-top:16px;">
-          <button class="btn primary" onclick="completePreStep(window._envData)" style="font-size:0.9375rem; padding:14px;">
-            Proceed to E2E Payment Flow &rarr;
-          </button>
+        <!-- E2E Payment Flow -->
+        <div style="margin-top:24px; padding-top:24px; border-top:2px solid var(--color-border);">
+          <div class="test-header" style="margin-bottom:16px;">
+            <h1 style="font-size:1.125rem;">E2E Payment Flow</h1>
+            <p>Steps A-G: Create deal, seed data, pay & confirm.</p>
+            <div class="env-badge ${state.payoutMode}">
+              <span class="dot"></span>
+              ${state.payoutMode === 'ledger' ? 'Ledger Mode (Simulated)' : 'Onchain Mode'}
+            </div>
+            <div class="wallet-status disconnected" id="wallet-status">
+              <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+              </svg>
+              Not Connected
+            </div>
+          </div>
+
+          <!-- Step A: Environment -->
+          <div class="step-card active" id="step-a">
+            <div class="step-header">
+              <div class="step-number">A</div>
+              <div class="step-title">Environment & Wallet</div>
+            </div>
+            <div class="step-description">Select token${isMobile && !isInMetaMaskBrowser ? '. Tap "Open MetaMask" to continue in the MetaMask app.' : ' and connect your wallet.'}</div>
+            <div class="info-row">
+              <span class="label">Network</span>
+              <span class="value">Sepolia (Testnet)</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Token</span>
+              <span class="value">hUSD (HumanAds Test)</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Payout Mode</span>
+              <span class="value">${state.payoutMode}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Treasury</span>
+              <span class="value" style="font-size:0.6875rem;">${truncate(state.treasuryAddress, 20)}</span>
+            </div>
+            ${isMobile && !isInMetaMaskBrowser ? `
+            <button class="btn metamask" onclick="openMetaMask()">
+              <svg width="16" height="16" viewBox="0 0 318 318" fill="currentColor">
+                <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
+                <path d="M44.4 35.5l98.7 74.6-17.5-44.3zm193.7 171.3l-26.5 40.6 56.7 15.6 16.3-55.3zm-213.1.9l16.2 55.3 56.7-15.6-26.5-40.6z"/>
+              </svg>
+              Open MetaMask
+            </button>
+            <button class="btn secondary" id="btn-connect-wallet" onclick="connectWallet()" style="margin-top:8px;">
+              Or connect via WalletConnect
+            </button>
+            ` : `
+            <button class="btn wallet" id="btn-connect-wallet" onclick="connectWallet()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+              </svg>
+              Connect Wallet
+            </button>
+            `}
+
+            <!-- hUSD Contract Deploy Helper -->
+            <div id="husd-deploy-helper" style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--color-border);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-size:0.75rem;color:var(--color-text-muted);">Need hUSD for testing?</span>
+                <button class="btn secondary" onclick="toggleContractCode()" style="padding:4px 8px;font-size:0.6875rem;">
+                  Show Contract Code
+                </button>
+              </div>
+              <div id="contract-code-section" style="display:none;">
+                <div style="background:var(--color-background-light);border-radius:8px;padding:12px;margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-family:var(--font-mono);font-size:0.75rem;font-weight:600;">HumanAdsTestUSD.sol</span>
+                    <button class="copy-btn" onclick="copyContractCode(this)">Copy All</button>
+                  </div>
+                  <pre id="contract-code" style="font-size:0.625rem;line-height:1.4;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0;color:var(--color-text-muted);"></pre>
+                </div>
+                <div style="font-size:0.6875rem;color:var(--color-text-muted);line-height:1.5;">
+                  <strong>Deploy Steps:</strong><br>
+                  1. Open <a href="https://remix.ethereum.org" target="_blank" style="color:var(--color-primary);">remix.ethereum.org</a><br>
+                  2. Create new file, paste code<br>
+                  3. Compile (0.8.20)<br>
+                  4. Deploy &rarr; Sepolia<br>
+                  5. mint(your_address, 100000000000000000000)<br>
+                  6. Copy contract address &rarr; set in Token dropdown
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step B: Create Deal -->
+          <div class="step-card disabled" id="step-b">
+            <div class="step-header">
+              <div class="step-number">B</div>
+              <div class="step-title">Create Mission</div>
+            </div>
+            <div class="step-description">Create a test deal as an AI advertiser.</div>
+            <div class="input-group">
+              <label>Reward Amount</label>
+              <select id="reward-amount">
+                <option value="500">$5.00</option>
+                <option value="1000">$10.00</option>
+              </select>
+            </div>
+            <button class="btn primary" onclick="createDeal()">
+              Create Test Deal
+            </button>
+            <div class="result-box" id="step-b-result"></div>
+          </div>
+
+          <!-- Step C: Seed Application -->
+          <div class="step-card disabled" id="step-c">
+            <div class="step-header">
+              <div class="step-number">C</div>
+              <div class="step-title">Seed Application</div>
+            </div>
+            <div class="step-description">Create test promoter and application.</div>
+            <div class="info-row" id="deal-id-row" style="display:none;">
+              <span class="label">Deal ID</span>
+              <span class="value highlight" id="display-deal-id">-</span>
+            </div>
+            <button class="btn primary" onclick="seedData()" disabled id="btn-seed">
+              Seed Test Promoter & Application
+            </button>
+            <div class="result-box" id="step-c-result"></div>
+          </div>
+
+          <!-- Step D: Select & Approve -->
+          <div class="step-card disabled" id="step-d">
+            <div class="step-header">
+              <div class="step-number">D</div>
+              <div class="step-title">Select & Approve</div>
+            </div>
+            <div class="step-description">Select application and approve for payment.</div>
+            <div class="info-row" id="app-id-row" style="display:none;">
+              <span class="label">Application ID</span>
+              <span class="value" id="display-app-id">-</span>
+            </div>
+            <div class="btn-row">
+              <button class="btn" onclick="selectApplication()" disabled id="btn-select">Select</button>
+              <button class="btn primary" onclick="approveMission()" disabled id="btn-approve">Approve</button>
+            </div>
+            <div class="result-box" id="step-d-result"></div>
+          </div>
+
+          <!-- Step E: Pay AUF (10%) -->
+          <div class="step-card disabled" id="step-e">
+            <div class="step-header">
+              <div class="step-number">E</div>
+              <div class="step-title">Pay AUF (10%)</div>
+            </div>
+            <div class="step-description">Pay the AUF to the treasury. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
+            <div class="payment-box" id="auf-payment-info" style="display:none;">
+              <div class="title">AUF Payment Details</div>
+              <div class="info-row-with-copy">
+                <span class="label">Network</span>
+                <div class="value-group">
+                  <span class="value" id="auf-chain">-</span>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">Token</span>
+                <div class="value-group">
+                  <span class="value" id="auf-token">hUSD</span>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">To</span>
+                <div class="value-group">
+                  <span class="value" id="auf-to" style="font-size:0.625rem;">-</span>
+                  <button class="copy-btn" onclick="copyToClipboard(state.aufPaymentInfo?.to_address || state.treasuryAddress, this)">Copy</button>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">Amount</span>
+                <div class="value-group">
+                  <span class="value highlight" id="auf-amount">-</span>
+                  <button class="copy-btn" onclick="copyToClipboard((state.aufAmountCents / 100).toFixed(2), this)">Copy</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn metamask" onclick="sendAuf()" disabled id="btn-send-auf">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+              Send AUF Payment
+            </button>
+            <div class="input-group" style="margin-top:12px;">
+              <label>AUF Transaction Hash</label>
+              <div class="input-with-paste">
+                <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
+                <button class="paste-btn" onclick="pasteToInput('auf-tx-hash')">Paste</button>
+              </div>
+            </div>
+            <button class="btn primary" onclick="unlockAddress()" disabled id="btn-unlock">
+              Verify & Unlock Address
+            </button>
+            <div class="result-box" id="step-e-result"></div>
+          </div>
+
+          <!-- Step F: Pay Promoter (90%) -->
+          <div class="step-card disabled" id="step-f">
+            <div class="step-header">
+              <div class="step-number">F</div>
+              <div class="step-title">Pay Promoter (90%)</div>
+            </div>
+            <div class="step-description">Send the payout to the promoter. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
+            <div class="payment-box" id="payout-payment-info" style="display:none;">
+              <div class="title">Payout Details</div>
+              <div class="info-row-with-copy">
+                <span class="label">Network</span>
+                <div class="value-group">
+                  <span class="value" id="payout-chain">-</span>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">Token</span>
+                <div class="value-group">
+                  <span class="value" id="payout-token">hUSD</span>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">To (Promoter)</span>
+                <div class="value-group">
+                  <span class="value" id="payout-to" style="font-size:0.625rem;">-</span>
+                  <button class="copy-btn" onclick="copyToClipboard(state.operatorWallet, this)">Copy</button>
+                </div>
+              </div>
+              <div class="info-row-with-copy">
+                <span class="label">Amount</span>
+                <div class="value-group">
+                  <span class="value highlight" id="payout-amount">-</span>
+                  <button class="copy-btn" onclick="copyToClipboard((state.payoutAmountCents / 100).toFixed(2), this)">Copy</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn metamask" onclick="sendPayout()" disabled id="btn-send-payout">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+              Send Payout
+            </button>
+            <div class="input-group" style="margin-top:12px;">
+              <label>Payout Transaction Hash</label>
+              <div class="input-with-paste">
+                <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
+                <button class="paste-btn" onclick="pasteToInput('payout-tx-hash')">Paste</button>
+              </div>
+            </div>
+            <button class="btn primary" onclick="confirmPayout()" disabled id="btn-confirm">
+              Confirm Payout
+            </button>
+            <div class="result-box" id="step-f-result"></div>
+          </div>
+
+          <!-- Step G: Complete -->
+          <div class="step-card disabled" id="step-g">
+            <div class="step-header">
+              <div class="step-number">G</div>
+              <div class="step-title">Complete</div>
+            </div>
+            <div id="complete-content" style="display:none;">
+              <div class="complete-banner">
+                <h2>PAID</h2>
+                <p>E2E Payment Flow Complete!</p>
+              </div>
+              <button class="btn" onclick="startOver()">Start Over</button>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="timeline" id="timeline" style="display:none;">
+            <h3>Timeline</h3>
+            <div id="timeline-items"></div>
+          </div>
         </div>
       `;
+
+      updateStepState(2);
     }
 
     /** Render PreStep 0 when api_key is NOT yet saved */
@@ -1467,12 +1732,6 @@ contract HumanAdsTestUSD {
       renderPreStep(window._envData);
     }
 
-    /** Go back to PreStep from the main flow */
-    function backToSetup() {
-      localStorage.removeItem('humanads_test_prestep_complete');
-      renderPreStep(window._envData);
-    }
-
     // ========== PreStep Faucet Claim ==========
     const FAUCET_CONTRACT = '0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341';
     const FAUCET_CLAIM_OPEN_SELECTOR = '0x4b8bcb58'; // claimOpen()
@@ -1563,12 +1822,6 @@ contract HumanAdsTestUSD {
         claimBtn.disabled = false;
         claimBtn.innerHTML = 'Claim 1,000 hUSD';
       }
-    }
-
-    /** Mark PreStep complete and hand off to existing renderPage */
-    function completePreStep(envData) {
-      localStorage.setItem('humanads_test_prestep_complete', 'true');
-      renderPage(envData);
     }
 
     function showResult(stepId, success, data) {
@@ -2154,291 +2407,6 @@ contract HumanAdsTestUSD {
       }
     }
 
-    function renderPage(envData) {
-      const content = document.getElementById('content');
-
-      content.innerHTML = `
-        <div class="test-header">
-          <h1>AI Advertiser Test</h1>
-          <p>E2E Payment Flow Wizard</p>
-          <button class="btn secondary" onclick="backToSetup()" style="width:auto; margin:8px auto 0; padding:6px 14px; font-size:0.6875rem;">&#8635; Back to Setup</button>
-          <div class="env-badge ${state.payoutMode}">
-            <span class="dot"></span>
-            ${state.payoutMode === 'ledger' ? 'Ledger Mode (Simulated)' : 'Onchain Mode'}
-          </div>
-          <div class="wallet-status disconnected" id="wallet-status">
-            <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
-            </svg>
-            Not Connected
-          </div>
-        </div>
-
-        <!-- Step A: Environment -->
-        <div class="step-card active" id="step-a">
-          <div class="step-header">
-            <div class="step-number">A</div>
-            <div class="step-title">Environment & Wallet</div>
-          </div>
-          <div class="step-description">Select token${isMobile && !isInMetaMaskBrowser ? '. Tap "Open MetaMask" to continue in the MetaMask app.' : ' and connect your wallet.'}</div>
-          <div class="info-row">
-            <span class="label">Network</span>
-            <span class="value">Sepolia (Testnet)</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Token</span>
-            <span class="value">hUSD (HumanAds Test)</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Payout Mode</span>
-            <span class="value">${state.payoutMode}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Treasury</span>
-            <span class="value" style="font-size:0.6875rem;">${truncate(state.treasuryAddress, 20)}</span>
-          </div>
-          ${isMobile && !isInMetaMaskBrowser ? `
-          <button class="btn metamask" onclick="openMetaMask()">
-            <svg width="16" height="16" viewBox="0 0 318 318" fill="currentColor">
-              <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
-              <path d="M44.4 35.5l98.7 74.6-17.5-44.3zm193.7 171.3l-26.5 40.6 56.7 15.6 16.3-55.3zm-213.1.9l16.2 55.3 56.7-15.6-26.5-40.6z"/>
-            </svg>
-            Open MetaMask
-          </button>
-          <button class="btn secondary" id="btn-connect-wallet" onclick="connectWallet()" style="margin-top:8px;">
-            Or connect via WalletConnect
-          </button>
-          ` : `
-          <button class="btn wallet" id="btn-connect-wallet" onclick="connectWallet()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
-            </svg>
-            Connect Wallet
-          </button>
-          `}
-
-          <!-- hUSD Contract Deploy Helper -->
-          <div id="husd-deploy-helper" style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--color-border);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:0.75rem;color:var(--color-text-muted);">Need hUSD for testing?</span>
-              <button class="btn secondary" onclick="toggleContractCode()" style="padding:4px 8px;font-size:0.6875rem;">
-                Show Contract Code
-              </button>
-            </div>
-            <div id="contract-code-section" style="display:none;">
-              <div style="background:var(--color-background-light);border-radius:8px;padding:12px;margin-bottom:8px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                  <span style="font-family:var(--font-mono);font-size:0.75rem;font-weight:600;">HumanAdsTestUSD.sol</span>
-                  <button class="copy-btn" onclick="copyContractCode(this)">Copy All</button>
-                </div>
-                <pre id="contract-code" style="font-size:0.625rem;line-height:1.4;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0;color:var(--color-text-muted);"></pre>
-              </div>
-              <div style="font-size:0.6875rem;color:var(--color-text-muted);line-height:1.5;">
-                <strong>Deploy Steps:</strong><br>
-                1. Open <a href="https://remix.ethereum.org" target="_blank" style="color:var(--color-primary);">remix.ethereum.org</a><br>
-                2. Create new file, paste code<br>
-                3. Compile (0.8.20)<br>
-                4. Deploy → Sepolia<br>
-                5. mint(your_address, 100000000000000000000)<br>
-                6. Copy contract address → set in Token dropdown
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step B: Create Deal -->
-        <div class="step-card disabled" id="step-b">
-          <div class="step-header">
-            <div class="step-number">B</div>
-            <div class="step-title">Create Mission</div>
-          </div>
-          <div class="step-description">Create a test deal as an AI advertiser.</div>
-          <div class="input-group">
-            <label>Reward Amount</label>
-            <select id="reward-amount">
-              <option value="500">$5.00</option>
-              <option value="1000">$10.00</option>
-            </select>
-          </div>
-          <button class="btn primary" onclick="createDeal()">
-            Create Test Deal
-          </button>
-          <div class="result-box" id="step-b-result"></div>
-        </div>
-
-        <!-- Step C: Seed Application -->
-        <div class="step-card disabled" id="step-c">
-          <div class="step-header">
-            <div class="step-number">C</div>
-            <div class="step-title">Seed Application</div>
-          </div>
-          <div class="step-description">Create test promoter and application.</div>
-          <div class="info-row" id="deal-id-row" style="display:none;">
-            <span class="label">Deal ID</span>
-            <span class="value highlight" id="display-deal-id">-</span>
-          </div>
-          <button class="btn primary" onclick="seedData()" disabled id="btn-seed">
-            Seed Test Promoter & Application
-          </button>
-          <div class="result-box" id="step-c-result"></div>
-        </div>
-
-        <!-- Step D: Select & Approve -->
-        <div class="step-card disabled" id="step-d">
-          <div class="step-header">
-            <div class="step-number">D</div>
-            <div class="step-title">Select & Approve</div>
-          </div>
-          <div class="step-description">Select application and approve for payment.</div>
-          <div class="info-row" id="app-id-row" style="display:none;">
-            <span class="label">Application ID</span>
-            <span class="value" id="display-app-id">-</span>
-          </div>
-          <div class="btn-row">
-            <button class="btn" onclick="selectApplication()" disabled id="btn-select">Select</button>
-            <button class="btn primary" onclick="approveMission()" disabled id="btn-approve">Approve</button>
-          </div>
-          <div class="result-box" id="step-d-result"></div>
-        </div>
-
-        <!-- Step E: Pay AUF (10%) -->
-        <div class="step-card disabled" id="step-e">
-          <div class="step-header">
-            <div class="step-number">E</div>
-            <div class="step-title">Pay AUF (10%)</div>
-          </div>
-          <div class="step-description">Pay the AUF to the treasury. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
-          <div class="payment-box" id="auf-payment-info" style="display:none;">
-            <div class="title">AUF Payment Details</div>
-            <div class="info-row-with-copy">
-              <span class="label">Network</span>
-              <div class="value-group">
-                <span class="value" id="auf-chain">-</span>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">Token</span>
-              <div class="value-group">
-                <span class="value" id="auf-token">hUSD</span>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">To</span>
-              <div class="value-group">
-                <span class="value" id="auf-to" style="font-size:0.625rem;">-</span>
-                <button class="copy-btn" onclick="copyToClipboard(state.aufPaymentInfo?.to_address || state.treasuryAddress, this)">Copy</button>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">Amount</span>
-              <div class="value-group">
-                <span class="value highlight" id="auf-amount">-</span>
-                <button class="copy-btn" onclick="copyToClipboard((state.aufAmountCents / 100).toFixed(2), this)">Copy</button>
-              </div>
-            </div>
-          </div>
-          <button class="btn metamask" onclick="sendAuf()" disabled id="btn-send-auf">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12l7 7 7-7"/>
-            </svg>
-            Send AUF Payment
-          </button>
-          <div class="input-group" style="margin-top:12px;">
-            <label>AUF Transaction Hash</label>
-            <div class="input-with-paste">
-              <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
-              <button class="paste-btn" onclick="pasteToInput('auf-tx-hash')">Paste</button>
-            </div>
-          </div>
-          <button class="btn primary" onclick="unlockAddress()" disabled id="btn-unlock">
-            Verify & Unlock Address
-          </button>
-          <div class="result-box" id="step-e-result"></div>
-        </div>
-
-        <!-- Step F: Pay Promoter (90%) -->
-        <div class="step-card disabled" id="step-f">
-          <div class="step-header">
-            <div class="step-number">F</div>
-            <div class="step-title">Pay Promoter (90%)</div>
-          </div>
-          <div class="step-description">Send the payout to the promoter. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
-          <div class="payment-box" id="payout-payment-info" style="display:none;">
-            <div class="title">Payout Details</div>
-            <div class="info-row-with-copy">
-              <span class="label">Network</span>
-              <div class="value-group">
-                <span class="value" id="payout-chain">-</span>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">Token</span>
-              <div class="value-group">
-                <span class="value" id="payout-token">hUSD</span>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">To (Promoter)</span>
-              <div class="value-group">
-                <span class="value" id="payout-to" style="font-size:0.625rem;">-</span>
-                <button class="copy-btn" onclick="copyToClipboard(state.operatorWallet, this)">Copy</button>
-              </div>
-            </div>
-            <div class="info-row-with-copy">
-              <span class="label">Amount</span>
-              <div class="value-group">
-                <span class="value highlight" id="payout-amount">-</span>
-                <button class="copy-btn" onclick="copyToClipboard((state.payoutAmountCents / 100).toFixed(2), this)">Copy</button>
-              </div>
-            </div>
-          </div>
-          <button class="btn metamask" onclick="sendPayout()" disabled id="btn-send-payout">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12l7 7 7-7"/>
-            </svg>
-            Send Payout
-          </button>
-          <div class="input-group" style="margin-top:12px;">
-            <label>Payout Transaction Hash</label>
-            <div class="input-with-paste">
-              <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
-              <button class="paste-btn" onclick="pasteToInput('payout-tx-hash')">Paste</button>
-            </div>
-          </div>
-          <button class="btn primary" onclick="confirmPayout()" disabled id="btn-confirm">
-            Confirm Payout
-          </button>
-          <div class="result-box" id="step-f-result"></div>
-        </div>
-
-        <!-- Step G: Complete -->
-        <div class="step-card disabled" id="step-g">
-          <div class="step-header">
-            <div class="step-number">G</div>
-            <div class="step-title">Complete</div>
-          </div>
-          <div id="complete-content" style="display:none;">
-            <div class="complete-banner">
-              <h2>PAID</h2>
-              <p>E2E Payment Flow Complete!</p>
-            </div>
-            <button class="btn" onclick="startOver()">Start Over</button>
-          </div>
-        </div>
-
-        <!-- Timeline -->
-        <div class="timeline" id="timeline" style="display:none;">
-          <h3>Timeline</h3>
-          <div id="timeline-items"></div>
-        </div>
-      `;
-
-      updateStepState(2); // Start at step B (Create Deal)
-    }
 
     // Token is fixed to hUSD in test mode
     function renderTokenOptions(chainKey) {
@@ -2772,7 +2740,7 @@ contract HumanAdsTestUSD {
 
       // Clean up PreStep localStorage keys
       ['humanads_test_api_key', 'humanads_test_claim_url', 'humanads_test_verification_code',
-       'humanads_test_advertiser_name', 'humanads_test_prestep_complete'].forEach(k => localStorage.removeItem(k));
+       'humanads_test_advertiser_name'].forEach(k => localStorage.removeItem(k));
 
       window.location.reload();
     }
@@ -2785,11 +2753,7 @@ contract HumanAdsTestUSD {
         window._envData = envData;
 
         await waitForEnvBanner(3000);
-        if (isPreStepNeeded()) {
-          renderPreStep(envData);
-        } else {
-          renderPage(envData);
-        }
+        renderPreStep(envData);
       }
     })();
   </script>
