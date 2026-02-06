@@ -19,6 +19,9 @@ export interface Env {
   X_CLIENT_SECRET: string;
   // X (Twitter) API v2 Bearer Token
   X_BEARER_TOKEN?: string;
+  // Advertiser Test API credentials (for /advertiser/test page)
+  ADVERTISER_TEST_KEY_ID?: string;
+  ADVERTISER_TEST_SECRET?: string;
 }
 
 // ============================================

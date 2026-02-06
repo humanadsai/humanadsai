@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AI Advertiser Test - HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .test-page {
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      padding-bottom: 100px;
+    }
+    .test-header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .test-header h1 {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: var(--color-text-muted);
+      font-size: 0.8125rem;
+    }
+    .env-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      margin-top: 8px;
+    }
+    .env-badge.ledger { background: rgba(52, 199, 89, 0.2); color: #34c759; }
+    .env-badge.onchain { background: rgba(255, 149, 0, 0.2); color: #ff9500; }
+    .env-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .step-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    .step-card.completed {
+      border-color: rgba(52, 199, 89, 0.5);
+      background: rgba(52, 199, 89, 0.05);
+    }
+    .step-card.active {
+      border-color: var(--color-primary);
+      background: rgba(255, 107, 53, 0.05);
+    }
+    .step-card.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .step-card.completed .step-number {
+      background: #34c759;
+      color: white;
+    }
+    .step-card.active .step-number {
+      background: var(--color-primary);
+      color: white;
+    }
+    .step-title {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .step-description {
+      color: var(--color-text-muted);
+      font-size: 0.8125rem;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .input-group {
+      margin-bottom: 10px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.6875rem;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .input-group input, .input-group select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+    }
+    .input-group input:focus, .input-group select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    .input-group input::placeholder {
+      color: var(--color-text-muted);
+      opacity: 0.6;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      font-size: 0.8125rem;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid var(--color-border);
+      background: var(--color-background-light);
+      color: var(--color-text);
+      width: 100%;
+    }
+    .btn:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn.primary {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: white;
+    }
+    .btn.primary:hover:not(:disabled) {
+      background: #e55a2b;
+    }
+    .btn.success {
+      background: #34c759;
+      border-color: #34c759;
+      color: white;
+    }
+    .btn.wallet {
+      background: linear-gradient(135deg, #7B3FE4 0%, #A855F7 100%);
+      border-color: transparent;
+      color: white;
+    }
+    .btn.wallet:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-row .btn {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .result-box {
+      background: var(--color-background-light);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      display: none;
+    }
+    .result-box.show { display: block; }
+    .result-box.error {
+      background: rgba(255, 59, 48, 0.1);
+      color: #ff3b30;
+      border: 1px solid rgba(255, 59, 48, 0.2);
+    }
+    .result-box.success {
+      background: rgba(52, 199, 89, 0.1);
+      color: #34c759;
+      border: 1px solid rgba(52, 199, 89, 0.2);
+    }
+    .result-box pre {
+      margin: 8px 0 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.8125rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label {
+      color: var(--color-text-muted);
+    }
+    .info-row .value {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      max-width: 60%;
+      text-align: right;
+      word-break: break-all;
+    }
+    .info-row .value.highlight {
+      color: var(--color-primary);
+    }
+    .info-row .value.success {
+      color: #34c759;
+    }
+
+    .payment-box {
+      background: rgba(255, 107, 53, 0.1);
+      border: 1px solid rgba(255, 107, 53, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .payment-box .title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+
+    .timeline {
+      margin-top: 24px;
+      padding: 16px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+    }
+    .timeline h3 {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      margin-bottom: 12px;
+    }
+    .timeline-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 0.75rem;
+    }
+    .timeline-item .step {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.625rem;
+      flex-shrink: 0;
+    }
+    .timeline-item.done .step {
+      background: #34c759;
+      color: white;
+    }
+    .timeline-item .content {
+      flex: 1;
+    }
+    .timeline-item .name {
+      font-weight: 500;
+    }
+    .timeline-item .id {
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      word-break: break-all;
+    }
+
+    .complete-banner {
+      background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
+      color: white;
+      text-align: center;
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    .complete-banner h2 {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    .complete-banner p {
+      opacity: 0.9;
+      font-size: 0.875rem;
+    }
+
+    .loading { text-align: center; padding: 40px; color: var(--color-text-muted); }
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      .btn-row { flex-direction: column; }
+      .btn-row .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="test-page" id="content">
+      <div class="loading"><span class="spinner"></span> Loading...</div>
+    </main>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script src="/js/humanads.js"></script>
+  <script>
+    // State
+    const state = {
+      environment: null,
+      payoutMode: 'ledger',
+      chain: 'base_sepolia',
+      dealId: null,
+      applicationId: null,
+      missionId: null,
+      operatorWallet: null,
+      aufAmountCents: 0,
+      payoutAmountCents: 0,
+      treasuryAddress: null,
+      currentStep: 1,
+      timeline: [],
+    };
+
+    async function checkAdmin() {
+      const res = await HumanAds.fetchApi('/me');
+      if (!res.success || !res.data?.xConnected || !res.data?.user?.is_admin) {
+        window.location.href = '/admin';
+        return false;
+      }
+      return true;
+    }
+
+    async function loadEnvironment() {
+      const res = await HumanAds.fetchApi('/advertiser/test/environment');
+      if (res.success && res.data) {
+        state.environment = res.data.environment;
+        state.payoutMode = res.data.payout_mode;
+        state.treasuryAddress = res.data.treasury_address;
+        return res.data;
+      }
+      return null;
+    }
+
+    function formatCents(cents) {
+      return '$' + (cents / 100).toFixed(2);
+    }
+
+    function truncate(str, len = 16) {
+      if (!str || str.length <= len) return str;
+      return str.slice(0, len/2) + '...' + str.slice(-len/2);
+    }
+
+    function showResult(stepId, success, data) {
+      const el = document.getElementById(`${stepId}-result`);
+      if (!el) return;
+      el.className = `result-box show ${success ? 'success' : 'error'}`;
+      if (success) {
+        el.innerHTML = `<strong>Success</strong><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } else {
+        el.innerHTML = `<strong>Error:</strong> ${data.message || JSON.stringify(data)}`;
+      }
+    }
+
+    function updateStepState(stepNum) {
+      state.currentStep = stepNum;
+      document.querySelectorAll('.step-card').forEach((card, i) => {
+        const num = i + 1;
+        card.classList.remove('active', 'completed', 'disabled');
+        if (num < stepNum) {
+          card.classList.add('completed');
+        } else if (num === stepNum) {
+          card.classList.add('active');
+        } else {
+          card.classList.add('disabled');
+        }
+      });
+    }
+
+    function addToTimeline(step, name, id) {
+      state.timeline.push({ step, name, id, done: true });
+      renderTimeline();
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('timeline-items');
+      if (!container) return;
+      container.innerHTML = state.timeline.map(item => `
+        <div class="timeline-item done">
+          <div class="step">${item.step}</div>
+          <div class="content">
+            <div class="name">${item.name}</div>
+            <div class="id">${item.id}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPage(envData) {
+      const content = document.getElementById('content');
+      const hasCredentials = envData?.has_test_credentials;
+
+      content.innerHTML = `
+        <div class="test-header">
+          <h1>AI Advertiser Test</h1>
+          <p>E2E Payment Flow Wizard</p>
+          <div class="env-badge ${state.payoutMode}">
+            <span class="dot"></span>
+            ${state.payoutMode === 'ledger' ? 'Ledger Mode (Simulated)' : 'Onchain Mode'}
+          </div>
+        </div>
+
+        ${!hasCredentials ? `
+          <div class="result-box show error">
+            <strong>Test credentials not configured</strong>
+            <p style="margin-top:8px;font-size:0.75rem;">Run these commands to set up:</p>
+            <pre>wrangler secret put ADVERTISER_TEST_KEY_ID
+wrangler secret put ADVERTISER_TEST_SECRET</pre>
+          </div>
+        ` : ''}
+
+        <!-- Step A: Environment -->
+        <div class="step-card active" id="step-a">
+          <div class="step-header">
+            <div class="step-number">A</div>
+            <div class="step-title">Environment</div>
+          </div>
+          <div class="step-description">Select testnet chain for payments.</div>
+          <div class="input-group">
+            <label>Chain</label>
+            <select id="chain-select" onchange="state.chain = this.value">
+              <option value="base_sepolia" selected>Base Sepolia (Recommended)</option>
+              <option value="sepolia">Sepolia</option>
+            </select>
+          </div>
+          <div class="info-row">
+            <span class="label">Payout Mode</span>
+            <span class="value">${state.payoutMode}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Treasury</span>
+            <span class="value" style="font-size:0.6875rem;">${truncate(state.treasuryAddress, 20)}</span>
+          </div>
+        </div>
+
+        <!-- Step B: Create Deal -->
+        <div class="step-card disabled" id="step-b">
+          <div class="step-header">
+            <div class="step-number">B</div>
+            <div class="step-title">Create Mission</div>
+          </div>
+          <div class="step-description">Create a test deal as an AI advertiser.</div>
+          <div class="input-group">
+            <label>Reward Amount</label>
+            <select id="reward-amount">
+              <option value="500">$5.00</option>
+              <option value="1000">$10.00</option>
+            </select>
+          </div>
+          <button class="btn primary" onclick="createDeal()" ${!hasCredentials ? 'disabled' : ''}>
+            Create Test Deal
+          </button>
+          <div class="result-box" id="step-b-result"></div>
+        </div>
+
+        <!-- Step C: Seed Application -->
+        <div class="step-card disabled" id="step-c">
+          <div class="step-header">
+            <div class="step-number">C</div>
+            <div class="step-title">Seed Application</div>
+          </div>
+          <div class="step-description">Create test promoter and application.</div>
+          <div class="info-row" id="deal-id-row" style="display:none;">
+            <span class="label">Deal ID</span>
+            <span class="value highlight" id="display-deal-id">-</span>
+          </div>
+          <button class="btn primary" onclick="seedData()" disabled id="btn-seed">
+            Seed Test Promoter & Application
+          </button>
+          <div class="result-box" id="step-c-result"></div>
+        </div>
+
+        <!-- Step D: Select & Approve -->
+        <div class="step-card disabled" id="step-d">
+          <div class="step-header">
+            <div class="step-number">D</div>
+            <div class="step-title">Select & Approve</div>
+          </div>
+          <div class="step-description">Select application and approve for payment.</div>
+          <div class="info-row" id="app-id-row" style="display:none;">
+            <span class="label">Application ID</span>
+            <span class="value" id="display-app-id">-</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="selectApplication()" disabled id="btn-select">Select</button>
+            <button class="btn primary" onclick="approveMission()" disabled id="btn-approve">Approve</button>
+          </div>
+          <div class="result-box" id="step-d-result"></div>
+        </div>
+
+        <!-- Step E: Pay AUF (10%) -->
+        <div class="step-card disabled" id="step-e">
+          <div class="step-header">
+            <div class="step-number">E</div>
+            <div class="step-title">Pay AUF (10%)</div>
+          </div>
+          <div class="step-description">Pay the Address Unlock Fee to the treasury.</div>
+          <div class="payment-box" id="auf-payment-info" style="display:none;">
+            <div class="title">AUF Payment Details</div>
+            <div class="info-row">
+              <span class="label">Amount</span>
+              <span class="value highlight" id="auf-amount">-</span>
+            </div>
+            <div class="info-row">
+              <span class="label">To (Treasury)</span>
+              <span class="value" id="auf-to" style="font-size:0.625rem;">-</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Chain</span>
+              <span class="value" id="auf-chain">-</span>
+            </div>
+          </div>
+          <button class="btn wallet" onclick="openWallet('auf')" disabled id="btn-wallet-auf">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+            </svg>
+            Open Wallet
+          </button>
+          <div class="input-group" style="margin-top:12px;">
+            <label>AUF Transaction Hash</label>
+            <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : '0x...'}" />
+          </div>
+          <button class="btn primary" onclick="unlockAddress()" disabled id="btn-unlock">
+            Verify & Unlock Address
+          </button>
+          <div class="result-box" id="step-e-result"></div>
+        </div>
+
+        <!-- Step F: Pay Promoter (90%) -->
+        <div class="step-card disabled" id="step-f">
+          <div class="step-header">
+            <div class="step-number">F</div>
+            <div class="step-title">Pay Promoter (90%)</div>
+          </div>
+          <div class="step-description">Send the payout to the promoter's wallet.</div>
+          <div class="payment-box" id="payout-payment-info" style="display:none;">
+            <div class="title">Payout Details</div>
+            <div class="info-row">
+              <span class="label">Amount</span>
+              <span class="value highlight" id="payout-amount">-</span>
+            </div>
+            <div class="info-row">
+              <span class="label">To (Promoter)</span>
+              <span class="value" id="payout-to" style="font-size:0.625rem;">-</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Chain</span>
+              <span class="value" id="payout-chain">-</span>
+            </div>
+          </div>
+          <button class="btn wallet" onclick="openWallet('payout')" disabled id="btn-wallet-payout">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+            </svg>
+            Open Wallet
+          </button>
+          <div class="input-group" style="margin-top:12px;">
+            <label>Payout Transaction Hash</label>
+            <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : '0x...'}" />
+          </div>
+          <button class="btn primary" onclick="confirmPayout()" disabled id="btn-confirm">
+            Confirm Payout
+          </button>
+          <div class="result-box" id="step-f-result"></div>
+        </div>
+
+        <!-- Step G: Complete -->
+        <div class="step-card disabled" id="step-g">
+          <div class="step-header">
+            <div class="step-number">G</div>
+            <div class="step-title">Complete</div>
+          </div>
+          <div id="complete-content" style="display:none;">
+            <div class="complete-banner">
+              <h2>PAID</h2>
+              <p>E2E Payment Flow Complete!</p>
+            </div>
+            <button class="btn" onclick="startOver()">Start Over</button>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline" id="timeline" style="display:none;">
+          <h3>Timeline</h3>
+          <div id="timeline-items"></div>
+        </div>
+      `;
+
+      updateStepState(hasCredentials ? 2 : 1);
+    }
+
+    // === API Calls ===
+
+    async function createDeal() {
+      const btn = document.querySelector('#step-b .btn.primary');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Creating...';
+
+      try {
+        const rewardAmount = parseInt(document.getElementById('reward-amount').value);
+        const res = await HumanAds.fetchApi('/advertiser/test/deals/create', {
+          method: 'POST',
+          body: JSON.stringify({ reward_amount: rewardAmount, chain: state.chain }),
+        });
+
+        if (res.success && res.data?.deal_id) {
+          state.dealId = res.data.deal_id;
+          showResult('step-b', true, { deal_id: state.dealId });
+          addToTimeline('B', 'Deal Created', state.dealId);
+
+          // Update UI
+          document.getElementById('display-deal-id').textContent = truncate(state.dealId);
+          document.getElementById('deal-id-row').style.display = 'flex';
+          document.getElementById('btn-seed').disabled = false;
+
+          updateStepState(3);
+        } else {
+          showResult('step-b', false, res.error || res);
+        }
+      } catch (e) {
+        showResult('step-b', false, { message: e.message });
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Create Test Deal';
+    }
+
+    async function seedData() {
+      const btn = document.getElementById('btn-seed');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Seeding...';
+
+      try {
+        const res = await HumanAds.fetchApi('/advertiser/test/seed', {
+          method: 'POST',
+          body: JSON.stringify({ deal_id: state.dealId }),
+        });
+
+        if (res.success && res.data?.application_id) {
+          state.applicationId = res.data.application_id;
+          state.missionId = res.data.mission_id;
+          state.operatorWallet = res.data.operator_wallet;
+
+          showResult('step-c', true, res.data);
+          addToTimeline('C', 'Application Seeded', state.applicationId);
+
+          // Update UI
+          document.getElementById('display-app-id').textContent = truncate(state.applicationId);
+          document.getElementById('app-id-row').style.display = 'flex';
+          document.getElementById('btn-select').disabled = false;
+          document.getElementById('btn-approve').disabled = false;
+
+          updateStepState(4);
+        } else {
+          showResult('step-c', false, res.error || res);
+        }
+      } catch (e) {
+        showResult('step-c', false, { message: e.message });
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Seed Test Promoter & Application';
+    }
+
+    async function selectApplication() {
+      const btn = document.getElementById('btn-select');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+
+      try {
+        const res = await HumanAds.fetchApi(`/advertiser/test/applications/${state.applicationId}/select`, {
+          method: 'POST',
+          body: JSON.stringify({}),
+        });
+
+        // Application was already selected by seed, so this might fail
+        // That's OK, just show the result
+        if (res.success) {
+          showResult('step-d', true, { status: 'selected' });
+        } else {
+          // If already selected, that's fine
+          if (res.error?.code === 'ALREADY_SELECTED' || res.error?.message?.includes('already')) {
+            showResult('step-d', true, { status: 'already selected' });
+          } else {
+            showResult('step-d', false, res.error || res);
+          }
+        }
+      } catch (e) {
+        showResult('step-d', false, { message: e.message });
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Select';
+    }
+
+    async function approveMission() {
+      const btn = document.getElementById('btn-approve');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>';
+
+      try {
+        const res = await HumanAds.fetchApi(`/advertiser/test/applications/${state.applicationId}/approve`, {
+          method: 'POST',
+          body: JSON.stringify({}),
+        });
+
+        if (res.success && res.data) {
+          state.aufAmountCents = res.data.auf_amount_cents;
+          state.payoutAmountCents = res.data.payout_amount_cents || (res.data.auf_amount_cents * 9);
+          state.aufPaymentInfo = res.data.payment_info;
+
+          showResult('step-d', true, {
+            status: 'approved',
+            auf_amount: formatCents(state.aufAmountCents),
+          });
+          addToTimeline('D', 'Mission Approved', `AUF: ${formatCents(state.aufAmountCents)}`);
+
+          // Update payment info
+          document.getElementById('auf-amount').textContent = formatCents(state.aufAmountCents);
+          document.getElementById('auf-to').textContent = truncate(res.data.payment_info?.to_address || state.treasuryAddress, 24);
+          document.getElementById('auf-chain').textContent = state.chain;
+          document.getElementById('auf-payment-info').style.display = 'block';
+          document.getElementById('btn-wallet-auf').disabled = false;
+          document.getElementById('btn-unlock').disabled = false;
+
+          updateStepState(5);
+          document.getElementById('timeline').style.display = 'block';
+        } else {
+          showResult('step-d', false, res.error || res);
+        }
+      } catch (e) {
+        showResult('step-d', false, { message: e.message });
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Approve';
+    }
+
+    function openWallet(type) {
+      let deepLink;
+      if (type === 'auf' && state.aufPaymentInfo) {
+        deepLink = state.aufPaymentInfo.wallet_deep_link;
+      } else if (type === 'payout' && state.payoutPaymentInfo) {
+        deepLink = state.payoutPaymentInfo.wallet_deep_link;
+      }
+
+      if (deepLink) {
+        window.location.href = deepLink;
+      } else {
+        alert('Wallet deep link not available. Please copy the payment details manually.');
+      }
+    }
+
+    async function unlockAddress() {
+      const btn = document.getElementById('btn-unlock');
+      const txHash = document.getElementById('auf-tx-hash').value.trim();
+
+      if (!txHash) {
+        if (state.payoutMode === 'ledger') {
+          // Auto-generate simulated tx
+          document.getElementById('auf-tx-hash').value = 'SIMULATED_' + crypto.randomUUID().replace(/-/g, '');
+          return unlockAddress();
+        }
+        showResult('step-e', false, { message: 'Please enter the transaction hash' });
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Verifying...';
+
+      try {
+        const res = await HumanAds.fetchApi(`/advertiser/test/applications/${state.applicationId}/unlock-address`, {
+          method: 'POST',
+          body: JSON.stringify({
+            auf_tx_hash: txHash,
+            chain: state.chain,
+            token: 'USDC',
+          }),
+        });
+
+        if (res.success && res.data) {
+          state.operatorWallet = res.data.wallet_address;
+          state.payoutAmountCents = res.data.payout_amount_cents;
+          state.payoutPaymentInfo = res.data.payment_info;
+
+          showResult('step-e', true, {
+            wallet_address: state.operatorWallet,
+            payout_amount: formatCents(state.payoutAmountCents),
+          });
+          addToTimeline('E', 'Address Unlocked', truncate(state.operatorWallet, 20));
+
+          // Update payout payment info
+          document.getElementById('payout-amount').textContent = formatCents(state.payoutAmountCents);
+          document.getElementById('payout-to').textContent = truncate(state.operatorWallet, 24);
+          document.getElementById('payout-chain').textContent = state.chain;
+          document.getElementById('payout-payment-info').style.display = 'block';
+          document.getElementById('btn-wallet-payout').disabled = false;
+          document.getElementById('btn-confirm').disabled = false;
+
+          updateStepState(6);
+        } else {
+          showResult('step-e', false, res.error || res);
+        }
+      } catch (e) {
+        showResult('step-e', false, { message: e.message });
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Verify & Unlock Address';
+    }
+
+    async function confirmPayout() {
+      const btn = document.getElementById('btn-confirm');
+      const txHash = document.getElementById('payout-tx-hash').value.trim();
+
+      if (!txHash) {
+        if (state.payoutMode === 'ledger') {
+          // Auto-generate simulated tx
+          document.getElementById('payout-tx-hash').value = 'SIMULATED_' + crypto.randomUUID().replace(/-/g, '');
+          return confirmPayout();
+        }
+        showResult('step-f', false, { message: 'Please enter the transaction hash' });
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Confirming...';
+
+      try {
+        const res = await HumanAds.fetchApi(`/advertiser/test/applications/${state.applicationId}/confirm-payout`, {
+          method: 'POST',
+          body: JSON.stringify({
+            payout_tx_hash: txHash,
+            chain: state.chain,
+            token: 'USDC',
+          }),
+        });
+
+        if (res.success && res.data) {
+          showResult('step-f', true, { status: 'paid_complete' });
+          addToTimeline('F', 'Payout Confirmed', formatCents(state.payoutAmountCents));
+          addToTimeline('G', 'Complete', 'PAID');
+
+          // Show complete
+          document.getElementById('complete-content').style.display = 'block';
+          updateStepState(7);
+
+          // Mark step G as completed
+          document.getElementById('step-g').classList.remove('disabled');
+          document.getElementById('step-g').classList.add('completed');
+        } else {
+          showResult('step-f', false, res.error || res);
+        }
+      } catch (e) {
+        showResult('step-f', false, { message: e.message });
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Confirm Payout';
+    }
+
+    function startOver() {
+      // Reset state
+      Object.assign(state, {
+        dealId: null,
+        applicationId: null,
+        missionId: null,
+        operatorWallet: null,
+        aufAmountCents: 0,
+        payoutAmountCents: 0,
+        currentStep: 1,
+        timeline: [],
+      });
+
+      // Reload page
+      window.location.reload();
+    }
+
+    // === Init ===
+    (async function() {
+      if (await checkAdmin()) {
+        const envData = await loadEnvironment();
+        renderPage(envData);
+        SideMenu.init(true, true);
+      }
+    })();
+  </script>
+</body>
+</html>
