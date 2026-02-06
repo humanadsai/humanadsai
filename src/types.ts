@@ -263,10 +263,11 @@ export interface AuthContext {
   requestId: string;
   agent: Agent;
   apiKey: AgentApiKey;
-  publicKey: AgentPublicKey;
+  publicKey?: AgentPublicKey;
   timestamp: number;
   nonce: string;
-  bodyHash: string;
+  bodyHash?: string;
+  authMethod?: 'hmac' | 'ed25519';
 }
 
 export interface ApiResponse<T = unknown> {
