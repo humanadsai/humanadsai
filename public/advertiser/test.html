@@ -1817,12 +1817,14 @@ contract HumanAdsTestUSD {
 
       try {
         // Pre-check: simulate claimOpen() via direct RPC (not MetaMask) for better error data
+        // Keccak256 selectors for HusdFaucet custom errors
         const KNOWN_ERRORS = {
-          'a09d560a': 'Open claim is disabled on the faucet contract. Contact admin.',
-          '5765e1b4': 'Cooldown active. Please wait 24h and try again.',
-          '6a5cfb6d': 'Faucet allowance exhausted. Contact admin.',
-          'e2dd561a': 'Treasury balance too low. Contact admin.',
-          'ee3675d4': 'Faucet is paused. Contact admin.',
+          'dbfb8cfc': 'Open claim is disabled on the faucet contract. Contact admin.',
+          'c1ab61a1': 'COOLDOWN', // CooldownActive(uint256) - handled specially below
+          'b7f077b9': 'Faucet allowance exhausted. Contact admin.',
+          'bf784fa3': 'Treasury balance too low. Contact admin.',
+          '1309a563': 'Faucet is paused. Contact admin.',
+          '6fbd7407': 'Token transfer failed. Treasury may not have approved the faucet.',
         };
         try {
           const rpcRes = await fetch('https://ethereum-sepolia-rpc.publicnode.com', {
@@ -1837,9 +1839,26 @@ contract HumanAdsTestUSD {
           if (rpcData.error) {
             const revertData = rpcData.error.data || '';
             const selector = typeof revertData === 'string' ? revertData.replace('0x','').substring(0,8) : '';
-            const hint = KNOWN_ERRORS[selector] || rpcData.error.message || 'Unknown contract error';
-            statusDiv.innerHTML = `<span style="color:#ff3b30;">${hint}</span>` +
-              (selector ? `<br><span style="font-size:0.625rem;color:var(--color-text-muted);">Error: 0x${selector}</span>` : '');
+            let hint = KNOWN_ERRORS[selector] || rpcData.error.message || 'Unknown contract error';
+
+            // CooldownActive(uint256 nextClaimAt) - decode the timestamp
+            if (hint === 'COOLDOWN' && typeof revertData === 'string' && revertData.length >= 74) {
+              const nextClaimHex = revertData.substring(10, 74);
+              const nextClaimAt = parseInt(nextClaimHex, 16);
+              const nowSec = Math.floor(Date.now() / 1000);
+              const remaining = nextClaimAt - nowSec;
+              if (remaining > 0) {
+                const hrs = Math.floor(remaining / 3600);
+                const mins = Math.floor((remaining % 3600) / 60);
+                hint = `Cooldown active. Try again in ${hrs}h ${mins}m.`;
+              } else {
+                hint = 'Cooldown expired. Please try again.';
+              }
+            } else if (hint === 'COOLDOWN') {
+              hint = 'Cooldown active. Please wait 24h between claims.';
+            }
+
+            statusDiv.innerHTML = `<span style="color:#ff9500;">${hint}</span>`;
             claimBtn.disabled = false;
             claimBtn.innerHTML = 'Claim 1,000 hUSD';
             return;
