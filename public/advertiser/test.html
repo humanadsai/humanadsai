@@ -1795,16 +1795,41 @@ contract HumanAdsTestUSD {
 
       claimBtn.disabled = true;
       claimBtn.innerHTML = '<span class="spinner"></span> Claiming...';
-      statusDiv.innerHTML = '<span style="color:var(--color-text-muted);">Confirm the transaction in MetaMask...</span>';
+      statusDiv.innerHTML = '<span style="color:var(--color-text-muted);">Pre-checking faucet...</span>';
 
       try {
+        // Pre-check: simulate claimOpen() via eth_call
+        try {
+          await window.ethereum.request({
+            method: 'eth_call',
+            params: [{
+              from: prestepWalletAddress,
+              to: FAUCET_CONTRACT,
+              data: FAUCET_CLAIM_OPEN_SELECTOR,
+            }, 'latest'],
+          });
+        } catch (simErr) {
+          const reason = simErr?.data?.message || simErr?.message || 'Unknown error';
+          let hint = reason;
+          if (reason.includes('OpenClaimDisabled')) hint = 'Open claim is disabled on the faucet contract. Contact admin.';
+          else if (reason.includes('CooldownActive')) hint = 'Cooldown active. Please wait and try again.';
+          else if (reason.includes('AllowanceTooLow')) hint = 'Faucet allowance exhausted. Contact admin.';
+          else if (reason.includes('TreasuryBalanceLow')) hint = 'Treasury balance too low. Contact admin.';
+          else if (reason.includes('IsPaused')) hint = 'Faucet is paused. Contact admin.';
+          statusDiv.innerHTML = `<span style="color:#ff3b30;">Pre-check failed: ${hint}</span>`;
+          claimBtn.disabled = false;
+          claimBtn.innerHTML = 'Claim 1,000 hUSD';
+          return;
+        }
+
+        statusDiv.innerHTML = '<span style="color:var(--color-text-muted);">Confirm the transaction in MetaMask...</span>';
+
         const txHash = await window.ethereum.request({
           method: 'eth_sendTransaction',
           params: [{
             from: prestepWalletAddress,
             to: FAUCET_CONTRACT,
             data: FAUCET_CLAIM_OPEN_SELECTOR,
-            gas: '0x30000',
           }],
         });
 
@@ -1812,7 +1837,8 @@ contract HumanAdsTestUSD {
         claimBtn.innerHTML = 'Claimed!';
         claimBtn.classList.add('success');
       } catch (e) {
-        const msg = e.code === 4001 ? 'Transaction rejected.' : (e.message || 'Claim failed');
+        const msg = e.code === 4001 ? 'Transaction rejected by user.'
+          : (e.data?.message || e.message || 'Claim failed. Check MetaMask for details.');
         statusDiv.innerHTML = `<span style="color:#ff3b30;">${msg}</span>`;
         claimBtn.disabled = false;
         claimBtn.innerHTML = 'Claim 1,000 hUSD';
