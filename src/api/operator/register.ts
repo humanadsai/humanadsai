@@ -1,6 +1,7 @@
 import type { Env, Operator, OperatorVerification, OperatorRegisterRequest } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { generateVerificationCode, generateSessionToken, hashApiKey } from '../../utils/crypto';
+import { cleanXHandle } from '../../utils/format';
 
 /**
  * Operator登録開始
@@ -181,7 +182,7 @@ export async function verifyOperator(request: Request, env: Env): Promise<Respon
     return success(
       {
         operator_id: operator.id,
-        x_handle: operator.x_handle,
+        x_handle: cleanXHandle(operator.x_handle),
         status: 'verified',
         session_token: sessionToken,
         session_expires_at: sessionExpiresAt,
@@ -235,7 +236,7 @@ export async function getOperatorProfile(request: Request, env: Env): Promise<Re
       {
         operator: {
           id: operator.id,
-          x_handle: operator.x_handle,
+          x_handle: cleanXHandle(operator.x_handle),
           display_name: operator.display_name,
           avatar_url: operator.avatar_url,
           status: operator.status,

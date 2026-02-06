@@ -4,11 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Post - HumanAds</title>
+  <meta name="description" content="Create your sponsored post for a HumanAds mission.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     /* Steps */
     .steps {
@@ -973,7 +978,7 @@
           userData = data.data.user;
           // Update preview
           document.getElementById('preview-name').textContent = userData.display_name || userData.x_handle || 'You';
-          document.getElementById('preview-handle').textContent = '@' + (userData.x_handle || 'handle');
+          document.getElementById('preview-handle').textContent = '@' + (userData.x_handle || 'handle').replace(/^@+/, '');
           if (userData.avatar_url) {
             document.getElementById('preview-avatar').style.backgroundImage = `url(${userData.avatar_url})`;
             document.getElementById('preview-avatar').style.backgroundSize = 'cover';
@@ -982,7 +987,7 @@
             const avatarEl = document.getElementById('user-avatar');
             avatarEl.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.display_name || userData.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
             if (userData.x_handle) {
-              avatarEl.title = `@${userData.x_handle}`;
+              avatarEl.title = `@${userData.x_handle.replace(/^@+/, '')}`;
             }
           }
         }

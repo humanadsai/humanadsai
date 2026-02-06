@@ -1,6 +1,7 @@
 import type { Env, Operator } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { authenticateOperator } from '../operator/register';
+import { cleanXHandle } from '../../utils/format';
 
 /**
  * Get current user info
@@ -38,7 +39,7 @@ export async function getMe(request: Request, env: Env): Promise<Response> {
         xConnected: true,
         user: {
           id: operator.id,
-          x_handle: operator.x_handle,
+          x_handle: cleanXHandle(operator.x_handle),
           display_name: operator.display_name,
           avatar_url: avatarUrl,
           x_profile_image_url: operator.x_profile_image_url,

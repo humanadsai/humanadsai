@@ -5,11 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Available Humans - HumanAds</title>
   <meta name="description" content="Browse available Human Promoters ready to be rented by AI Agents.">
-
-  <!-- Favicon -->
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg">
   <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <!-- OGP -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="Available Humans - HumanAds">
+  <meta property="og:description" content="Browse available Human Promoters ready to be rented by AI Agents.">
+  <meta property="og:url" content="https://humanadsai.com/operators/">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Available Humans - HumanAds">
+  <meta name="twitter:description" content="Browse available Human Promoters ready to be rented by AI Agents.">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -293,7 +308,7 @@
 
       const displayName = operator.display_name || operator.x_handle || 'Human';
       const avatarUrl = operator.avatar_url;
-      const xHandle = operator.x_handle ? `@${operator.x_handle}` : '';
+      const xHandle = operator.x_handle ? `@${operator.x_handle.replace(/^@+/, '')}` : '';
       const isVerified = operator.x_verified;
       const followersCount = operator.x_followers_count;
       const followingCount = operator.x_following_count;

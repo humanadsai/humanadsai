@@ -1,4 +1,4 @@
-import type { Env, Deal, Operator } from '../../types';
+import type { Env, Deal, Operator, AiAdvertiser } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 
 /**
@@ -244,7 +244,7 @@ export async function getPublicOperator(
       {
         operator: {
           id: operator.id,
-          x_handle: operator.x_handle,
+          x_handle: typeof operator.x_handle === 'string' ? operator.x_handle.replace(/^@+/, '') : operator.x_handle,
           display_name: operator.display_name,
           avatar_url: operator.avatar_url,
           bio: operator.bio,
@@ -472,5 +472,64 @@ export async function trackVisit(request: Request, env: Env): Promise<Response> 
     console.error('Track visit error:', e);
     // Don't fail the request for tracking errors
     return success({ tracked: false }, requestId);
+  }
+}
+
+/**
+ * Public AI Advertisers list
+ *
+ * GET /api/ai-advertisers
+ *
+ * Returns active AI advertisers for public display.
+ */
+export async function getPublicAiAdvertisers(request: Request, env: Env): Promise<Response> {
+  const requestId = generateRequestId();
+
+  try {
+    const url = new URL(request.url);
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '10', 10), 50);
+    const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+
+    // Fetch active advertisers with their mission counts
+    const advertisers = await env.DB.prepare(`
+      SELECT
+        a.id, a.name, a.description, a.mode, a.status, a.created_at,
+        COUNT(d.id) AS missions_count,
+        SUM(CASE WHEN d.status = 'open' THEN 1 ELSE 0 END) AS open_missions_count
+      FROM ai_advertisers a
+      LEFT JOIN deals d ON d.agent_id = a.id AND COALESCE(d.visibility, 'visible') = 'visible'
+      WHERE a.status = 'active'
+      GROUP BY a.id
+      ORDER BY missions_count DESC, a.created_at DESC
+      LIMIT ? OFFSET ?
+    `).bind(limit, offset).all();
+
+    if (!advertisers.success) {
+      return errors.internalError(requestId);
+    }
+
+    const total = await env.DB.prepare(
+      `SELECT COUNT(*) as cnt FROM ai_advertisers WHERE status = 'active'`
+    ).first<{ cnt: number }>();
+
+    return success({
+      advertisers: advertisers.results.map((adv: any) => ({
+        id: adv.id,
+        name: adv.name,
+        description: adv.description || null,
+        mode: adv.mode,
+        missions_count: adv.missions_count || 0,
+        open_missions_count: adv.open_missions_count || 0,
+        created_at: adv.created_at
+      })),
+      pagination: {
+        limit,
+        offset,
+        total: total?.cnt || 0
+      }
+    }, requestId);
+  } catch (e) {
+    console.error('Get public AI advertisers error:', e);
+    return errors.internalError(requestId);
   }
 }

@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
   <style>
     .admin-page { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
@@ -180,12 +181,6 @@
   </style>
 </head>
 <body>
-  <!-- Pending Alert Banner -->
-  <div class="pending-alert" id="pending-alert">
-    MetaMaskに保留中の確認があります。
-    <button class="pending-alert-btn" onclick="window.location.href='metamask://'>MetaMaskを開く</button>
-  </div>
-
   <div class="app">
     <header class="header">
       <a href="/" class="logo">
@@ -199,6 +194,12 @@
     <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
     <div class="menu-overlay" id="menu-overlay"></div>
     <main class="admin-page" id="content"><div class="loading">Loading token ops...</div></main>
+
+    <!-- Pending Alert Banner (position:fixed, shown on MetaMask -32002) -->
+    <div class="pending-alert" id="pending-alert">
+      MetaMaskに保留中の確認があります。
+      <button class="pending-alert-btn" onclick="window.location.href='metamask://'>MetaMaskを開く</button>
+    </div>
   </div>
 
   <!-- Wallet Action Sheet -->

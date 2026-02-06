@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
   <style>
     .admin-page { padding: 24px 16px; max-width: 1200px; margin: 0 auto; }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
@@ -97,7 +98,7 @@
                   ${operators.map(o => `
                     <tr>
                       <td>${o.x_profile_image_url ? `<img src="${o.x_profile_image_url}" class="avatar">` : '<div class="avatar"></div>'}</td>
-                      <td>@${HumanAds.escapeHtml(o.x_handle || 'unknown')}</td>
+                      <td>@${HumanAds.escapeHtml((o.x_handle || 'unknown').replace(/^@+/, ''))}</td>
                       <td>${HumanAds.escapeHtml(o.display_name || '-')}</td>
                       <td><span class="status-badge ${o.status}">${o.status}</span></td>
                       <td><span class="status-badge ${o.role || 'user'}">${o.role || 'user'}</span></td>
