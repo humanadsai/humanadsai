@@ -1560,8 +1560,8 @@ contract HusdFaucet {
         return;
       }
 
-      // Check chain
-      if (currentChainId !== CONFIG.chainIdHex) {
+      // Check chain (currentChainId is decimal number, e.g. 11155111)
+      if (currentChainId !== CONFIG.chainId) {
         statusDiv.className = 'status-msg error';
         statusDiv.textContent = `Sepoliaネットワークに切り替えてください (現在: ${currentChainId})`;
         return;
