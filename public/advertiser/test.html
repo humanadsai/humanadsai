@@ -212,6 +212,24 @@
     .btn.wallet.connected {
       background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
     }
+    .btn.metamask {
+      background: linear-gradient(135deg, #F6851B 0%, #E2761B 100%);
+      border-color: transparent;
+      color: white;
+    }
+    .btn.metamask:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+    .btn.secondary {
+      background: transparent;
+      border: 1px dashed var(--color-border);
+      color: var(--color-text-muted);
+      font-size: 0.75rem;
+    }
+    .btn.secondary:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
     .btn-row {
       display: flex;
       gap: 8px;
@@ -523,6 +541,110 @@
       border-color: var(--color-primary);
     }
 
+    /* Copy/Paste buttons */
+    .copy-btn, .paste-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 4px 8px;
+      font-size: 0.625rem;
+      font-family: var(--font-mono);
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid var(--color-border);
+      background: var(--color-background-light);
+      color: var(--color-text-muted);
+      transition: all 0.2s;
+    }
+    .copy-btn:hover, .paste-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .copy-btn.copied {
+      background: rgba(52, 199, 89, 0.1);
+      border-color: #34c759;
+      color: #34c759;
+    }
+    .info-row-with-copy {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.8125rem;
+      gap: 8px;
+    }
+    .info-row-with-copy:last-child { border-bottom: none; }
+    .info-row-with-copy .label {
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+    }
+    .info-row-with-copy .value-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      justify-content: flex-end;
+      min-width: 0;
+    }
+    .info-row-with-copy .value {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      word-break: break-all;
+      text-align: right;
+    }
+    .info-row-with-copy .value.highlight {
+      color: var(--color-primary);
+    }
+    .input-with-paste {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .input-with-paste input {
+      flex: 1;
+    }
+    .input-with-paste .paste-btn {
+      padding: 10px 12px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    /* Fallback message box */
+    .fallback-box {
+      background: rgba(255, 149, 0, 0.1);
+      border: 1px solid rgba(255, 149, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .fallback-box .title {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #ff9500;
+      margin-bottom: 8px;
+    }
+    .fallback-box .desc {
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    /* MetaMask install notice */
+    .install-notice {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+    .install-notice a {
+      color: var(--color-primary);
+      text-decoration: underline;
+    }
+
     @media (max-width: 480px) {
       .btn-row { flex-direction: column; }
       .btn-row .btn { width: 100%; }
@@ -619,9 +741,25 @@
       'function symbol() view returns (string)',
     ];
 
-    // Detect mobile
+    // Detect mobile and in-app browser
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const hasInjectedProvider = typeof window.ethereum !== 'undefined';
+    const isInMetaMaskBrowser = hasInjectedProvider && window.ethereum?.isMetaMask && isMobile;
+
+    // Get the dApp host for MetaMask deep link
+    const DAPP_HOST = window.location.host;
+    const DAPP_PATH = '/advertiser/test';
+
+    // MetaMask Deep Link - opens this page inside MetaMask's browser
+    function getMetaMaskDeepLink() {
+      return `https://metamask.app.link/dapp/${DAPP_HOST}${DAPP_PATH}`;
+    }
+
+    // Check if WalletConnect SDK is loaded
+    function isWalletConnectLoaded() {
+      return !!(window.EthereumProvider?.default || window.EthereumProvider);
+    }
 
     // State
     const state = {
@@ -682,6 +820,57 @@
 
     function getChainDisplayName(chainKey) {
       return CHAIN_CONFIG[chainKey]?.name || chainKey;
+    }
+
+    // Copy to clipboard
+    async function copyToClipboard(text, btnEl) {
+      try {
+        await navigator.clipboard.writeText(text);
+        if (btnEl) {
+          const originalText = btnEl.innerHTML;
+          btnEl.classList.add('copied');
+          btnEl.innerHTML = 'Copied!';
+          setTimeout(() => {
+            btnEl.classList.remove('copied');
+            btnEl.innerHTML = originalText;
+          }, 1500);
+        }
+      } catch (e) {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (btnEl) {
+          btnEl.classList.add('copied');
+          btnEl.innerHTML = 'Copied!';
+          setTimeout(() => {
+            btnEl.classList.remove('copied');
+            btnEl.innerHTML = 'Copy';
+          }, 1500);
+        }
+      }
+    }
+
+    // Paste from clipboard
+    async function pasteToInput(inputId) {
+      try {
+        const text = await navigator.clipboard.readText();
+        const input = document.getElementById(inputId);
+        if (input && text) {
+          input.value = text.trim();
+        }
+      } catch (e) {
+        alert('Unable to paste. Please paste manually.');
+      }
+    }
+
+    // Open MetaMask via deep link
+    function openMetaMask() {
+      const deepLink = getMetaMaskDeepLink();
+      window.location.href = deepLink;
     }
 
     function showResult(stepId, success, data) {
@@ -798,30 +987,12 @@
 
       let html = '';
 
-      // If on mobile, prioritize WalletConnect
-      if (isMobile) {
+      // === MOBILE (iPhone Safari etc.) ===
+      if (isMobile && !isInMetaMaskBrowser) {
+        // Primary: Open MetaMask app (always works)
         html += `
-          <div class="wallet-section-title">Recommended for Mobile</div>
-          <div class="wallet-option recommended" onclick="connectWalletConnect()">
-            <div class="wallet-option-icon" style="background:linear-gradient(135deg,#3B99FC,#5BB0FF);">
-              <svg width="24" height="24" viewBox="0 0 400 400" fill="white">
-                <path d="M127.4 168.7c42.4-41.5 111.2-41.5 153.6 0l5.1 5c2.1 2.1 2.1 5.4 0 7.5l-17.5 17.1c-1.1 1-2.8 1-3.8 0l-7-6.9c-29.6-29-77.6-29-107.2 0l-7.5 7.3c-1.1 1-2.8 1-3.8 0l-17.5-17.1c-2.1-2.1-2.1-5.4 0-7.5l5.6-5.4zm189.8 35.3l15.6 15.3c2.1 2.1 2.1 5.4 0 7.5l-70.3 68.8c-2.1 2.1-5.6 2.1-7.7 0l-49.9-48.9c-.5-.5-1.4-.5-1.9 0l-49.9 48.9c-2.1 2.1-5.6 2.1-7.7 0l-70.3-68.8c-2.1-2.1-2.1-5.4 0-7.5l15.6-15.3c2.1-2.1 5.6-2.1 7.7 0l49.9 48.9c.5.5 1.4.5 1.9 0l49.9-48.9c2.1-2.1 5.6-2.1 7.7 0l49.9 48.9c.5.5 1.4.5 1.9 0l49.9-48.9c2.1-2.1 5.6-2.1 7.7 0z"/>
-              </svg>
-            </div>
-            <div class="wallet-option-info">
-              <div class="wallet-option-name">WalletConnect</div>
-              <div class="wallet-option-desc">Connect with Rabby, MetaMask, OKX, Rainbow, Trust...</div>
-            </div>
-            <span class="wallet-option-badge">Mobile</span>
-          </div>
-        `;
-      }
-
-      // Injected provider option (if available)
-      if (hasInjectedProvider) {
-        html += `
-          <div class="wallet-section-title">${isMobile ? 'In-App Browser' : 'Browser Extension'}</div>
-          <div class="wallet-option ${!isMobile ? 'recommended' : ''}" onclick="connectInjected()">
+          <div class="wallet-section-title">Recommended</div>
+          <div class="wallet-option recommended" onclick="openMetaMask(); closeWalletModal();">
             <div class="wallet-option-icon" style="background:linear-gradient(135deg,#F6851B,#E2761B);">
               <svg width="24" height="24" viewBox="0 0 318 318" fill="white">
                 <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
@@ -829,18 +1000,77 @@
               </svg>
             </div>
             <div class="wallet-option-info">
-              <div class="wallet-option-name">${getInjectedWalletName()}</div>
-              <div class="wallet-option-desc">${isMobile ? 'Using this wallet\'s browser' : 'Browser extension detected'}</div>
+              <div class="wallet-option-name">Open MetaMask</div>
+              <div class="wallet-option-desc">Opens this page in MetaMask app</div>
             </div>
-            ${!isMobile ? '<span class="wallet-option-badge">Detected</span>' : ''}
+            <span class="wallet-option-badge">Best</span>
+          </div>
+          <p class="install-notice">
+            Don't have MetaMask? <a href="https://metamask.io/download/" target="_blank">Install here</a>
+          </p>
+        `;
+
+        // Secondary: WalletConnect (may fail on iOS Safari)
+        const wcDisabled = !isWalletConnectLoaded();
+        html += `
+          <div class="wallet-section-title" style="margin-top:16px;">Alternative</div>
+          <div class="wallet-option ${wcDisabled ? 'disabled' : ''}" style="${wcDisabled ? 'opacity:0.5;cursor:not-allowed;' : ''}" onclick="${wcDisabled ? 'showWalletConnectFallback()' : 'connectWalletConnect()'}">
+            <div class="wallet-option-icon" style="background:linear-gradient(135deg,#3B99FC,#5BB0FF);">
+              <svg width="24" height="24" viewBox="0 0 400 400" fill="white">
+                <path d="M127.4 168.7c42.4-41.5 111.2-41.5 153.6 0l5.1 5c2.1 2.1 2.1 5.4 0 7.5l-17.5 17.1c-1.1 1-2.8 1-3.8 0l-7-6.9c-29.6-29-77.6-29-107.2 0l-7.5 7.3c-1.1 1-2.8 1-3.8 0l-17.5-17.1c-2.1-2.1-2.1-5.4 0-7.5l5.6-5.4zm189.8 35.3l15.6 15.3c2.1 2.1 2.1 5.4 0 7.5l-70.3 68.8c-2.1 2.1-5.6 2.1-7.7 0l-49.9-48.9c-.5-.5-1.4-.5-1.9 0l-49.9 48.9c-2.1 2.1-5.6 2.1-7.7 0l-70.3-68.8c-2.1-2.1-2.1-5.4 0-7.5l15.6-15.3c2.1-2.1 5.6-2.1 7.7 0l49.9 48.9c.5.5 1.4.5 1.9 0l49.9-48.9c2.1-2.1 5.6-2.1 7.7 0l49.9 48.9c.5.5 1.4.5 1.9 0l49.9-48.9c2.1-2.1 5.6-2.1 7.7 0z"/>
+              </svg>
+            </div>
+            <div class="wallet-option-info">
+              <div class="wallet-option-name">WalletConnect</div>
+              <div class="wallet-option-desc">${wcDisabled ? 'SDK not loaded - use MetaMask' : 'Connect with other wallets'}</div>
+            </div>
           </div>
         `;
       }
-
-      // WalletConnect option for desktop
-      if (!isMobile) {
+      // === IN METAMASK BROWSER ===
+      else if (isInMetaMaskBrowser) {
         html += `
-          <div class="wallet-section-title">Mobile Wallets</div>
+          <div class="wallet-section-title">MetaMask Detected</div>
+          <div class="wallet-option recommended" onclick="connectInjected()">
+            <div class="wallet-option-icon" style="background:linear-gradient(135deg,#F6851B,#E2761B);">
+              <svg width="24" height="24" viewBox="0 0 318 318" fill="white">
+                <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
+                <path d="M44.4 35.5l98.7 74.6-17.5-44.3zm193.7 171.3l-26.5 40.6 56.7 15.6 16.3-55.3zm-213.1.9l16.2 55.3 56.7-15.6-26.5-40.6z"/>
+              </svg>
+            </div>
+            <div class="wallet-option-info">
+              <div class="wallet-option-name">MetaMask</div>
+              <div class="wallet-option-desc">Connect using MetaMask</div>
+            </div>
+            <span class="wallet-option-badge">Ready</span>
+          </div>
+        `;
+      }
+      // === DESKTOP ===
+      else {
+        // Injected provider option (if available)
+        if (hasInjectedProvider) {
+          html += `
+            <div class="wallet-section-title">Browser Extension</div>
+            <div class="wallet-option recommended" onclick="connectInjected()">
+              <div class="wallet-option-icon" style="background:linear-gradient(135deg,#F6851B,#E2761B);">
+                <svg width="24" height="24" viewBox="0 0 318 318" fill="white">
+                  <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
+                  <path d="M44.4 35.5l98.7 74.6-17.5-44.3zm193.7 171.3l-26.5 40.6 56.7 15.6 16.3-55.3zm-213.1.9l16.2 55.3 56.7-15.6-26.5-40.6z"/>
+                </svg>
+              </div>
+              <div class="wallet-option-info">
+                <div class="wallet-option-name">${getInjectedWalletName()}</div>
+                <div class="wallet-option-desc">Browser extension detected</div>
+              </div>
+              <span class="wallet-option-badge">Detected</span>
+            </div>
+          `;
+        }
+
+        // WalletConnect option for desktop
+        html += `
+          <div class="wallet-section-title">${hasInjectedProvider ? 'Mobile Wallets' : 'Connect Wallet'}</div>
           <div class="wallet-option" onclick="connectWalletConnect()">
             <div class="wallet-option-icon" style="background:linear-gradient(135deg,#3B99FC,#5BB0FF);">
               <svg width="24" height="24" viewBox="0 0 400 400" fill="white">
@@ -853,36 +1083,53 @@
             </div>
           </div>
         `;
-      }
 
-      // If no options available
-      if (!hasInjectedProvider && !isMobile) {
-        html = `
-          <div class="wallet-section-title">No Wallet Detected</div>
-          <p style="color:var(--color-text-muted);font-size:0.875rem;margin-bottom:16px;">
-            Install a wallet extension or use WalletConnect:
-          </p>
-          <div class="wallet-option" onclick="connectWalletConnect()">
-            <div class="wallet-option-icon" style="background:linear-gradient(135deg,#3B99FC,#5BB0FF);">
-              <svg width="24" height="24" viewBox="0 0 400 400" fill="white">
-                <path d="M127.4 168.7c42.4-41.5 111.2-41.5 153.6 0l5.1 5c2.1 2.1 2.1 5.4 0 7.5l-17.5 17.1c-1.1 1-2.8 1-3.8 0l-7-6.9c-29.6-29-77.6-29-107.2 0l-7.5 7.3c-1.1 1-2.8 1-3.8 0l-17.5-17.1c-2.1-2.1-2.1-5.4 0-7.5l5.6-5.4zm189.8 35.3l15.6 15.3c2.1 2.1 2.1 5.4 0 7.5l-70.3 68.8c-2.1 2.1-5.6 2.1-7.7 0l-49.9-48.9c-.5-.5-1.4-.5-1.9 0l-49.9 48.9c-2.1 2.1-5.6 2.1-7.7 0l-70.3-68.8c-2.1-2.1-2.1-5.4 0-7.5l15.6-15.3c2.1-2.1 5.6-2.1 7.7 0l49.9 48.9c.5.5 1.4.5 1.9 0l49.9-48.9c2.1-2.1 5.6-2.1 7.7 0l49.9 48.9c.5.5 1.4.5 1.9 0l49.9-48.9c2.1-2.1 5.6-2.1 7.7 0z"/>
-              </svg>
+        // If no injected provider
+        if (!hasInjectedProvider) {
+          html += `
+            <div class="wallet-section-title" style="margin-top:20px;">Install a Wallet</div>
+            <div class="wallet-deep-links">
+              <a href="https://metamask.io/download/" target="_blank" class="wallet-deep-link">MetaMask</a>
+              <a href="https://rabby.io/" target="_blank" class="wallet-deep-link">Rabby</a>
             </div>
-            <div class="wallet-option-info">
-              <div class="wallet-option-name">WalletConnect</div>
-              <div class="wallet-option-desc">Connect with your mobile wallet</div>
-            </div>
-          </div>
-          <div class="wallet-section-title" style="margin-top:20px;">Install a Wallet</div>
-          <div class="wallet-deep-links">
-            <a href="https://metamask.io/download/" target="_blank" class="wallet-deep-link">MetaMask</a>
-            <a href="https://rabby.io/" target="_blank" class="wallet-deep-link">Rabby</a>
-          </div>
-        `;
+          `;
+        }
       }
 
       body.innerHTML = html;
       modal.style.display = 'flex';
+    }
+
+    // Show fallback when WalletConnect fails
+    function showWalletConnectFallback() {
+      const body = document.getElementById('wallet-modal-body');
+      const title = document.getElementById('wallet-modal-title');
+
+      title.textContent = 'WalletConnect Unavailable';
+      body.innerHTML = `
+        <div class="fallback-box">
+          <div class="title">WalletConnect SDK Failed to Load</div>
+          <div class="desc">
+            This can happen on iOS Safari. Use MetaMask directly instead - it's more reliable on mobile.
+          </div>
+        </div>
+        <div class="wallet-option recommended" onclick="openMetaMask(); closeWalletModal();">
+          <div class="wallet-option-icon" style="background:linear-gradient(135deg,#F6851B,#E2761B);">
+            <svg width="24" height="24" viewBox="0 0 318 318" fill="white">
+              <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
+              <path d="M44.4 35.5l98.7 74.6-17.5-44.3zm193.7 171.3l-26.5 40.6 56.7 15.6 16.3-55.3zm-213.1.9l16.2 55.3 56.7-15.6-26.5-40.6z"/>
+            </svg>
+          </div>
+          <div class="wallet-option-info">
+            <div class="wallet-option-name">Open MetaMask</div>
+            <div class="wallet-option-desc">Opens this page in MetaMask app</div>
+          </div>
+        </div>
+        <p class="install-notice">
+          Don't have MetaMask? <a href="https://metamask.io/download/" target="_blank">Install here</a>
+        </p>
+        <button class="btn secondary wallet-back-btn" onclick="openWalletModal()">Back to options</button>
+      `;
     }
 
     function closeWalletModal() {
@@ -975,8 +1222,17 @@
     }
 
     async function connectWalletConnect() {
-      closeWalletModal();
       const btn = document.getElementById('btn-connect-wallet');
+
+      // Check if SDK is loaded
+      if (!isWalletConnectLoaded()) {
+        // Show fallback modal instead of alert
+        showWalletConnectFallback();
+        document.getElementById('wallet-modal').style.display = 'flex';
+        return;
+      }
+
+      closeWalletModal();
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span> Connecting...';
 
@@ -985,10 +1241,6 @@
 
         // Initialize WalletConnect provider
         const EthereumProvider = window.EthereumProvider?.default || window.EthereumProvider;
-
-        if (!EthereumProvider) {
-          throw new Error('WalletConnect SDK not loaded. Please refresh the page.');
-        }
 
         const wcProvider = await EthereumProvider.init({
           projectId: WALLETCONNECT_PROJECT_ID,
@@ -1036,15 +1288,19 @@
       } catch (e) {
         console.error('WalletConnect error:', e);
         let message = e.message || 'Connection failed';
-        if (message.includes('User rejected') || message.includes('rejected')) {
-          message = 'Connection rejected by user.';
-        } else if (message.includes('Modal closed')) {
-          message = 'Connection cancelled.';
-        }
+        const isCancelled = message.includes('User rejected') ||
+                           message.includes('rejected') ||
+                           message.includes('Modal closed') ||
+                           message.includes('cancelled');
 
-        // Don't show alert for user cancellation
-        if (!message.includes('cancelled') && !message.includes('closed')) {
-          alert('WalletConnect failed: ' + message);
+        if (!isCancelled) {
+          // Show fallback modal for real errors
+          if (isMobile) {
+            showWalletConnectFallback();
+            document.getElementById('wallet-modal').style.display = 'flex';
+          } else {
+            alert('WalletConnect failed: ' + message);
+          }
         }
       }
 
@@ -1211,7 +1467,7 @@
             <div class="step-number">A</div>
             <div class="step-title">Environment & Wallet</div>
           </div>
-          <div class="step-description">Select testnet chain and connect your wallet.${isMobile ? ' Use WalletConnect to connect from Safari.' : ''}</div>
+          <div class="step-description">Select testnet chain${isMobile && !isInMetaMaskBrowser ? '. Tap "Open MetaMask" to continue in the MetaMask app.' : ' and connect your wallet.'}</div>
           <div class="input-group">
             <label>Chain</label>
             <select id="chain-select" onchange="handleChainChange(this.value)">
@@ -1227,6 +1483,18 @@
             <span class="label">Treasury</span>
             <span class="value" style="font-size:0.6875rem;">${truncate(state.treasuryAddress, 20)}</span>
           </div>
+          ${isMobile && !isInMetaMaskBrowser ? `
+          <button class="btn metamask" onclick="openMetaMask()">
+            <svg width="16" height="16" viewBox="0 0 318 318" fill="currentColor">
+              <path d="M274.1 35.5l-99.5 73.9L193 65.8z"/>
+              <path d="M44.4 35.5l98.7 74.6-17.5-44.3zm193.7 171.3l-26.5 40.6 56.7 15.6 16.3-55.3zm-213.1.9l16.2 55.3 56.7-15.6-26.5-40.6z"/>
+            </svg>
+            Open MetaMask
+          </button>
+          <button class="btn secondary" id="btn-connect-wallet" onclick="connectWallet()" style="margin-top:8px;">
+            Or connect via WalletConnect
+          </button>
+          ` : `
           <button class="btn wallet" id="btn-connect-wallet" onclick="connectWallet()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
@@ -1235,6 +1503,7 @@
             </svg>
             Connect Wallet
           </button>
+          `}
         </div>
 
         <!-- Step B: Create Deal -->
@@ -1298,27 +1567,37 @@
             <div class="step-number">E</div>
             <div class="step-title">Pay AUF (10%)</div>
           </div>
-          <div class="step-description">Pay the Address Unlock Fee to the treasury.</div>
+          <div class="step-description">Pay the AUF to the treasury. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
           <div class="payment-box" id="auf-payment-info" style="display:none;">
             <div class="title">AUF Payment Details</div>
-            <div class="info-row">
-              <span class="label">Amount</span>
-              <span class="value highlight" id="auf-amount">-</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Recipient (Treasury)</span>
-              <span class="value" id="auf-to" style="font-size:0.625rem;">-</span>
-            </div>
-            <div class="info-row">
+            <div class="info-row-with-copy">
               <span class="label">Network</span>
-              <span class="value" id="auf-chain">-</span>
+              <div class="value-group">
+                <span class="value" id="auf-chain">-</span>
+              </div>
             </div>
-            <div class="info-row">
+            <div class="info-row-with-copy">
               <span class="label">Token</span>
-              <span class="value">USDC</span>
+              <div class="value-group">
+                <span class="value">USDC</span>
+              </div>
+            </div>
+            <div class="info-row-with-copy">
+              <span class="label">To</span>
+              <div class="value-group">
+                <span class="value" id="auf-to" style="font-size:0.625rem;">-</span>
+                <button class="copy-btn" onclick="copyToClipboard(state.aufPaymentInfo?.to_address || state.treasuryAddress, this)">Copy</button>
+              </div>
+            </div>
+            <div class="info-row-with-copy">
+              <span class="label">Amount</span>
+              <div class="value-group">
+                <span class="value highlight" id="auf-amount">-</span>
+                <button class="copy-btn" onclick="copyToClipboard((state.aufAmountCents / 100).toFixed(2), this)">Copy</button>
+              </div>
             </div>
           </div>
-          <button class="btn wallet" onclick="sendAuf()" disabled id="btn-send-auf">
+          <button class="btn metamask" onclick="sendAuf()" disabled id="btn-send-auf">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12l7 7 7-7"/>
             </svg>
@@ -1326,7 +1605,10 @@
           </button>
           <div class="input-group" style="margin-top:12px;">
             <label>AUF Transaction Hash</label>
-            <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or auto-filled after tx' : 'Auto-filled after transaction'}" />
+            <div class="input-with-paste">
+              <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
+              <button class="paste-btn" onclick="pasteToInput('auf-tx-hash')">Paste</button>
+            </div>
           </div>
           <button class="btn primary" onclick="unlockAddress()" disabled id="btn-unlock">
             Verify & Unlock Address
@@ -1340,27 +1622,37 @@
             <div class="step-number">F</div>
             <div class="step-title">Pay Promoter (90%)</div>
           </div>
-          <div class="step-description">Send the payout to the promoter's wallet.</div>
+          <div class="step-description">Send the payout to the promoter. ${isMobile ? 'Copy the address/amount, send in MetaMask, then paste the tx hash.' : ''}</div>
           <div class="payment-box" id="payout-payment-info" style="display:none;">
             <div class="title">Payout Details</div>
-            <div class="info-row">
-              <span class="label">Amount</span>
-              <span class="value highlight" id="payout-amount">-</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Recipient (Promoter)</span>
-              <span class="value" id="payout-to" style="font-size:0.625rem;">-</span>
-            </div>
-            <div class="info-row">
+            <div class="info-row-with-copy">
               <span class="label">Network</span>
-              <span class="value" id="payout-chain">-</span>
+              <div class="value-group">
+                <span class="value" id="payout-chain">-</span>
+              </div>
             </div>
-            <div class="info-row">
+            <div class="info-row-with-copy">
               <span class="label">Token</span>
-              <span class="value">USDC</span>
+              <div class="value-group">
+                <span class="value">USDC</span>
+              </div>
+            </div>
+            <div class="info-row-with-copy">
+              <span class="label">To (Promoter)</span>
+              <div class="value-group">
+                <span class="value" id="payout-to" style="font-size:0.625rem;">-</span>
+                <button class="copy-btn" onclick="copyToClipboard(state.operatorWallet, this)">Copy</button>
+              </div>
+            </div>
+            <div class="info-row-with-copy">
+              <span class="label">Amount</span>
+              <div class="value-group">
+                <span class="value highlight" id="payout-amount">-</span>
+                <button class="copy-btn" onclick="copyToClipboard((state.payoutAmountCents / 100).toFixed(2), this)">Copy</button>
+              </div>
             </div>
           </div>
-          <button class="btn wallet" onclick="sendPayout()" disabled id="btn-send-payout">
+          <button class="btn metamask" onclick="sendPayout()" disabled id="btn-send-payout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12l7 7 7-7"/>
             </svg>
@@ -1368,7 +1660,10 @@
           </button>
           <div class="input-group" style="margin-top:12px;">
             <label>Payout Transaction Hash</label>
-            <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or auto-filled after tx' : 'Auto-filled after transaction'}" />
+            <div class="input-with-paste">
+              <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : 'Paste tx hash after sending'}" />
+              <button class="paste-btn" onclick="pasteToInput('payout-tx-hash')">Paste</button>
+            </div>
           </div>
           <button class="btn primary" onclick="confirmPayout()" disabled id="btn-confirm">
             Confirm Payout
