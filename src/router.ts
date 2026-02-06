@@ -282,10 +282,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       headers.set('CDN-Cache-Control', 'public, max-age=30');
 
       // バージョン管理用ヘッダー（キャッシュ検証に使用可能）
-      headers.set('X-Skill-Version', '2.1.0-2026-02-06');
+      headers.set('X-Skill-Version', '2.1.1-2026-02-06');
 
       // ETag for cache validation (content hash)
-      const contentHash = `"skill-md-${SKILL_MD.length}-2.1.0"`;
+      const contentHash = `"skill-md-${SKILL_MD.length}-2.1.1"`;
       headers.set('ETag', contentHash);
 
       // If-None-Match チェック（304 Not Modified 対応）
