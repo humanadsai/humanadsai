@@ -50,120 +50,50 @@
   }
 
   /**
-   * Create and inject the environment banner
+   * Create and inject small env chips into the header
    */
   function createBanner(config) {
     const profile = config.payment_profile;
     const isTest = profile.is_testnet;
 
-    // Remove existing banner if any
+    // Remove existing chips if any
     const existing = document.getElementById('env-banner');
     if (existing) existing.remove();
-
-    // Create banner element
-    const banner = document.createElement('div');
-    banner.id = 'env-banner';
-    banner.className = `env-banner ${isTest ? 'env-banner-test' : 'env-banner-prod'}`;
-
-    const warningIcon = isTest ? '<svg class="env-banner-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>' : '';
-
-    banner.innerHTML = `
-      <div class="env-banner-content">
-        ${warningIcon}
-        <span class="env-banner-dot"></span>
-        <span class="env-banner-text">${profile.ui?.bannerText || (isTest ? 'TEST MODE' : 'PRODUCTION')}</span>
-        ${isTest ? '<span class="env-banner-chip">TESTNET</span>' : ''}
-      </div>
-    `;
 
     // Inject styles if not already present
     if (!document.getElementById('env-banner-styles')) {
       const style = document.createElement('style');
       style.id = 'env-banner-styles';
       style.textContent = `
-        .env-banner {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 10000;
-          padding: 8px 16px;
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 12px;
-          font-weight: 700;
-          text-align: center;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-
-        .env-banner-test {
-          background: repeating-linear-gradient(
-            -45deg,
-            #FF6B35,
-            #FF6B35 10px,
-            #ff8c5a 10px,
-            #ff8c5a 20px
-          );
-          color: #000;
-          animation: env-scroll 20s linear infinite;
-          background-size: 200% 100%;
-        }
-
-        @keyframes env-scroll {
-          0% { background-position: 0 0; }
-          100% { background-position: 200% 0; }
-        }
-
-        .env-banner-prod {
-          background: linear-gradient(90deg, #22c55e, #16a34a);
-          color: #fff;
-        }
-
-        .env-banner-content {
+        /* Env chips in header */
+        .env-chips {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          background: rgba(0,0,0,0.15);
-          padding: 4px 16px;
-          border-radius: 4px;
+          gap: 6px;
         }
 
-        .env-banner-icon {
-          width: 16px;
-          height: 16px;
-        }
-
-        .env-banner-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: currentColor;
-          animation: env-pulse 1s infinite;
-        }
-
-        @keyframes env-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.8); }
-        }
-
-        .env-banner-chip {
-          background: rgba(0,0,0,0.3);
-          padding: 2px 8px;
-          border-radius: 3px;
+        .env-chip {
+          display: inline-block;
+          font-family: 'IBM Plex Mono', monospace;
           font-size: 10px;
+          font-weight: 600;
+          line-height: 1;
+          padding: 3px 7px;
+          border-radius: 3px;
+          letter-spacing: 0.3px;
+          white-space: nowrap;
         }
 
-        /* Offset body to account for banner */
-        body.has-env-banner {
-          padding-top: 36px;
+        .env-chip-test {
+          background: rgba(255, 107, 53, 0.15);
+          color: #FF6B35;
+          border: 1px solid rgba(255, 107, 53, 0.3);
         }
 
-        body.has-env-banner .header {
-          top: 36px;
-        }
-
-        body.has-env-banner .hamburger-menu {
-          top: calc(60px + 36px);
+        .env-chip-prod {
+          background: rgba(34, 197, 94, 0.15);
+          color: #22c55e;
+          border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
         /* Chain/Token badge for inline use */
@@ -209,9 +139,31 @@
       document.head.appendChild(style);
     }
 
-    // Insert banner at the very top of body
-    document.body.insertBefore(banner, document.body.firstChild);
-    document.body.classList.add('has-env-banner');
+    // Build chip HTML
+    const chipClass = isTest ? 'env-chip-test' : 'env-chip-prod';
+    const chainName = profile.chain?.name || 'Sepolia';
+    const tokenSymbol = profile.token?.symbol || 'hUSD';
+
+    const chips = document.createElement('div');
+    chips.id = 'env-banner';
+    chips.className = 'env-chips';
+
+    if (isTest) {
+      chips.innerHTML = `<span class="env-chip ${chipClass}">Testnet</span><span class="env-chip ${chipClass}">${chainName} · ${tokenSymbol}</span>`;
+    } else {
+      chips.innerHTML = `<span class="env-chip ${chipClass}">${chainName}</span>`;
+    }
+
+    // Insert chips into the header (before header-right)
+    const header = document.querySelector('.header');
+    const headerRight = document.querySelector('.header-right');
+    if (header && headerRight) {
+      header.insertBefore(chips, headerRight);
+    } else {
+      // Fallback: insert at top of body as a small inline bar
+      chips.style.padding = '4px 12px';
+      document.body.insertBefore(chips, document.body.firstChild);
+    }
   }
 
   /**
