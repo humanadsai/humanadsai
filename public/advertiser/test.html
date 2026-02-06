@@ -1582,14 +1582,14 @@ contract HumanAdsTestUSD {
             <label style="font-size:0.75rem;">X Post URL</label>
             <div class="input-with-paste">
               <input type="text" id="prestep-x-post-url" placeholder="https://x.com/you/status/..."
-                     value="${escHtml(stored.xPostUrl)}"
-                     oninput="localStorage.setItem('humanads_test_x_post_url', this.value.trim())" />
+                     value="${escHtml(stored.xPostUrl)}" />
               <button class="paste-btn" onclick="pasteToInput('prestep-x-post-url')">Paste</button>
             </div>
           </div>
-          <div style="margin-top:6px; font-size:0.6875rem; color:var(--color-text-muted); line-height:1.4; padding:6px 8px; background:rgba(255,149,0,0.08); border-radius:6px; border:1px solid rgba(255,149,0,0.2);">
-            After posting, paste your X post URL above. This URL will be used in Step A of the E2E flow.
-          </div>
+          <button class="btn primary" onclick="verifyXPostUrl()" id="btn-verify-x-post" style="margin-top:8px;">
+            Verify
+          </button>
+          <div id="prestep-x-post-result" class="result-box" style="${stored.xPostUrl ? '' : 'display:none;'}">${stored.xPostUrl ? '<span style="color:#34c759;">&#10003; Verified</span> <span style="font-size:0.75rem;color:var(--color-text-muted);">' + escHtml(stored.xPostUrl) + '</span>' : ''}</div>
         </div>
       `;
     }
@@ -1692,6 +1692,35 @@ contract HumanAdsTestUSD {
     }
 
     /** Clear PreStep credentials and re-render the register form */
+    /** Verify X Post URL format and save */
+    function verifyXPostUrl() {
+      const input = document.getElementById('prestep-x-post-url');
+      const resultEl = document.getElementById('prestep-x-post-result');
+      const url = (input.value || '').trim();
+
+      if (!url) {
+        resultEl.className = 'result-box show error';
+        resultEl.style.display = '';
+        resultEl.innerHTML = '<strong>Error:</strong> Please paste your X post URL.';
+        return;
+      }
+
+      // Validate x.com or twitter.com status URL
+      const xPattern = /^https?:\/\/(x\.com|twitter\.com)\/[^/]+\/status\/\d+/i;
+      if (!xPattern.test(url)) {
+        resultEl.className = 'result-box show error';
+        resultEl.style.display = '';
+        resultEl.innerHTML = '<strong>Error:</strong> Invalid URL format. Expected: https://x.com/username/status/123...';
+        return;
+      }
+
+      // Save and show success
+      localStorage.setItem('humanads_test_x_post_url', url);
+      resultEl.className = 'result-box show success';
+      resultEl.style.display = '';
+      resultEl.innerHTML = '<span style="color:#34c759;">&#10003; Verified</span> <span style="font-size:0.75rem;color:var(--color-text-muted);">' + url.replace(/</g,'&lt;') + '</span>';
+    }
+
     function resetPreStep() {
       ['humanads_test_api_key', 'humanads_test_claim_url', 'humanads_test_verification_code',
        'humanads_test_advertiser_name', 'humanads_test_x_post_url'].forEach(k => localStorage.removeItem(k));
