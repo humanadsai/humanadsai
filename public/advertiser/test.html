@@ -1331,6 +1331,7 @@ contract HumanAdsTestUSD {
         </div>
         <div class="btn-row" style="margin-top:10px;">
           <button class="btn" onclick="copyCredentialsAsJson()">Copy as JSON</button>
+          <button class="btn secondary" onclick="resetPreStep()">&#8635; Re-register</button>
         </div>
       `;
     }
@@ -1452,6 +1453,19 @@ contract HumanAdsTestUSD {
       } else {
         alert('No Claim URL saved. Complete Step 0 first.');
       }
+    }
+
+    /** Clear PreStep credentials and re-render the register form */
+    function resetPreStep() {
+      ['humanads_test_api_key', 'humanads_test_claim_url', 'humanads_test_verification_code',
+       'humanads_test_advertiser_name'].forEach(k => localStorage.removeItem(k));
+      renderPreStep(window._envData);
+    }
+
+    /** Go back to PreStep from the main flow */
+    function backToSetup() {
+      localStorage.removeItem('humanads_test_prestep_complete');
+      renderPreStep(window._envData);
     }
 
     /** Mark PreStep complete and hand off to existing renderPage */
@@ -2050,6 +2064,7 @@ contract HumanAdsTestUSD {
         <div class="test-header">
           <h1>AI Advertiser Test</h1>
           <p>E2E Payment Flow Wizard</p>
+          <button class="btn secondary" onclick="backToSetup()" style="width:auto; margin:8px auto 0; padding:6px 14px; font-size:0.6875rem;">&#8635; Back to Setup</button>
           <div class="env-badge ${state.payoutMode}">
             <span class="dot"></span>
             ${state.payoutMode === 'ledger' ? 'Ledger Mode (Simulated)' : 'Onchain Mode'}
