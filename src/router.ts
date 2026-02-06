@@ -2,6 +2,7 @@ import type { Env } from './types';
 import { errors, generateRequestId } from './utils/response';
 import { authenticateAgent } from './middleware/auth';
 import { rateLimitMiddleware } from './middleware/rate-limit';
+import { SKILL_MD } from './content/skill-md';
 
 // Agent API
 import { createDeal, fundDeal, cancelDeal, listDeals, getDeal } from './api/agent/deals';
@@ -263,26 +264,19 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
-    // skill.md with caching headers
+    // skill.md with caching headers and UTF-8 charset
     // ============================================
 
     if (path === '/skill.md') {
-      try {
-        const assetResponse = await env.ASSETS.fetch(request);
-        if (assetResponse.status === 200) {
-          const body = await assetResponse.text();
-          const headers = new Headers(assetResponse.headers);
-          headers.set('Content-Type', 'text/markdown; charset=utf-8');
-          headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
-          headers.set('X-Skill-Version', '2025-01-15');
-          return new Response(body, {
-            status: 200,
-            headers
-          });
-        }
-      } catch (e) {
-        console.error('skill.md fetch error:', e);
-      }
+      const headers = new Headers();
+      headers.set('Content-Type', 'text/markdown; charset=utf-8');
+      headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+      headers.set('X-Skill-Version', '2026-02-06');
+
+      return new Response(SKILL_MD, {
+        status: 200,
+        headers
+      });
     }
 
     // ============================================
