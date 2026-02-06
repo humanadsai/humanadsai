@@ -1484,6 +1484,14 @@ contract HumanAdsTestUSD {
         return null;
       }
 
+      // Normalize address: trim whitespace and apply EIP-55 checksum
+      try {
+        toAddress = ethers.getAddress(toAddress.trim());
+      } catch (e) {
+        alert('Invalid wallet address: ' + toAddress);
+        return null;
+      }
+
       const chainConfig = CHAIN_CONFIG[state.chain];
       const tokenConfig = getTokenConfig(state.chain, state.token);
       if (!chainConfig || !tokenConfig) {
@@ -1924,7 +1932,12 @@ contract HumanAdsTestUSD {
         if (res.success && res.data?.application_id) {
           state.applicationId = res.data.application_id;
           state.missionId = res.data.mission_id;
-          state.operatorWallet = res.data.operator_wallet;
+          // Normalize wallet address with EIP-55 checksum
+          try {
+            state.operatorWallet = res.data.operator_wallet ? ethers.getAddress(res.data.operator_wallet.trim()) : null;
+          } catch (e) {
+            state.operatorWallet = res.data.operator_wallet; // Keep as-is if normalization fails
+          }
 
           showResult('step-c', true, res.data);
           addToTimeline('C', 'Application Seeded', state.applicationId);
@@ -2075,7 +2088,15 @@ contract HumanAdsTestUSD {
         });
 
         if (res.success && res.data) {
-          state.operatorWallet = res.data.wallet_address;
+          // Normalize wallet address with EIP-55 checksum
+          try {
+            state.operatorWallet = ethers.getAddress((res.data.wallet_address || '').trim());
+          } catch (e) {
+            showResult('step-e', false, { message: 'Invalid wallet address from promoter: ' + res.data.wallet_address });
+            btn.disabled = false;
+            btn.innerHTML = 'Verify & Unlock Address';
+            return;
+          }
           state.payoutAmountCents = res.data.payout_amount_cents;
           state.payoutPaymentInfo = res.data.payment_info;
 
