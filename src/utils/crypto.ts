@@ -106,3 +106,44 @@ export function generateVerificationCode(): string {
 export function generateSessionToken(): string {
   return generateRandomString(64);
 }
+
+/**
+ * AI Advertiser APIキーを生成
+ * 形式: humanads_<random32chars>
+ */
+export function generateAiAdvertiserApiKey(): { key: string; prefix: string } {
+  const random = generateRandomString(32);
+  const key = `humanads_${random}`;
+  const prefix = `humanads_${random.substring(0, 8)}`;
+  return { key, prefix };
+}
+
+/**
+ * AI Advertiser claim URLトークンを生成
+ * 形式: humanads_claim_<random32chars>
+ */
+export function generateClaimToken(): string {
+  const random = generateRandomString(32);
+  return `humanads_claim_${random}`;
+}
+
+/**
+ * AI Advertiser verification codeを生成
+ * 形式: reef-X4B2 (word-4digits パターン)
+ */
+export function generateAiAdvertiserVerificationCode(): string {
+  const words = ['reef', 'wave', 'tide', 'sail', 'port', 'ship', 'moon', 'star', 'wind', 'blue'];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed ambiguous chars
+  const code = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return `${word}-${code}`;
+}
+
+/**
+ * AI Advertiser key IDを生成
+ * 形式: hads_<random16chars>
+ */
+export function generateKeyId(): string {
+  const random = generateRandomString(16);
+  return `hads_${random}`;
+}

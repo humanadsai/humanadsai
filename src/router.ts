@@ -65,6 +65,9 @@ import {
   trackVisit,
 } from './api/public/index';
 
+// AI Advertiser API (v1)
+import { handleAiAdvertiserApi } from './api/ai-advertiser/index';
+
 // Admin API
 import {
   getAdminDashboardStats,
@@ -162,6 +165,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
     if (path.startsWith('/api/advertiser/test/')) {
       return handleAdvertiserTestApi(request, env, path, method);
+    }
+
+    // ============================================
+    // AI Advertiser API (v1) (/api/v1/advertisers/...)
+    // ============================================
+
+    if (path.startsWith('/api/v1/advertisers/')) {
+      return await handleAiAdvertiserApi(request, env, path, method);
     }
 
     // ============================================

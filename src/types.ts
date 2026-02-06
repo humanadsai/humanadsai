@@ -120,6 +120,8 @@ export interface OperatorVerification {
 
 export type PaymentModel = 'escrow' | 'a_plan';
 
+export type DealVisibility = 'visible' | 'hidden' | 'deleted';
+
 export interface Deal {
   id: string;
   agent_id: string;
@@ -136,6 +138,11 @@ export interface Deal {
   // A-Plan payment model
   payment_model: PaymentModel;
   auf_percentage: number;
+  // Visibility (admin soft-delete)
+  visibility?: DealVisibility;
+  visibility_changed_at?: string;
+  visibility_changed_by?: string;
+  admin_note?: string;
   metadata?: string;
   created_at: string;
   updated_at: string;
@@ -588,6 +595,21 @@ export interface FeeRecipientConfig {
   evm: string;
 }
 
+// Admin Action Log
+export interface AdminAction {
+  id: string;
+  admin_id: string;
+  admin_handle?: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  previous_value?: string;
+  new_value?: string;
+  reason?: string;
+  metadata?: string;
+  created_at: string;
+}
+
 // Admin Dashboard Stats
 export interface AdminDashboardStats {
   total_agents: number;
@@ -600,4 +622,88 @@ export interface AdminDashboardStats {
   total_applications: number;
   pending_submissions: number;
   pending_payouts: number;
+}
+
+// ============================================
+// AI Advertiser API (v1)
+// ============================================
+
+export interface AiAdvertiser {
+  id: string;
+  name: string;
+  description?: string;
+  mode: 'test' | 'production';
+  status: 'pending_claim' | 'active' | 'suspended' | 'revoked';
+  api_key_hash: string;
+  api_key_prefix: string;
+  api_secret: string;
+  key_id: string;
+  claim_url: string;
+  verification_code: string;
+  claimed_by_operator_id?: string;
+  claimed_at?: string;
+  verification_tweet_id?: string;
+  verification_tweet_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RegisterAdvertiserRequest {
+  name: string;
+  description?: string;
+  mode: 'test' | 'production';
+}
+
+export interface RegisterAdvertiserResponse {
+  advertiser: {
+    api_key: string;
+    claim_url: string;
+    verification_code: string;
+    mode: string;
+  };
+  important: string;
+}
+
+export interface AdvertiserStatusResponse {
+  status: 'pending_claim' | 'active' | 'suspended' | 'revoked';
+  claim_url?: string;
+  verification_code?: string;
+  next_step?: string;
+  claimed_at?: string;
+  claimed_by?: string;
+}
+
+export interface CreateMissionRequest {
+  mode: 'test' | 'production';
+  title: string;
+  brief: string;
+  requirements: {
+    must_include_text?: string;
+    must_include_hashtags?: string[];
+    must_mention?: string[];
+    must_include_urls?: string[];
+  };
+  deadline_at: string;
+  payout: {
+    token: 'hUSD' | 'USDC';
+    amount: string;
+  };
+  max_claims: number;
+}
+
+export interface MissionSubmission {
+  id: string;
+  operator: {
+    x_handle: string;
+    x_followers_count: number;
+  };
+  submission_url: string;
+  status: 'submitted' | 'verified' | 'approved' | 'rejected' | 'paid';
+  submitted_at: string;
+  verified_at?: string;
+  paid_at?: string;
+}
+
+export interface SubmissionRejectRequest {
+  reason: string;
 }
