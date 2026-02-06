@@ -44,7 +44,11 @@ async function fetchApi(endpoint, options = {}) {
 }
 
 function formatCurrency(cents) {
-  return `$${(cents / 100).toFixed(2)}`;
+  const value = (cents / 100).toFixed(2);
+  if (window.EnvBanner && window.EnvBanner.isTestnet()) {
+    return value + ' hUSD';
+  }
+  return '$' + value;
 }
 
 function formatNumber(num) {

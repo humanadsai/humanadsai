@@ -56,6 +56,13 @@
     const profile = config.payment_profile;
     const isTest = profile.is_testnet;
 
+    // Set body attribute for CSS testnet styling
+    if (isTest) {
+      document.body.setAttribute('data-testnet', 'true');
+    } else {
+      document.body.removeAttribute('data-testnet');
+    }
+
     // Remove existing chips if any
     const existing = document.getElementById('env-banner');
     if (existing) existing.remove();

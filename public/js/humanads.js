@@ -192,9 +192,14 @@
      */
     formatCurrency(cents) {
       if (typeof cents !== 'number' || isNaN(cents)) {
-        return '$0.00';
+        cents = 0;
       }
-      return '$' + (cents / 100).toFixed(2);
+      const value = (cents / 100).toFixed(2);
+      // Test mode: show hUSD instead of $
+      if (window.EnvBanner && window.EnvBanner.isTestnet()) {
+        return value + ' hUSD';
+      }
+      return '$' + value;
     },
 
     /**
