@@ -1029,6 +1029,7 @@
         const input = document.getElementById(inputId);
         if (input && text) {
           input.value = text.trim();
+          input.dispatchEvent(new Event('input', { bubbles: true }));
         }
       } catch (e) {
         alert('Unable to paste. Please paste manually.');
@@ -1144,6 +1145,7 @@ contract HumanAdsTestUSD {
         claimUrl: localStorage.getItem('humanads_test_claim_url') || '',
         verificationCode: localStorage.getItem('humanads_test_verification_code') || '',
         advertiserName: localStorage.getItem('humanads_test_advertiser_name') || '',
+        xPostUrl: localStorage.getItem('humanads_test_x_post_url') || '',
       };
     }
 
@@ -1576,8 +1578,17 @@ contract HumanAdsTestUSD {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             Post on X
           </a>
-          <div style="margin-top:8px; font-size:0.6875rem; color:var(--color-text-muted); line-height:1.4; padding:6px 8px; background:rgba(255,149,0,0.08); border-radius:6px; border:1px solid rgba(255,149,0,0.2);">
-            After posting, copy your X post URL. In Step A of the E2E flow, replace the sample URL with your actual post URL.
+          <div class="input-group" style="margin-top:10px; margin-bottom:0;">
+            <label style="font-size:0.75rem;">X Post URL</label>
+            <div class="input-with-paste">
+              <input type="text" id="prestep-x-post-url" placeholder="https://x.com/you/status/..."
+                     value="${escHtml(stored.xPostUrl)}"
+                     oninput="localStorage.setItem('humanads_test_x_post_url', this.value.trim())" />
+              <button class="paste-btn" onclick="pasteToInput('prestep-x-post-url')">Paste</button>
+            </div>
+          </div>
+          <div style="margin-top:6px; font-size:0.6875rem; color:var(--color-text-muted); line-height:1.4; padding:6px 8px; background:rgba(255,149,0,0.08); border-radius:6px; border:1px solid rgba(255,149,0,0.2);">
+            After posting, paste your X post URL above. This URL will be used in Step A of the E2E flow.
           </div>
         </div>
       `;
@@ -1683,7 +1694,7 @@ contract HumanAdsTestUSD {
     /** Clear PreStep credentials and re-render the register form */
     function resetPreStep() {
       ['humanads_test_api_key', 'humanads_test_claim_url', 'humanads_test_verification_code',
-       'humanads_test_advertiser_name'].forEach(k => localStorage.removeItem(k));
+       'humanads_test_advertiser_name', 'humanads_test_x_post_url'].forEach(k => localStorage.removeItem(k));
       renderPreStep(window._envData);
     }
 
@@ -2695,7 +2706,7 @@ contract HumanAdsTestUSD {
 
       // Clean up PreStep localStorage keys
       ['humanads_test_api_key', 'humanads_test_claim_url', 'humanads_test_verification_code',
-       'humanads_test_advertiser_name'].forEach(k => localStorage.removeItem(k));
+       'humanads_test_advertiser_name', 'humanads_test_x_post_url'].forEach(k => localStorage.removeItem(k));
 
       window.location.reload();
     }
