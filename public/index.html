@@ -754,13 +754,13 @@
       const card = document.createElement('a');
       card.className = 'human-carousel-card';
       // Link to X profile (external) since /humans/@handle page doesn't exist yet
-      card.href = operator.x_handle ? `https://x.com/${operator.x_handle}` : '#';
+      card.href = operator.x_handle ? `https://x.com/${operator.x_handle.replace(/^@+/, '')}` : '#';
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
 
       const displayName = operator.display_name || operator.x_handle || 'Human';
       const avatarUrl = operator.avatar_url;
-      const xHandle = operator.x_handle ? `@${operator.x_handle}` : '';
+      const xHandle = operator.x_handle ? `@${operator.x_handle.replace(/^@+/, '')}` : '';
       const isVerified = operator.x_verified;
       const followersCount = operator.x_followers_count;
       const followingCount = operator.x_following_count;
@@ -777,10 +777,11 @@
         ? `<span class="human-verified-badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Verified</span>`
         : '';
 
-      const xMetricsHtml = `<div class="human-x-metrics">
+      const hasMetrics = followersCount > 0 || followingCount > 0;
+      const xMetricsHtml = hasMetrics ? `<div class="human-x-metrics">
         <span class="human-x-stat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><b>${formattedFollowers}</b> Followers</span>
         <span class="human-x-stat"><b>${formattedFollowing}</b> Following</span>
-      </div>`;
+      </div>` : '';
 
       // Only show price if set, otherwise hide the row entirely
       const priceHtml = preferredPrice

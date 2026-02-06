@@ -151,6 +151,8 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
         x_verified, x_followers_count, x_following_count, metadata
        FROM operators
        WHERE status = 'verified'
+         AND (x_followers_count > 0 OR x_following_count > 0 OR total_missions_completed > 0)
+         AND (metadata IS NULL OR metadata NOT LIKE '%"is_test":true%')
        ORDER BY ${orderBy}
        LIMIT ? OFFSET ?`
     )
@@ -169,9 +171,10 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
               // ignore parse errors
             }
           }
+          const xHandle = typeof op.x_handle === 'string' ? op.x_handle.replace(/^@+/, '') : op.x_handle;
           return {
             id: op.id,
-            x_handle: op.x_handle,
+            x_handle: xHandle,
             display_name: op.display_name,
             avatar_url: op.x_profile_image_url || op.avatar_url,
             total_missions_completed: op.total_missions_completed,
