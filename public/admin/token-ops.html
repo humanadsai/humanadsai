@@ -159,6 +159,24 @@
     .section-title { font-family: var(--font-mono); font-size: 1rem; margin: 24px 0 16px; }
     .tx-link { color: var(--color-primary); text-decoration: none; font-family: var(--font-mono); font-size: 0.7rem; }
     .tx-link:hover { text-decoration: underline; }
+
+    /* Contract Source */
+    .contract-card { background: linear-gradient(135deg, rgba(0,122,255,0.05) 0%, rgba(88,86,214,0.05) 100%); border-color: rgba(0,122,255,0.2); }
+    .code-block { position: relative; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 8px; padding: 16px; max-height: 400px; overflow-y: auto; }
+    .code-block pre { margin: 0; font-family: var(--font-mono); font-size: 0.7rem; line-height: 1.5; color: var(--color-text-muted); white-space: pre; overflow-x: auto; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; padding: 6px 12px; background: var(--color-primary); color: white; border: none; border-radius: 6px; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600; cursor: pointer; z-index: 1; }
+    .copy-btn:hover { opacity: 0.9; }
+    .copy-btn:active { opacity: 0.7; }
+    .copy-btn.copied { background: #34c759; }
+    .deploy-steps { list-style: none; padding: 0; margin: 12px 0 0; }
+    .deploy-steps li { padding: 8px 0; font-size: 0.8rem; border-bottom: 1px solid var(--color-border); display: flex; gap: 8px; }
+    .deploy-steps li:last-child { border-bottom: none; }
+    .step-num { background: var(--color-primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+    .param-table { width: 100%; font-size: 0.75rem; margin-top: 8px; }
+    .param-table td { padding: 4px 8px; font-family: var(--font-mono); border-bottom: 1px solid var(--color-border); }
+    .param-table td:first-child { color: var(--color-text-muted); width: 120px; }
+    .param-table .param-val { font-size: 0.65rem; word-break: break-all; cursor: pointer; }
+    .param-table .param-val:hover { color: var(--color-primary); }
   </style>
 </head>
 <body>
@@ -1047,6 +1065,34 @@
             </div>
           </div>
 
+          <h2 class="section-title">Contracts (Remix Deploy)</h2>
+          <div class="cards-grid">
+            <div class="card contract-card" style="grid-column: 1 / -1;">
+              <div class="card-header">
+                <span class="card-title">HusdFaucet.sol</span>
+                <span style="font-size:0.7rem;color:var(--color-text-muted)">Solidity ^0.8.20</span>
+              </div>
+              <div class="code-block">
+                <button class="copy-btn" id="copy-sol-btn" onclick="copySolidity()">Copy .sol</button>
+                <pre id="sol-source"></pre>
+              </div>
+              <ol class="deploy-steps">
+                <li><span class="step-num">1</span><span>Remix で上記コードを貼り付け、Compiler 0.8.20+ でコンパイル</span></li>
+                <li><span class="step-num">2</span><span>Deploy (Injected Provider - MetaMask, Sepolia) with params:</span></li>
+              </ol>
+              <table class="param-table">
+                <tr><td>_husd</td><td class="param-val" onclick="copyText(this)">${CONFIG.husdContract}</td></tr>
+                <tr><td>_treasury</td><td class="param-val" onclick="copyText(this)">${CONFIG.treasuryAddress}</td></tr>
+                <tr><td>_claimAmount</td><td class="param-val" onclick="copyText(this)">1000000000</td></tr>
+                <tr><td>_cooldown</td><td class="param-val" onclick="copyText(this)">86400</td></tr>
+              </table>
+              <ol class="deploy-steps" start="3">
+                <li><span class="step-num">3</span><span>Treasury wallet で hUSD コントラクトの <code>approve(faucetAddress, max)</code> を実行</span></li>
+                <li><span class="step-num">4</span><span>広告主が <code>faucet.claim()</code> を呼ぶ → hUSD を受け取る (ガス代は広告主)</span></li>
+              </ol>
+            </div>
+          </div>
+
           <h2 class="section-title">Recent Operations (${ops.length})</h2>
           <div class="filters">
             <span class="filter-chip ${!filter ? 'active' : ''}" data-filter="">All</span>
@@ -1097,6 +1143,138 @@
       });
       // Auto-fill faucet address from connected wallet
       autoFillFaucetAddress();
+      // Load contract source
+      loadSoliditySource();
+    }
+
+    // ============================================
+    // Contract Source Copy
+    // ============================================
+    const HUSD_FAUCET_SOL = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+/**
+ * @title HusdFaucet
+ * @notice Advertiser calls claim() to receive hUSD from Treasury.
+ *         Advertiser pays gas. Treasury pays tokens via approve + transferFrom.
+ *
+ * Setup:
+ *   1. Deploy this contract
+ *   2. Treasury calls husd.approve(thisContract, type(uint256).max)
+ *   3. Advertiser calls claim() -> receives claimAmount of hUSD
+ */
+interface IERC20 {
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
+}
+
+contract HusdFaucet {
+    IERC20 public immutable husd;
+    address public treasury;
+    address public owner;
+    uint256 public claimAmount;   // in base units (6 decimals: 1000 hUSD = 1_000_000_000)
+    uint256 public cooldown;      // seconds between claims per address
+
+    mapping(address => uint256) public lastClaim;
+
+    event Claimed(address indexed claimer, uint256 amount, uint256 timestamp);
+    event ClaimAmountUpdated(uint256 oldAmount, uint256 newAmount);
+    event CooldownUpdated(uint256 oldCooldown, uint256 newCooldown);
+    event TreasuryUpdated(address oldTreasury, address newTreasury);
+    event OwnerUpdated(address oldOwner, address newOwner);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
+        _;
+    }
+
+    constructor(
+        address _husd,
+        address _treasury,
+        uint256 _claimAmount,
+        uint256 _cooldown
+    ) {
+        require(_husd != address(0), "Invalid husd");
+        require(_treasury != address(0), "Invalid treasury");
+        husd = IERC20(_husd);
+        treasury = _treasury;
+        claimAmount = _claimAmount;
+        cooldown = _cooldown;
+        owner = msg.sender;
+    }
+
+    function claim() external {
+        require(
+            block.timestamp >= lastClaim[msg.sender] + cooldown,
+            "Cooldown active"
+        );
+        lastClaim[msg.sender] = block.timestamp;
+        bool ok = husd.transferFrom(treasury, msg.sender, claimAmount);
+        require(ok, "Transfer failed - check treasury approval and balance");
+        emit Claimed(msg.sender, claimAmount, block.timestamp);
+    }
+
+    function canClaim(address account) external view returns (bool allowed, uint256 nextClaimAt) {
+        uint256 next = lastClaim[account] + cooldown;
+        if (block.timestamp >= next) {
+            return (true, 0);
+        }
+        return (false, next);
+    }
+
+    function remainingAllowance() external view returns (uint256) {
+        return husd.allowance(treasury, address(this));
+    }
+
+    function treasuryBalance() external view returns (uint256) {
+        return husd.balanceOf(treasury);
+    }
+
+    function setClaimAmount(uint256 _amount) external onlyOwner {
+        emit ClaimAmountUpdated(claimAmount, _amount);
+        claimAmount = _amount;
+    }
+
+    function setCooldown(uint256 _cooldown) external onlyOwner {
+        emit CooldownUpdated(cooldown, _cooldown);
+        cooldown = _cooldown;
+    }
+
+    function setTreasury(address _treasury) external onlyOwner {
+        require(_treasury != address(0), "Invalid treasury");
+        emit TreasuryUpdated(treasury, _treasury);
+        treasury = _treasury;
+    }
+
+    function transferOwnership(address _newOwner) external onlyOwner {
+        require(_newOwner != address(0), "Invalid owner");
+        emit OwnerUpdated(owner, _newOwner);
+        owner = _newOwner;
+    }
+}`;
+
+    function loadSoliditySource() {
+      const el = document.getElementById('sol-source');
+      if (el) el.textContent = HUSD_FAUCET_SOL;
+    }
+
+    function copySolidity() {
+      navigator.clipboard.writeText(HUSD_FAUCET_SOL).then(() => {
+        const btn = document.getElementById('copy-sol-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy .sol'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    function copyText(el) {
+      navigator.clipboard.writeText(el.textContent).then(() => {
+        const orig = el.textContent;
+        el.textContent = 'Copied!';
+        el.style.color = '#34c759';
+        setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1000);
+      });
     }
 
     function autoFillFaucetAddress() {
