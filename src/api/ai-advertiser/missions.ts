@@ -185,7 +185,8 @@ export async function handleCreateMission(
       body.max_claims,
       body.deadline_at,
       metadata,
-      body.mode === 'test' ? 'sepolia_husd' : 'base_usdc' // payment_profile
+      body.mode === 'test' ? 'sepolia_husd' : 'base_usdc', // payment_profile
+      body.max_claims // slots_total
     )
     .run();
 
