@@ -90,6 +90,7 @@ import {
   handleFaucet,
   getTokenOps,
   getTokenBalances,
+  logTokenOp,
 } from './api/admin/index';
 import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 
@@ -970,6 +971,11 @@ async function handleAdminApi(
   // GET /api/admin/token-ops/balances - Get treasury and admin balances
   if (path === '/api/admin/token-ops/balances' && method === 'GET') {
     return getTokenBalances(request, env);
+  }
+
+  // POST /api/admin/token-ops/log - Log owner mint/transfer operation
+  if (path === '/api/admin/token-ops/log' && method === 'POST') {
+    return logTokenOp(request, env);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

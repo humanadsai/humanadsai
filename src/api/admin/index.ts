@@ -1397,3 +1397,62 @@ export async function getTokenBalances(request: Request, env: Env): Promise<Resp
     return errors.internalError(requestId);
   }
 }
+
+/**
+ * POST /api/admin/token-ops/log
+ * Log an owner mint/transfer operation (executed via MetaMask)
+ */
+export async function logTokenOp(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId, operator } = authResult.context!;
+
+  try {
+    const body = await request.json<{
+      type: string;
+      tx_hash: string;
+      from_address: string;
+      to_address: string;
+      amount_cents: number;
+      chain_id: number;
+    }>();
+
+    // Validate required fields
+    if (!body.type || !body.tx_hash || !body.to_address || !body.amount_cents) {
+      return errors.invalidRequest(requestId, { message: 'type, tx_hash, to_address, and amount_cents are required' });
+    }
+
+    // Validate type
+    const validTypes = ['owner_mint', 'owner_transfer'];
+    if (!validTypes.includes(body.type)) {
+      return errors.invalidRequest(requestId, { message: `Invalid type. Must be one of: ${validTypes.join(', ')}` });
+    }
+
+    // Validate chain_id (Sepolia only)
+    if (body.chain_id && body.chain_id !== 11155111) {
+      return errors.invalidRequest(requestId, { message: 'Only Sepolia (chainId 11155111) is supported' });
+    }
+
+    // Record the operation
+    const opId = await recordTokenOp(env, {
+      opType: body.type as 'mint' | 'transfer' | 'faucet',
+      fromAddress: body.from_address,
+      toAddress: body.to_address,
+      amountCents: body.amount_cents,
+      txHash: body.tx_hash,
+      status: 'submitted',
+      operatorId: operator.id,
+    });
+
+    return success({
+      message: 'Token operation logged',
+      op_id: opId,
+      type: body.type,
+      tx_hash: body.tx_hash,
+    }, requestId);
+  } catch (e) {
+    console.error('Log token op error:', e);
+    return errors.internalError(requestId);
+  }
+}
