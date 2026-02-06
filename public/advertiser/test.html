@@ -1165,7 +1165,7 @@ contract HumanAdsTestUSD {
       localStorage.setItem('humanads_test_advertiser_name', advertiserName);
     }
 
-    /** Render PreStep 0/1 into #content */
+    /** Render PreStep into #content — single page with all steps */
     function renderPreStep(envData) {
       const content = document.getElementById('content');
       const stored = loadPreStepFromStorage();
@@ -1177,7 +1177,7 @@ contract HumanAdsTestUSD {
           <p>Complete these steps before running the E2E Payment Flow.</p>
         </div>
 
-        <!-- PreStep 0: Register -->
+        <!-- Step 0: Register -->
         <div class="prestep-card ${hasApiKey ? 'completed' : 'active'}" id="prestep-0">
           <div class="step-header">
             <div class="step-number">${hasApiKey ? '&#10003;' : '0'}</div>
@@ -1186,54 +1186,50 @@ contract HumanAdsTestUSD {
           ${hasApiKey ? renderPreStep0Completed(stored) : renderPreStep0Active()}
         </div>
 
-        <!-- PreStep 1: Get hUSD -->
-        <div class="prestep-card ${hasApiKey ? 'active' : 'disabled'}" id="prestep-1">
+        <!-- Step 1: Get Sepolia ETH -->
+        <div class="prestep-card active" id="prestep-1">
           <div class="step-header">
             <div class="step-number">1</div>
-            <div class="step-title">Get hUSD (Free)</div>
+            <div class="step-title">Get Sepolia ETH (for gas)</div>
           </div>
-          <div class="step-description">hUSD is free test currency. You need Sepolia ETH for gas fees.</div>
+          <div class="step-description">You need Sepolia ETH to pay gas fees for claiming hUSD and sending transactions.</div>
+          <button class="btn" onclick="window.open('https://sepolia-faucet.pk910.de/', '_blank')">
+            Open Sepolia Faucet
+          </button>
+          <p style="font-size:0.75rem; color:var(--color-text-muted); margin-top:6px;">
+            Getting ETH may take a few minutes.
+          </p>
+        </div>
 
-          <div class="prestep-section">
-            <div class="prestep-section-title">A. Get Sepolia ETH (for gas)</div>
-            <button class="btn" onclick="window.open('https://sepolia-faucet.pk910.de/', '_blank')">
-              Open Sepolia Faucet
+        <!-- Step 2: Claim hUSD -->
+        <div class="prestep-card active" id="prestep-2">
+          <div class="step-header">
+            <div class="step-number">2</div>
+            <div class="step-title">Claim hUSD (Free)</div>
+          </div>
+          <div class="step-description">Connect MetaMask on Sepolia, then claim 1,000 hUSD. Gas is paid with Sepolia ETH.</div>
+          <div id="prestep-faucet-wallet" style="display:none; margin-bottom:8px; padding:8px 10px; border-radius:8px; background:rgba(52,199,89,0.1); border:1px solid rgba(52,199,89,0.3); font-size:0.75rem; font-family:var(--font-mono); color:#34c759; word-break:break-all;"></div>
+          <div class="btn-row">
+            <button class="btn wallet" id="btn-prestep-connect" onclick="connectPreStepWallet()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+              Connect MetaMask
             </button>
-            <p style="font-size:0.75rem; color:var(--color-text-muted); margin-top:6px;">
-              Getting ETH may take a few minutes.
-            </p>
-          </div>
-
-          <div class="prestep-section">
-            <div class="prestep-section-title">B. Claim hUSD (via Faucet Contract)</div>
-            <div style="font-size:0.75rem; color:var(--color-text-muted); margin-bottom:8px; line-height:1.4;">
-              Connect MetaMask on Sepolia, then claim 1,000 hUSD. Gas is paid with Sepolia ETH.
-            </div>
-            <div id="prestep-faucet-wallet" style="display:none; margin-bottom:8px; padding:8px 10px; border-radius:8px; background:rgba(52,199,89,0.1); border:1px solid rgba(52,199,89,0.3); font-size:0.75rem; font-family:var(--font-mono); color:#34c759; word-break:break-all;"></div>
-            <div class="btn-row">
-              <button class="btn wallet" id="btn-prestep-connect" onclick="connectPreStepWallet()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
-                Connect MetaMask
-              </button>
-              <button class="btn primary" id="btn-prestep-claim" onclick="claimPreStepHusd()" disabled>
-                Claim 1,000 hUSD
-              </button>
-            </div>
-            <div id="prestep-faucet-status" style="margin-top:8px; font-size:0.75rem;"></div>
-            <div style="margin-top:8px; font-size:0.6875rem; color:var(--color-text-muted);">
-              <div>Network: <strong>Sepolia</strong> &bull; Token: <strong>hUSD</strong> &bull; Amount: <strong>1,000</strong></div>
-              <div style="font-family:var(--font-mono); word-break:break-all;">Faucet: 0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341</div>
-            </div>
-          </div>
-
-          <div class="prestep-navigate">
-            <button class="btn secondary" onclick="completePreStep(window._envData)">
-              Skip to Step A
-            </button>
-            <button class="btn primary" onclick="completePreStep(window._envData)">
-              Proceed to Step A &rarr;
+            <button class="btn primary" id="btn-prestep-claim" onclick="claimPreStepHusd()" disabled>
+              Claim 1,000 hUSD
             </button>
           </div>
+          <div id="prestep-faucet-status" style="margin-top:8px; font-size:0.75rem;"></div>
+          <div style="margin-top:8px; font-size:0.6875rem; color:var(--color-text-muted);">
+            <div>Network: <strong>Sepolia</strong> &bull; Token: <strong>hUSD</strong> &bull; Amount: <strong>1,000</strong></div>
+            <div style="font-family:var(--font-mono); word-break:break-all;">Faucet: 0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341</div>
+          </div>
+        </div>
+
+        <!-- Proceed -->
+        <div style="margin-top:16px;">
+          <button class="btn primary" onclick="completePreStep(window._envData)" style="font-size:0.9375rem; padding:14px;">
+            Proceed to E2E Payment Flow &rarr;
+          </button>
         </div>
       `;
     }
