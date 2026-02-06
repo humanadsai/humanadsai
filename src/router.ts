@@ -97,6 +97,14 @@ import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 // Advertiser Test API
 import { handleAdvertiserTestApi } from './api/advertiser/test';
 
+// Config API
+import {
+  getPublicConfig,
+  getAdminPaymentProfile,
+  updateAdminPaymentProfile,
+  getConfigHistory,
+} from './api/admin/config';
+
 /**
  * メインルーター
  */
@@ -600,6 +608,11 @@ async function handlePublicApi(
     return getStats(request, env);
   }
 
+  // GET /api/config - Current payment profile (public)
+  if (path === '/api/config' && method === 'GET') {
+    return getPublicConfig(request, env);
+  }
+
   // GET /api/me - Current user info
   if (path === '/api/me' && method === 'GET') {
     return getMe(request, env);
@@ -976,6 +989,25 @@ async function handleAdminApi(
   // POST /api/admin/token-ops/log - Log owner mint/transfer operation
   if (path === '/api/admin/token-ops/log' && method === 'POST') {
     return logTokenOp(request, env);
+  }
+
+  // ============================================
+  // Configuration (Environment Switcher)
+  // ============================================
+
+  // GET /api/admin/config/payment-profile - Get current payment profile
+  if (path === '/api/admin/config/payment-profile' && method === 'GET') {
+    return getAdminPaymentProfile(request, env);
+  }
+
+  // POST /api/admin/config/payment-profile - Update payment profile
+  if (path === '/api/admin/config/payment-profile' && method === 'POST') {
+    return updateAdminPaymentProfile(request, env);
+  }
+
+  // GET /api/admin/config/history - Get config change history
+  if (path === '/api/admin/config/history' && method === 'GET') {
+    return getConfigHistory(request, env);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

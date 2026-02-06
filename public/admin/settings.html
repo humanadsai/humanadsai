@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings | Admin | HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .settings-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    .section-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .section-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 107, 53, 0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .section-subtitle {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    .config-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .config-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .config-row:last-child {
+      border-bottom: none;
+    }
+
+    .config-label {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    .config-value {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .config-value.address {
+      font-size: 0.75rem;
+      word-break: break-all;
+    }
+
+    /* Profile Badge */
+    .profile-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .profile-badge.test {
+      background: rgba(255, 107, 53, 0.15);
+      color: #FF6B35;
+      border: 1px solid rgba(255, 107, 53, 0.3);
+    }
+
+    .profile-badge.prod {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .profile-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .profile-badge.test .dot { background: #FF6B35; }
+    .profile-badge.prod .dot { background: #22c55e; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Profile Selector */
+    .profile-selector {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .profile-options {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .profile-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 2px solid var(--color-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .profile-option:hover:not(.disabled) {
+      border-color: rgba(255, 107, 53, 0.5);
+      background: rgba(255, 107, 53, 0.05);
+    }
+
+    .profile-option.selected {
+      border-color: var(--color-primary);
+      background: rgba(255, 107, 53, 0.1);
+    }
+
+    .profile-option.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .profile-option input[type="radio"] {
+      margin-top: 4px;
+      accent-color: var(--color-primary);
+    }
+
+    .profile-option-content {
+      flex: 1;
+    }
+
+    .profile-option-name {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .profile-option-details {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .profile-option-tag {
+      font-size: 0.625rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .profile-option-tag.testnet {
+      background: rgba(255, 107, 53, 0.2);
+      color: #FF6B35;
+    }
+
+    .profile-option-tag.mainnet {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+
+    .profile-option-tag.not-ready {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    /* Confirmation Section */
+    .confirm-section {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 12px;
+    }
+
+    .confirm-section.hidden {
+      display: none;
+    }
+
+    .confirm-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+      color: #ef4444;
+      font-size: 0.875rem;
+    }
+
+    .confirm-warning svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .confirm-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+    }
+
+    .confirm-checkbox input {
+      accent-color: var(--color-primary);
+    }
+
+    .confirm-input-group {
+      margin-bottom: 16px;
+    }
+
+    .confirm-input-group label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+
+    .confirm-input-group .hint {
+      font-family: var(--font-mono);
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .confirm-input-group input {
+      width: 100%;
+      padding: 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+    }
+
+    .confirm-input-group input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    .reason-input {
+      margin-bottom: 16px;
+    }
+
+    .reason-input label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+
+    .reason-input input {
+      width: 100%;
+      padding: 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-size: 0.875rem;
+    }
+
+    .btn-apply {
+      width: 100%;
+      padding: 14px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-apply:hover:not(:disabled) {
+      background: #dc2626;
+    }
+
+    .btn-apply:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* History Section */
+    .history-list {
+      margin-top: 16px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+    }
+
+    .history-arrow {
+      color: var(--color-text-muted);
+    }
+
+    .history-profile {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      font-size: 0.75rem;
+    }
+
+    .history-meta {
+      margin-left: auto;
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Loading state */
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--color-surface) 25%, rgba(255,255,255,0.1) 50%, var(--color-surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <button id="hamburger-btn" class="hamburger-btn" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="/" class="logo">
+        <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" fill="#FF6B35"/>
+          <circle cx="50" cy="50" r="30" fill="#0a0a0f"/>
+          <circle cx="50" cy="50" r="12" fill="#FF6B35"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-actions">
+        <a href="/admin" class="btn-secondary">Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Side Menu -->
+  <nav id="hamburger-menu" class="hamburger-menu"></nav>
+  <div id="menu-overlay" class="menu-overlay"></div>
+
+  <!-- Main Content -->
+  <main class="settings-container">
+    <h1 class="page-title" style="font-family: var(--font-mono); font-size: 1.5rem; margin-bottom: 24px;">
+      Environment Settings
+    </h1>
+
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+
+    <!-- Current Profile Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="section-title">Payment Profile</h2>
+          <p class="section-subtitle">Current environment configuration</p>
+        </div>
+      </div>
+
+      <div id="current-profile-loading" style="text-align: center; padding: 40px;">
+        <div class="loading-spinner"></div>
+      </div>
+
+      <div id="current-profile" class="config-grid" style="display: none;">
+        <div style="margin-bottom: 16px;">
+          <span id="profile-badge" class="profile-badge test">
+            <span class="dot"></span>
+            <span id="profile-name">Loading...</span>
+          </span>
+        </div>
+
+        <div class="config-row">
+          <span class="config-label">Chain</span>
+          <span id="config-chain" class="config-value">-</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Token</span>
+          <span id="config-token" class="config-value">-</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Token Contract</span>
+          <span id="config-contract" class="config-value address">-</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Treasury Address</span>
+          <span id="config-treasury" class="config-value address">-</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Fee Recipient</span>
+          <span id="config-fee-recipient" class="config-value address">-</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">TX Verification</span>
+          <span id="config-verification" class="config-value">-</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Payout Mode</span>
+          <span id="config-payout-mode" class="config-value">-</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Last Updated</span>
+          <span id="config-updated" class="config-value">-</span>
+        </div>
+      </div>
+
+      <!-- Profile Selector -->
+      <div class="profile-selector">
+        <h3 style="font-size: 0.875rem; margin-bottom: 8px;">Switch Environment</h3>
+        <p style="font-size: 0.75rem; color: var(--color-text-muted);">
+          Select a different payment profile. This affects ALL new missions.
+        </p>
+
+        <div id="profile-options" class="profile-options">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Confirmation Section -->
+        <div id="confirm-section" class="confirm-section hidden">
+          <div class="confirm-warning">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <strong>Warning:</strong> This change affects ALL users immediately.
+              New deals and missions will use the new profile. Existing records keep their original profile.
+            </div>
+          </div>
+
+          <label class="confirm-checkbox">
+            <input type="checkbox" id="confirm-understand">
+            I understand this affects ALL users
+          </label>
+
+          <div class="confirm-input-group">
+            <label>
+              Type <span class="hint" id="confirm-hint">SWITCH TO ...</span> to confirm:
+            </label>
+            <input type="text" id="confirm-text" placeholder="Type confirmation text">
+          </div>
+
+          <div class="reason-input">
+            <label>Reason (optional)</label>
+            <input type="text" id="confirm-reason" placeholder="e.g., Production launch, Testing">
+          </div>
+
+          <button id="btn-apply" class="btn-apply" disabled>
+            Apply Profile Change
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change History Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="section-title">Change History</h2>
+          <p class="section-subtitle">Recent profile changes</p>
+        </div>
+      </div>
+
+      <div id="history-loading" style="text-align: center; padding: 20px;">
+        <div class="loading-spinner"></div>
+      </div>
+
+      <div id="history-list" class="history-list" style="display: none;">
+        <!-- Populated by JS -->
+      </div>
+
+      <p id="history-empty" style="display: none; text-align: center; color: var(--color-text-muted); font-size: 0.875rem; padding: 20px;">
+        No profile changes recorded yet.
+      </p>
+    </div>
+  </main>
+
+  <script src="/js/humanads.js"></script>
+  <script src="/js/side-menu.js"></script>
+  <script>
+    // State
+    let currentConfig = null;
+    let selectedProfile = null;
+
+    // DOM Elements
+    const alertContainer = document.getElementById('alert-container');
+    const currentProfileLoading = document.getElementById('current-profile-loading');
+    const currentProfileSection = document.getElementById('current-profile');
+    const profileBadge = document.getElementById('profile-badge');
+    const profileName = document.getElementById('profile-name');
+    const profileOptions = document.getElementById('profile-options');
+    const confirmSection = document.getElementById('confirm-section');
+    const confirmHint = document.getElementById('confirm-hint');
+    const confirmUnderstand = document.getElementById('confirm-understand');
+    const confirmText = document.getElementById('confirm-text');
+    const confirmReason = document.getElementById('confirm-reason');
+    const btnApply = document.getElementById('btn-apply');
+    const historyLoading = document.getElementById('history-loading');
+    const historyList = document.getElementById('history-list');
+    const historyEmpty = document.getElementById('history-empty');
+
+    // Show alert
+    function showAlert(message, type = 'success') {
+      alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+      setTimeout(() => {
+        alertContainer.innerHTML = '';
+      }, 5000);
+    }
+
+    // Shorten address for display
+    function shortenAddress(addr) {
+      if (!addr || addr.length < 10) return addr || '-';
+      return addr.slice(0, 6) + '...' + addr.slice(-4);
+    }
+
+    // Format date
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+    }
+
+    // Load current config
+    async function loadConfig() {
+      try {
+        const res = await fetchApi('/api/admin/config/payment-profile');
+        if (!res.success) throw new Error(res.error?.message || 'Failed to load config');
+
+        currentConfig = res.data;
+        renderCurrentProfile();
+        renderProfileOptions();
+
+        currentProfileLoading.style.display = 'none';
+        currentProfileSection.style.display = 'block';
+      } catch (e) {
+        console.error('Load config error:', e);
+        showAlert(e.message, 'error');
+        currentProfileLoading.innerHTML = `<p style="color: #ef4444;">Failed to load configuration</p>`;
+      }
+    }
+
+    // Render current profile
+    function renderCurrentProfile() {
+      const profile = currentConfig.current;
+
+      // Badge
+      profileBadge.className = `profile-badge ${profile.is_testnet ? 'test' : 'prod'}`;
+      profileName.textContent = profile.name;
+
+      // Details
+      document.getElementById('config-chain').textContent = `${profile.chain.name} (${profile.chain.id})`;
+      document.getElementById('config-token').textContent = profile.token.symbol;
+      document.getElementById('config-contract').textContent = shortenAddress(profile.token.contract);
+      document.getElementById('config-treasury').textContent = shortenAddress(profile.treasury.address) || '(Not set)';
+      document.getElementById('config-fee-recipient').textContent = shortenAddress(profile.treasury.feeRecipient) || '(Not set)';
+      document.getElementById('config-verification').textContent = profile.verification.mode;
+      document.getElementById('config-payout-mode').textContent = currentConfig.payout_mode;
+
+      const updatedBy = currentConfig.updated_by ? `by ${currentConfig.updated_by}` : '';
+      document.getElementById('config-updated').textContent = currentConfig.updated_at
+        ? `${formatDate(currentConfig.updated_at)} ${updatedBy}`
+        : 'Never';
+    }
+
+    // Render profile options
+    function renderProfileOptions() {
+      const currentId = currentConfig.current.id;
+
+      profileOptions.innerHTML = currentConfig.available_profiles.map(profile => {
+        const isCurrent = profile.id === currentId;
+        const isDisabled = !profile.is_testnet && !profile.is_ready;
+        const tagClass = profile.is_testnet ? 'testnet' : (profile.is_ready ? 'mainnet' : 'not-ready');
+        const tagText = profile.is_testnet ? 'Testnet' : (profile.is_ready ? 'Mainnet' : 'Not Ready');
+
+        return `
+          <label class="profile-option ${isCurrent ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}"
+                 data-profile-id="${profile.id}">
+            <input type="radio" name="profile" value="${profile.id}"
+                   ${isCurrent ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+            <div class="profile-option-content">
+              <div class="profile-option-name">
+                ${profile.name}
+                <span class="profile-option-tag ${tagClass}">${tagText}</span>
+              </div>
+              <div class="profile-option-details">
+                ${profile.chain.name} • ${profile.token.symbol}
+                ${isDisabled ? ' • Treasury not configured' : ''}
+              </div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      // Add click handlers
+      profileOptions.querySelectorAll('.profile-option:not(.disabled)').forEach(option => {
+        option.addEventListener('click', () => {
+          const profileId = option.dataset.profileId;
+          if (profileId === currentConfig.current.id) {
+            selectedProfile = null;
+            confirmSection.classList.add('hidden');
+          } else {
+            selectedProfile = profileId;
+            showConfirmSection(profileId);
+          }
+
+          // Update selection state
+          profileOptions.querySelectorAll('.profile-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          option.classList.add('selected');
+        });
+      });
+    }
+
+    // Show confirmation section
+    function showConfirmSection(profileId) {
+      const expectedText = `SWITCH TO ${profileId}`;
+      confirmHint.textContent = expectedText;
+      confirmUnderstand.checked = false;
+      confirmText.value = '';
+      confirmReason.value = '';
+      btnApply.disabled = true;
+
+      confirmSection.classList.remove('hidden');
+      validateConfirmation();
+    }
+
+    // Validate confirmation inputs
+    function validateConfirmation() {
+      if (!selectedProfile) {
+        btnApply.disabled = true;
+        return;
+      }
+
+      const expectedText = `SWITCH TO ${selectedProfile}`;
+      const isValid = confirmUnderstand.checked && confirmText.value === expectedText;
+      btnApply.disabled = !isValid;
+    }
+
+    // Apply profile change
+    async function applyProfileChange() {
+      if (!selectedProfile) return;
+
+      btnApply.disabled = true;
+      btnApply.innerHTML = '<span class="loading-spinner"></span> Applying...';
+
+      try {
+        const res = await fetchApi('/api/admin/config/payment-profile', {
+          method: 'POST',
+          body: JSON.stringify({
+            profile: selectedProfile,
+            confirm_text: confirmText.value,
+            reason: confirmReason.value || undefined,
+          }),
+        });
+
+        if (!res.success) throw new Error(res.error?.message || 'Failed to update profile');
+
+        showAlert(`Profile changed to ${selectedProfile}`, 'success');
+
+        // Reload config
+        await loadConfig();
+        selectedProfile = null;
+        confirmSection.classList.add('hidden');
+
+        // Reload history
+        loadHistory();
+      } catch (e) {
+        console.error('Apply profile error:', e);
+        showAlert(e.message, 'error');
+      } finally {
+        btnApply.disabled = false;
+        btnApply.textContent = 'Apply Profile Change';
+      }
+    }
+
+    // Load change history
+    async function loadHistory() {
+      try {
+        const res = await fetchApi('/api/admin/config/history?limit=10');
+        if (!res.success) throw new Error(res.error?.message || 'Failed to load history');
+
+        historyLoading.style.display = 'none';
+
+        if (res.data.history.length === 0) {
+          historyEmpty.style.display = 'block';
+          historyList.style.display = 'none';
+        } else {
+          historyEmpty.style.display = 'none';
+          historyList.style.display = 'block';
+          historyList.innerHTML = res.data.history.map(item => `
+            <div class="history-item">
+              <span class="history-profile">${item.from}</span>
+              <span class="history-arrow">→</span>
+              <span class="history-profile">${item.to}</span>
+              <div class="history-meta">
+                <div>${item.operator_handle || 'Unknown'}</div>
+                <div>${formatDate(item.created_at)}</div>
+                ${item.reason ? `<div style="opacity: 0.7;">${item.reason}</div>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Load history error:', e);
+        historyLoading.innerHTML = `<p style="color: #ef4444;">Failed to load history</p>`;
+      }
+    }
+
+    // Event listeners
+    confirmUnderstand.addEventListener('change', validateConfirmation);
+    confirmText.addEventListener('input', validateConfirmation);
+    btnApply.addEventListener('click', applyProfileChange);
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Check admin auth
+      const meRes = await fetchApi('/api/me');
+      if (!meRes.success || !meRes.data?.user?.is_admin) {
+        window.location.href = '/';
+        return;
+      }
+
+      SideMenu.init(true, true);
+      loadConfig();
+      loadHistory();
+    });
+  </script>
+</body>
+</html>

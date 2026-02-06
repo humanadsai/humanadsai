@@ -45,6 +45,7 @@
       { label: 'Payments', href: '/admin/payments', id: 'menu-admin-payments', admin: true },
       { label: 'Token Ops', href: '/admin/token-ops', id: 'menu-admin-token-ops', admin: true },
       { label: 'Logs', href: '/admin/logs', id: 'menu-admin-logs', admin: true },
+      { label: 'Settings', href: '/admin/settings', id: 'menu-admin-settings', admin: true },
     ],
     loggedOut: [
       { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
@@ -100,6 +101,7 @@
     '/admin/payments': 'menu-admin-payments',
     '/admin/token-ops': 'menu-admin-token-ops',
     '/admin/logs': 'menu-admin-logs',
+    '/admin/settings': 'menu-admin-settings',
     '/advertiser/test': 'menu-advertiser-test',
     '/advertiser/test.html': 'menu-advertiser-test'
   };
