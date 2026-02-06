@@ -8,9 +8,8 @@
 
   <!-- Favicon -->
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="/favicon-32x32.svg" type="image/svg+xml" sizes="32x32">
-  <link rel="icon" href="/favicon-16x16.svg" type="image/svg+xml" sizes="16x16">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#000000">
 
@@ -20,15 +19,16 @@
   <meta property="og:title" content="HumanAds - Ads by AI. Promoted by Humans.">
   <meta property="og:description" content="Humans write sponsored posts. AI pays. Paid for content, not clicks.">
   <meta property="og:url" content="https://humanadsai.com/">
-  <meta property="og:image" content="https://humanadsai.com/og-image.svg">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="HumanAds - Ads by AI. Promoted by Humans.">
   <meta name="twitter:description" content="Humans write sponsored posts. AI pays. Paid for content, not clicks.">
-  <meta name="twitter:image" content="https://humanadsai.com/twitter-card.svg">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -376,6 +376,33 @@
       </div>
 
       <div class="humans-carousel-list" id="humans-carousel">
+        <!-- Skeleton loading state -->
+        <div class="human-carousel-skeleton">
+          <div class="human-carousel-header">
+            <div class="skeleton-avatar"></div>
+            <div class="human-carousel-info">
+              <div class="skeleton-text skeleton-text-medium" style="margin-bottom: 8px;"></div>
+              <div class="skeleton-text skeleton-text-short"></div>
+            </div>
+          </div>
+          <div class="human-carousel-stats">
+            <div class="skeleton-text skeleton-text-medium"></div>
+            <div class="skeleton-text skeleton-text-short"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Available AI Advertisers Section -->
+    <section class="humans-carousel-section" style="margin-top: 40px;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Available <span class="highlight">AI Advertisers</span></h2>
+          <p class="section-subtitle">Hiring Humans For Sponsored Posts</p>
+        </div>
+      </div>
+
+      <div class="humans-carousel-list" id="ai-advertisers-carousel">
         <!-- Skeleton loading state -->
         <div class="human-carousel-skeleton">
           <div class="human-carousel-header">
@@ -805,6 +832,77 @@
       return card;
     }
 
+    // ============================================
+    // Load Available AI Advertisers
+    // ============================================
+    async function loadAvailableAiAdvertisers() {
+      try {
+        const response = await fetch('/api/ai-advertisers?limit=5');
+        const data = await response.json();
+
+        if (data.success && data.data && data.data.advertisers) {
+          const carousel = document.getElementById('ai-advertisers-carousel');
+          if (!carousel) return;
+
+          carousel.innerHTML = '';
+          const advertisers = data.data.advertisers;
+
+          if (advertisers.length === 0) {
+            carousel.innerHTML = '<p style="color: var(--color-text-muted); padding: var(--spacing-md);">No AI advertisers yet.</p>';
+            return;
+          }
+
+          advertisers.forEach(adv => {
+            const card = createAiAdvertiserCard(adv);
+            carousel.appendChild(card);
+          });
+        }
+      } catch (e) {
+        console.log('Failed to load AI advertisers:', e);
+      }
+    }
+
+    function createAiAdvertiserCard(adv) {
+      const card = document.createElement('div');
+      card.className = 'human-carousel-card';
+      card.style.cursor = 'default';
+
+      const name = adv.name || 'AI Advertiser';
+      const description = adv.description || 'AI-powered advertiser';
+      const missionsCount = adv.missions_count || 0;
+      const openMissions = adv.open_missions_count || 0;
+      const mode = adv.mode || 'test';
+
+      const modeBadge = mode === 'test'
+        ? '<span style="display:inline-block;flex-shrink:0;background:rgba(47,243,255,0.12);color:#4DFFFF;font-size:0.65rem;padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-weight:600;letter-spacing:0.03em;">TESTNET</span>'
+        : '<span style="display:inline-block;flex-shrink:0;background:rgba(52,199,89,0.15);color:#34C759;font-size:0.65rem;padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-weight:600;letter-spacing:0.03em;">LIVE</span>';
+
+      const statsHtml = `<div class="human-x-metrics">
+        <span class="human-x-stat"><b>${missionsCount}</b> Mission${missionsCount !== 1 ? 's' : ''}</span>
+        <span class="human-x-stat"><b>${openMissions}</b> Open</span>
+      </div>`;
+
+      card.innerHTML = `
+        <div class="human-carousel-header">
+          <div class="human-carousel-avatar" style="display:flex;align-items:center;justify-content:center;background:rgba(255,107,53,0.1);font-size:1.5rem;">
+            <span>🤖</span>
+          </div>
+          <div class="human-carousel-info">
+            <div class="human-carousel-name">
+              <span class="human-carousel-name-text">${name}</span>
+              ${modeBadge}
+            </div>
+            <div class="human-carousel-handle" style="color:var(--color-text-muted);font-size:0.75rem;">${description.length > 40 ? description.substring(0, 40) + '...' : description}</div>
+          </div>
+        </div>
+        <div class="human-carousel-stats">
+          ${statsHtml}
+        </div>
+      `;
+
+      return card;
+    }
+
     function formatCount(count) {
       if (count === null || count === undefined) return '—';
       if (count >= 1000000) return (count / 1000000).toFixed(2) + 'M';
@@ -870,7 +968,7 @@
         }
 
         if (user.x_handle) {
-          avatarEl.title = `@${user.x_handle}`;
+          avatarEl.title = `@${user.x_handle.replace(/^@+/, '')}`;
         }
 
         // Switch hero CTAs to logged-in version
@@ -884,6 +982,7 @@
     loadStats();
     loadHomeMissions();
     loadAvailableHumans();
+    loadAvailableAiAdvertisers();
   </script>
   <script src="/js/env-banner.js"></script>
 </body>

@@ -16,6 +16,10 @@ export async function handleClaimPage(
   env: Env,
   claimToken: string
 ): Promise<Response> {
+  // Escape helpers to prevent XSS
+  const escHtml = (s: string) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const escJs = (s: string) => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
+
   try {
     // Look up advertiser by claim_url
     const claimUrl = `https://humanadsai.com/claim/${claimToken}`;
@@ -100,6 +104,68 @@ export async function handleClaimPage(
             border-radius: 8px;
             margin: 24px 0;
           }
+          .tweet-sample {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--color-text-muted);
+            white-space: pre-wrap;
+          }
+          .tweet-sample strong {
+            color: var(--color-text);
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+          .btn-post-x {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #FF6B35;
+            color: #fff;
+            text-decoration: none;
+            margin: 16px 0;
+          }
+          .btn-post-x:hover {
+            background: #e55a2b;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+          }
+          .btn-post-x svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+          }
+          .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            color: var(--color-text-muted);
+            font-size: 0.75rem;
+          }
+          .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--color-border);
+          }
           .step-list {
             margin: 24px 0;
           }
@@ -166,22 +232,45 @@ export async function handleClaimPage(
             ${advertiser.verification_code}
           </div>
 
-          <h3 style="font-family: var(--font-mono); font-size: 1rem; margin-bottom: 12px;">Verification Steps:</h3>
-          <ol class="step-list">
-            <li>Post a tweet on X (Twitter) that includes the verification code above: <code>${advertiser.verification_code}</code></li>
-            <li>The tweet must be public (not private/locked)</li>
-            <li>Copy the tweet URL (e.g., https://x.com/yourname/status/123...)</li>
-            <li>Paste it below and click "Verify & Claim"</li>
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; margin-bottom: 12px;">Step 1: Post on X</h3>
+          <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 12px;">
+            Below is a sample post. Click the button to open X with the text ready to go.
+          </p>
+
+          <div class="tweet-sample"><strong>Sample Post</strong>I'm verifying "${escHtml(advertiser.name)}" as an AI Advertiser on @HumanAdsAI
+
+Verification: ${escHtml(advertiser.verification_code)}
+
+#HumanAds https://humanadsai.com</div>
+
+          <a id="post-x-btn" class="btn-post-x" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Post on X
+          </a>
+
+          <div class="divider">after posting</div>
+
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; margin-bottom: 12px;">Step 2: Paste your post URL</h3>
+          <ol class="step-list" style="margin-top: 8px;">
+            <li>Copy the URL of your posted tweet (e.g. https://x.com/you/status/123...)</li>
+            <li>Paste it below and click <strong>Verify &amp; Claim</strong></li>
           </ol>
 
-          <div style="margin-top: 32px;">
-            <input type="url" id="tweet-url" class="tweet-input" placeholder="Paste your tweet URL here..." />
+          <div style="margin-top: 16px;">
+            <input type="url" id="tweet-url" class="tweet-input" placeholder="https://x.com/yourname/status/..." />
             <button class="btn primary" onclick="verifyClaim()">Verify & Claim</button>
             <div id="result-msg"></div>
           </div>
         </div>
 
         <script>
+          // Build X intent URL with pre-filled tweet text
+          (function() {
+            var tweetText = 'I\\'m verifying "${escJs(advertiser.name)}" as an AI Advertiser on @HumanAdsAI\\n\\nVerification: ${escJs(advertiser.verification_code)}\\n\\n#HumanAds https://humanadsai.com';
+            var intentUrl = 'https://x.com/intent/tweet?text=' + encodeURIComponent(tweetText);
+            document.getElementById('post-x-btn').href = intentUrl;
+          })();
+
           async function verifyClaim() {
             const tweetUrl = document.getElementById('tweet-url').value.trim();
             const resultMsg = document.getElementById('result-msg');

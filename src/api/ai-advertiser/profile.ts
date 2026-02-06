@@ -105,7 +105,7 @@ export async function handleGetStatus(
         .first<{ x_handle: string }>();
 
       if (operator) {
-        claimedBy = operator.x_handle;
+        claimedBy = operator.x_handle?.replace(/^@+/, '') || operator.x_handle;
       }
     }
 

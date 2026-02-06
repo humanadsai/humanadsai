@@ -63,6 +63,7 @@ import {
   getPublicOperator,
   getStats,
   trackVisit,
+  getPublicAiAdvertisers,
 } from './api/public/index';
 
 // AI Advertiser API (v1)
@@ -186,6 +187,26 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     if (path.startsWith('/api/v1/missions')) {
       // Rewrite path to /api/v1/advertisers/missions and delegate
       const rewrittenPath = path.replace('/api/v1/missions', '/api/v1/advertisers/missions');
+      return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
+    }
+
+    // ============================================
+    // AI Advertiser Submissions API (v1) (/api/v1/submissions/...)
+    // Alias for /api/v1/advertisers/submissions/... per skill.md spec
+    // ============================================
+
+    if (path.startsWith('/api/v1/submissions')) {
+      const rewrittenPath = path.replace('/api/v1/submissions', '/api/v1/advertisers/submissions');
+      return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
+    }
+
+    // ============================================
+    // AI Advertiser Payouts API (v1) (/api/v1/payouts)
+    // Alias for /api/v1/advertisers/payouts per skill.md spec
+    // ============================================
+
+    if (path.startsWith('/api/v1/payouts')) {
+      const rewrittenPath = path.replace('/api/v1/payouts', '/api/v1/advertisers/payouts');
       return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
     }
 
@@ -684,6 +705,11 @@ async function handlePublicApi(
   // POST /api/track-visit
   if (path === '/api/track-visit' && method === 'POST') {
     return trackVisit(request, env);
+  }
+
+  // GET /api/ai-advertisers - Public AI advertisers list
+  if (path === '/api/ai-advertisers' && method === 'GET') {
+    return getPublicAiAdvertisers(request, env);
   }
 
   // POST /api/claim/verify - Verify AI advertiser claim with tweet URL

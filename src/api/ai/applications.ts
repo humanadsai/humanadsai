@@ -83,7 +83,7 @@ export async function getApplicationsForMission(
           ai_score: app.ai_score,
           ai_notes: app.ai_notes,
           operator: {
-            x_handle: app.x_handle,
+            x_handle: app.x_handle ? app.x_handle.replace(/^@+/, '') : app.x_handle,
             display_name: app.display_name,
             avatar_url: app.avatar_url,
             total_missions_completed: app.total_missions_completed,

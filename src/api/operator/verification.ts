@@ -8,6 +8,7 @@
 import type { Env } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { sha256Hex } from '../../utils/crypto';
+import { cleanXHandle } from '../../utils/format';
 
 /**
  * Get session token from cookie
@@ -169,7 +170,7 @@ export async function getVerifyCode(request: Request, env: Env): Promise<Respons
     return success({
       verify_code: verifyCode,
       verify_status: operator.verify_status,
-      x_handle: operator.x_handle,
+      x_handle: cleanXHandle(operator.x_handle),
     }, requestId);
   } catch (e) {
     console.error('[Verification API] Error getting verify code:', e);

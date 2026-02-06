@@ -4,11 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AI Advertiser Test - HumanAds</title>
+  <meta name="description" content="Test AI advertiser integration on HumanAds.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     .test-page {
       padding: 16px;
@@ -94,6 +99,137 @@
       opacity: 0.5;
       pointer-events: none;
     }
+
+    /* PreStep cards — same look as .step-card but separate class to avoid updateStepState interference */
+    .prestep-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    .prestep-card.completed {
+      border-color: rgba(52, 199, 89, 0.5);
+      background: rgba(52, 199, 89, 0.05);
+    }
+    .prestep-card.active {
+      border-color: var(--color-primary);
+      background: rgba(255, 107, 53, 0.05);
+    }
+    .prestep-card.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .prestep-card .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .prestep-card .step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .prestep-card.completed .step-number {
+      background: #34c759;
+      color: white;
+    }
+    .prestep-card.active .step-number {
+      background: var(--color-primary);
+      color: white;
+    }
+    .prestep-card .step-title {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .prestep-card .step-description {
+      color: var(--color-text-muted);
+      font-size: 0.8125rem;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .credentials-box {
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .credential-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.75rem;
+      gap: 8px;
+    }
+    .credential-item:last-child { border-bottom: none; }
+    .credential-item .cred-label {
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .credential-item .cred-value {
+      font-family: var(--font-mono);
+      word-break: break-all;
+      text-align: right;
+      flex: 1;
+      min-width: 0;
+    }
+    .credential-item .cred-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .prestep-warning {
+      background: rgba(255, 149, 0, 0.1);
+      border: 1px solid rgba(255, 149, 0, 0.3);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: #ff9500;
+      line-height: 1.4;
+    }
+    .prestep-section {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--color-border);
+    }
+    .prestep-section-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .prestep-navigate {
+      margin-top: 20px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .prestep-navigate .btn {
+      flex: 1;
+      min-width: 140px;
+    }
+
     .step-header {
       display: flex;
       align-items: center;
@@ -989,6 +1125,339 @@ contract HumanAdsTestUSD {
 
     function copyContractCode(btnEl) {
       copyToClipboard(HUSD_CONTRACT_CODE, btnEl);
+    }
+
+    // ========== PreStep Functions ==========
+
+    /** Wait for env-banner.js to set window.EnvBanner (polling, max 3s) */
+    async function waitForEnvBanner(maxMs = 3000) {
+      const start = Date.now();
+      while (!window.EnvBanner && Date.now() - start < maxMs) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
+
+    /** Return true when TestMode AND prestep not yet completed */
+    function isPreStepNeeded() {
+      try {
+        if (!window.EnvBanner || !window.EnvBanner.isTestnet()) return false;
+      } catch (e) {
+        return false;
+      }
+      return localStorage.getItem('humanads_test_prestep_complete') !== 'true';
+    }
+
+    /** Load saved credentials from localStorage */
+    function loadPreStepFromStorage() {
+      return {
+        apiKey: localStorage.getItem('humanads_test_api_key') || '',
+        claimUrl: localStorage.getItem('humanads_test_claim_url') || '',
+        verificationCode: localStorage.getItem('humanads_test_verification_code') || '',
+        advertiserName: localStorage.getItem('humanads_test_advertiser_name') || '',
+      };
+    }
+
+    /** Save credentials to localStorage */
+    function savePreStepToStorage(apiKey, claimUrl, verificationCode, advertiserName) {
+      localStorage.setItem('humanads_test_api_key', apiKey);
+      localStorage.setItem('humanads_test_claim_url', claimUrl);
+      localStorage.setItem('humanads_test_verification_code', verificationCode);
+      localStorage.setItem('humanads_test_advertiser_name', advertiserName);
+    }
+
+    /** Render PreStep 0/1 into #content */
+    function renderPreStep(envData) {
+      const content = document.getElementById('content');
+      const stored = loadPreStepFromStorage();
+      const hasApiKey = !!stored.apiKey;
+
+      content.innerHTML = `
+        <div class="test-header">
+          <h1>Test Mode Setup</h1>
+          <p>Complete these steps before running the E2E Payment Flow.</p>
+        </div>
+
+        <!-- PreStep 0: Register -->
+        <div class="prestep-card ${hasApiKey ? 'completed' : 'active'}" id="prestep-0">
+          <div class="step-header">
+            <div class="step-number">${hasApiKey ? '&#10003;' : '0'}</div>
+            <div class="step-title">Register AI Advertiser</div>
+          </div>
+          ${hasApiKey ? renderPreStep0Completed(stored) : renderPreStep0Active()}
+        </div>
+
+        <!-- PreStep 1: Get hUSD -->
+        <div class="prestep-card ${hasApiKey ? 'active' : 'disabled'}" id="prestep-1">
+          <div class="step-header">
+            <div class="step-number">1</div>
+            <div class="step-title">Get hUSD (Free)</div>
+          </div>
+          <div class="step-description">hUSD is free test currency. You need Sepolia ETH for gas fees.</div>
+
+          <div class="prestep-section">
+            <div class="prestep-section-title">A. Get Sepolia ETH (for gas)</div>
+            <button class="btn" onclick="window.open('https://sepolia-faucet.pk910.de/', '_blank')">
+              Open Sepolia Faucet
+            </button>
+            <p style="font-size:0.75rem; color:var(--color-text-muted); margin-top:6px;">
+              Getting ETH may take a few minutes.
+            </p>
+          </div>
+
+          <div class="prestep-section">
+            <div class="prestep-section-title">B. Claim hUSD</div>
+            <button class="btn" onclick="openClaimUrl()" id="btn-open-claim">
+              Open Claim Page
+            </button>
+            <div style="margin-top:8px; font-size:0.75rem; color:var(--color-text-muted);">
+              <div>Network: <strong>Sepolia</strong></div>
+              <div>Token: <strong>hUSD</strong></div>
+              <div style="font-family:var(--font-mono); word-break:break-all;">Contract: 0x62C2225D5691515BD4ee36539D127d0dB7dCeb67</div>
+            </div>
+          </div>
+
+          <div class="prestep-section">
+            <div class="prestep-section-title">C. Sample X Post URL</div>
+            <div class="input-group">
+              <input type="text" value="https://x.com/HumanAdsAI/status/0000000000000000000" readonly
+                     style="font-size:0.75rem; color:var(--color-text-muted);" id="prestep-sample-url">
+            </div>
+            <div class="prestep-warning">
+              This is a sample URL. In Step A of the E2E flow, replace it with your actual X post URL.
+            </div>
+          </div>
+
+          <div class="prestep-navigate">
+            <button class="btn secondary" onclick="completePreStep(window._envData)">
+              Skip to Step A
+            </button>
+            <button class="btn primary" onclick="completePreStep(window._envData)">
+              Proceed to Step A &rarr;
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /** Render PreStep 0 when api_key is NOT yet saved */
+    function renderPreStep0Active() {
+      return `
+        <div class="step-description">Register to get your API key, Claim URL, and Verification Code.</div>
+        <div class="input-group">
+          <label>Advertiser Name <span style="color:#ff3b30;">*</span></label>
+          <input type="text" id="prestep-name" placeholder="e.g. MyTestAgent" maxlength="100">
+        </div>
+        <div class="input-group">
+          <label>Description (optional)</label>
+          <input type="text" id="prestep-desc" placeholder="What does your agent do?">
+        </div>
+        <div class="input-group">
+          <label>Mode</label>
+          <input type="text" value="test" readonly style="opacity:0.6;">
+        </div>
+        <button class="btn primary" id="btn-prestep-register" onclick="handleRegisterPreStep()">
+          Register
+        </button>
+        <div id="prestep-register-result" class="result-box"></div>
+
+        <!-- 409 conflict: manual paste form (hidden by default) -->
+        <div id="prestep-manual-paste" style="display:none; margin-top:12px;">
+          <p style="font-size:0.8125rem; margin-bottom:8px;">Already registered? Paste your credentials below:</p>
+          <div class="input-group">
+            <label>API Key</label>
+            <div class="input-with-paste">
+              <input type="text" id="prestep-manual-apikey" placeholder="humanads_...">
+              <button class="paste-btn" onclick="pasteToInput('prestep-manual-apikey')">Paste</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Claim URL</label>
+            <div class="input-with-paste">
+              <input type="text" id="prestep-manual-claimurl" placeholder="https://humanadsai.com/claim/...">
+              <button class="paste-btn" onclick="pasteToInput('prestep-manual-claimurl')">Paste</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Verification Code</label>
+            <div class="input-with-paste">
+              <input type="text" id="prestep-manual-vcode" placeholder="e.g. reef-X4B2">
+              <button class="paste-btn" onclick="pasteToInput('prestep-manual-vcode')">Paste</button>
+            </div>
+          </div>
+          <button class="btn primary" onclick="handleManualKeyPaste()">Save &amp; Continue</button>
+        </div>
+      `;
+    }
+
+    /** Escape HTML entities */
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    /** Render PreStep 0 when api_key IS already saved */
+    function renderPreStep0Completed(stored) {
+      const eName = escHtml(stored.advertiserName);
+      const eKey = escHtml(stored.apiKey);
+      const eUrl = escHtml(stored.claimUrl);
+      const eCode = escHtml(stored.verificationCode);
+      return `
+        <div class="step-description">Registered successfully.</div>
+        <div class="credentials-box">
+          <div class="credential-item">
+            <span class="cred-label">Name</span>
+            <span class="cred-value">${eName}</span>
+          </div>
+          <div class="credential-item">
+            <span class="cred-label">API Key</span>
+            <span class="cred-value">${escHtml(stored.apiKey.slice(0, 20))}...</span>
+            <span class="cred-actions">
+              <button class="copy-btn" data-copy="apiKey" onclick="copyPreStepCredential(this)">Copy</button>
+            </span>
+          </div>
+          <div class="credential-item">
+            <span class="cred-label">Claim URL</span>
+            <span class="cred-value" style="font-size:0.6875rem;">${escHtml(stored.claimUrl.slice(0, 40))}...</span>
+            <span class="cred-actions">
+              <button class="copy-btn" data-copy="claimUrl" onclick="copyPreStepCredential(this)">Copy</button>
+            </span>
+          </div>
+          <div class="credential-item">
+            <span class="cred-label">Code</span>
+            <span class="cred-value">${eCode}</span>
+            <span class="cred-actions">
+              <button class="copy-btn" data-copy="verificationCode" onclick="copyPreStepCredential(this)">Copy</button>
+            </span>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn" onclick="copyCredentialsAsJson()">Copy as JSON</button>
+        </div>
+      `;
+    }
+
+    /** Copy a specific credential field by data-copy attribute */
+    function copyPreStepCredential(btnEl) {
+      const field = btnEl.getAttribute('data-copy');
+      const stored = loadPreStepFromStorage();
+      const value = stored[field] || '';
+      copyToClipboard(value, btnEl);
+    }
+
+    /** Update prestep-card active/completed/disabled state */
+    function updatePreStepState(activeStep) {
+      document.querySelectorAll('.prestep-card').forEach((card, i) => {
+        card.classList.remove('active', 'completed', 'disabled');
+        if (i < activeStep) {
+          card.classList.add('completed');
+        } else if (i === activeStep) {
+          card.classList.add('active');
+        } else {
+          card.classList.add('disabled');
+        }
+      });
+    }
+
+    /** POST /api/v1/advertisers/register */
+    async function handleRegisterPreStep() {
+      const nameEl = document.getElementById('prestep-name');
+      const descEl = document.getElementById('prestep-desc');
+      const btn = document.getElementById('btn-prestep-register');
+      const resultEl = document.getElementById('prestep-register-result');
+
+      const name = (nameEl.value || '').trim();
+      if (!name) {
+        resultEl.className = 'result-box show error';
+        resultEl.innerHTML = '<strong>Error:</strong> Advertiser name is required.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Registering...';
+      resultEl.className = 'result-box';
+      resultEl.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/v1/advertisers/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            description: (descEl.value || '').trim() || undefined,
+            mode: 'test'
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          const adv = data.data.advertiser;
+          // Auto-save to localStorage
+          savePreStepToStorage(adv.api_key, adv.claim_url, adv.verification_code, name);
+
+          // Re-render to show completed state
+          renderPreStep(window._envData);
+        } else if (res.status === 409) {
+          // Already registered — show manual paste form
+          resultEl.className = 'result-box show error';
+          resultEl.innerHTML = '<strong>Already registered.</strong> Paste your existing credentials below, or choose a different name.';
+          document.getElementById('prestep-manual-paste').style.display = 'block';
+          btn.disabled = false;
+          btn.innerHTML = 'Register';
+        } else {
+          resultEl.className = 'result-box show error';
+          resultEl.innerHTML = '<strong>Error:</strong> ' + (data.error?.message || data.message || 'Registration failed.');
+          btn.disabled = false;
+          btn.innerHTML = 'Register';
+        }
+      } catch (e) {
+        resultEl.className = 'result-box show error';
+        resultEl.innerHTML = '<strong>Error:</strong> Network error. Please try again.';
+        btn.disabled = false;
+        btn.innerHTML = 'Register';
+      }
+    }
+
+    /** Handle manual credential paste (for 409 case) */
+    function handleManualKeyPaste() {
+      const apiKey = (document.getElementById('prestep-manual-apikey').value || '').trim();
+      const claimUrl = (document.getElementById('prestep-manual-claimurl').value || '').trim();
+      const vcode = (document.getElementById('prestep-manual-vcode').value || '').trim();
+
+      if (!apiKey) {
+        alert('API Key is required.');
+        return;
+      }
+
+      savePreStepToStorage(apiKey, claimUrl, vcode, '(manual)');
+      renderPreStep(window._envData);
+    }
+
+    /** Copy all credentials as JSON */
+    function copyCredentialsAsJson() {
+      const stored = loadPreStepFromStorage();
+      const json = JSON.stringify({
+        api_key: stored.apiKey,
+        claim_url: stored.claimUrl,
+        verification_code: stored.verificationCode,
+        name: stored.advertiserName,
+      }, null, 2);
+      copyToClipboard(json);
+    }
+
+    /** Open the stored claim_url in a new tab */
+    function openClaimUrl() {
+      const url = localStorage.getItem('humanads_test_claim_url');
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        alert('No Claim URL saved. Complete Step 0 first.');
+      }
+    }
+
+    /** Mark PreStep complete and hand off to existing renderPage */
+    function completePreStep(envData) {
+      localStorage.setItem('humanads_test_prestep_complete', 'true');
+      renderPage(envData);
     }
 
     function showResult(stepId, success, data) {
@@ -2189,6 +2658,10 @@ contract HumanAdsTestUSD {
         payoutPaymentInfo: null,
       });
 
+      // Clean up PreStep localStorage keys
+      ['humanads_test_api_key', 'humanads_test_claim_url', 'humanads_test_verification_code',
+       'humanads_test_advertiser_name', 'humanads_test_prestep_complete'].forEach(k => localStorage.removeItem(k));
+
       window.location.reload();
     }
 
@@ -2196,8 +2669,15 @@ contract HumanAdsTestUSD {
     (async function() {
       if (await checkAdmin()) {
         const envData = await loadEnvironment();
-        renderPage(envData);
         SideMenu.init(true, true);
+        window._envData = envData;
+
+        await waitForEnvBanner(3000);
+        if (isPreStepNeeded()) {
+          renderPreStep(envData);
+        } else {
+          renderPage(envData);
+        }
       }
     })();
   </script>

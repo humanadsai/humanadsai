@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="stylesheet" href="/styles.css">
   <style>
     .settings-container {
@@ -616,7 +617,7 @@
     // Load current config
     async function loadConfig() {
       try {
-        const res = await fetchApi('/api/admin/config/payment-profile');
+        const res = await HumanAds.fetchApi('/api/admin/config/payment-profile');
         if (!res.success) throw new Error(res.error?.message || 'Failed to load config');
 
         currentConfig = res.data;
@@ -738,7 +739,7 @@
       btnApply.innerHTML = '<span class="loading-spinner"></span> Applying...';
 
       try {
-        const res = await fetchApi('/api/admin/config/payment-profile', {
+        const res = await HumanAds.fetchApi('/api/admin/config/payment-profile', {
           method: 'POST',
           body: JSON.stringify({
             profile: selectedProfile,
@@ -770,7 +771,7 @@
     // Load change history
     async function loadHistory() {
       try {
-        const res = await fetchApi('/api/admin/config/history?limit=10');
+        const res = await HumanAds.fetchApi('/api/admin/config/history?limit=10');
         if (!res.success) throw new Error(res.error?.message || 'Failed to load history');
 
         historyLoading.style.display = 'none';
@@ -808,7 +809,7 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', async () => {
       // Check admin auth
-      const meRes = await fetchApi('/api/me');
+      const meRes = await HumanAds.fetchApi('/api/me');
       if (!meRes.success || !meRes.data?.user?.is_admin) {
         window.location.href = '/';
         return;
