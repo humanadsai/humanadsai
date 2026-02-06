@@ -654,14 +654,9 @@
         await ensureCorrectChain();
         updateDebugPanel();
 
-        // Step 3: Estimate gas (validates tx will succeed)
-        setModalStatus('Validating transaction...', 'info');
-        if (pendingTxParams) {
-          await estimateGas(pendingTxParams);
-        }
-
-        // Step 4: Execute the action
-        setModalStatus('Waiting for wallet confirmation...', 'info');
+        // Step 3: Send transaction directly to MetaMask (let MetaMask estimate gas)
+        // Note: Removed estimateGas pre-check - it was blocking transactions on some providers
+        setModalStatus('Opening wallet...', 'info');
         closeModal();
         await pendingAction();
 
