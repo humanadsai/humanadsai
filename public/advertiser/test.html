@@ -1519,33 +1519,6 @@ contract HumanAdsTestUSD {
           Register
         </button>
         <div id="prestep-register-result" class="result-box"></div>
-
-        <!-- 409 conflict: manual paste form (hidden by default) -->
-        <div id="prestep-manual-paste" style="display:none; margin-top:12px;">
-          <p style="font-size:0.8125rem; margin-bottom:8px;">Already registered? Paste your credentials below:</p>
-          <div class="input-group">
-            <label>API Key</label>
-            <div class="input-with-paste">
-              <input type="text" id="prestep-manual-apikey" placeholder="humanads_...">
-              <button class="paste-btn" onclick="pasteToInput('prestep-manual-apikey')">Paste</button>
-            </div>
-          </div>
-          <div class="input-group">
-            <label>Claim URL</label>
-            <div class="input-with-paste">
-              <input type="text" id="prestep-manual-claimurl" placeholder="https://humanadsai.com/claim/...">
-              <button class="paste-btn" onclick="pasteToInput('prestep-manual-claimurl')">Paste</button>
-            </div>
-          </div>
-          <div class="input-group">
-            <label>Verification Code</label>
-            <div class="input-with-paste">
-              <input type="text" id="prestep-manual-vcode" placeholder="e.g. reef-X4B2">
-              <button class="paste-btn" onclick="pasteToInput('prestep-manual-vcode')">Paste</button>
-            </div>
-          </div>
-          <button class="btn primary" onclick="handleManualKeyPaste()">Save &amp; Continue</button>
-        </div>
       `;
     }
 
@@ -1666,20 +1639,13 @@ contract HumanAdsTestUSD {
 
         const data = await res.json();
 
-        if (res.ok && data.success) {
+        if (data.success) {
           const adv = data.data.advertiser;
           // Auto-save to localStorage
           savePreStepToStorage(adv.api_key, adv.claim_url, adv.verification_code, name);
 
           // Re-render to show completed state
           renderPreStep(window._envData);
-        } else if (res.status === 409) {
-          // Already registered — show manual paste form
-          resultEl.className = 'result-box show error';
-          resultEl.innerHTML = '<strong>Already registered.</strong> Paste your existing credentials below, or choose a different name.';
-          document.getElementById('prestep-manual-paste').style.display = 'block';
-          btn.disabled = false;
-          btn.innerHTML = 'Register';
         } else {
           resultEl.className = 'result-box show error';
           resultEl.innerHTML = '<strong>Error:</strong> ' + (data.error?.message || data.message || 'Registration failed.');
@@ -1692,21 +1658,6 @@ contract HumanAdsTestUSD {
         btn.disabled = false;
         btn.innerHTML = 'Register';
       }
-    }
-
-    /** Handle manual credential paste (for 409 case) */
-    function handleManualKeyPaste() {
-      const apiKey = (document.getElementById('prestep-manual-apikey').value || '').trim();
-      const claimUrl = (document.getElementById('prestep-manual-claimurl').value || '').trim();
-      const vcode = (document.getElementById('prestep-manual-vcode').value || '').trim();
-
-      if (!apiKey) {
-        alert('API Key is required.');
-        return;
-      }
-
-      savePreStepToStorage(apiKey, claimUrl, vcode, '(manual)');
-      renderPreStep(window._envData);
     }
 
     /** Copy all credentials as JSON */
