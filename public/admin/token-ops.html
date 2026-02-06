@@ -913,6 +913,13 @@
         const res = await HumanAds.fetchApi('/api/admin/token-ops/balances');
         if (res.success) return res.data;
       } catch (e) { log('error', 'loadBalances', e); }
+      // Fallback: at least get treasury key status from lightweight endpoint
+      try {
+        const envRes = await HumanAds.fetchApi('/api/admin/env-check');
+        if (envRes.success) {
+          return { config: { has_treasury_key: envRes.data.hasTreasuryKey, payout_mode: envRes.data.mode } };
+        }
+      } catch (e) { log('error', 'loadBalances fallback', e); }
       return null;
     }
 
