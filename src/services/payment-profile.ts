@@ -66,7 +66,7 @@ export const PAYMENT_PROFILES: Record<PaymentProfileId, PaymentProfile> = {
       requireConfirmations: 1,
     },
     ui: {
-      bannerColor: '#FF6B35',
+      bannerColor: '#4DFFFF',
       bannerText: 'TEST MODE • Sepolia • hUSD ONLY',
       badgeClass: 'env-test',
     },
