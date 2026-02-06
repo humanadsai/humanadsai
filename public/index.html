@@ -779,7 +779,7 @@
 
       const hasMetrics = followersCount > 0 || followingCount > 0;
       const xMetricsHtml = hasMetrics ? `<div class="human-x-metrics">
-        <span class="human-x-stat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><b>${formattedFollowers}</b> Followers</span>
+        <span class="human-x-stat"><b>${formattedFollowers}</b> Followers</span>
         <span class="human-x-stat"><b>${formattedFollowing}</b> Following</span>
       </div>` : '';
 
@@ -793,7 +793,7 @@
           <div class="human-carousel-avatar">${avatarHtml}</div>
           <div class="human-carousel-info">
             <div class="human-carousel-name">${displayName}${verifiedBadgeHtml}</div>
-            <div class="human-carousel-handle">${xHandle}</div>
+            <div class="human-carousel-handle"><svg class="human-handle-x-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>${xHandle}</div>
           </div>
         </div>
         <div class="human-carousel-stats">

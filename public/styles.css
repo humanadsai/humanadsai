@@ -1451,11 +1451,21 @@ body {
 }
 
 .human-carousel-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.75rem;
   color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.human-handle-x-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .human-carousel-stats {
@@ -1479,12 +1489,6 @@ body {
   align-items: center;
   gap: 5px;
   white-space: nowrap;
-}
-
-.human-x-stat svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
 }
 
 .human-x-stat b {
@@ -1888,6 +1892,12 @@ body {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-success);
+}
+
+/* Testnet mode - neon cyan for amounts */
+[data-testnet="true"] .mission-item-amount {
+  color: #4DFFFF;
+  text-shadow: 0 0 10px rgba(47, 243, 255, 0.2);
 }
 
 .mission-item-fee-label {
