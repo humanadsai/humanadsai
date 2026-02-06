@@ -243,6 +243,7 @@
       balanceOf: '0x70a08231', // balanceOf(address)
       totalSupply: '0x18160ddd', // totalSupply()
       owner: '0x8da5cb5b',     // owner() - Ownable
+      claimOpen: '0x4b8bcb58', // claimOpen() - HusdFaucet
     };
 
     // ============================================
@@ -1022,33 +1023,28 @@
           <h2 class="section-title">Treasury → Advertiser Faucet</h2>
           <div class="cards-grid">
             <div class="card faucet-card">
-              <div class="card-header"><span class="card-title">Send hUSD from Treasury</span></div>
+              <div class="card-header"><span class="card-title">Claim hUSD (via Faucet Contract)</span></div>
               <div class="faucet-form">
                 <div class="form-group">
-                  <label class="form-label">Advertiser Address</label>
-                  <input type="text" id="faucet-address" class="faucet-input" placeholder="0x... or connect wallet to auto-fill" />
-                  <span class="form-hint">Connect MetaMask to auto-fill address</span>
+                  <label class="form-label">Recipient (Connected Wallet)</label>
+                  <input type="text" id="faucet-address" class="faucet-input" placeholder="Connect MetaMask to claim" readonly />
+                  <span class="form-hint">MetaMaskを接続すると自動でアドレスが入ります</span>
                 </div>
                 <div class="faucet-amount">
                   <span>Amount:</span>
-                  <span class="faucet-amount-value">$${((serverConfig.faucet_amount_cents || 100000) / 100).toLocaleString()}</span>
-                  <span style="color:var(--color-text-muted)">hUSD</span>
+                  <span class="faucet-amount-value">$1,000</span>
+                  <span style="color:var(--color-text-muted)">hUSD (openClaimAmount)</span>
                 </div>
-                <button class="action-btn" id="faucet-btn" ${!serverConfig.has_treasury_key ? 'disabled' : ''}>
-                  ${serverConfig.has_treasury_key ? 'Send hUSD' : 'Treasury Key Not Set'}
+                <button class="action-btn" id="faucet-btn" disabled>
+                  Connect Wallet to Claim
                 </button>
                 <div id="faucet-status"></div>
               </div>
               <div class="config-info">
-                <div class="config-row"><span class="config-label">From:</span><span class="config-value">Treasury (${CONFIG.treasuryAddress.substring(0,10)}...)</span></div>
-                <div class="config-row"><span class="config-label">Gas:</span><span class="config-value">Treasury pays</span></div>
-                <div class="config-row">
-                  <span class="config-label">Treasury Key:</span>
-                  <span class="config-value ${serverConfig.has_treasury_key ? 'status-ok' : 'status-error'}">
-                    ${serverConfig.has_treasury_key ? '✓ Configured' : '✗ Not set'}
-                  </span>
-                </div>
-                <div class="config-row"><span class="config-label">Mode:</span><span class="config-value">${serverConfig.payout_mode || 'ledger'}</span></div>
+                <div class="config-row"><span class="config-label">From:</span><span class="config-value">Treasury → Faucet Contract</span></div>
+                <div class="config-row"><span class="config-label">Gas:</span><span class="config-value" style="color:var(--color-primary);">広告主(接続ウォレット)が支払い</span></div>
+                <div class="config-row"><span class="config-label">Contract:</span><span class="config-value"><a href="${CONFIG.explorerUrl}/address/${CONFIG.faucetContract}" target="_blank" style="color:var(--color-primary)">${CONFIG.faucetContract.substring(0,14)}...</a></span></div>
+                <div class="config-row"><span class="config-label">Mode:</span><span class="config-value">claimOpen() via MetaMask</span></div>
               </div>
             </div>
 
@@ -1538,62 +1534,74 @@ contract HusdFaucet {
 
     function autoFillFaucetAddress() {
       const input = document.getElementById('faucet-address');
-      if (input && walletAddress && !input.value) {
+      const btn = document.getElementById('faucet-btn');
+      if (input && walletAddress) {
         input.value = walletAddress;
+      }
+      if (btn) {
+        if (walletAddress) {
+          btn.disabled = false;
+          btn.textContent = 'Claim hUSD (MetaMask)';
+        } else {
+          btn.disabled = true;
+          btn.textContent = 'Connect Wallet to Claim';
+        }
       }
     }
 
     async function sendFaucet() {
-      const addressInput = document.getElementById('faucet-address');
       const btn = document.getElementById('faucet-btn');
       const statusDiv = document.getElementById('faucet-status');
-      const address = addressInput.value.trim();
 
-      // Address validation: 0x + 40 hex chars
-      if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      // MetaMask required
+      if (!walletAddress || !window.ethereum) {
         statusDiv.className = 'status-msg error';
-        statusDiv.textContent = 'Enter valid EVM address (0x + 40 hex characters)';
+        statusDiv.textContent = 'MetaMaskを接続してください';
+        return;
+      }
+
+      // Check chain
+      if (currentChainId !== CONFIG.chainIdHex) {
+        statusDiv.className = 'status-msg error';
+        statusDiv.textContent = `Sepoliaネットワークに切り替えてください (現在: ${currentChainId})`;
         return;
       }
 
       btn.disabled = true;
-      btn.textContent = 'Treasury sending...';
+      btn.textContent = 'Claiming...';
       statusDiv.className = 'status-msg info';
-      statusDiv.innerHTML = 'Treasuryからトランザクション送信中... 15-30秒かかります';
-
-      // AbortController for 60s timeout (on-chain tx can be slow)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      statusDiv.innerHTML = 'MetaMaskでトランザクションを確認してください...<br><small>Faucet Contract の claimOpen() を呼び出します。ガス代は接続ウォレットが支払います。</small>';
 
       try {
-        const res = await HumanAds.fetchApi('/api/admin/faucet', {
-          method: 'POST',
-          body: JSON.stringify({ advertiser_address: address }),
-          signal: controller.signal,
+        const provider = window.ethereum;
+
+        // Call claimOpen() on faucet contract via MetaMask
+        const txParams = {
+          from: walletAddress,
+          to: CONFIG.faucetContract,
+          data: SELECTORS.claimOpen, // claimOpen() has no params
+          gas: '0x30000', // 196608
+        };
+
+        log('info', 'Faucet claimOpen() tx:', txParams);
+
+        const txHash = await provider.request({
+          method: 'eth_sendTransaction',
+          params: [txParams],
         });
 
-        clearTimeout(timeoutId);
+        log('info', 'Faucet TX broadcasted:', txHash);
 
-        if (res.success) {
-          statusDiv.className = 'status-msg success';
-          const amt = res.data.amount_cents ? `$${(res.data.amount_cents / 100).toLocaleString()}` : '';
-          statusDiv.innerHTML = `Sent ${amt} hUSD from Treasury! <a href="${CONFIG.explorerUrl}/tx/${res.data.tx_hash}" target="_blank" class="tx-link">${res.data.tx_hash?.substring(0,20) || 'pending'}...</a>`;
-          setTimeout(() => loadTokenOps(currentFilter), 3000);
-        } else {
-          statusDiv.className = 'status-msg error';
-          const errMsg = res.error?.message || 'Failed';
-          statusDiv.innerHTML = `${errMsg} <button class="action-btn" style="margin-top:8px;padding:8px 16px;font-size:0.75rem;" onclick="sendFaucet()">Retry</button>`;
-        }
+        statusDiv.className = 'status-msg success';
+        statusDiv.innerHTML = `hUSD claimed! <a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank" class="tx-link">${txHash.substring(0,20)}...</a><br><small>Treasury → ${walletAddress.substring(0,10)}... via Faucet Contract</small>`;
+        setTimeout(() => loadTokenOps(currentFilter), 5000);
       } catch (e) {
-        clearTimeout(timeoutId);
         statusDiv.className = 'status-msg error';
-        const errMsg = e.name === 'AbortError'
-          ? 'Request timed out (60s). The transaction may still be processing on-chain.'
-          : e.message;
+        const errMsg = e.code === 4001 ? 'Transaction rejected by user'
+          : e.message || 'Transaction failed';
         statusDiv.innerHTML = `${errMsg} <button class="action-btn" style="margin-top:8px;padding:8px 16px;font-size:0.75rem;" onclick="sendFaucet()">Retry</button>`;
       } finally {
-        btn.disabled = !serverConfig?.has_treasury_key;
-        btn.textContent = serverConfig?.has_treasury_key ? 'Send hUSD' : 'Treasury Key Not Set';
+        autoFillFaucetAddress();
       }
     }
 
