@@ -48,6 +48,32 @@
       background: currentColor;
     }
 
+    .wallet-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+    }
+    .wallet-status.connected {
+      background: rgba(52, 199, 89, 0.1);
+      border: 1px solid rgba(52, 199, 89, 0.3);
+      color: #34c759;
+    }
+    .wallet-status.disconnected {
+      background: rgba(255, 149, 0, 0.1);
+      border: 1px solid rgba(255, 149, 0, 0.3);
+      color: #ff9500;
+    }
+    .wallet-status .wallet-icon {
+      width: 16px;
+      height: 16px;
+    }
+
     .step-card {
       background: var(--color-surface);
       border: 1px solid var(--color-border);
@@ -182,6 +208,9 @@
     }
     .btn.wallet:hover:not(:disabled) {
       opacity: 0.9;
+    }
+    .btn.wallet.connected {
+      background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
     }
     .btn-row {
       display: flex;
@@ -373,7 +402,47 @@
 
   <script src="/js/side-menu.js"></script>
   <script src="/js/humanads.js"></script>
+  <!-- Ethers.js for wallet interactions -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
   <script>
+    // Chain configurations with user-friendly names
+    const CHAIN_CONFIG = {
+      base_sepolia: {
+        chainId: 84532,
+        chainIdHex: '0x14a34',
+        name: 'Base Sepolia (Testnet)',
+        shortName: 'Base Sepolia',
+        rpcUrl: 'https://sepolia.base.org',
+        blockExplorer: 'https://sepolia.basescan.org',
+        usdc: {
+          address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      },
+      sepolia: {
+        chainId: 11155111,
+        chainIdHex: '0xaa36a7',
+        name: 'Sepolia (Testnet)',
+        shortName: 'Sepolia',
+        rpcUrl: 'https://rpc.sepolia.org',
+        blockExplorer: 'https://sepolia.etherscan.io',
+        usdc: {
+          address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      },
+    };
+
+    // ERC-20 ABI for transfer
+    const ERC20_ABI = [
+      'function transfer(address to, uint256 amount) returns (bool)',
+      'function balanceOf(address owner) view returns (uint256)',
+      'function decimals() view returns (uint8)',
+      'function symbol() view returns (string)',
+    ];
+
     // State
     const state = {
       environment: null,
@@ -388,6 +457,11 @@
       treasuryAddress: null,
       currentStep: 1,
       timeline: [],
+      // Wallet state
+      walletConnected: false,
+      walletAddress: null,
+      provider: null,
+      signer: null,
     };
 
     async function checkAdmin() {
@@ -414,9 +488,17 @@
       return '$' + (cents / 100).toFixed(2);
     }
 
+    function formatUsdc(cents) {
+      return (cents / 100).toFixed(2) + ' USDC';
+    }
+
     function truncate(str, len = 16) {
       if (!str || str.length <= len) return str;
       return str.slice(0, len/2) + '...' + str.slice(-len/2);
+    }
+
+    function getChainDisplayName(chainKey) {
+      return CHAIN_CONFIG[chainKey]?.name || chainKey;
     }
 
     function showResult(stepId, success, data) {
@@ -464,6 +546,213 @@
       `).join('');
     }
 
+    function updateWalletUI() {
+      const statusEl = document.getElementById('wallet-status');
+      const connectBtn = document.getElementById('btn-connect-wallet');
+
+      if (statusEl) {
+        if (state.walletConnected) {
+          statusEl.className = 'wallet-status connected';
+          statusEl.innerHTML = `
+            <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+            </svg>
+            ${truncate(state.walletAddress, 12)}
+          `;
+        } else {
+          statusEl.className = 'wallet-status disconnected';
+          statusEl.innerHTML = `
+            <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+            </svg>
+            Not Connected
+          `;
+        }
+      }
+
+      if (connectBtn) {
+        if (state.walletConnected) {
+          connectBtn.className = 'btn wallet connected';
+          connectBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            Connected: ${truncate(state.walletAddress, 10)}
+          `;
+        } else {
+          connectBtn.className = 'btn wallet';
+          connectBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+            </svg>
+            Connect Wallet
+          `;
+        }
+      }
+
+      // Update send buttons
+      const sendAufBtn = document.getElementById('btn-send-auf');
+      const sendPayoutBtn = document.getElementById('btn-send-payout');
+      if (sendAufBtn) sendAufBtn.disabled = !state.walletConnected;
+      if (sendPayoutBtn) sendPayoutBtn.disabled = !state.walletConnected;
+    }
+
+    async function connectWallet() {
+      const btn = document.getElementById('btn-connect-wallet');
+
+      if (state.walletConnected) {
+        // Disconnect
+        state.walletConnected = false;
+        state.walletAddress = null;
+        state.provider = null;
+        state.signer = null;
+        updateWalletUI();
+        return;
+      }
+
+      if (!window.ethereum) {
+        alert('No wallet detected. Please install MetaMask, Phantom, or another Web3 wallet.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Connecting...';
+
+      try {
+        // Request account access
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await provider.send('eth_requestAccounts', []);
+
+        if (accounts.length === 0) {
+          throw new Error('No accounts found');
+        }
+
+        state.provider = provider;
+        state.signer = await provider.getSigner();
+        state.walletAddress = await state.signer.getAddress();
+        state.walletConnected = true;
+
+        // Try to switch to the selected chain
+        await switchToChain(state.chain);
+
+        updateWalletUI();
+      } catch (e) {
+        console.error('Wallet connection error:', e);
+        alert('Failed to connect wallet: ' + (e.message || e));
+        state.walletConnected = false;
+        state.walletAddress = null;
+      }
+
+      btn.disabled = false;
+      updateWalletUI();
+    }
+
+    async function switchToChain(chainKey) {
+      const chainConfig = CHAIN_CONFIG[chainKey];
+      if (!chainConfig || !window.ethereum) return;
+
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: chainConfig.chainIdHex }],
+        });
+      } catch (switchError) {
+        // Chain not added, try to add it
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: chainConfig.chainIdHex,
+                chainName: chainConfig.name,
+                rpcUrls: [chainConfig.rpcUrl],
+                blockExplorerUrls: [chainConfig.blockExplorer],
+                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              }],
+            });
+          } catch (addError) {
+            console.error('Failed to add chain:', addError);
+          }
+        }
+      }
+    }
+
+    async function sendUsdcTransfer(toAddress, amountCents, type) {
+      if (!state.walletConnected || !state.signer) {
+        alert('Please connect your wallet first.');
+        return null;
+      }
+
+      const chainConfig = CHAIN_CONFIG[state.chain];
+      if (!chainConfig) {
+        alert('Invalid chain configuration.');
+        return null;
+      }
+
+      const btn = document.getElementById(type === 'auf' ? 'btn-send-auf' : 'btn-send-payout');
+      const txInput = document.getElementById(type === 'auf' ? 'auf-tx-hash' : 'payout-tx-hash');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Sending...';
+
+      try {
+        // Switch to correct chain
+        await switchToChain(state.chain);
+
+        // Re-get signer after chain switch
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+
+        // Create contract instance
+        const usdcContract = new ethers.Contract(
+          chainConfig.usdc.address,
+          ERC20_ABI,
+          signer
+        );
+
+        // Calculate amount in USDC base units (6 decimals)
+        const amountUsdc = BigInt(amountCents) * BigInt(10000); // cents to micro-USDC
+
+        // Send transaction
+        const tx = await usdcContract.transfer(toAddress, amountUsdc);
+
+        // Update UI with tx hash immediately
+        if (txInput) {
+          txInput.value = tx.hash;
+        }
+
+        // Wait for confirmation
+        btn.innerHTML = '<span class="spinner"></span> Confirming...';
+        await tx.wait(1);
+
+        btn.innerHTML = 'Transaction Sent';
+        btn.disabled = false;
+
+        return tx.hash;
+      } catch (e) {
+        console.error('Transaction error:', e);
+
+        // Handle user rejection
+        if (e.code === 4001 || e.code === 'ACTION_REJECTED') {
+          alert('Transaction rejected by user.');
+        } else if (e.message?.includes('insufficient funds')) {
+          alert('Insufficient USDC balance. Please ensure you have enough testnet USDC.');
+        } else {
+          alert('Transaction failed: ' + (e.shortMessage || e.message || e));
+        }
+
+        btn.innerHTML = type === 'auf' ? 'Send AUF Payment' : 'Send Payout';
+        btn.disabled = false;
+        return null;
+      }
+    }
+
     function renderPage(envData) {
       const content = document.getElementById('content');
 
@@ -475,20 +764,28 @@
             <span class="dot"></span>
             ${state.payoutMode === 'ledger' ? 'Ledger Mode (Simulated)' : 'Onchain Mode'}
           </div>
+          <div class="wallet-status disconnected" id="wallet-status">
+            <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+            </svg>
+            Not Connected
+          </div>
         </div>
 
         <!-- Step A: Environment -->
         <div class="step-card active" id="step-a">
           <div class="step-header">
             <div class="step-number">A</div>
-            <div class="step-title">Environment</div>
+            <div class="step-title">Environment & Wallet</div>
           </div>
-          <div class="step-description">Select testnet chain for payments.</div>
+          <div class="step-description">Select testnet chain and connect your wallet.</div>
           <div class="input-group">
             <label>Chain</label>
-            <select id="chain-select" onchange="state.chain = this.value">
-              <option value="base_sepolia" selected>Base Sepolia (Recommended)</option>
-              <option value="sepolia">Sepolia</option>
+            <select id="chain-select" onchange="handleChainChange(this.value)">
+              <option value="base_sepolia" selected>Base Sepolia (Testnet) - Recommended</option>
+              <option value="sepolia">Sepolia (Testnet)</option>
             </select>
           </div>
           <div class="info-row">
@@ -499,6 +796,14 @@
             <span class="label">Treasury</span>
             <span class="value" style="font-size:0.6875rem;">${truncate(state.treasuryAddress, 20)}</span>
           </div>
+          <button class="btn wallet" id="btn-connect-wallet" onclick="connectWallet()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+            </svg>
+            Connect Wallet
+          </button>
         </div>
 
         <!-- Step B: Create Deal -->
@@ -570,25 +875,27 @@
               <span class="value highlight" id="auf-amount">-</span>
             </div>
             <div class="info-row">
-              <span class="label">To (Treasury)</span>
+              <span class="label">Recipient (Treasury)</span>
               <span class="value" id="auf-to" style="font-size:0.625rem;">-</span>
             </div>
             <div class="info-row">
-              <span class="label">Chain</span>
+              <span class="label">Network</span>
               <span class="value" id="auf-chain">-</span>
             </div>
+            <div class="info-row">
+              <span class="label">Token</span>
+              <span class="value">USDC</span>
+            </div>
           </div>
-          <button class="btn wallet" onclick="openWallet('auf')" disabled id="btn-wallet-auf">
+          <button class="btn wallet" onclick="sendAuf()" disabled id="btn-send-auf">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+              <path d="M12 5v14M5 12l7 7 7-7"/>
             </svg>
-            Open Wallet
+            Send AUF Payment
           </button>
           <div class="input-group" style="margin-top:12px;">
             <label>AUF Transaction Hash</label>
-            <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : '0x...'}" />
+            <input type="text" id="auf-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or auto-filled after tx' : 'Auto-filled after transaction'}" />
           </div>
           <button class="btn primary" onclick="unlockAddress()" disabled id="btn-unlock">
             Verify & Unlock Address
@@ -610,25 +917,27 @@
               <span class="value highlight" id="payout-amount">-</span>
             </div>
             <div class="info-row">
-              <span class="label">To (Promoter)</span>
+              <span class="label">Recipient (Promoter)</span>
               <span class="value" id="payout-to" style="font-size:0.625rem;">-</span>
             </div>
             <div class="info-row">
-              <span class="label">Chain</span>
+              <span class="label">Network</span>
               <span class="value" id="payout-chain">-</span>
             </div>
+            <div class="info-row">
+              <span class="label">Token</span>
+              <span class="value">USDC</span>
+            </div>
           </div>
-          <button class="btn wallet" onclick="openWallet('payout')" disabled id="btn-wallet-payout">
+          <button class="btn wallet" onclick="sendPayout()" disabled id="btn-send-payout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+              <path d="M12 5v14M5 12l7 7 7-7"/>
             </svg>
-            Open Wallet
+            Send Payout
           </button>
           <div class="input-group" style="margin-top:12px;">
             <label>Payout Transaction Hash</label>
-            <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or paste tx hash' : '0x...'}" />
+            <input type="text" id="payout-tx-hash" placeholder="${state.payoutMode === 'ledger' ? 'SIMULATED_xxx or auto-filled after tx' : 'Auto-filled after transaction'}" />
           </div>
           <button class="btn primary" onclick="confirmPayout()" disabled id="btn-confirm">
             Confirm Payout
@@ -659,6 +968,13 @@
       `;
 
       updateStepState(2); // Start at step B (Create Deal)
+    }
+
+    function handleChainChange(chainKey) {
+      state.chain = chainKey;
+      if (state.walletConnected) {
+        switchToChain(chainKey);
+      }
     }
 
     // === API Calls ===
@@ -787,12 +1103,12 @@
           });
           addToTimeline('D', 'Mission Approved', `AUF: ${formatCents(state.aufAmountCents)}`);
 
-          // Update payment info
-          document.getElementById('auf-amount').textContent = formatCents(state.aufAmountCents);
+          // Update payment info with user-friendly display
+          document.getElementById('auf-amount').textContent = formatUsdc(state.aufAmountCents);
           document.getElementById('auf-to').textContent = truncate(res.data.payment_info?.to_address || state.treasuryAddress, 24);
-          document.getElementById('auf-chain').textContent = state.chain;
+          document.getElementById('auf-chain').textContent = getChainDisplayName(state.chain);
           document.getElementById('auf-payment-info').style.display = 'block';
-          document.getElementById('btn-wallet-auf').disabled = false;
+          document.getElementById('btn-send-auf').disabled = !state.walletConnected;
           document.getElementById('btn-unlock').disabled = false;
 
           updateStepState(5);
@@ -808,18 +1124,30 @@
       btn.innerHTML = 'Approve';
     }
 
-    function openWallet(type) {
-      let deepLink;
-      if (type === 'auf' && state.aufPaymentInfo) {
-        deepLink = state.aufPaymentInfo.wallet_deep_link;
-      } else if (type === 'payout' && state.payoutPaymentInfo) {
-        deepLink = state.payoutPaymentInfo.wallet_deep_link;
+    async function sendAuf() {
+      if (!state.aufPaymentInfo) {
+        alert('Payment info not available.');
+        return;
       }
 
-      if (deepLink) {
-        window.location.href = deepLink;
-      } else {
-        alert('Wallet deep link not available. Please copy the payment details manually.');
+      const toAddress = state.aufPaymentInfo.to_address || state.treasuryAddress;
+      const txHash = await sendUsdcTransfer(toAddress, state.aufAmountCents, 'auf');
+
+      if (txHash) {
+        addToTimeline('E', 'AUF Sent', truncate(txHash, 16));
+      }
+    }
+
+    async function sendPayout() {
+      if (!state.operatorWallet) {
+        alert('Operator wallet not available.');
+        return;
+      }
+
+      const txHash = await sendUsdcTransfer(state.operatorWallet, state.payoutAmountCents, 'payout');
+
+      if (txHash) {
+        addToTimeline('F', 'Payout Sent', truncate(txHash, 16));
       }
     }
 
@@ -861,12 +1189,12 @@
           });
           addToTimeline('E', 'Address Unlocked', truncate(state.operatorWallet, 20));
 
-          // Update payout payment info
-          document.getElementById('payout-amount').textContent = formatCents(state.payoutAmountCents);
+          // Update payout payment info with user-friendly display
+          document.getElementById('payout-amount').textContent = formatUsdc(state.payoutAmountCents);
           document.getElementById('payout-to').textContent = truncate(state.operatorWallet, 24);
-          document.getElementById('payout-chain').textContent = state.chain;
+          document.getElementById('payout-chain').textContent = getChainDisplayName(state.chain);
           document.getElementById('payout-payment-info').style.display = 'block';
-          document.getElementById('btn-wallet-payout').disabled = false;
+          document.getElementById('btn-send-payout').disabled = !state.walletConnected;
           document.getElementById('btn-confirm').disabled = false;
 
           updateStepState(6);
@@ -942,10 +1270,32 @@
         payoutAmountCents: 0,
         currentStep: 1,
         timeline: [],
+        aufPaymentInfo: null,
+        payoutPaymentInfo: null,
       });
 
       // Reload page
       window.location.reload();
+    }
+
+    // Listen for account/chain changes
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length === 0) {
+          state.walletConnected = false;
+          state.walletAddress = null;
+        } else {
+          state.walletAddress = accounts[0];
+        }
+        updateWalletUI();
+      });
+
+      window.ethereum.on('chainChanged', () => {
+        // Refresh provider
+        if (state.walletConnected) {
+          connectWallet();
+        }
+      });
     }
 
     // === Init ===
