@@ -34,6 +34,7 @@ export function getOnchainConfig(env: Env) {
     husdContract: env.HUSD_CONTRACT || '0x62c2225d5691515bd4ee36539d127d0db7dceb67',
     treasuryAddress: env.TREASURY_ADDRESS || '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017',
     adminAddress: env.ADMIN_ADDRESS || '0x64D6407757218ECbFc173C1efE0Fe7EdAaF67cC3',
+    faucetContract: env.FAUCET_CONTRACT || '0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341',
     faucetAmount: parseInt(env.FAUCET_PER_ADVERTISER || String(DEFAULT_FAUCET_AMOUNT)),
     faucetCooldown: parseInt(env.FAUCET_COOLDOWN_SECONDS || String(DEFAULT_COOLDOWN)),
     explorerUrl: 'https://sepolia.etherscan.io',

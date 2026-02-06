@@ -228,6 +228,7 @@
       husdContract: '0x62C2225D5691515BD4ee36539D127d0dB7dCeb67',
       ownerAddress: '0x64D6407757218ECbFc173C1efE0Fe7EdAaF67cC3',
       treasuryAddress: '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017',
+      faucetContract: '0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341',
       decimals: 6,
       maxMintAmount: 1000000000,
       defaultMintAmount: 1000000,
@@ -1087,8 +1088,13 @@
                 <tr><td>_openClaimAmt</td><td class="param-val" onclick="copyText(this)">1000000000</td></tr>
                 <tr><td>_cooldown</td><td class="param-val" onclick="copyText(this)">86400</td></tr>
               </table>
+              <div style="margin: 12px 0; padding: 10px 14px; background: var(--color-bg-tertiary); border-radius: 8px; font-size: 0.8rem;">
+                <span style="color: var(--color-text-muted);">Deployed:</span>
+                <a href="${CONFIG.explorerUrl}/address/${CONFIG.faucetContract}" target="_blank" style="color: var(--color-primary); font-family: var(--font-mono); margin-left: 6px;">${CONFIG.faucetContract}</a>
+                <button onclick="copyText(this.previousElementSibling)" style="margin-left: 6px; padding: 2px 8px; font-size: 0.7rem; cursor: pointer; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-bg);">Copy</button>
+              </div>
               <ol class="deploy-steps" start="3">
-                <li><span class="step-num">3</span><span>Treasury wallet で hUSD コントラクトの <code>approve(faucetAddress, type(uint256).max)</code> を実行</span></li>
+                <li><span class="step-num">3</span><span>Treasury wallet で hUSD コントラクトの <code>approve(${CONFIG.faucetContract}, type(uint256).max)</code> を実行</span></li>
                 <li><span class="step-num">4</span><span>Admin が EIP-712 署名チケットを発行 → 広告主が <code>claimWithSignature()</code> を呼ぶ (ガス代は広告主)</span></li>
               </ol>
             </div>
