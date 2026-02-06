@@ -28,6 +28,7 @@ import {
   recordTokenOp,
   updateTokenOpStatus,
   transferHusd,
+  normalizeAddress,
 } from '../../services/onchain';
 
 // Fee recipient addresses
@@ -1237,11 +1238,12 @@ export async function handleFaucet(request: Request, env: Env): Promise<Response
       return errors.invalidRequest(requestId, { message: 'advertiser_address is required' });
     }
 
-    // Validate address format
-    const address = body.advertiser_address.trim().toLowerCase();
-    if (!/^0x[a-f0-9]{40}$/i.test(address)) {
+    // Validate and normalize address to EIP-55 checksum
+    const rawAddress = body.advertiser_address.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(rawAddress)) {
       return errors.invalidRequest(requestId, { message: 'Invalid EVM address format' });
     }
+    const address = normalizeAddress(rawAddress);
 
     const config = getOnchainConfig(env);
 
@@ -1443,11 +1445,19 @@ export async function logTokenOp(request: Request, env: Env): Promise<Response> 
       return errors.invalidRequest(requestId, { message: 'Only Sepolia (chainId 11155111) is supported' });
     }
 
+    // Validate and normalize addresses
+    if (body.to_address && !/^0x[a-fA-F0-9]{40}$/.test(body.to_address.trim())) {
+      return errors.invalidRequest(requestId, { message: 'Invalid to_address format' });
+    }
+    if (body.from_address && !/^0x[a-fA-F0-9]{40}$/.test(body.from_address.trim())) {
+      return errors.invalidRequest(requestId, { message: 'Invalid from_address format' });
+    }
+
     // Record the operation
     const opId = await recordTokenOp(env, {
       opType: body.type as 'mint' | 'transfer' | 'faucet',
-      fromAddress: body.from_address,
-      toAddress: body.to_address,
+      fromAddress: body.from_address ? normalizeAddress(body.from_address) : undefined,
+      toAddress: normalizeAddress(body.to_address),
       amountCents: body.amount_cents,
       txHash: body.tx_hash,
       status: 'submitted',
