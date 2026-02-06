@@ -838,10 +838,10 @@
     }
 
     function formatUsdc(cents) {
-      return (cents / 100).toFixed(2) + ' USDC';
+      return (cents / 100).toFixed(2) + ' hUSD';
     }
 
-    function formatTokenAmount(cents, symbol = 'USDC') {
+    function formatTokenAmount(cents, symbol = 'hUSD') {
       return (cents / 100).toFixed(2) + ' ' + symbol;
     }
 
@@ -1736,7 +1736,7 @@ contract HumanAdsTestUSD {
             <div class="info-row-with-copy">
               <span class="label">Token</span>
               <div class="value-group">
-                <span class="value" id="auf-token">USDC</span>
+                <span class="value" id="auf-token">hUSD</span>
               </div>
             </div>
             <div class="info-row-with-copy">
@@ -1791,7 +1791,7 @@ contract HumanAdsTestUSD {
             <div class="info-row-with-copy">
               <span class="label">Token</span>
               <div class="value-group">
-                <span class="value" id="payout-token">USDC</span>
+                <span class="value" id="payout-token">hUSD</span>
               </div>
             </div>
             <div class="info-row-with-copy">
@@ -2021,7 +2021,7 @@ contract HumanAdsTestUSD {
 
           // Update payment info with user-friendly display
           const tokenConfig = getTokenConfig(state.chain, state.token);
-          const tokenSymbol = tokenConfig?.symbol || 'USDC';
+          const tokenSymbol = tokenConfig?.symbol || 'hUSD';
           document.getElementById('auf-amount').textContent = formatTokenAmount(state.aufAmountCents, tokenSymbol);
           document.getElementById('auf-to').textContent = truncate(res.data.payment_info?.to_address || state.treasuryAddress, 24);
           document.getElementById('auf-chain').textContent = getChainDisplayName(state.chain);
@@ -2092,7 +2092,7 @@ contract HumanAdsTestUSD {
           body: JSON.stringify({
             auf_tx_hash: txHash,
             chain: state.chain,
-            token: 'USDC',
+            token: 'hUSD',
           }),
         });
 
@@ -2108,7 +2108,7 @@ contract HumanAdsTestUSD {
           addToTimeline('E', 'Address Unlocked', truncate(state.operatorWallet, 20));
 
           const tokenConfig = getTokenConfig(state.chain, state.token);
-          const tokenSymbol = tokenConfig?.symbol || 'USDC';
+          const tokenSymbol = tokenConfig?.symbol || 'hUSD';
           document.getElementById('payout-amount').textContent = formatTokenAmount(state.payoutAmountCents, tokenSymbol);
           document.getElementById('payout-to').textContent = truncate(state.operatorWallet, 24);
           document.getElementById('payout-chain').textContent = getChainDisplayName(state.chain);
@@ -2151,7 +2151,7 @@ contract HumanAdsTestUSD {
           body: JSON.stringify({
             payout_tx_hash: txHash,
             chain: state.chain,
-            token: 'USDC',
+            token: 'hUSD',
           }),
         });
 

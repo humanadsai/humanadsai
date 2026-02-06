@@ -166,11 +166,11 @@
       <!-- Settings Form (hidden by default) -->
       <div id="settings-form" style="display: none;">
         <div class="settings-card">
-          <p class="settings-subtitle">Set addresses to receive USDC payouts after mission approval.</p>
+          <p class="settings-subtitle">Payouts in test mode are sent on <strong>Ethereum Sepolia</strong> using <strong>hUSD</strong> (test token). This is NOT Base and NOT Mainnet.</p>
 
           <form id="wallet-form">
             <div class="form-group">
-              <label class="form-label">EVM Address (Ethereum / Base / etc.)</label>
+              <label class="form-label">EVM Address (Ethereum Sepolia only)</label>
               <input
                 type="text"
                 class="form-input"
@@ -179,8 +179,24 @@
                 autocomplete="off"
                 spellcheck="false"
               >
-              <p class="form-helper">USDC will be sent to this address on supported EVM chains.</p>
+              <p class="form-helper">Payouts will be sent to this address on Ethereum Sepolia (Testnet). Do not use Base or Mainnet addresses expecting real funds.</p>
               <p class="form-error" id="evm-error" style="display: none;"></p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">hUSD Contract (Sepolia)</label>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input
+                  type="text"
+                  class="form-input"
+                  value="0x62C2225D5691515BD4ee36539D127d0dB7dCeb67"
+                  readonly
+                  style="opacity:0.8; cursor:text;"
+                  id="husd-contract"
+                >
+                <button type="button" class="btn btn-outline" style="white-space:nowrap; padding:10px 14px;" onclick="navigator.clipboard.writeText('0x62C2225D5691515BD4ee36539D127d0dB7dCeb67').then(()=>{this.textContent='Copied!';setTimeout(()=>{this.textContent='Copy'},1500)})">Copy</button>
+              </div>
+              <p class="form-helper">Add this token to your wallet to see hUSD balances on Sepolia. This is a test token with no real value.</p>
             </div>
 
             <div class="form-group" style="opacity: 0.5;">

@@ -411,7 +411,7 @@
             </h2>
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">EVM Address (Ethereum/Base)</span>
+                <span class="label">EVM Address (Sepolia)</span>
                 <span class="value ${!payout_wallets.evm_address ? 'not-set' : ''}" title="${payout_wallets.evm_address || ''}">
                   ${payout_wallets.evm_address ? truncateAddress(payout_wallets.evm_address) : 'Not set'}
                 </span>
@@ -464,7 +464,7 @@
                 </svg>
                 <div>
                   <strong>Pending Rewards:</strong> You have ${activity.pending_rewards_count} mission(s) worth ${formatCurrency(activity.pending_rewards_amount)} awaiting payout.
-                  ${!payout_wallets.evm_address && !payout_wallets.solana_address ? '<br><strong>Set your wallet</strong> to receive payouts.' : ''}
+                  ${!payout_wallets.evm_address ? '<br><strong>Set your wallet</strong> to receive payouts.' : ''}
                 </div>
               </div>
             ` : ''}

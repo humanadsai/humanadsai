@@ -72,8 +72,8 @@
     banner.className = 'wallet-alert-banner';
 
     const expandedText = count > 1
-      ? `AI review in progress for ${count} missions (${totalAmount}). Payout can't be sent without your USDC address.`
-      : `AI review in progress for 1 mission (${totalAmount}). Payout can't be sent without your USDC address.`;
+      ? `AI review in progress for ${count} missions (${totalAmount}). Payout can't be sent without your wallet address.`
+      : `AI review in progress for 1 mission (${totalAmount}). Payout can't be sent without your wallet address.`;
 
     banner.innerHTML = `
       <div class="wallet-alert-collapsed" onclick="window.WalletAlert.toggle()">

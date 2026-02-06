@@ -149,7 +149,7 @@
     chips.className = 'env-chips';
 
     if (isTest) {
-      chips.innerHTML = `<span class="env-chip ${chipClass}">Testnet</span><span class="env-chip ${chipClass}">${chainName} · ${tokenSymbol}</span>`;
+      chips.innerHTML = `<span class="env-chip ${chipClass}">TEST MODE</span><span class="env-chip ${chipClass}">${chainName} (Testnet) · ${tokenSymbol}</span><span class="env-chip ${chipClass}">Not Base</span>`;
     } else {
       chips.innerHTML = `<span class="env-chip ${chipClass}">${chainName}</span>`;
     }
