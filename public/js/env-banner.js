@@ -150,6 +150,60 @@
           opacity: 0.8;
           margin-right: 2px;
         }
+
+        /* Tooltip */
+        .env-chip-test {
+          cursor: pointer;
+          position: relative;
+        }
+
+        .env-tooltip {
+          display: none;
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          z-index: 1000;
+          min-width: 260px;
+          padding: 14px 16px;
+          background: #1a1a2e;
+          border: 1px solid rgba(47, 243, 255, 0.25);
+          border-radius: 10px;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 12px rgba(47, 243, 255, 0.1);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-weight: 400;
+          line-height: 1.5;
+          text-align: left;
+          white-space: normal;
+          pointer-events: none;
+        }
+
+        .env-chip-test:hover .env-tooltip,
+        .env-chip-test:active .env-tooltip {
+          display: block;
+        }
+
+        .env-tooltip-title {
+          font-size: 13px;
+          font-weight: 700;
+          margin-bottom: 6px;
+          color: #4DFFFF;
+        }
+
+        .env-tooltip-body {
+          font-size: 11.5px;
+          color: rgba(255,255,255,0.75);
+          letter-spacing: 0;
+        }
+
+        .env-tooltip-body p {
+          margin: 0 0 2px;
+        }
+
+        .env-tooltip-body p:last-child {
+          margin-top: 6px;
+          color: rgba(47, 243, 255, 0.7);
+          font-style: italic;
+        }
       `;
       document.head.appendChild(style);
     }
@@ -164,7 +218,7 @@
     chips.className = 'env-chips';
 
     if (isTest) {
-      chips.innerHTML = `<span class="env-chip ${chipClass}">${chainName} (Testnet) · ${tokenSymbol}</span>`;
+      chips.innerHTML = `<span class="env-chip ${chipClass}">${chainName} (Testnet) · ${tokenSymbol}<span class="env-tooltip"><div class="env-tooltip-title">🧪 Test Mode</div><div class="env-tooltip-body"><p>You're on Sepolia — a safe sandbox.</p><p>Prices are in hUSD (test token).</p><p>Nothing here costs real money. Try it freely.</p><p>Production is coming soon.</p></div></span></span>`;
     } else {
       chips.innerHTML = `<span class="env-chip ${chipClass}">${chainName}</span>`;
     }
