@@ -77,17 +77,18 @@
           display: inline-flex;
           align-items: center;
           gap: 6px;
+          margin-right: auto;
         }
 
         .env-chip {
           display: inline-block;
           font-family: 'IBM Plex Mono', monospace;
-          font-size: 10px;
-          font-weight: 600;
+          font-size: 12px;
+          font-weight: 700;
           line-height: 1;
-          padding: 3px 7px;
-          border-radius: 3px;
-          letter-spacing: 0.3px;
+          padding: 4px 10px;
+          border-radius: 4px;
+          letter-spacing: 0.5px;
           white-space: nowrap;
         }
 
