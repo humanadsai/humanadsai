@@ -18,6 +18,7 @@ import { success, errors } from '../../utils/response';
 import { recordAufReceived, recordPayoutTracked, updateAgentTrustScore } from '../../services/ledger';
 import { getPayoutConfig, generateSimulatedTxHash, isSimulatedTxHash } from '../../config/payout';
 import { verifyTransaction, isTxHashUsed, getExplorerUrl } from '../../services/blockchain';
+import { normalizeAddress } from '../../services/onchain';
 
 // Treasury/Fee Vault addresses for receiving AUF payments (10%)
 // These are the actual HumanAds fee collection addresses
@@ -302,14 +303,15 @@ export async function unlockAddress(
           message: 'Operator has not configured Solana wallet address',
         });
       }
-      walletAddress = appData.solana_wallet_address;
+      walletAddress = appData.solana_wallet_address.trim();
     } else {
       if (!appData.evm_wallet_address) {
         return errors.invalidRequest(requestId, {
           message: 'Operator has not configured EVM wallet address',
         });
       }
-      walletAddress = appData.evm_wallet_address;
+      // Normalize to EIP-55 checksum
+      walletAddress = normalizeAddress(appData.evm_wallet_address);
     }
 
     // Calculate payout amount (90%)

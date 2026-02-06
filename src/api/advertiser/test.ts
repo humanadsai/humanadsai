@@ -10,6 +10,7 @@ import type { Env, Deal, Mission, Application, Operator, Agent, PayoutMode } fro
 import { success, errors, generateRequestId } from '../../utils/response';
 import { requireAdmin } from '../../middleware/admin';
 import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
+import { normalizeAddress } from '../../services/onchain';
 
 // Treasury/Fee Vault addresses
 const FEE_VAULT_ADDRESSES: Record<string, string> = {
@@ -472,7 +473,8 @@ async function unlockTestAddress(
     const aufPercentage = appData.auf_percentage || DEFAULT_AUF_PERCENTAGE;
     const aufAmountCents = Math.floor((appData.reward_amount * aufPercentage) / 100);
     const payoutAmountCents = appData.reward_amount - aufAmountCents;
-    const walletAddress = appData.evm_wallet_address;
+    // Normalize to EIP-55 checksum
+    const walletAddress = appData.evm_wallet_address ? normalizeAddress(appData.evm_wallet_address) : null;
 
     // Update mission status
     await env.DB.prepare(

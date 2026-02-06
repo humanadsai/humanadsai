@@ -4,9 +4,21 @@
  */
 
 import type { Env } from '../types';
-import { createWalletClient, http, parseAbi, type Hex } from 'viem';
+import { createWalletClient, http, parseAbi, getAddress, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
+
+/**
+ * Normalize EVM address to EIP-55 checksum, with trim.
+ * Returns lowercase fallback if getAddress fails.
+ */
+export function normalizeAddress(address: string): string {
+  try {
+    return getAddress(address.trim());
+  } catch {
+    return address.trim().toLowerCase();
+  }
+}
 
 // hUSD ERC20 ABI for transfer
 const TRANSFER_SELECTOR = '0xa9059cbb'; // transfer(address,uint256)
@@ -201,12 +213,15 @@ export async function transferHusd(
     // Convert cents to base units (6 decimals): 1 cent = 10_000 base units
     const amountBaseUnits = BigInt(amountCents) * BigInt(10_000);
 
+    // Normalize recipient address to EIP-55 checksum
+    const normalizedTo = normalizeAddress(toAddress) as Hex;
+
     // Execute ERC20 transfer via writeContract
     const txHash = await client.writeContract({
       address: config.husdContract as Hex,
       abi: parseAbi(['function transfer(address to, uint256 amount) returns (bool)']),
       functionName: 'transfer',
-      args: [toAddress as Hex, amountBaseUnits],
+      args: [normalizedTo, amountBaseUnits],
     });
 
     return {
@@ -233,13 +248,13 @@ export async function checkFaucetCooldown(
   address: string
 ): Promise<{ allowed: boolean; nextAvailable?: string; lastFaucet?: string }> {
   const config = getOnchainConfig(env);
-  const normalizedAddress = address.toLowerCase();
+  const normalizedAddr = normalizeAddress(address);
 
   const lastOp = await env.DB.prepare(
     `SELECT created_at FROM token_ops
-     WHERE to_address = ? AND op_type = 'faucet' AND status != 'failed'
+     WHERE LOWER(to_address) = LOWER(?) AND op_type = 'faucet' AND status != 'failed'
      ORDER BY created_at DESC LIMIT 1`
-  ).bind(normalizedAddress).first<{ created_at: string }>();
+  ).bind(normalizedAddr).first<{ created_at: string }>();
 
   if (!lastOp) {
     return { allowed: true };
@@ -285,8 +300,8 @@ export async function recordTokenOp(
   ).bind(
     id,
     op.opType,
-    op.fromAddress || null,
-    op.toAddress.toLowerCase(),
+    op.fromAddress ? normalizeAddress(op.fromAddress) : null,
+    normalizeAddress(op.toAddress),
     op.amountCents,
     op.txHash || null,
     op.status,
