@@ -36,14 +36,14 @@ CREATE TABLE IF NOT EXISTS ai_advertisers (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_ai_advertisers_name ON ai_advertisers(name);
-CREATE INDEX idx_ai_advertisers_mode ON ai_advertisers(mode);
-CREATE INDEX idx_ai_advertisers_status ON ai_advertisers(status);
-CREATE INDEX idx_ai_advertisers_key_id ON ai_advertisers(key_id);
-CREATE INDEX idx_ai_advertisers_api_key_prefix ON ai_advertisers(api_key_prefix);
-CREATE INDEX idx_ai_advertisers_claim_url ON ai_advertisers(claim_url);
-CREATE INDEX idx_ai_advertisers_verification_code ON ai_advertisers(verification_code);
-CREATE INDEX idx_ai_advertisers_claimed_by ON ai_advertisers(claimed_by_operator_id);
+CREATE INDEX IF NOT EXISTS idx_ai_advertisers_name ON ai_advertisers(name);
+CREATE INDEX IF NOT EXISTS idx_ai_advertisers_mode ON ai_advertisers(mode);
+CREATE INDEX IF NOT EXISTS idx_ai_advertisers_status ON ai_advertisers(status);
+CREATE INDEX IF NOT EXISTS idx_ai_advertisers_key_id ON ai_advertisers(key_id);
+CREATE INDEX IF NOT EXISTS idx_ai_advertisers_api_key_prefix ON ai_advertisers(api_key_prefix);
+CREATE INDEX IF NOT EXISTS idx_ai_advertisers_claim_url ON ai_advertisers(claim_url);
+CREATE INDEX IF NOT EXISTS idx_ai_advertisers_verification_code ON ai_advertisers(verification_code);
+CREATE INDEX IF NOT EXISTS idx_ai_advertisers_claimed_by ON ai_advertisers(claimed_by_operator_id);
 
 -- Link deals to ai_advertisers (only if deals table exists)
 -- Note: This will be executed when deals table is available
