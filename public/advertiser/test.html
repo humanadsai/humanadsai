@@ -466,7 +466,6 @@
 
     function renderPage(envData) {
       const content = document.getElementById('content');
-      const hasCredentials = envData?.has_test_credentials;
 
       content.innerHTML = `
         <div class="test-header">
@@ -477,15 +476,6 @@
             ${state.payoutMode === 'ledger' ? 'Ledger Mode (Simulated)' : 'Onchain Mode'}
           </div>
         </div>
-
-        ${!hasCredentials ? `
-          <div class="result-box show error">
-            <strong>Test credentials not configured</strong>
-            <p style="margin-top:8px;font-size:0.75rem;">Run these commands to set up:</p>
-            <pre>wrangler secret put ADVERTISER_TEST_KEY_ID
-wrangler secret put ADVERTISER_TEST_SECRET</pre>
-          </div>
-        ` : ''}
 
         <!-- Step A: Environment -->
         <div class="step-card active" id="step-a">
@@ -525,7 +515,7 @@ wrangler secret put ADVERTISER_TEST_SECRET</pre>
               <option value="1000">$10.00</option>
             </select>
           </div>
-          <button class="btn primary" onclick="createDeal()" ${!hasCredentials ? 'disabled' : ''}>
+          <button class="btn primary" onclick="createDeal()">
             Create Test Deal
           </button>
           <div class="result-box" id="step-b-result"></div>
@@ -668,7 +658,7 @@ wrangler secret put ADVERTISER_TEST_SECRET</pre>
         </div>
       `;
 
-      updateStepState(hasCredentials ? 2 : 1);
+      updateStepState(2); // Start at step B (Create Deal)
     }
 
     // === API Calls ===

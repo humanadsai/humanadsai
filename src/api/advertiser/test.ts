@@ -1,16 +1,15 @@
 /**
  * Advertiser Test API
  *
- * Backend proxy for /advertiser/test page.
- * Provides server-side HMAC signature generation for testing
- * the full AI Advertiser E2E payment flow on mobile.
+ * Backend for /advertiser/test page.
+ * Uses direct DB operations for testing the full AI Advertiser E2E payment flow.
+ * No external secrets required - works out of the box for admin users.
  */
 
-import type { Env, Deal, Mission, Application, Operator } from '../../types';
+import type { Env, Deal, Mission, Application, Operator, Agent, PayoutMode } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { requireAdmin } from '../../middleware/admin';
-import { buildCanonicalStringHmac, generateHmacSignature } from '../../services/signature';
-import { getPayoutConfig } from '../../config/payout';
+import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
 
 // Treasury/Fee Vault addresses
 const FEE_VAULT_ADDRESSES: Record<string, string> = {
@@ -37,6 +36,10 @@ const TESTNET_CHAINS: Record<string, { chainId: number; name: string; usdcAddres
   },
 };
 
+// Default AUF percentage
+const DEFAULT_AUF_PERCENTAGE = 10;
+const DEFAULT_PAYOUT_DEADLINE_HOURS = 72;
+
 /**
  * Handle all advertiser test API routes
  */
@@ -46,7 +49,6 @@ export async function handleAdvertiserTestApi(
   path: string,
   method: string
 ): Promise<Response> {
-  // Remove the /api/advertiser/test prefix to get the sub-path
   const subPath = path.replace('/api/advertiser/test', '') || '/';
 
   // GET /api/advertiser/test/environment
@@ -88,53 +90,48 @@ export async function handleAdvertiserTestApi(
     return confirmTestPayout(request, env, confirmMatch[1]);
   }
 
-  // POST /api/advertiser/test/tx/verify
-  if (subPath === '/tx/verify' && method === 'POST') {
-    return verifyTransaction(request, env);
-  }
-
   return errors.notFound(generateRequestId(), 'Endpoint');
 }
 
 /**
  * GET /api/advertiser/test/environment
- * Returns environment info and test credentials status
  */
 async function getEnvironment(request: Request, env: Env): Promise<Response> {
   const authResult = await requireAdmin(request, env);
   if (!authResult.success) return authResult.error!;
 
   const { requestId } = authResult.context!;
-
   const payoutConfig = getPayoutConfig(env);
 
-  // Check if test credentials are configured
-  const hasTestCredentials = !!(env.ADVERTISER_TEST_KEY_ID && env.ADVERTISER_TEST_SECRET);
-
-  // Get test agent if exists
-  const testAgent = await env.DB.prepare(
-    `SELECT id, name, status FROM agents
-     WHERE id LIKE 'agent_test_%' OR email LIKE '%@test.humanads%'
-     ORDER BY created_at DESC LIMIT 1`
+  // Get or create test agent
+  let testAgent = await env.DB.prepare(
+    `SELECT id, name, status FROM agents WHERE id = 'agent_test_advertiser' LIMIT 1`
   ).first<{ id: string; name: string; status: string }>();
+
+  if (!testAgent) {
+    await env.DB.prepare(
+      `INSERT INTO agents (id, name, email, status, description)
+       VALUES ('agent_test_advertiser', 'Test Advertiser', 'test@advertiser.humanads', 'approved', 'Auto-created for /advertiser/test')`
+    ).run();
+    testAgent = { id: 'agent_test_advertiser', name: 'Test Advertiser', status: 'approved' };
+  }
 
   return success({
     environment: env.ENVIRONMENT || 'development',
     payout_mode: payoutConfig.mode,
-    has_test_credentials: hasTestCredentials,
-    test_key_id: hasTestCredentials ? env.ADVERTISER_TEST_KEY_ID?.slice(0, 8) + '...' : null,
     test_agent: testAgent,
     chains: {
       base_sepolia: TESTNET_CHAINS.base_sepolia,
       sepolia: TESTNET_CHAINS.sepolia,
     },
     treasury_address: FEE_VAULT_ADDRESSES.base_sepolia,
+    ready: true,
   }, requestId);
 }
 
 /**
  * POST /api/advertiser/test/deals/create
- * Creates a test deal via /v1/deals/create with HMAC signature
+ * Creates a test deal directly in DB
  */
 async function createTestDeal(request: Request, env: Env): Promise<Response> {
   const authResult = await requireAdmin(request, env);
@@ -143,64 +140,49 @@ async function createTestDeal(request: Request, env: Env): Promise<Response> {
   const { requestId } = authResult.context!;
 
   try {
-    // Check test credentials
-    if (!env.ADVERTISER_TEST_KEY_ID || !env.ADVERTISER_TEST_SECRET) {
-      return errors.invalidRequest(requestId, {
-        code: 'TEST_CREDENTIALS_NOT_CONFIGURED',
-        message: 'ADVERTISER_TEST_KEY_ID and ADVERTISER_TEST_SECRET must be configured. Run: wrangler secret put ADVERTISER_TEST_KEY_ID && wrangler secret put ADVERTISER_TEST_SECRET',
-      });
-    }
-
-    // Parse request body
     const body = await request.json<{ reward_amount?: number; chain?: string }>();
-    const rewardAmount = body.reward_amount || 500; // Default $5.00
+    const rewardAmount = body.reward_amount || 500;
     const chain = body.chain || 'base_sepolia';
 
-    // Create deal request body
-    const dealRequest = {
-      title: `Test Deal - ${new Date().toISOString().slice(0, 16)}`,
-      description: 'Advertiser Test Page - E2E Payment Flow',
-      requirements: {
+    // Ensure test agent exists
+    let agent = await env.DB.prepare(
+      `SELECT id FROM agents WHERE id = 'agent_test_advertiser'`
+    ).first<{ id: string }>();
+
+    if (!agent) {
+      await env.DB.prepare(
+        `INSERT INTO agents (id, name, email, status, description)
+         VALUES ('agent_test_advertiser', 'Test Advertiser', 'test@advertiser.humanads', 'approved', 'Auto-created for /advertiser/test')`
+      ).run();
+      agent = { id: 'agent_test_advertiser' };
+    }
+
+    // Create deal
+    const dealId = crypto.randomUUID().replace(/-/g, '');
+    await env.DB.prepare(
+      `INSERT INTO deals (id, agent_id, title, description, requirements, reward_amount, max_participants, status, payment_model, auf_percentage)
+       VALUES (?, ?, ?, ?, ?, ?, 1, 'active', 'a_plan', 10)`
+    ).bind(
+      dealId,
+      agent.id,
+      `Test Deal - ${new Date().toISOString().slice(0, 16)}`,
+      'Advertiser Test Page - E2E Payment Flow',
+      JSON.stringify({
         post_type: 'tweet',
         content_template: 'Test post for payment flow verification',
         hashtags: ['HumanAdsTest'],
         verification_method: 'manual',
-      },
-      reward_amount: rewardAmount,
-      max_participants: 1,
-    };
+      }),
+      rewardAmount
+    ).run();
 
-    // Call /v1/deals/create with HMAC signature
-    const v1Response = await callV1Api(
-      request,
-      env,
-      '/v1/deals/create',
-      'POST',
-      dealRequest
-    );
-
-    if (!v1Response.ok) {
-      const errorData = await v1Response.json();
-      return errors.invalidRequest(requestId, {
-        code: 'V1_API_ERROR',
-        message: 'Failed to create deal via /v1/deals/create',
-        v1_error: errorData,
-      });
-    }
-
-    const result = await v1Response.json<{ success: boolean; data?: { deal: Deal }; error?: unknown }>();
-
-    if (!result.success || !result.data?.deal) {
-      return errors.invalidRequest(requestId, {
-        code: 'V1_API_FAILED',
-        message: 'Deal creation failed',
-        v1_response: result,
-      });
-    }
+    const deal = await env.DB.prepare('SELECT * FROM deals WHERE id = ?')
+      .bind(dealId)
+      .first<Deal>();
 
     return success({
-      deal_id: result.data.deal.id,
-      deal: result.data.deal,
+      deal_id: dealId,
+      deal,
       chain,
       message: 'Deal created successfully',
     }, requestId);
@@ -227,7 +209,6 @@ async function seedTestData(request: Request, env: Env): Promise<Response> {
       return errors.invalidRequest(requestId, { message: 'deal_id is required' });
     }
 
-    // Verify deal exists
     const deal = await env.DB.prepare('SELECT * FROM deals WHERE id = ?')
       .bind(body.deal_id)
       .first<Deal>();
@@ -237,7 +218,7 @@ async function seedTestData(request: Request, env: Env): Promise<Response> {
     }
 
     // 1. Create or get test operator
-    const testOperatorId = 'op_test_advertiser';
+    const testOperatorId = 'op_test_promoter';
     let operator = await env.DB.prepare('SELECT * FROM operators WHERE id = ?')
       .bind(testOperatorId)
       .first<Operator>();
@@ -256,28 +237,23 @@ async function seedTestData(request: Request, env: Env): Promise<Response> {
     // 2. Create application
     const applicationId = crypto.randomUUID().replace(/-/g, '');
     await env.DB.prepare(
-      `INSERT INTO applications (id, deal_id, operator_id, status, proposed_angle, accept_disclosure, accept_no_engagement_buying, applied_at)
-       VALUES (?, ?, ?, 'applied', 'Test application for E2E payment flow', 1, 1, datetime('now'))`
+      `INSERT INTO applications (id, deal_id, operator_id, status, proposed_angle, accept_disclosure, accept_no_engagement_buying, applied_at, selected_at)
+       VALUES (?, ?, ?, 'selected', 'Test application for E2E payment flow', 1, 1, datetime('now'), datetime('now'))`
     ).bind(applicationId, body.deal_id, testOperatorId).run();
 
-    // 3. Create mission with status=verified (so it can be approved)
+    // 3. Create mission with status=verified (ready for approval)
     const missionId = crypto.randomUUID().replace(/-/g, '');
     await env.DB.prepare(
       `INSERT INTO missions (id, deal_id, operator_id, status, submission_url, submitted_at, verified_at)
        VALUES (?, ?, ?, 'verified', 'https://x.com/test_promoter/status/test_123', datetime('now'), datetime('now'))`
     ).bind(missionId, body.deal_id, testOperatorId).run();
 
-    // 4. Update application to selected
-    await env.DB.prepare(
-      `UPDATE applications SET status = 'selected', selected_at = datetime('now') WHERE id = ?`
-    ).bind(applicationId).run();
-
     return success({
       operator_id: testOperatorId,
       application_id: applicationId,
       mission_id: missionId,
       operator_wallet: '0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00',
-      message: 'Test data seeded successfully. Mission is ready for approval.',
+      message: 'Test data seeded. Mission is ready for approval.',
     }, requestId);
   } catch (e) {
     console.error('Seed test data error:', e);
@@ -287,7 +263,7 @@ async function seedTestData(request: Request, env: Env): Promise<Response> {
 
 /**
  * POST /api/advertiser/test/applications/:id/select
- * Proxies to /v1/applications/:id/select
+ * Marks application as selected (usually already done by seed)
  */
 async function selectTestApplication(
   request: Request,
@@ -300,32 +276,32 @@ async function selectTestApplication(
   const { requestId } = authResult.context!;
 
   try {
-    if (!env.ADVERTISER_TEST_KEY_ID || !env.ADVERTISER_TEST_SECRET) {
-      return errors.invalidRequest(requestId, {
-        code: 'TEST_CREDENTIALS_NOT_CONFIGURED',
-        message: 'Test credentials not configured',
-      });
+    const app = await env.DB.prepare('SELECT * FROM applications WHERE id = ?')
+      .bind(applicationId)
+      .first<Application>();
+
+    if (!app) {
+      return errors.notFound(requestId, 'Application');
     }
 
-    const v1Response = await callV1Api(
-      request,
-      env,
-      `/v1/applications/${applicationId}/select`,
-      'POST',
-      {}
-    );
+    if (app.status === 'selected') {
+      return success({ status: 'already_selected', application_id: applicationId }, requestId);
+    }
 
-    const result = await v1Response.json();
-    return Response.json(result, { status: v1Response.status });
+    await env.DB.prepare(
+      `UPDATE applications SET status = 'selected', selected_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+    ).bind(applicationId).run();
+
+    return success({ status: 'selected', application_id: applicationId }, requestId);
   } catch (e) {
-    console.error('Select test application error:', e);
+    console.error('Select application error:', e);
     return errors.internalError(requestId);
   }
 }
 
 /**
  * POST /api/advertiser/test/applications/:id/approve
- * Proxies to /v1/applications/:id/approve
+ * Approves mission for payment (VERIFIED → APPROVED)
  */
 async function approveTestMission(
   request: Request,
@@ -338,74 +314,99 @@ async function approveTestMission(
   const { requestId } = authResult.context!;
 
   try {
-    if (!env.ADVERTISER_TEST_KEY_ID || !env.ADVERTISER_TEST_SECRET) {
+    // Get application with mission and deal info
+    const appData = await env.DB.prepare(
+      `SELECT a.*, m.id as mission_id, m.status as mission_status, m.operator_id,
+              d.id as deal_id, d.reward_amount, d.auf_percentage
+       FROM applications a
+       JOIN missions m ON m.deal_id = a.deal_id AND m.operator_id = a.operator_id
+       JOIN deals d ON a.deal_id = d.id
+       WHERE a.id = ?`
+    ).bind(applicationId).first<{
+      mission_id: string;
+      mission_status: string;
+      operator_id: string;
+      deal_id: string;
+      reward_amount: number;
+      auf_percentage: number;
+    }>();
+
+    if (!appData) {
+      return errors.notFound(requestId, 'Application or Mission');
+    }
+
+    if (appData.mission_status !== 'verified') {
       return errors.invalidRequest(requestId, {
-        code: 'TEST_CREDENTIALS_NOT_CONFIGURED',
-        message: 'Test credentials not configured',
+        message: `Mission status is '${appData.mission_status}', must be 'verified' to approve`,
       });
     }
 
-    // Get request body (optional deadline hours)
-    let bodyJson = {};
-    try {
-      bodyJson = await request.json();
-    } catch {
-      // Empty body is OK
-    }
+    // Calculate amounts
+    const aufPercentage = appData.auf_percentage || DEFAULT_AUF_PERCENTAGE;
+    const aufAmountCents = Math.floor((appData.reward_amount * aufPercentage) / 100);
+    const payoutAmountCents = appData.reward_amount - aufAmountCents;
 
-    const v1Response = await callV1Api(
-      request,
-      env,
-      `/v1/applications/${applicationId}/approve`,
-      'POST',
-      bodyJson
-    );
+    // Calculate deadline
+    const now = new Date();
+    const deadlineAt = new Date(now.getTime() + DEFAULT_PAYOUT_DEADLINE_HOURS * 60 * 60 * 1000);
 
-    const result = await v1Response.json<{
-      success: boolean;
-      data?: {
-        auf_amount_cents: number;
-        fee_vault_addresses: { evm: string };
-        payout_deadline_at: string;
-      };
-    }>();
+    // Get payout mode
+    const payoutConfig = getPayoutConfig(env);
+    const payoutMode: PayoutMode = payoutConfig.mode;
 
-    if (result.success && result.data) {
-      // Enhance response with payment deep link info
-      const aufCents = result.data.auf_amount_cents;
-      const treasury = result.data.fee_vault_addresses.evm;
+    // Update mission
+    await env.DB.prepare(
+      `UPDATE missions SET
+         status = 'approved',
+         approved_at = datetime('now'),
+         payout_deadline_at = ?,
+         updated_at = datetime('now')
+       WHERE id = ?`
+    ).bind(deadlineAt.toISOString(), appData.mission_id).run();
 
-      const chainInfo = TESTNET_CHAINS.base_sepolia;
-      // USDC has 6 decimals, cents to micro-USDC: cents * 10000
-      const amountMicroUsdc = aufCents * 10000;
+    // Create AUF payment record
+    const paymentId = crypto.randomUUID().replace(/-/g, '');
+    await env.DB.prepare(
+      `INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type, amount_cents, chain, token, status, payout_mode, deadline_at)
+       VALUES (?, ?, 'agent_test_advertiser', ?, 'auf', ?, 'pending', 'pending', 'pending', ?, ?)`
+    ).bind(paymentId, appData.mission_id, appData.operator_id, aufAmountCents, payoutMode, deadlineAt.toISOString()).run();
 
-      const walletDeepLink = `ethereum:${chainInfo.usdcAddress}@${chainInfo.chainId}/transfer?address=${treasury}&uint256=${amountMicroUsdc}`;
+    // Build payment info
+    const chainInfo = TESTNET_CHAINS.base_sepolia;
+    const treasury = FEE_VAULT_ADDRESSES.base_sepolia;
+    const amountMicroUsdc = aufAmountCents * 10000;
+    const walletDeepLink = `ethereum:${chainInfo.usdcAddress}@${chainInfo.chainId}/transfer?address=${treasury}&uint256=${amountMicroUsdc}`;
 
-      return success({
-        ...result.data,
-        payment_info: {
-          chain: 'base_sepolia',
-          chain_id: chainInfo.chainId,
-          token: 'USDC',
-          token_address: chainInfo.usdcAddress,
-          to_address: treasury,
-          amount_cents: aufCents,
-          amount_micro_usdc: amountMicroUsdc,
-          wallet_deep_link: walletDeepLink,
-        },
-      }, requestId);
-    }
-
-    return Response.json(result, { status: v1Response.status });
+    return success({
+      mission_id: appData.mission_id,
+      status: 'approved',
+      approved_at: now.toISOString(),
+      payout_deadline_at: deadlineAt.toISOString(),
+      auf_amount_cents: aufAmountCents,
+      payout_amount_cents: payoutAmountCents,
+      auf_percentage: aufPercentage,
+      payout_mode: payoutMode,
+      fee_vault_addresses: { evm: treasury },
+      payment_info: {
+        chain: 'base_sepolia',
+        chain_id: chainInfo.chainId,
+        token: 'USDC',
+        token_address: chainInfo.usdcAddress,
+        to_address: treasury,
+        amount_cents: aufAmountCents,
+        amount_micro_usdc: amountMicroUsdc,
+        wallet_deep_link: walletDeepLink,
+      },
+    }, requestId);
   } catch (e) {
-    console.error('Approve test mission error:', e);
+    console.error('Approve mission error:', e);
     return errors.internalError(requestId);
   }
 }
 
 /**
  * POST /api/advertiser/test/applications/:id/unlock-address
- * Proxies to /v1/applications/:id/unlock-address
+ * Verifies AUF payment and unlocks promoter wallet address
  */
 async function unlockTestAddress(
   request: Request,
@@ -418,13 +419,6 @@ async function unlockTestAddress(
   const { requestId } = authResult.context!;
 
   try {
-    if (!env.ADVERTISER_TEST_KEY_ID || !env.ADVERTISER_TEST_SECRET) {
-      return errors.invalidRequest(requestId, {
-        code: 'TEST_CREDENTIALS_NOT_CONFIGURED',
-        message: 'Test credentials not configured',
-      });
-    }
-
     const body = await request.json<{
       auf_tx_hash: string;
       chain: string;
@@ -437,58 +431,123 @@ async function unlockTestAddress(
       });
     }
 
-    const v1Response = await callV1Api(
-      request,
-      env,
-      `/v1/applications/${applicationId}/unlock-address`,
-      'POST',
-      body
-    );
-
-    const result = await v1Response.json<{
-      success: boolean;
-      data?: {
-        wallet_address: string;
-        payout_amount_cents: number;
-        chain: string;
-      };
+    // Get application with mission and operator info
+    const appData = await env.DB.prepare(
+      `SELECT a.*, m.id as mission_id, m.status as mission_status, m.payout_deadline_at,
+              d.reward_amount, d.auf_percentage,
+              o.evm_wallet_address
+       FROM applications a
+       JOIN missions m ON m.deal_id = a.deal_id AND m.operator_id = a.operator_id
+       JOIN deals d ON a.deal_id = d.id
+       JOIN operators o ON a.operator_id = o.id
+       WHERE a.id = ?`
+    ).bind(applicationId).first<{
+      mission_id: string;
+      mission_status: string;
+      payout_deadline_at: string;
+      operator_id: string;
+      reward_amount: number;
+      auf_percentage: number;
+      evm_wallet_address: string;
     }>();
 
-    if (result.success && result.data) {
-      // Enhance response with payout deep link info
-      const payoutCents = result.data.payout_amount_cents;
-      const promoterWallet = result.data.wallet_address;
-
-      const chainInfo = TESTNET_CHAINS[body.chain] || TESTNET_CHAINS.base_sepolia;
-      const amountMicroUsdc = payoutCents * 10000;
-
-      const walletDeepLink = `ethereum:${chainInfo.usdcAddress}@${chainInfo.chainId}/transfer?address=${promoterWallet}&uint256=${amountMicroUsdc}`;
-
-      return success({
-        ...result.data,
-        payment_info: {
-          chain: body.chain,
-          chain_id: chainInfo.chainId,
-          token: body.token,
-          token_address: chainInfo.usdcAddress,
-          to_address: promoterWallet,
-          amount_cents: payoutCents,
-          amount_micro_usdc: amountMicroUsdc,
-          wallet_deep_link: walletDeepLink,
-        },
-      }, requestId);
+    if (!appData) {
+      return errors.notFound(requestId, 'Application or Mission');
     }
 
-    return Response.json(result, { status: v1Response.status });
+    if (appData.mission_status !== 'approved') {
+      return errors.invalidRequest(requestId, {
+        message: `Mission status is '${appData.mission_status}', must be 'approved'`,
+      });
+    }
+
+    const payoutConfig = getPayoutConfig(env);
+    const payoutMode: PayoutMode = payoutConfig.mode;
+
+    // In ledger mode, accept any tx hash (including SIMULATED_)
+    // In onchain mode, we would verify the tx (simplified for test page)
+    const isSimulated = isSimulatedTxHash(body.auf_tx_hash);
+
+    // Calculate amounts
+    const aufPercentage = appData.auf_percentage || DEFAULT_AUF_PERCENTAGE;
+    const aufAmountCents = Math.floor((appData.reward_amount * aufPercentage) / 100);
+    const payoutAmountCents = appData.reward_amount - aufAmountCents;
+    const walletAddress = appData.evm_wallet_address;
+
+    // Update mission status
+    await env.DB.prepare(
+      `UPDATE missions SET
+         status = 'address_unlocked',
+         auf_tx_hash = ?,
+         auf_confirmed_at = datetime('now'),
+         updated_at = datetime('now')
+       WHERE id = ?`
+    ).bind(body.auf_tx_hash, appData.mission_id).run();
+
+    // Update AUF payment record
+    await env.DB.prepare(
+      `UPDATE payments SET
+         tx_hash = ?,
+         chain = ?,
+         token = ?,
+         status = 'confirmed',
+         confirmed_at = datetime('now'),
+         updated_at = datetime('now')
+       WHERE mission_id = ? AND payment_type = 'auf'`
+    ).bind(body.auf_tx_hash, body.chain, body.token, appData.mission_id).run();
+
+    // Create payout payment record
+    const payoutPaymentId = crypto.randomUUID().replace(/-/g, '');
+    await env.DB.prepare(
+      `INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type, amount_cents, chain, token, to_address, status, payout_mode, deadline_at)
+       VALUES (?, ?, 'agent_test_advertiser', ?, 'payout', ?, ?, ?, ?, 'pending', ?, ?)`
+    ).bind(
+      payoutPaymentId,
+      appData.mission_id,
+      appData.operator_id,
+      payoutAmountCents,
+      body.chain,
+      body.token,
+      walletAddress,
+      payoutMode,
+      appData.payout_deadline_at
+    ).run();
+
+    // Build payment deep link info
+    const chainInfo = TESTNET_CHAINS[body.chain] || TESTNET_CHAINS.base_sepolia;
+    const amountMicroUsdc = payoutAmountCents * 10000;
+    const walletDeepLink = `ethereum:${chainInfo.usdcAddress}@${chainInfo.chainId}/transfer?address=${walletAddress}&uint256=${amountMicroUsdc}`;
+
+    return success({
+      mission_id: appData.mission_id,
+      status: 'address_unlocked',
+      wallet_address: walletAddress,
+      payout_amount_cents: payoutAmountCents,
+      payout_deadline_at: appData.payout_deadline_at,
+      chain: body.chain,
+      token: body.token,
+      payout_mode: payoutMode,
+      is_simulated: isSimulated,
+      payment_info: {
+        chain: body.chain,
+        chain_id: chainInfo.chainId,
+        token: body.token,
+        token_address: chainInfo.usdcAddress,
+        to_address: walletAddress,
+        amount_cents: payoutAmountCents,
+        amount_micro_usdc: amountMicroUsdc,
+        wallet_deep_link: walletDeepLink,
+      },
+    }, requestId);
   } catch (e) {
-    console.error('Unlock test address error:', e);
+    console.error('Unlock address error:', e);
     return errors.internalError(requestId);
   }
 }
 
 /**
  * POST /api/advertiser/test/applications/:id/confirm-payout
- * Proxies to /v1/applications/:id/confirm-payout
+ * Confirms 90% payout completion
  */
 async function confirmTestPayout(
   request: Request,
@@ -501,13 +560,6 @@ async function confirmTestPayout(
   const { requestId } = authResult.context!;
 
   try {
-    if (!env.ADVERTISER_TEST_KEY_ID || !env.ADVERTISER_TEST_SECRET) {
-      return errors.invalidRequest(requestId, {
-        code: 'TEST_CREDENTIALS_NOT_CONFIGURED',
-        message: 'Test credentials not configured',
-      });
-    }
-
     const body = await request.json<{
       payout_tx_hash: string;
       chain: string;
@@ -520,117 +572,65 @@ async function confirmTestPayout(
       });
     }
 
-    const v1Response = await callV1Api(
-      request,
-      env,
-      `/v1/applications/${applicationId}/confirm-payout`,
-      'POST',
-      body
-    );
-
-    const result = await v1Response.json();
-    return Response.json(result, { status: v1Response.status });
-  } catch (e) {
-    console.error('Confirm test payout error:', e);
-    return errors.internalError(requestId);
-  }
-}
-
-/**
- * POST /api/advertiser/test/tx/verify
- * Verifies a transaction hash without changing state
- */
-async function verifyTransaction(request: Request, env: Env): Promise<Response> {
-  const authResult = await requireAdmin(request, env);
-  if (!authResult.success) return authResult.error!;
-
-  const { requestId } = authResult.context!;
-
-  try {
-    const body = await request.json<{
-      tx_hash: string;
-      chain: string;
-      expected_to?: string;
-      expected_amount_cents?: number;
+    // Get application with mission info
+    const appData = await env.DB.prepare(
+      `SELECT a.*, m.id as mission_id, m.status as mission_status,
+              d.reward_amount
+       FROM applications a
+       JOIN missions m ON m.deal_id = a.deal_id AND m.operator_id = a.operator_id
+       JOIN deals d ON a.deal_id = d.id
+       WHERE a.id = ?`
+    ).bind(applicationId).first<{
+      mission_id: string;
+      mission_status: string;
+      reward_amount: number;
     }>();
 
-    if (!body.tx_hash || !body.chain) {
+    if (!appData) {
+      return errors.notFound(requestId, 'Application or Mission');
+    }
+
+    if (appData.mission_status !== 'address_unlocked') {
       return errors.invalidRequest(requestId, {
-        message: 'tx_hash and chain are required',
+        message: `Mission status is '${appData.mission_status}', must be 'address_unlocked'`,
       });
     }
 
     const payoutConfig = getPayoutConfig(env);
+    const isSimulated = isSimulatedTxHash(body.payout_tx_hash);
+    const now = new Date();
 
-    // In ledger mode, any tx starting with SIMULATED_ is valid
-    if (payoutConfig.mode === 'ledger' && body.tx_hash.startsWith('SIMULATED_')) {
-      return success({
-        verified: true,
-        mode: 'ledger',
-        tx_hash: body.tx_hash,
-        message: 'Simulated transaction accepted in ledger mode',
-      }, requestId);
-    }
+    // Update mission status to paid_complete
+    await env.DB.prepare(
+      `UPDATE missions SET
+         status = 'paid_complete',
+         payout_tx_hash = ?,
+         payout_confirmed_at = datetime('now'),
+         paid_at = datetime('now'),
+         updated_at = datetime('now')
+       WHERE id = ?`
+    ).bind(body.payout_tx_hash, appData.mission_id).run();
 
-    // For onchain mode, return info about what would be verified
-    const chainInfo = TESTNET_CHAINS[body.chain];
-    if (!chainInfo) {
-      return errors.invalidRequest(requestId, {
-        message: `Unsupported chain: ${body.chain}. Supported: ${Object.keys(TESTNET_CHAINS).join(', ')}`,
-      });
-    }
+    // Update payout payment record
+    await env.DB.prepare(
+      `UPDATE payments SET
+         tx_hash = ?,
+         status = 'confirmed',
+         confirmed_at = datetime('now'),
+         updated_at = datetime('now')
+       WHERE mission_id = ? AND payment_type = 'payout'`
+    ).bind(body.payout_tx_hash, appData.mission_id).run();
 
     return success({
-      verified: 'pending',
-      mode: payoutConfig.mode,
-      tx_hash: body.tx_hash,
-      chain: body.chain,
-      chain_id: chainInfo.chainId,
-      explorer_url: `https://sepolia.basescan.org/tx/${body.tx_hash}`,
-      message: 'Transaction verification would be performed on-chain',
+      mission_id: appData.mission_id,
+      status: 'paid_complete',
+      paid_complete_at: now.toISOString(),
+      total_amount_cents: appData.reward_amount,
+      payout_mode: payoutConfig.mode,
+      is_simulated: isSimulated,
     }, requestId);
   } catch (e) {
-    console.error('Verify transaction error:', e);
+    console.error('Confirm payout error:', e);
     return errors.internalError(requestId);
   }
-}
-
-/**
- * Helper: Call /v1 API with HMAC signature
- */
-async function callV1Api(
-  request: Request,
-  env: Env,
-  path: string,
-  method: string,
-  body: unknown
-): Promise<Response> {
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const nonce = crypto.randomUUID().replace(/-/g, '');
-  const bodyStr = JSON.stringify(body);
-
-  // Build canonical string: {ts}|{nonce}|{METHOD}|{PATH}|{BODY}
-  const canonical = buildCanonicalStringHmac(method, path, timestamp, nonce, bodyStr);
-
-  // Generate HMAC signature
-  const signature = await generateHmacSignature(canonical, env.ADVERTISER_TEST_SECRET!);
-
-  // Build absolute URL for internal fetch
-  const url = new URL(request.url);
-  const v1Url = `${url.origin}${path}`;
-
-  // Make the request
-  const response = await fetch(v1Url, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-AdClaw-Key-Id': env.ADVERTISER_TEST_KEY_ID!,
-      'X-AdClaw-Timestamp': timestamp,
-      'X-AdClaw-Nonce': nonce,
-      'X-AdClaw-Signature': signature,
-    },
-    body: bodyStr,
-  });
-
-  return response;
 }

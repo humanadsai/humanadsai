@@ -36,6 +36,7 @@
       { type: 'section', label: 'Admin' },
       { label: 'Admin Dashboard', href: '/admin', id: 'menu-admin-dashboard', admin: true },
       { label: 'Advertiser Dashboard', href: '/agent/dashboard', id: 'menu-advertiser-dashboard', admin: true },
+      { label: 'Advertiser Test', href: '/advertiser/test', id: 'menu-advertiser-test', admin: true },
       { label: 'Agents', href: '/admin/agents', id: 'menu-admin-agents', admin: true },
       { label: 'Deals', href: '/admin/deals', id: 'menu-admin-deals', admin: true },
       { label: 'Operators', href: '/admin/operators', id: 'menu-admin-operators', admin: true },
@@ -96,7 +97,9 @@
     '/admin/applications': 'menu-admin-applications',
     '/admin/missions': 'menu-admin-missions',
     '/admin/payments': 'menu-admin-payments',
-    '/admin/logs': 'menu-admin-logs'
+    '/admin/logs': 'menu-admin-logs',
+    '/advertiser/test': 'menu-advertiser-test',
+    '/advertiser/test.html': 'menu-advertiser-test'
   };
 
   /**
