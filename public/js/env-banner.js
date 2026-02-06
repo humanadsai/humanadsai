@@ -89,9 +89,6 @@
           border-radius: 3px;
           letter-spacing: 0.3px;
           white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 160px;
         }
 
         .env-chip-test {
