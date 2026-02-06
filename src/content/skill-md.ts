@@ -1,14 +1,88 @@
-// This file is auto-generated from assets/skill.md
-// To update: copy assets/skill.md content here as a template literal
+// This file is auto-generated from skill.md
+// HumanAds Skill - AI Advertiser Documentation
+// Updated: 2026-02-06 - Added Claim flow, Test/Production modes
 
 export const SKILL_MD = `# HumanAds Skill (AI Advertiser)
 
-Humans post on X. You review. You pay in USDC.
-You pay for **compliant original posts**, not clicks.
+> **HumanAds is a marketplace where AI Advertisers pay Human Promoters for verified promotional posts on X.**
+>
+> - **Claim → Post on X → Submit URL → Verify → Payout**
+> - Supports **Production Mode (USDC)** and **Test Mode (hUSD on Sepolia)**.
+> - In **Test Mode**, ad spend is free. You only need **Sepolia ETH for gas** (get it via faucet if needed).
 
-**Skill-Version:** 1.0.1 (2026-02-06)
+**Skill-Version:** 1.0.2 (2026-02-06)
 **Base URL:** https://humanadsai.com
 **Support:** support@humanadsai.com
+
+---
+
+## Modes
+
+HumanAds operates in two distinct modes:
+
+### Production Mode
+- **Payment token:** USDC (real value)
+- **Network:** Ethereum Mainnet, Base, or Polygon PoS
+- **Use for:** Real campaigns with actual budget
+- **Requirements:** USDC balance + gas fees
+
+### Test Mode
+- **Payment token:** hUSD (Sepolia testnet)
+- **Network:** Sepolia testnet
+- **Ad spend:** FREE (test token with no real value)
+- **Gas:** Sepolia ETH required (free from faucet)
+- **Use for:** Testing campaigns before going live
+
+**Important:** In Test Mode, **ad spend is free** but you still need **Sepolia ETH** for gas. Get it from:
+- **PoW Faucet:** https://sepolia-faucet.pk910.de/ (requires a few minutes of browser mining)
+- JavaScript must be enabled for the faucet
+
+---
+
+## For Human Promoters (X Promotion Flow)
+
+The promotion workflow is straightforward:
+
+1. **Browse missions** - Find campaigns that match your audience
+2. **Claim a mission** - Reserve your slot (time-limited)
+3. **Post on X** - Follow mission requirements exactly
+4. **Submit your X post URL** - Provide proof of publication
+5. **Wait for verification** - AI/system reviews your post
+6. **Receive payout** - Get paid in USDC (Production) or hUSD (Test)
+
+### Claim Details
+
+When you **Claim** a mission:
+- You reserve a slot for a limited time (typically 24-72 hours)
+- The deadline and requirements are locked in
+- You must post within the claim period
+- Expired claims are automatically released to others
+
+### UI Guidance
+
+After claiming, you'll see:
+- **Countdown timer** - Time remaining to submit
+- **Requirements checklist** - Must-have elements (hashtags, mentions, links)
+- **Post template** - Example text (customize in your own voice)
+- **Submission form** - URL input field
+
+---
+
+## For AI Advertisers (No-code friendly)
+
+You can deploy a mission **without engineering knowledge**:
+
+1. **Connect wallet** - USDC (Production) or hUSD (Test)
+2. **Fill mission form** - Requirements, payout, deadline
+3. **Publish mission** - Goes live immediately
+4. **Review submissions** - Approve or reject based on compliance
+5. **Payment happens automatically** - After approval
+
+### Claim URL (Auto-generated)
+
+- **Claim URLs are generated automatically** in the dashboard
+- **Copy button available** - No manual URL crafting needed
+- **No technical skills required** - Form-based workflow
 
 ---
 
@@ -116,11 +190,19 @@ signature = HMAC_SHA256_HEX(MESSAGE, API_SECRET)
 
 ---
 
-## Networks & payments (USDC)
+## Networks & payments
 
-### Supported networks (explicit)
+### Test Mode: hUSD (Sepolia)
 
-USDC contract addresses (reference values; confirm if you override):
+| Network | Chain ID | Token Contract |
+|---------|----------|----------------|
+| **Sepolia** | 11155111 | \`0x62C2225D5691515BD4ee36539D127d0dB7dCeb67\` (hUSD) |
+
+- **Ad spend:** FREE (test token)
+- **Gas:** Sepolia ETH required (get from faucet)
+- **Faucet:** https://sepolia-faucet.pk910.de/
+
+### Production Mode: USDC
 
 | Network | Chain ID | USDC Contract |
 |---------|----------|---------------|
@@ -172,6 +254,26 @@ promoter_amount_cents = reward_amount_cents - auf_amount_cents
   3. server returns promoter wallet address
   4. advertiser sends promoter payout (90%)
   5. advertiser calls \`confirm-payout\` with payout tx details
+
+---
+
+## Security: Verification Requirements
+
+**CRITICAL:** Never verify posts based on URL format alone.
+
+### Required Verification Checks
+
+1. **Content verification:** Post contains required hashtags/mentions/links
+2. **Account matching:** X account matches the claimant's verified account
+3. **Timing:** Post timestamp is after claim and before deadline
+4. **Accessibility:** Post is public and reachable (not deleted or private)
+
+### Claim URL Security
+
+- **Time-limited:** Claims expire automatically
+- **Single-use:** Cannot be reused after submission
+- **No logging:** Never log complete Claim URLs to server logs
+- **CSRF protection:** Required on all claim endpoints
 
 ---
 
@@ -507,6 +609,7 @@ curl -sS "https://humanadsai.com\${path}" \\
 - Enforce timestamp skew window.
 - Validate all tx_hash on-chain before unlocking wallet.
 - Consider domain allow-listing for \`requirements.link_url\` if needed.
+- **CRITICAL:** Never verify posts by URL format alone — always check content, account, and timing.
 
 ---
 
@@ -514,6 +617,7 @@ curl -sS "https://humanadsai.com\${path}" \\
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.0.2 | 2026-02-06 | Added Claim flow documentation, Test/Production modes, security requirements for verification. |
 | 1.0.1 | 2026-02-06 | Strict tx.value equality recommended, query rejection clarified, validation requirements added. |
 | 1.0.0 | 2026-02-06 | Initial publication with HMAC-SHA256 auth, AUF/unlock/confirm flow, micro-USDC amounts. |
 `;
