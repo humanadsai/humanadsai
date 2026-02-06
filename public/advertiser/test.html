@@ -704,6 +704,7 @@
     const WALLETCONNECT_PROJECT_ID = '3c95ec9b803a06e64a9c5f24ef906cdc';
 
     // Chain configurations with user-friendly names
+    // Each chain supports multiple tokens
     const CHAIN_CONFIG = {
       base_sepolia: {
         chainId: 84532,
@@ -712,11 +713,16 @@
         shortName: 'Base Sepolia',
         rpcUrl: 'https://sepolia.base.org',
         blockExplorer: 'https://sepolia.basescan.org',
-        usdc: {
-          address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-          decimals: 6,
-          symbol: 'USDC',
+        tokens: {
+          usdc: {
+            address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+            decimals: 6,
+            symbol: 'USDC',
+            name: 'USDC (Official)',
+          },
+          // hUSDC can be added here after deployment
         },
+        defaultToken: 'usdc',
       },
       sepolia: {
         chainId: 11155111,
@@ -725,13 +731,38 @@
         shortName: 'Sepolia',
         rpcUrl: 'https://rpc.sepolia.org',
         blockExplorer: 'https://sepolia.etherscan.io',
-        usdc: {
-          address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
-          decimals: 6,
-          symbol: 'USDC',
+        tokens: {
+          usdc: {
+            address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+            decimals: 6,
+            symbol: 'USDC',
+            name: 'USDC (Official)',
+          },
+          husdc: {
+            address: '', // TODO: Set after deploying hUSDC contract
+            decimals: 6,
+            symbol: 'hUSDC',
+            name: 'hUSDC (HumanAds Test)',
+          },
         },
       },
     };
+
+    // Helper to get current token config
+    function getTokenConfig(chainKey, tokenKey) {
+      const chain = CHAIN_CONFIG[chainKey];
+      if (!chain) return null;
+      return chain.tokens[tokenKey] || chain.tokens[chain.defaultToken];
+    }
+
+    // Get available tokens for a chain
+    function getAvailableTokens(chainKey) {
+      const chain = CHAIN_CONFIG[chainKey];
+      if (!chain) return [];
+      return Object.entries(chain.tokens)
+        .filter(([key, token]) => token.address) // Only tokens with addresses
+        .map(([key, token]) => ({ key, ...token }));
+    }
 
     // ERC-20 ABI for transfer
     const ERC20_ABI = [
@@ -766,6 +797,7 @@
       environment: null,
       payoutMode: 'ledger',
       chain: 'base_sepolia',
+      token: 'usdc', // Selected token key
       dealId: null,
       applicationId: null,
       missionId: null,
@@ -811,6 +843,10 @@
 
     function formatUsdc(cents) {
       return (cents / 100).toFixed(2) + ' USDC';
+    }
+
+    function formatTokenAmount(cents, symbol = 'USDC') {
+      return (cents / 100).toFixed(2) + ' ' + symbol;
     }
 
     function truncate(str, len = 16) {
@@ -1367,8 +1403,14 @@
       }
 
       const chainConfig = CHAIN_CONFIG[state.chain];
-      if (!chainConfig) {
-        alert('Invalid chain configuration.');
+      const tokenConfig = getTokenConfig(state.chain, state.token);
+      if (!chainConfig || !tokenConfig) {
+        alert('Invalid chain or token configuration.');
+        return null;
+      }
+
+      if (!tokenConfig.address) {
+        alert(`Token ${tokenConfig.symbol} is not configured. Please set the contract address first.`);
         return null;
       }
 
@@ -1388,20 +1430,21 @@
         state.ethersProvider = new ethers.BrowserProvider(state.walletProvider);
         const signer = await state.ethersProvider.getSigner();
 
-        // Create contract instance
-        const usdcContract = new ethers.Contract(
-          chainConfig.usdc.address,
+        // Create contract instance with selected token
+        const tokenContract = new ethers.Contract(
+          tokenConfig.address,
           ERC20_ABI,
           signer
         );
 
-        // Calculate amount in USDC base units (6 decimals)
-        const amountUsdc = BigInt(amountCents) * BigInt(10000); // cents to micro-USDC
+        // Calculate amount in token base units (using token decimals)
+        const decimals = tokenConfig.decimals || 6;
+        const amountBase = BigInt(amountCents) * BigInt(10 ** (decimals - 2)); // cents to base units
 
         btn.innerHTML = '<span class="spinner"></span> Confirm in wallet...';
 
         // Send transaction
-        const tx = await usdcContract.transfer(toAddress, amountUsdc);
+        const tx = await tokenContract.transfer(toAddress, amountBase);
 
         // Update UI with tx hash immediately
         if (txInput) {
@@ -1420,10 +1463,11 @@
         console.error('Transaction error:', e);
 
         let message = 'Transaction failed';
+        const tokenSymbol = tokenConfig?.symbol || 'token';
         if (e.code === 4001 || e.code === 'ACTION_REJECTED' || e.message?.includes('rejected')) {
           message = 'Transaction rejected by user.';
         } else if (e.message?.includes('insufficient funds') || e.message?.includes('exceeds balance')) {
-          message = 'Insufficient USDC balance. Please ensure you have enough testnet USDC.';
+          message = `Insufficient ${tokenSymbol} balance. Please ensure you have enough testnet ${tokenSymbol}.`;
         } else if (e.message?.includes('user rejected')) {
           message = 'Transaction rejected by user.';
         } else if (e.shortMessage) {
@@ -1473,6 +1517,12 @@
             <select id="chain-select" onchange="handleChainChange(this.value)">
               <option value="base_sepolia" selected>Base Sepolia (Testnet) - Recommended</option>
               <option value="sepolia">Sepolia (Testnet)</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Token</label>
+            <select id="token-select" onchange="handleTokenChange(this.value)">
+              ${renderTokenOptions(state.chain)}
             </select>
           </div>
           <div class="info-row">
@@ -1579,7 +1629,7 @@
             <div class="info-row-with-copy">
               <span class="label">Token</span>
               <div class="value-group">
-                <span class="value">USDC</span>
+                <span class="value" id="auf-token">USDC</span>
               </div>
             </div>
             <div class="info-row-with-copy">
@@ -1634,7 +1684,7 @@
             <div class="info-row-with-copy">
               <span class="label">Token</span>
               <div class="value-group">
-                <span class="value">USDC</span>
+                <span class="value" id="payout-token">USDC</span>
               </div>
             </div>
             <div class="info-row-with-copy">
@@ -1696,11 +1746,46 @@
       updateStepState(2); // Start at step B (Create Deal)
     }
 
+    // Render token options for a chain
+    function renderTokenOptions(chainKey) {
+      const tokens = getAvailableTokens(chainKey);
+      const defaultToken = CHAIN_CONFIG[chainKey]?.defaultToken || 'usdc';
+
+      if (tokens.length === 0) {
+        return '<option value="usdc" disabled>No tokens configured</option>';
+      }
+
+      return tokens.map(token => {
+        const selected = token.key === state.token || (token.key === defaultToken && !tokens.find(t => t.key === state.token));
+        const disabled = !token.address ? 'disabled' : '';
+        const label = token.address ? token.name : `${token.name} (Not Deployed)`;
+        return `<option value="${token.key}" ${selected ? 'selected' : ''} ${disabled}>${label}</option>`;
+      }).join('');
+    }
+
     function handleChainChange(chainKey) {
       state.chain = chainKey;
+
+      // Update token selector options
+      const tokenSelect = document.getElementById('token-select');
+      if (tokenSelect) {
+        tokenSelect.innerHTML = renderTokenOptions(chainKey);
+        // Reset to default token for the new chain
+        const defaultToken = CHAIN_CONFIG[chainKey]?.defaultToken || 'usdc';
+        const availableTokens = getAvailableTokens(chainKey);
+        state.token = availableTokens.find(t => t.key === state.token)?.key || defaultToken;
+        tokenSelect.value = state.token;
+      }
+
       if (state.walletConnected) {
         switchToChain(chainKey);
       }
+    }
+
+    function handleTokenChange(tokenKey) {
+      state.token = tokenKey;
+      const tokenConfig = getTokenConfig(state.chain, tokenKey);
+      console.log(`Token changed to: ${tokenConfig?.symbol} (${tokenConfig?.address || 'not deployed'})`);
     }
 
     // === API Calls ===
@@ -1827,9 +1912,12 @@
           addToTimeline('D', 'Mission Approved', `AUF: ${formatCents(state.aufAmountCents)}`);
 
           // Update payment info with user-friendly display
-          document.getElementById('auf-amount').textContent = formatUsdc(state.aufAmountCents);
+          const tokenConfig = getTokenConfig(state.chain, state.token);
+          const tokenSymbol = tokenConfig?.symbol || 'USDC';
+          document.getElementById('auf-amount').textContent = formatTokenAmount(state.aufAmountCents, tokenSymbol);
           document.getElementById('auf-to').textContent = truncate(res.data.payment_info?.to_address || state.treasuryAddress, 24);
           document.getElementById('auf-chain').textContent = getChainDisplayName(state.chain);
+          document.getElementById('auf-token').textContent = tokenSymbol;
           document.getElementById('auf-payment-info').style.display = 'block';
           document.getElementById('btn-send-auf').disabled = !state.walletConnected;
           document.getElementById('btn-unlock').disabled = false;
@@ -1911,9 +1999,12 @@
           });
           addToTimeline('E', 'Address Unlocked', truncate(state.operatorWallet, 20));
 
-          document.getElementById('payout-amount').textContent = formatUsdc(state.payoutAmountCents);
+          const tokenConfig = getTokenConfig(state.chain, state.token);
+          const tokenSymbol = tokenConfig?.symbol || 'USDC';
+          document.getElementById('payout-amount').textContent = formatTokenAmount(state.payoutAmountCents, tokenSymbol);
           document.getElementById('payout-to').textContent = truncate(state.operatorWallet, 24);
           document.getElementById('payout-chain').textContent = getChainDisplayName(state.chain);
+          document.getElementById('payout-token').textContent = tokenSymbol;
           document.getElementById('payout-payment-info').style.display = 'block';
           document.getElementById('btn-send-payout').disabled = !state.walletConnected;
           document.getElementById('btn-confirm').disabled = false;
