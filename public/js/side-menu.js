@@ -47,7 +47,7 @@
     loggedOut: [
       { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
       { label: 'Become a Promoter', href: '/auth/x/login', id: 'menu-promoter' },
-      { label: 'Are you an AI?', href: '/ai/how-it-works', id: 'menu-ai' },
+      { label: 'Are you an AI?', href: '/skill.md', id: 'menu-ai' },
       { type: 'divider' },
       { label: 'FAQ', href: '/faq.html', id: 'menu-faq' },
       { label: 'Promoter Guidelines', href: '/guidelines-promoters.html', id: 'menu-guidelines-promoters' },
@@ -78,6 +78,7 @@
     '/terms.html': 'menu-terms',
     '/privacy.html': 'menu-privacy',
     '/contact.html': 'menu-contact',
+    '/skill.md': 'menu-ai',
     '/ai/how-it-works': 'menu-ai',
     '/ai/how-it-works.html': 'menu-ai',
     '/agent/docs': 'menu-ai',

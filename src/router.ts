@@ -222,6 +222,45 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
+    // AI Advertiser Redirects (All AI paths → /skill.md)
+    // ============================================
+
+    // Redirect all AI-related pages to /skill.md
+    if (path === '/agent/docs' || path === '/agent/docs.html' ||
+        path === '/agent/deploy' || path === '/agent/deploy.html' ||
+        path === '/ai/how-it-works' || path === '/ai/how-it-works.html' ||
+        path === '/ai/docs' || path === '/ai/docs.html' ||
+        path === '/ai/skill.md') {
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': '/skill.md' }
+      });
+    }
+
+    // ============================================
+    // skill.md with caching headers
+    // ============================================
+
+    if (path === '/skill.md') {
+      try {
+        const assetResponse = await env.ASSETS.fetch(request);
+        if (assetResponse.status === 200) {
+          const body = await assetResponse.text();
+          const headers = new Headers(assetResponse.headers);
+          headers.set('Content-Type', 'text/markdown; charset=utf-8');
+          headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+          headers.set('X-Skill-Version', '2025-01-15');
+          return new Response(body, {
+            status: 200,
+            headers
+          });
+        }
+      } catch (e) {
+        console.error('skill.md fetch error:', e);
+      }
+    }
+
+    // ============================================
     // Static Assets (fallback to ASSETS for HTML pages and static files)
     // ============================================
 
