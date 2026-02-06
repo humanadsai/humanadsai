@@ -195,9 +195,24 @@
         cents = 0;
       }
       const value = (cents / 100).toFixed(2);
-      // Test mode: show hUSD instead of $
+      // Test mode: $5.00 hUSD
       if (window.EnvBanner && window.EnvBanner.isTestnet()) {
-        return value + ' hUSD';
+        return '$' + value + ' hUSD';
+      }
+      return '$' + value;
+    },
+
+    /**
+     * Format cents to currency HTML (with styled hUSD suffix for testnet)
+     * Use in innerHTML contexts only
+     */
+    formatCurrencyHtml(cents) {
+      if (typeof cents !== 'number' || isNaN(cents)) {
+        cents = 0;
+      }
+      const value = (cents / 100).toFixed(2);
+      if (window.EnvBanner && window.EnvBanner.isTestnet()) {
+        return '$' + value + '<span class="husd-suffix">hUSD</span>';
       }
       return '$' + value;
     },

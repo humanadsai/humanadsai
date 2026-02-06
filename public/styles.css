@@ -1888,16 +1888,26 @@ body {
 }
 
 .mission-item-amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-success);
+  white-space: nowrap;
 }
 
-/* Testnet mode - neon cyan for amounts */
+/* Testnet mode - neon cyan */
 [data-testnet="true"] .mission-item-amount {
   color: #4DFFFF;
   text-shadow: 0 0 10px rgba(47, 243, 255, 0.2);
+}
+
+.mission-item-amount .husd-suffix {
+  font-size: 0.65em;
+  font-weight: 600;
+  opacity: 0.8;
 }
 
 .mission-item-fee-label {
