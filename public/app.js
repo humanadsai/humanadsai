@@ -46,7 +46,7 @@ async function fetchApi(endpoint, options = {}) {
 function formatCurrency(cents) {
   const value = (cents / 100).toFixed(2);
   if (window.EnvBanner && window.EnvBanner.isTestnet()) {
-    return value + ' hUSD';
+    return '$' + value + ' hUSD';
   }
   return '$' + value;
 }
