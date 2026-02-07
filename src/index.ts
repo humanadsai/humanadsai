@@ -97,6 +97,16 @@ export default {
 
       // 既存のヘッダにCORSとセキュリティヘッダを追加
       const newHeaders = new Headers(response.headers);
+
+      // Explicitly preserve multiple Set-Cookie headers (new Headers() may merge them)
+      const setCookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [];
+      if (setCookies.length > 0) {
+        newHeaders.delete('Set-Cookie');
+        for (const cookie of setCookies) {
+          newHeaders.append('Set-Cookie', cookie);
+        }
+      }
+
       Object.entries(corsHeaders).forEach(([key, value]) => {
         newHeaders.set(key, value);
       });
@@ -106,9 +116,10 @@ export default {
         newHeaders.set(key, value);
       });
 
-      // CSPはHTMLレスポンスにのみ追加
+      // CSPはHTMLレスポンスにのみ追加（リダイレクトには不要）
+      const isRedirect = response.status >= 300 && response.status < 400;
       const contentType = response.headers.get('Content-Type') || '';
-      if (contentType.includes('text/html') || !contentType) {
+      if (!isRedirect && (contentType.includes('text/html') || !contentType)) {
         newHeaders.set('Content-Security-Policy', cspHeader);
       }
 
