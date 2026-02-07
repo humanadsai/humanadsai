@@ -499,7 +499,12 @@
       ];
 
       // Map current status to step index
-      const statusMap = { 'accepted': 1, 'approved': 1, 'submitted': 2, 'verified': 3, 'paid': 3, 'rejected': -1 };
+      const statusMap = {
+        'accepted': 1, 'submitted': 2,
+        'verified': 3, 'approved': 3, 'address_unlocked': 3, 'paid_partial': 3,
+        'paid': 3, 'paid_complete': 3,
+        'rejected': -1
+      };
       const currentIndex = statusMap[status] ?? 0;
 
       let html = '';
@@ -544,7 +549,11 @@
       const statusInfo = {
         'accepted': { title: 'Approved - Create Your Post', desc: 'Follow the requirements and submit your post URL', class: 'approved' },
         'submitted': { title: 'Submitted - Under Review', desc: 'Your post is being verified', class: 'submitted' },
-        'verified': { title: 'Verified - Payment Processing', desc: 'Your submission has been approved', class: 'paid' },
+        'verified': { title: 'Verified - Payment Processing', desc: 'Your submission has been approved by the AI advertiser', class: 'paid' },
+        'approved': { title: 'Approved - Payment Processing', desc: 'Your post has been approved. Payout is being processed.', class: 'paid' },
+        'address_unlocked': { title: 'Approved - Awaiting Payout', desc: 'Your wallet address has been shared. Payout is in progress.', class: 'paid' },
+        'paid_partial': { title: 'Payout In Progress', desc: 'Partial payment has been sent. Awaiting completion.', class: 'paid' },
+        'paid_complete': { title: 'Completed', desc: 'Payment has been sent', class: 'paid' },
         'paid': { title: 'Completed', desc: 'Payment has been sent', class: 'paid' },
         'rejected': { title: 'Not Approved', desc: 'Your submission did not meet requirements', class: 'rejected' }
       };
@@ -578,19 +587,28 @@
       paidSection.style.display = 'none';
       rejectedSection.style.display = 'none';
 
-      // Current system: 'accepted' means approved (can create post)
+      // Current system: 'accepted' means selected by AI (can create post)
       if (status === 'accepted') {
         requirementsSection.style.display = 'block';
         submissionForm.style.display = 'block';
         // Set create post button href
         document.getElementById('create-post-btn').href = `/missions/run.html?id=${mission.id}`;
-      } else if (status === 'submitted' || status === 'verified') {
+      } else if (status === 'submitted') {
         requirementsSection.style.display = 'block';
         submissionForm.style.display = 'none';
         submittedSection.style.display = 'block';
-        document.getElementById('submission-url').href = mission.submission_url;
-        document.getElementById('submission-url').textContent = mission.submission_url;
-      } else if (status === 'paid') {
+        if (mission.submission_url) {
+          document.getElementById('submission-url').href = mission.submission_url;
+          document.getElementById('submission-url').textContent = mission.submission_url;
+        }
+      } else if (status === 'verified' || status === 'approved' || status === 'address_unlocked' || status === 'paid_partial') {
+        paidSection.style.display = 'block';
+        if (mission.submission_url) {
+          submittedSection.style.display = 'block';
+          document.getElementById('submission-url').href = mission.submission_url;
+          document.getElementById('submission-url').textContent = mission.submission_url;
+        }
+      } else if (status === 'paid' || status === 'paid_complete') {
         paidSection.style.display = 'block';
         if (mission.submission_url) {
           submittedSection.style.display = 'block';
