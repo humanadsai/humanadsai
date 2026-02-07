@@ -430,8 +430,8 @@ export async function createAuthCookie(
   secret: string
 ): Promise<string> {
   const encrypted = await encryptCookieData({ state, codeVerifier }, secret);
-  // Path=/auth/x ensures cookie is only sent to auth endpoints
-  return `${COOKIE_NAME}=${encrypted}; Path=/auth/x; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}`;
+  // Path=/ to ensure cookie is sent on callback (some browsers drop Path=/auth/x on redirects)
+  return `${COOKIE_NAME}=${encrypted}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}`;
 }
 
 /**
@@ -459,5 +459,5 @@ export function getAuthCookie(request: Request): string | null {
  * Create cookie deletion header
  */
 export function deleteAuthCookie(): string {
-  return `${COOKIE_NAME}=; Path=/auth/x; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 }

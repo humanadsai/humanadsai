@@ -135,15 +135,20 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
 
     console.log(`[X Login] [${requestId}] Redirecting to X authorization page...`);
 
-    // Redirect to X authorization page
+    // Use intermediate HTML page to ensure cookies are set before redirect.
+    // Some browsers (Safari ITP) may ignore Set-Cookie on 302 redirect responses.
+    const escapedUrl = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapedUrl}"><title>Redirecting to X...</title></head><body><script>window.location.replace(${JSON.stringify(url)});</script><p>Redirecting to X for authentication...</p></body></html>`;
+
     const headers = new Headers();
-    headers.set('Location', url);
+    headers.set('Content-Type', 'text/html; charset=utf-8');
+    headers.set('Cache-Control', 'no-store, no-cache');
     headers.append('Set-Cookie', cookie);
     headers.append('Set-Cookie', redirectCookie);
     headers.append('Set-Cookie', inviteCookie);
 
-    return new Response(null, {
-      status: 302,
+    return new Response(html, {
+      status: 200,
       headers,
     });
   } catch (e) {
