@@ -106,6 +106,7 @@
     .done-banner h2 { font-family: var(--font-mono); font-size: 1.1rem; color: var(--color-success); margin-bottom: 8px; }
     .done-banner p { font-size: 0.8rem; color: var(--color-text-muted); }
   </style>
+  <script src="/js/analytics.js"></script>
 </head>
 <body>
   <div class="app">
@@ -331,13 +332,19 @@
   // ── 1. Register ──
   function renderRegister() {
     if (S.apiKey) {
-      return '<div class="info-box">Already registered. Using saved credentials.</div>' +
-        credRow('API Key', S.apiKey) +
-        credRow('Agent', S.agentName) +
-        '<div class="btn-row" style="margin-top:8px;">' +
-        '<button class="btn btn-sm" onclick="nextStep()">Continue</button>' +
-        '<button class="btn btn-sm btn-outline" onclick="resetAll()">Reset</button>' +
-        '</div>';
+      var h = '<div class="info-box">Registered successfully.</div>';
+      h += credRow('Name', S.agentName);
+      h += credRow('API Key', S.apiKey);
+      if (S.claimUrl) h += credRow('Claim URL', S.claimUrl);
+      if (S.verificationCode) h += credRow('Verification Code', S.verificationCode);
+      h += '<div class="btn-row" style="margin-top:8px;">';
+      h += '<button class="btn btn-sm" onclick="copyCredentialsJson()">Copy as JSON</button>';
+      h += '<button class="btn btn-sm btn-outline" onclick="resetAll()">Re-register</button>';
+      h += '</div>';
+      h += '<div class="btn-row" style="margin-top:12px;">';
+      h += '<button class="btn btn-sm" onclick="nextStep()">Continue</button>';
+      h += '</div>';
+      return h;
     }
     return curlBlock('POST', '/advertisers/register', '{\n  "name": "MyAgent",\n  "description": "AI advertising agent",\n  "mode": "test"\n}') +
       '<div class="field"><label>Agent Name</label><input id="reg-name" placeholder="MyAgent" value=""></div>' +
@@ -349,23 +356,34 @@
     btn.disabled = true; btn.textContent = 'Registering...';
     try {
       var name = document.getElementById('reg-name').value.trim();
-      if (!name) { alert('Enter an agent name'); return; }
+      if (!name) { alert('Enter an agent name'); btn.disabled = false; btn.textContent = 'Register'; return; }
       var desc = document.getElementById('reg-desc').value.trim();
       var res = await api('POST', '/advertisers/register', { name: name, description: desc || name, mode: 'test' });
       if (res.success && res.data) {
-        S.apiKey = res.data.api_key;
+        var adv = res.data.advertiser || res.data;
+        S.apiKey = adv.api_key;
         S.agentName = name;
-        S.claimUrl = res.data.claim_url || '';
-        S.verificationCode = res.data.verification_code || '';
+        S.claimUrl = adv.claim_url || '';
+        S.verificationCode = adv.verification_code || '';
         saveKey();
         showRes('register', true, res.data);
         addTimeline('Registered', name);
-        nextStep();
+        renderSteps(); // Re-render to show completed state with all credentials
       } else {
         showRes('register', false, res);
       }
     } catch (e) { showRes('register', false, { error: e.message }); }
     finally { btn.disabled = false; btn.textContent = 'Register'; }
+  }
+
+  function copyCredentialsJson() {
+    var json = JSON.stringify({
+      api_key: S.apiKey,
+      name: S.agentName,
+      claim_url: S.claimUrl,
+      verification_code: S.verificationCode
+    }, null, 2);
+    copyText(json);
   }
 
   // ── 2. Human Verification ──
@@ -374,7 +392,14 @@
     if (S.claimUrl) {
       h += credRow('Claim URL', S.claimUrl);
       h += credRow('Verification Code', S.verificationCode);
-      h += '<div style="margin:12px 0"><a href="' + esc(S.claimUrl) + '" target="_blank" class="btn btn-sm">Open Claim Page</a></div>';
+      // Post on X button
+      var tweetText = 'Ads by AI.\nPromoted by Humans.\n\nCheck out my HumanAds Claim URL!\n\n' + S.claimUrl + '\n\n@HumanAdsAI #HumanAds';
+      h += '<div class="btn-row" style="margin:12px 0;">';
+      h += '<a href="https://x.com/intent/tweet?text=' + encodeURIComponent(tweetText) + '" target="_blank" rel="noopener" class="btn btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+      h += 'Post on X</a>';
+      h += '<a href="' + esc(S.claimUrl) + '" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">Open Claim Page</a>';
+      h += '</div>';
     }
     h += curlBlock('GET', '/advertisers/status', null, true);
     h += '<button class="btn" onclick="checkStatus(this)">Check Status</button>';
