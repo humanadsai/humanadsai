@@ -956,7 +956,7 @@
       }
 
       // Render menu based on auth state
-      SideMenu.render(isLoggedIn);
+      SideMenu.render(isLoggedIn, user?.is_admin === true);
 
       // If logged in, update avatar and CTAs
       if (isLoggedIn && user) {
