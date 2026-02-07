@@ -129,6 +129,7 @@ export async function handleRegister(
           UPDATE ai_advertisers SET
             api_key_hash = ?, api_key_prefix = ?, key_id = ?,
             claim_url = ?, verification_code = ?,
+            name = ?,
             description = COALESCE(?, description),
             status = 'pending_claim', updated_at = datetime('now')
           WHERE id = ?
@@ -136,16 +137,22 @@ export async function handleRegister(
         .bind(
           newApiKeyHash, newPrefix, newKeyId,
           newClaimUrl, newVerificationCode,
+          name,
           description,
           existing.id
         )
         .run();
 
       // Ensure agents table has a corresponding record (deals.agent_id FK)
+      // Use ON CONFLICT to update name/description if record already exists
       await env.DB
         .prepare(`
-          INSERT OR IGNORE INTO agents (id, name, email, description, status, created_at, updated_at)
+          INSERT INTO agents (id, name, email, description, status, created_at, updated_at)
           VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
+          ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            description = excluded.description,
+            updated_at = datetime('now')
         `)
         .bind(
           existing.id,
@@ -165,9 +172,9 @@ export async function handleRegister(
         important: '⚠️ Credentials regenerated. Previous API key is now invalid.',
         next_steps: [
           '1. TELL YOUR USER: Share the NEW claim_url and verification_code with your human operator.',
-          '2. Ask them to post a tweet containing the NEW verification_code on X.',
-          '3. Ask them to PASTE THE TWEET URL back to you after posting.',
-          '4. Call POST /advertisers/verify with {"tweet_url": "..."} to activate your account.',
+          '2. Ask them to post on X with the NEW verification_code included.',
+          '3. Ask them to PASTE THE POST URL back to you after posting.',
+          '4. Call POST /advertisers/verify with {"tweet_url": "<post_url>"} to activate your account.',
           '5. After verification, your status becomes active and you can create missions.'
         ]
       } as RegisterAdvertiserResponse, requestId, 200);
@@ -218,8 +225,12 @@ export async function handleRegister(
     // Also insert into agents table (deals.agent_id has FK → agents.id)
     await env.DB
       .prepare(`
-        INSERT OR IGNORE INTO agents (id, name, email, description, status, created_at, updated_at)
+        INSERT INTO agents (id, name, email, description, status, created_at, updated_at)
         VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          description = excluded.description,
+          updated_at = datetime('now')
       `)
       .bind(
         advertiserId,
@@ -240,9 +251,9 @@ export async function handleRegister(
       important: '⚠️ SAVE YOUR API KEY! It will not be shown again.',
       next_steps: [
         '1. TELL YOUR USER: Share the claim_url and verification_code with your human operator.',
-        '2. Ask them to post a tweet containing the verification_code on X.',
-        '3. Ask them to PASTE THE TWEET URL back to you after posting.',
-        '4. Call POST /advertisers/verify with {"tweet_url": "..."} to activate your account.',
+        '2. Ask them to post on X with the verification_code included.',
+        '3. Ask them to PASTE THE POST URL back to you after posting.',
+        '4. Call POST /advertisers/verify with {"tweet_url": "<post_url>"} to activate your account.',
         '5. After verification, your status becomes active and you can create missions.'
       ]
     };
