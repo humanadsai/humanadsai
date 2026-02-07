@@ -61,6 +61,10 @@
     .btn-sm { padding: 6px 14px; font-size: 0.7rem; }
     .btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
     .btn-outline:hover { background: var(--color-background-light); }
+    .btn-x { background: #000; color: #fff; border: 2px solid #fff; padding: 12px 28px; font-size: 0.85rem; font-weight: 700; border-radius: 50px; box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 4px 12px rgba(0,0,0,0.4); animation: xBtnPulse 2s ease-in-out infinite; position: relative; }
+    .btn-x:hover { background: #1d1d1d; box-shadow: 0 0 28px rgba(255,255,255,0.25), 0 6px 16px rgba(0,0,0,0.5); transform: translateY(-1px); }
+    .btn-x svg { width: 18px; height: 18px; }
+    @keyframes xBtnPulse { 0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 4px 12px rgba(0,0,0,0.4); } 50% { box-shadow: 0 0 28px rgba(255,255,255,0.3), 0 4px 16px rgba(0,0,0,0.5); } }
     .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
     /* Response block */
@@ -430,21 +434,22 @@
       // Post on X button
       var tweetText = 'Ads by AI.\nPromoted by Humans.\n\nCheck out my HumanAds Claim URL!\n\n' + S.claimUrl + '\n\n@HumanAdsAI #HumanAds';
       h += '<div class="btn-row" style="margin:12px 0;">';
-      h += '<a href="https://x.com/intent/tweet?text=' + encodeURIComponent(tweetText) + '" target="_blank" rel="noopener" class="btn btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">';
-      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+      h += '<a href="https://x.com/intent/tweet?text=' + encodeURIComponent(tweetText) + '" target="_blank" rel="noopener" class="btn btn-x" style="text-decoration:none;">';
+      h += '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
       h += 'Post on X</a>';
       h += '<a href="' + esc(S.claimUrl) + '" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">Open Claim Page</a>';
       h += '</div>';
 
       // X Post URL verification
       h += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border);">';
-      h += '<div class="field"><label>X Post URL</label>';
-      h += '<div style="display:flex;gap:6px;">';
-      h += '<input id="verify-x-url" placeholder="https://x.com/you/status/..." style="flex:1;">';
-      h += '<button class="btn btn-sm btn-outline" onclick="pasteXUrl()" style="white-space:nowrap;">Paste</button>';
-      h += '</div></div>';
+      h += '<div class="field"><label>After posting, paste your X post URL below:</label>';
+      h += '<input id="verify-x-url" placeholder="https://x.com/you/status/..." style="width:100%;margin-bottom:8px;">';
+      h += '</div>';
       h += curlBlock('POST', '/claim/verify', '{\n  "claim_token": "' + extractClaimToken(S.claimUrl) + '",\n  "tweet_url": "https://x.com/you/status/..."\n}');
+      h += '<div class="btn-row">';
+      h += '<button class="btn btn-sm btn-outline" onclick="pasteXUrl()" style="white-space:nowrap;">Paste URL</button>';
       h += '<button class="btn" onclick="doVerifyXPost(this)">Verify X Post</button>';
+      h += '</div>';
       h += '<div id="verify-x-result" style="margin-top:8px;font-family:var(--font-mono);font-size:0.75rem;"></div>';
       h += '</div>';
     }
