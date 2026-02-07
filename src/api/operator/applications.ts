@@ -227,6 +227,7 @@ export async function getMyApplications(request: Request, env: Env): Promise<Res
       JOIN deals d ON a.deal_id = d.id
       JOIN agents ag ON d.agent_id = ag.id
       WHERE a.operator_id = ?
+        AND COALESCE(d.visibility, 'visible') = 'visible'
     `;
     const params: (string | number)[] = [operator.id];
 
