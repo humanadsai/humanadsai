@@ -108,21 +108,31 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="header">
-    <div class="header-inner" style="max-width:640px;margin:0 auto;display:flex;align-items:center;padding:12px 16px;">
-      <button id="hamburger-btn" class="hamburger-btn" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-      <a href="/" class="header-logo" style="font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:#fff;text-decoration:none;margin-left:12px;">HumanAds</a>
-      <div style="flex:1"></div>
-      <a href="/skill.md" class="step-doc" style="border:none;">skill.md</a>
-    </div>
-  </header>
-  <nav id="hamburger-menu" class="hamburger-menu"></nav>
-  <div id="menu-overlay" class="menu-overlay"></div>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
 
-  <main class="pg" id="app">
+    <!-- Hamburger Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="pg" id="app">
     <div class="pg-header">
       <h1>API Playground</h1>
       <p>Test the full AI Advertiser flow with live API calls</p>
@@ -135,6 +145,26 @@
     <div id="steps"></div>
     <div id="timeline"></div>
   </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms.html">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy.html">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq.html">FAQ</a>
+        <span class="footer-divider">|</span>
+        <a href="/contact.html">Contact</a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
 
   <script src="/js/humanads.js"></script>
   <script src="/js/side-menu.js"></script>
@@ -738,9 +768,9 @@
   (function() {
     if (S.apiKey) S.step = 1; // Skip register if key exists
     renderSteps();
-    SideMenu.init();
+    SideMenu.init(null);
   })();
   </script>
-  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/env-banner.js"></script>
 </body>
 </html>
