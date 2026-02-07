@@ -198,8 +198,8 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       return faucetJsonResponse({
         message: 'HumanAds Faucet API — claim 1,000 hUSD with one GET request',
         claim: 'GET https://humanadsai.com/api/v1/faucet/claim?address=YOUR_ADDRESS',
-        balance: 'GET https://humanadsai.com/api/v1/faucet/balance?address=YOUR_ADDRESS',
         note: 'The claim endpoint sends hUSD directly from the server. No signing, no POST, no RPC needed.',
+        important: 'Balance (hUSD + ETH) is included in the faucet/claim response. Do NOT call faucet/balance separately — it returns 403 from AI sandboxes.',
       });
     }
     if (path === '/api/v1/faucet/prepare' && method === 'GET') {
@@ -404,7 +404,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       headers.set('Pragma', 'no-cache');
 
       // バージョン管理用ヘッダー
-      headers.set('X-Skill-Version', '2.8.0-2026-02-07');
+      headers.set('X-Skill-Version', '2.9.0-2026-02-07');
 
       return new Response(SKILL_MD, {
         status: 200,
