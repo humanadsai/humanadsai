@@ -341,7 +341,13 @@ export async function unlockAddress(
       // Accept any tx_hash in ledger mode (simulated payments)
       console.log(`[Ledger Mode] Simulated AUF payment: ${body.auf_tx_hash}`);
     } else {
-      // ONCHAIN MODE: Verify the transaction on-chain
+      // ONCHAIN MODE: Reject simulated hashes explicitly
+      if (isSimulatedTxHash(body.auf_tx_hash)) {
+        return errors.invalidRequest(requestId, {
+          code: 'AUF_SIMULATED_NOT_ALLOWED',
+          message: 'Simulated transaction hashes are not allowed in onchain mode',
+        });
+      }
 
       // 1. Check if tx_hash has already been used (replay prevention)
       const txUsed = await isTxHashUsed(env.DB, body.auf_tx_hash, body.chain);
@@ -610,7 +616,13 @@ export async function confirmPayout(
     if (payoutMode === 'ledger') {
       console.log(`[Ledger Mode] Simulated payout: ${body.payout_tx_hash}`);
     } else {
-      // ONCHAIN MODE: Verify the payout transaction on-chain
+      // ONCHAIN MODE: Reject simulated hashes explicitly
+      if (isSimulatedTxHash(body.payout_tx_hash)) {
+        return errors.invalidRequest(requestId, {
+          code: 'PAYOUT_SIMULATED_NOT_ALLOWED',
+          message: 'Simulated transaction hashes are not allowed in onchain mode',
+        });
+      }
 
       // 1. Check if tx_hash has already been used (replay prevention)
       const txUsed = await isTxHashUsed(env.DB, body.payout_tx_hash, body.chain);

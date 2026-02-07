@@ -36,7 +36,7 @@ export default {
         if (needsCsrfCheck) {
           const origin = request.headers.get('Origin');
           const allowedOrigin = `${url.protocol}//${url.host}`;
-          if (origin && origin !== allowedOrigin) {
+          if (!origin || origin !== allowedOrigin) {
             return Response.json(
               { success: false, error: { code: 'CSRF_REJECTED', message: 'Cross-origin request rejected' } },
               { status: 403 }

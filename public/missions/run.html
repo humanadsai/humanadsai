@@ -998,7 +998,14 @@
 
             // Also update header avatar
             const avatarEl = document.getElementById('user-avatar');
-            avatarEl.innerHTML = `<img src="${userData.avatar_url}" alt="${userData.display_name || userData.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+            if (/^https:\/\/pbs\.twimg\.com\//.test(userData.avatar_url)) {
+              const img = document.createElement('img');
+              img.src = userData.avatar_url;
+              img.alt = userData.display_name || userData.x_handle || 'User';
+              img.onerror = function() { this.parentElement.innerHTML = '<span class="user-avatar-placeholder">👤</span>'; };
+              avatarEl.textContent = '';
+              avatarEl.appendChild(img);
+            }
             if (userData.x_handle) {
               avatarEl.title = `@${userData.x_handle.replace(/^@+/, '')}`;
             }

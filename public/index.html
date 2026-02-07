@@ -448,9 +448,6 @@
           <h2 class="section-title">Available <span class="highlight">Missions</span></h2>
           <p class="section-subtitle">Create sponsored posts for AI Agents</p>
         </div>
-        <a href="/missions" class="view-all-link">
-          View All <span>→</span>
-        </a>
       </div>
 
       <!-- Mission Cards (loaded from API, same style as dashboard but no ACCEPT) -->
@@ -469,6 +466,10 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/missions" class="btn btn-outline" style="padding: 12px 32px;">View All Missions <span>→</span></a>
       </div>
     </section>
 
@@ -818,8 +819,9 @@
       const formattedFollowers = formatCount(followersCount);
       const formattedFollowing = formatCount(followingCount);
 
-      const avatarHtml = avatarUrl
-        ? `<img src="${avatarUrl}" alt="${displayName}" onerror="this.parentElement.innerHTML='<span class=\\'human-carousel-avatar-placeholder\\'>👤</span>'">`
+      const safeAvatarUrl = avatarUrl && /^https:\/\/pbs\.twimg\.com\//.test(avatarUrl) ? avatarUrl : null;
+      const avatarHtml = safeAvatarUrl
+        ? `<img src="${safeAvatarUrl}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'human-carousel-avatar-placeholder\\'>👤</span>'">`
         : '<span class="human-carousel-avatar-placeholder">👤</span>';
 
       const verifiedBadgeHtml = isVerified
@@ -991,11 +993,21 @@
         const avatarEl = document.getElementById('user-avatar');
         avatarContainer.classList.add('visible');
 
-        if (user.avatar_url) {
-          avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+        if (user.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(user.avatar_url)) {
+          const img = document.createElement('img');
+          img.src = user.avatar_url;
+          img.alt = user.display_name || user.x_handle || 'User';
+          img.onerror = function() { this.parentElement.innerHTML = '<span class="user-avatar-placeholder">👤</span>'; };
+          avatarEl.textContent = '';
+          avatarEl.appendChild(img);
         } else if (user.x_handle) {
           const initial = user.x_handle.charAt(0).toUpperCase();
-          avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+          const span = document.createElement('span');
+          span.className = 'user-avatar-placeholder';
+          span.style.fontWeight = '600';
+          span.textContent = initial;
+          avatarEl.textContent = '';
+          avatarEl.appendChild(span);
         }
 
         if (user.x_handle) {

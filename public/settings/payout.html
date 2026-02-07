@@ -386,10 +386,10 @@
           window.WalletAlert.refresh();
         }
 
-        // Check if we should redirect back
+        // Check if we should redirect back (only allow safe relative paths)
         const urlParams = new URLSearchParams(window.location.search);
         const nextUrl = urlParams.get('next');
-        if (nextUrl) {
+        if (nextUrl && nextUrl.startsWith('/') && !nextUrl.startsWith('//') && !nextUrl.startsWith('/\\')) {
           setTimeout(() => {
             window.location.href = nextUrl;
           }, 1500);
@@ -426,11 +426,21 @@
           const user = data.data.user;
           const avatarEl = document.getElementById('user-avatar');
 
-          if (user && user.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+          if (user && user.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(user.avatar_url)) {
+            const img = document.createElement('img');
+            img.src = user.avatar_url;
+            img.alt = user.display_name || user.x_handle || 'User';
+            img.onerror = function() { this.parentElement.innerHTML = '<span class="user-avatar-placeholder">👤</span>'; };
+            avatarEl.textContent = '';
+            avatarEl.appendChild(img);
           } else if (user.x_handle) {
             const initial = user.x_handle.charAt(0).toUpperCase();
-            avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+            const span = document.createElement('span');
+            span.className = 'user-avatar-placeholder';
+            span.style.fontWeight = '600';
+            span.textContent = initial;
+            avatarEl.textContent = '';
+            avatarEl.appendChild(span);
           }
 
           if (user.x_handle) {
