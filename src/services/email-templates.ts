@@ -10,10 +10,26 @@ const TEXT_COLOR = '#ffffff';
 const TEXT_MUTED = '#a0a0b0';
 const BASE_URL = 'https://humanadsai.com';
 
-function layout(title: string, content: string, showUnsubscribe = true): string {
-  const footer = showUnsubscribe
+/** Generate HMAC-based unsubscribe token (sync-compatible using hex encoding) */
+export async function generateUnsubscribeToken(operatorId: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(operatorId));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Build unsubscribe URL for a given operator */
+export async function buildUnsubscribeUrl(operatorId: string, secret: string): Promise<string> {
+  const token = await generateUnsubscribeToken(operatorId, secret);
+  return `${BASE_URL}/api/email/unsubscribe?id=${operatorId}&token=${token}`;
+}
+
+function layout(title: string, content: string, unsubscribeUrl?: string): string {
+  const footer = unsubscribeUrl
     ? `<p style="margin-top:32px;font-size:12px;color:${TEXT_MUTED};">
-        <a href="${BASE_URL}/settings/notifications" style="color:${TEXT_MUTED};text-decoration:underline;">Manage notification preferences</a>
+        <a href="${BASE_URL}/settings/notifications" style="color:${TEXT_MUTED};text-decoration:underline;">Manage preferences</a>
+        &nbsp;&middot;&nbsp;
+        <a href="${unsubscribeUrl}" style="color:${TEXT_MUTED};text-decoration:underline;">Unsubscribe from all</a>
       </p>`
     : '';
   return `<!DOCTYPE html>
@@ -129,7 +145,7 @@ export function securityAlertEmail(action: string, details: string): { subject: 
 // Notification Templates
 // ============================================
 
-export function payoutInitiatedEmail(dealTitle: string, amount: string): { subject: string; html: string; headers: Record<string, string> } {
+export function payoutInitiatedEmail(dealTitle: string, amount: string, unsubscribeUrl?: string): { subject: string; html: string; headers: Record<string, string> } {
   return {
     subject: `Payment Initiated - ${dealTitle}`,
     html: layout('Payment Initiated', `
@@ -137,12 +153,14 @@ export function payoutInitiatedEmail(dealTitle: string, amount: string): { subje
       <p style="color:${TEXT_MUTED};">Payment of <strong style="color:${TEXT_COLOR};">${amount} hUSD</strong> for <strong style="color:${TEXT_COLOR};">${dealTitle}</strong> has been initiated.</p>
       <p style="color:${TEXT_MUTED};">You'll receive another notification once the payment is confirmed.</p>
       ${button('View My Missions', `${BASE_URL}/missions/my`)}
-    `),
-    headers: { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
+    `, unsubscribeUrl),
+    headers: unsubscribeUrl
+      ? { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+      : { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
   };
 }
 
-export function payoutCompletedEmail(dealTitle: string, amount: string, txHash?: string): { subject: string; html: string; headers: Record<string, string> } {
+export function payoutCompletedEmail(dealTitle: string, amount: string, txHash?: string, unsubscribeUrl?: string): { subject: string; html: string; headers: Record<string, string> } {
   const txLink = txHash ? `<p style="color:${TEXT_MUTED};font-size:12px;">TX: <a href="https://sepolia.etherscan.io/tx/${txHash}" style="color:${BRAND_COLOR};">${txHash.slice(0, 10)}...${txHash.slice(-8)}</a></p>` : '';
   return {
     subject: `Payment Complete - ${dealTitle}`,
@@ -151,24 +169,28 @@ export function payoutCompletedEmail(dealTitle: string, amount: string, txHash?:
       <p style="color:${TEXT_MUTED};">Your payment of <strong style="color:${TEXT_COLOR};">${amount} hUSD</strong> for <strong style="color:${TEXT_COLOR};">${dealTitle}</strong> has been confirmed.</p>
       ${txLink}
       ${button('View My Missions', `${BASE_URL}/missions/my`)}
-    `),
-    headers: { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
+    `, unsubscribeUrl),
+    headers: unsubscribeUrl
+      ? { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+      : { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
   };
 }
 
-export function submissionVerifiedEmail(dealTitle: string): { subject: string; html: string; headers: Record<string, string> } {
+export function submissionVerifiedEmail(dealTitle: string, unsubscribeUrl?: string): { subject: string; html: string; headers: Record<string, string> } {
   return {
     subject: `Submission Verified - ${dealTitle}`,
     html: layout('Submission Verified', `
       <h2 style="margin:0 0 16px;font-size:18px;color:${TEXT_COLOR};">Submission Verified</h2>
       <p style="color:${TEXT_MUTED};">Your submission for <strong style="color:${TEXT_COLOR};">${dealTitle}</strong> has been verified and approved.</p>
       ${button('View My Missions', `${BASE_URL}/missions/my`)}
-    `),
-    headers: { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
+    `, unsubscribeUrl),
+    headers: unsubscribeUrl
+      ? { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+      : { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
   };
 }
 
-export function submissionRejectedEmail(dealTitle: string, reason: string): { subject: string; html: string; headers: Record<string, string> } {
+export function submissionRejectedEmail(dealTitle: string, reason: string, unsubscribeUrl?: string): { subject: string; html: string; headers: Record<string, string> } {
   return {
     subject: `Submission Needs Revision - ${dealTitle}`,
     html: layout('Submission Needs Revision', `
@@ -178,32 +200,38 @@ export function submissionRejectedEmail(dealTitle: string, reason: string): { su
         <p style="margin:0;color:${TEXT_MUTED};font-size:13px;"><strong style="color:${TEXT_COLOR};">Reason:</strong> ${reason}</p>
       </div>
       ${button('View My Missions', `${BASE_URL}/missions/my`)}
-    `),
-    headers: { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
+    `, unsubscribeUrl),
+    headers: unsubscribeUrl
+      ? { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+      : { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
   };
 }
 
-export function missionSelectedEmail(dealTitle: string): { subject: string; html: string; headers: Record<string, string> } {
+export function missionSelectedEmail(dealTitle: string, unsubscribeUrl?: string): { subject: string; html: string; headers: Record<string, string> } {
   return {
     subject: `You've Been Selected! - ${dealTitle}`,
     html: layout('Mission Selected', `
       <h2 style="margin:0 0 16px;font-size:18px;color:${TEXT_COLOR};">You've Been Selected!</h2>
       <p style="color:${TEXT_MUTED};">Congratulations! You've been selected for <strong style="color:${TEXT_COLOR};">${dealTitle}</strong>. A mission has been created for you.</p>
       ${button('View My Missions', `${BASE_URL}/missions/my`)}
-    `),
-    headers: { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
+    `, unsubscribeUrl),
+    headers: unsubscribeUrl
+      ? { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+      : { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
   };
 }
 
-export function missionClaimedEmail(dealTitle: string, operatorHandle: string): { subject: string; html: string; headers: Record<string, string> } {
+export function missionClaimedEmail(dealTitle: string, operatorHandle: string, unsubscribeUrl?: string): { subject: string; html: string; headers: Record<string, string> } {
   return {
     subject: `Mission Claimed - ${dealTitle}`,
     html: layout('Mission Claimed', `
       <h2 style="margin:0 0 16px;font-size:18px;color:${TEXT_COLOR};">Mission Claimed</h2>
       <p style="color:${TEXT_MUTED};">Your mission <strong style="color:${TEXT_COLOR};">${dealTitle}</strong> has been claimed by <strong style="color:${TEXT_COLOR};">@${operatorHandle}</strong>.</p>
       ${button('View Missions', `${BASE_URL}/missions`)}
-    `),
-    headers: { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
+    `, unsubscribeUrl),
+    headers: unsubscribeUrl
+      ? { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+      : { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
   };
 }
 

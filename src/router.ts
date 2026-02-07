@@ -119,10 +119,19 @@ import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 // Advertiser Test API
 import { handleAdvertiserTestApi } from './api/advertiser/test';
 
+// Operator Reviews API
+import { submitMissionReview, getMissionReviews, reportReview } from './api/operator/reviews';
+
+// Public Reputation API
+import { getOperatorReputation, getAdvertiserReputation } from './api/public/reputation';
+
 // Operator Email API
-import { addOperatorEmail, getOperatorEmail, removeOperatorEmail, verifyOperatorEmail } from './api/operator/email';
+import { addOperatorEmail, getOperatorEmail, removeOperatorEmail, verifyOperatorEmail, handleUnsubscribe } from './api/operator/email';
 import { requestEmailChange, verifyEmailChange } from './api/operator/email-change';
 import { getEmailPreferences, updateEmailPreference } from './api/operator/email-preferences';
+
+// Admin Reviews API
+import { listAdminReviews, moderateReview } from './api/admin/reviews';
 
 // Admin Email API
 import { getEmailStats, getEmailLogs, getEmailSuppressions, removeEmailSuppression } from './api/admin/emails';
@@ -172,7 +181,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // Operator API (/api/operator/..., /api/missions/...)
     // ============================================
 
-    if (path.startsWith('/api/operator/') || path.startsWith('/api/missions/') || path.startsWith('/api/my/') || path.startsWith('/api/applications/') || path.startsWith('/api/notifications')) {
+    if (path.startsWith('/api/operator/') || path.startsWith('/api/missions/') || path.startsWith('/api/my/') || path.startsWith('/api/applications/') || path.startsWith('/api/reviews/') || path.startsWith('/api/notifications')) {
       return handleOperatorApi(request, env, path, method);
     }
 
@@ -711,6 +720,27 @@ async function handleOperatorApi(
   }
 
   // ============================================
+  // Review Routes
+  // ============================================
+
+  // POST /api/missions/:id/reviews - Submit a review for a completed mission
+  const reviewSubmitMatch = path.match(/^\/api\/missions\/([a-zA-Z0-9_]+)\/reviews$/);
+  if (reviewSubmitMatch && method === 'POST') {
+    return submitMissionReview(request, env, reviewSubmitMatch[1]);
+  }
+
+  // GET /api/missions/:id/reviews - Get reviews for a mission
+  if (reviewSubmitMatch && method === 'GET') {
+    return getMissionReviews(request, env, reviewSubmitMatch[1]);
+  }
+
+  // POST /api/reviews/:id/report - Report a review
+  const reportMatch = path.match(/^\/api\/reviews\/([a-zA-Z0-9_]+)\/report$/);
+  if (reportMatch && method === 'POST') {
+    return reportReview(request, env, reportMatch[1]);
+  }
+
+  // ============================================
   // Operator Email Routes
   // ============================================
 
@@ -742,6 +772,11 @@ async function handleOperatorApi(
   // GET /api/operator/email/change/verify - Verify new email
   if (path === '/api/operator/email/change/verify' && method === 'GET') {
     return verifyEmailChange(request, env);
+  }
+
+  // GET /api/email/unsubscribe - One-click unsubscribe (no auth, token-based)
+  if (path === '/api/email/unsubscribe' && (method === 'GET' || method === 'POST')) {
+    return handleUnsubscribe(request, env);
   }
 
   // GET /api/operator/email-preferences - Get preferences
@@ -856,6 +891,12 @@ async function handlePublicApi(
     return getPublicOperators(request, env);
   }
 
+  // GET /api/operators/:id/reputation - Public operator reputation
+  const operatorRepMatch = path.match(/^\/api\/operators\/([a-zA-Z0-9_]+)\/reputation$/);
+  if (operatorRepMatch && method === 'GET') {
+    return getOperatorReputation(request, env, operatorRepMatch[1]);
+  }
+
   // GET /api/operators/:id
   const operatorMatch = path.match(/^\/api\/operators\/([a-zA-Z0-9_]+)$/);
   if (operatorMatch && method === 'GET') {
@@ -890,6 +931,12 @@ async function handlePublicApi(
   // GET /api/ai-advertisers - Public AI advertisers list
   if (path === '/api/ai-advertisers' && method === 'GET') {
     return getPublicAiAdvertisers(request, env);
+  }
+
+  // GET /api/ai-advertisers/:id/reputation - Public AI advertiser reputation
+  const aiAdvRepMatch = path.match(/^\/api\/ai-advertisers\/([a-zA-Z0-9_]+)\/reputation$/);
+  if (aiAdvRepMatch && method === 'GET') {
+    return getAdvertiserReputation(request, env, aiAdvRepMatch[1]);
   }
 
   // GET /api/ai-advertisers/:id - Public AI advertiser detail
@@ -1333,6 +1380,21 @@ async function handleAdminApi(
   // POST /api/admin/token-ops/log - Log owner mint/transfer operation
   if (path === '/api/admin/token-ops/log' && method === 'POST') {
     return logTokenOp(request, env);
+  }
+
+  // ============================================
+  // Review Moderation
+  // ============================================
+
+  // GET /api/admin/reviews - List reviews (filters: reported, hidden)
+  if (path === '/api/admin/reviews' && method === 'GET') {
+    return listAdminReviews(request, env);
+  }
+
+  // PUT /api/admin/reviews/:id - Moderate a review (hide/unhide/dismiss_report)
+  const adminReviewMatch = path.match(/^\/api\/admin\/reviews\/([a-zA-Z0-9_]+)$/);
+  if (adminReviewMatch && method === 'PUT') {
+    return moderateReview(request, env, adminReviewMatch[1]);
   }
 
   // ============================================

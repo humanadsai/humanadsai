@@ -15,6 +15,7 @@ import {
   submissionRejectedEmail,
   missionSelectedEmail,
   accountWarningEmail,
+  buildUnsubscribeUrl,
 } from './email-templates';
 
 type EmailCategory = 'security' | 'transactional' | 'campaign' | 'mission' | 'marketing';
@@ -72,6 +73,10 @@ async function sendNotificationEmail(
       if (!pref && category === 'marketing') return;
     }
 
+    // Generate unsubscribe URL
+    const unsubSecret = env.RESEND_WEBHOOK_SECRET || 'humanads-unsub-fallback';
+    const unsubUrl = await buildUnsubscribeUrl(params.recipientId, unsubSecret);
+
     // Select template based on notification type
     const meta = params.metadata as Record<string, string> | undefined;
     const dealTitle = meta?.deal_title || 'a mission';
@@ -80,21 +85,21 @@ async function sendNotificationEmail(
 
     switch (params.type) {
       case 'payout_auf_paid':
-        email = payoutInitiatedEmail(dealTitle, amount);
+        email = payoutInitiatedEmail(dealTitle, amount, unsubUrl);
         break;
       case 'payout_confirmed':
-        email = payoutCompletedEmail(dealTitle, amount, meta?.tx_hash);
+        email = payoutCompletedEmail(dealTitle, amount, meta?.tx_hash, unsubUrl);
         break;
       case 'submission_verified':
       case 'submission_approved':
-        email = submissionVerifiedEmail(dealTitle);
+        email = submissionVerifiedEmail(dealTitle, unsubUrl);
         break;
       case 'submission_rejected':
       case 'needs_revision':
-        email = submissionRejectedEmail(dealTitle, meta?.reason || 'Please review and resubmit.');
+        email = submissionRejectedEmail(dealTitle, meta?.reason || 'Please review and resubmit.', unsubUrl);
         break;
       case 'application_selected':
-        email = missionSelectedEmail(dealTitle);
+        email = missionSelectedEmail(dealTitle, unsubUrl);
         break;
       case 'account_warning':
       case 'account_suspended':

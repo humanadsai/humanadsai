@@ -11,7 +11,7 @@ import type { Env } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { sha256Hex, generateSessionToken } from '../../utils/crypto';
 import { sendEmailSafe } from '../../services/resend';
-import { emailVerificationEmail } from '../../services/email-templates';
+import { emailVerificationEmail, generateUnsubscribeToken } from '../../services/email-templates';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -247,4 +247,63 @@ export async function verifyOperatorEmail(request: Request, env: Env): Promise<R
   }
 
   return Response.redirect('https://humanadsai.com/account?email_verified=1', 302);
+}
+
+/**
+ * GET /api/email/unsubscribe?id=xxx&token=xxx - One-click unsubscribe (no login required)
+ */
+export async function handleUnsubscribe(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const operatorId = url.searchParams.get('id');
+  const token = url.searchParams.get('token');
+
+  if (!operatorId || !token) {
+    return new Response('Invalid unsubscribe link.', { status: 400, headers: { 'Content-Type': 'text/html' } });
+  }
+
+  // Verify HMAC token
+  const secret = env.RESEND_WEBHOOK_SECRET || 'humanads-unsub-fallback';
+  const expectedToken = await generateUnsubscribeToken(operatorId, secret);
+  if (token !== expectedToken) {
+    return new Response('Invalid or expired unsubscribe link.', { status: 403, headers: { 'Content-Type': 'text/html' } });
+  }
+
+  // Disable all non-security email categories
+  const categories = ['transactional', 'campaign', 'mission', 'marketing'];
+  for (const category of categories) {
+    await env.DB.prepare(
+      `INSERT INTO email_preferences (operator_id, category, enabled)
+       VALUES (?, ?, 0)
+       ON CONFLICT(operator_id, category) DO UPDATE SET enabled = 0`
+    ).bind(operatorId, category).run();
+  }
+
+  // Audit log
+  try {
+    await env.DB.prepare(
+      `INSERT INTO email_audit_log (id, operator_id, action, new_value, ip_address, user_agent, created_at)
+       VALUES (?, ?, 'email_unsubscribed', 'all', ?, ?, datetime('now'))`
+    ).bind(
+      crypto.randomUUID().replace(/-/g, ''),
+      operatorId,
+      request.headers.get('CF-Connecting-IP') || null,
+      request.headers.get('User-Agent')?.substring(0, 256) || null
+    ).run();
+  } catch (e) {
+    console.error('[email] Audit log failed:', e);
+  }
+
+  // Return a simple confirmation page
+  return new Response(`<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Unsubscribed - HumanAds</title></head>
+<body style="margin:0;padding:40px 16px;background:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#fff;text-align:center;">
+  <div style="max-width:480px;margin:0 auto;">
+    <div style="font-size:20px;font-weight:700;color:#FF6B35;font-family:monospace;margin-bottom:24px;">HumanAds</div>
+    <h1 style="font-size:1.5rem;margin-bottom:16px;">Unsubscribed</h1>
+    <p style="color:#a0a0b0;margin-bottom:24px;">You've been unsubscribed from all notification emails. Security emails will still be sent.</p>
+    <p style="color:#a0a0b0;font-size:0.875rem;">You can re-enable notifications anytime from <a href="https://humanadsai.com/settings/notifications" style="color:#FF6B35;">Notification Settings</a>.</p>
+  </div>
+</body>
+</html>`, { status: 200, headers: { 'Content-Type': 'text/html' } });
 }
