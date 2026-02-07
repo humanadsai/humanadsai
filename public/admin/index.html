@@ -314,7 +314,12 @@
       ]);
       if (!statsRes.success) throw new Error(statsRes.error?.message || 'Failed');
       const { stats, fee_recipients } = statsRes.data;
-      const env = envRes.success ? envRes.data : {};
+      const rawEnvD = envRes.success ? envRes.data : {};
+      // Normalize env-check fields (backend: hasTreasuryKey, mode)
+      const env = {
+        payout_mode: rawEnvD.mode || rawEnvD.payout_mode || 'unknown',
+        has_treasury_key: rawEnvD.hasTreasuryKey || rawEnvD.has_treasury_key || false,
+      };
       state.pendingSubmissions = stats.pending_submissions;
       const missionsBtn = document.querySelector('[data-tab="missions"]');
       if (missionsBtn && stats.pending_submissions > 0)
@@ -323,7 +328,7 @@
       panel.innerHTML =
         '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">' +
           '<h1 style="font-family:var(--font-mono);font-size:1.3rem;margin:0;">Admin Console</h1>' +
-          '<span class="env-badge ' + (env.payout_mode === 'onchain' ? 'onchain' : 'ledger') + '"><span class="dot"></span> ' + (env.payout_mode || 'unknown') + ' mode</span>' +
+          '<span class="env-badge ' + (env.payout_mode === 'onchain' ? 'onchain' : 'ledger') + '"><span class="dot"></span> ' + env.payout_mode + ' mode</span>' +
           (env.has_treasury_key
             ? '<span class="env-badge onchain"><span class="dot"></span> Treasury Key</span>'
             : '<span class="env-badge ledger"><span class="dot"></span> No Treasury Key</span>') +
@@ -601,20 +606,35 @@
         HumanAds.fetchApi('/admin/token-ops'),
         HumanAds.fetchApi('/admin/payments'),
       ]);
-      var bal = results[0].success ? results[0].data : {};
-      var env = results[1].success ? results[1].data : {};
+      var rawBal = results[0].success ? results[0].data : {};
+      var rawEnv = results[1].success ? results[1].data : {};
       var ops = results[2].success ? (results[2].data.token_ops || []) : [];
       var payments = results[3].success ? (results[3].data.payments || []) : [];
+
+      // Normalize balance data (backend returns nested treasury/admin/config)
+      var bal = {
+        treasury_husd: rawBal.treasury ? rawBal.treasury.husd_cents : null,
+        treasury_eth: rawBal.treasury ? rawBal.treasury.eth : null,
+        treasury_address: rawBal.treasury ? rawBal.treasury.address : null,
+      };
+      var cfg = rawBal.config || {};
+      // Normalize env-check data (backend returns hasTreasuryKey, mode)
+      var env = {
+        payout_mode: rawEnv.mode || rawEnv.payout_mode || cfg.payout_mode || '-',
+        has_treasury_key: rawEnv.hasTreasuryKey || rawEnv.has_treasury_key || cfg.has_treasury_key || false,
+        husd_contract: cfg.husd_contract || rawEnv.husd_contract || null,
+        faucet_amount: cfg.faucet_amount_cents || rawEnv.faucet_amount || 100000,
+      };
 
       panel.innerHTML =
         '<div class="card-grid">' +
           '<div class="card"><div class="card-title">Treasury hUSD</div><div class="card-value">' + (bal.treasury_husd!=null?HumanAds.formatCurrency(bal.treasury_husd):'-') + '</div><div class="card-sub">' + (bal.treasury_address?bal.treasury_address.substring(0,10)+'...':'Not configured') + '</div></div>' +
           '<div class="card"><div class="card-title">Treasury ETH (Gas)</div><div class="card-value">' + (bal.treasury_eth||'-') + '</div><div class="card-sub">Sepolia</div></div>' +
-          '<div class="card faucet"><div class="card-title">Faucet</div><div id="faucet-form"><div class="form-group"><label class="form-label">Recipient Address</label><input class="form-input" id="faucet-addr" placeholder="0x..."></div><div class="form-group"><label class="form-label">Amount: ' + HumanAds.formatCurrency(env.faucet_amount||100000) + '</label></div><button class="btn-sm primary" onclick="sendFaucet()" id="faucet-btn" style="width:100%;padding:10px;">Send hUSD</button><div id="faucet-status"></div></div></div>' +
+          '<div class="card faucet"><div class="card-title">Faucet</div><div id="faucet-form"><div class="form-group"><label class="form-label">Recipient Address</label><input class="form-input" id="faucet-addr" placeholder="0x..."></div><div class="form-group"><label class="form-label">Amount: ' + HumanAds.formatCurrency(env.faucet_amount) + '</label></div><button class="btn-sm primary" onclick="sendFaucet()" id="faucet-btn" style="width:100%;padding:10px;">Send hUSD</button><div id="faucet-status"></div></div></div>' +
         '</div>' +
 
         '<div class="config-info" style="margin-bottom:24px;">' +
-          '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + (env.payout_mode||'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + env.payout_mode + '</span></div>' +
           '<div class="config-row"><span class="config-label">Treasury Key</span><span class="config-val ' + (env.has_treasury_key?'ok':'err') + '">' + (env.has_treasury_key?'Available':'Missing') + '</span></div>' +
           '<div class="config-row"><span class="config-label">hUSD Contract</span><span class="config-val">' + (env.husd_contract?env.husd_contract.substring(0,12)+'...':'-') + '</span></div>' +
         '</div>' +
