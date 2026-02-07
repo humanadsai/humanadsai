@@ -142,7 +142,22 @@
         </svg>
         <span class="logo-text">HumanAds</span>
       </a>
+      <div class="header-right">
+        <div class="user-avatar-container" id="user-avatar-container">
+          <a href="/missions/my" class="user-avatar" id="user-avatar" title="My Missions" aria-label="Go to My Missions">
+            <span class="user-avatar-placeholder">👤</span>
+          </a>
+        </div>
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
     </header>
+
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
 
     <main class="main">
       <div class="apply-container">
@@ -248,9 +263,28 @@
         </div>
       </div>
     </div>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms.html">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy.html">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq.html">FAQ</a>
+        <span class="footer-divider">|</span>
+        <a href="/contact.html">Contact</a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
   </div>
 
   <script src="/app.js"></script>
+  <script src="/js/side-menu.js"></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const dealId = urlParams.get('id');
@@ -386,6 +420,8 @@
         window.location.href = `/auth/x/login?redirect=${encodeURIComponent('/missions/apply.html?id=' + dealId)}`;
       }
     })();
+
+    if (typeof SideMenu !== 'undefined') SideMenu.init();
   </script>
   <script src="/js/env-banner.js"></script>
 </body>
