@@ -1,11 +1,12 @@
 // AI Advertiser Submission & Payout Endpoints (Phase 5)
 //
-// GET  /missions/:id/submissions     - List submissions for a mission
-// POST /submissions/:id/approve      - Approve a submission
-// POST /submissions/:id/reject       - Reject a submission
-// POST /submissions/:id/payout       - Trigger payout
-// GET  /submissions/:id/payout       - Check payout status
-// GET  /payouts                       - List all payouts
+// GET  /missions/:id/submissions           - List submissions for a mission
+// POST /missions/:id/test-submission       - Create test submission (test mode only)
+// POST /submissions/:id/approve            - Approve a submission
+// POST /submissions/:id/reject             - Reject a submission
+// POST /submissions/:id/payout             - Trigger payout
+// GET  /submissions/:id/payout             - Check payout status
+// GET  /payouts                             - List all payouts
 
 import type { Env, Mission } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
@@ -138,6 +139,90 @@ export async function handleListSubmissions(
     total: total?.cnt || 0,
     has_more: (offset + limit) < (total?.cnt || 0)
   }, requestId);
+}
+
+/**
+ * Create a test submission (test mode only)
+ *
+ * POST /api/v1/missions/:dealId/test-submission
+ *
+ * Creates a simulated promoter submission so the advertiser can test
+ * the full approve/reject/payout flow in the playground.
+ */
+export async function handleCreateTestSubmission(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  dealId: string
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  // Only allowed in test mode
+  if (advertiser.mode !== 'test') {
+    return error('TEST_MODE_ONLY', 'Test submissions can only be created in test mode', requestId, 403);
+  }
+
+  // Verify deal ownership
+  const deal = await env.DB
+    .prepare('SELECT id, agent_id, reward_amount, metadata FROM deals WHERE id = ?')
+    .bind(dealId)
+    .first<{ id: string; agent_id: string; reward_amount: number; metadata: string | null }>();
+
+  if (!deal || deal.agent_id !== advertiser.id) {
+    return error('NOT_YOUR_MISSION', 'Mission not found or does not belong to you', requestId, 403);
+  }
+
+  // Create or get test operator
+  const testOperatorId = 'test_promoter_playground';
+  await env.DB
+    .prepare(`
+      INSERT OR IGNORE INTO operators (id, x_handle, display_name, status, created_at, updated_at)
+      VALUES (?, '@TestPromoter', 'Test Promoter (Playground)', 'verified', datetime('now'), datetime('now'))
+    `)
+    .bind(testOperatorId)
+    .run();
+
+  // Check for existing test submission on this deal
+  const existing = await env.DB
+    .prepare('SELECT id FROM missions WHERE deal_id = ? AND operator_id = ?')
+    .bind(dealId, testOperatorId)
+    .first();
+
+  if (existing) {
+    return error('ALREADY_EXISTS', 'A test submission already exists for this mission', requestId, 409);
+  }
+
+  // Create submission
+  const submissionId = generateRandomString(32);
+  const testUrl = 'https://x.com/TestPromoter/status/' + Date.now();
+
+  await env.DB
+    .prepare(`
+      INSERT INTO missions (id, deal_id, operator_id, status, submission_url,
+                            submission_content, submitted_at, created_at, updated_at)
+      VALUES (?, ?, ?, 'submitted', ?, ?, datetime('now'), datetime('now'), datetime('now'))
+    `)
+    .bind(
+      submissionId,
+      dealId,
+      testOperatorId,
+      testUrl,
+      'Test submission from API Playground. #HumanAds #ad @HumanAdsAI https://humanadsai.com'
+    )
+    .run();
+
+  return success({
+    submission_id: submissionId,
+    mission_id: dealId,
+    operator: {
+      id: testOperatorId,
+      x_handle: 'TestPromoter',
+      display_name: 'Test Promoter (Playground)'
+    },
+    submission_url: testUrl,
+    status: 'submitted',
+    submitted_at: new Date().toISOString()
+  }, requestId, 201);
 }
 
 /**

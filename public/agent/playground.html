@@ -627,14 +627,36 @@
     if (!S.missionId) return '<div class="info-box">Create a mission first.</div>';
     var h = '<div class="info-box">Share your mission link so human promoters can claim it. Poll this endpoint to check for submissions.</div>';
     h += credRow('Mission ID', S.missionId);
+
+    // Test submission button
+    h += '<div class="warn-box">No promoter yet? Create a simulated test submission to continue the flow.</div>';
+    h += curlBlock('POST', '/missions/' + S.missionId + '/test-submission', null, true);
+    h += '<button class="btn" onclick="createTestSubmission(this)" style="margin-bottom:16px;">Create Test Submission</button>';
+
+    h += '<div style="border-top:1px solid var(--color-border);padding-top:16px;margin-top:8px;">';
     h += curlBlock('GET', '/missions/' + S.missionId + '/submissions', null, true);
-    h += '<button class="btn" onclick="checkSubmissions(this)">Check Submissions</button>';
+    h += '<button class="btn btn-outline" onclick="checkSubmissions(this)">Check Submissions</button>';
+    h += '</div>';
     h += '<div id="sub-list" style="margin-top:12px"></div>';
     return h;
   }
 
+  async function createTestSubmission(btn) {
+    btn.disabled = true; btn.textContent = 'Creating...';
+    try {
+      var res = await api('POST', '/missions/' + S.missionId + '/test-submission');
+      if (res.success && res.data) {
+        showRes('submissions', true, res.data);
+        addTimeline('Test Submission', res.data.submission_id);
+        // Auto-check submissions to populate the list
+        await checkSubmissions();
+      } else { showRes('submissions', false, res); }
+    } catch (e) { showRes('submissions', false, { error: e.message }); }
+    finally { btn.disabled = false; btn.textContent = 'Create Test Submission'; }
+  }
+
   async function checkSubmissions(btn) {
-    btn.disabled = true; btn.textContent = 'Checking...';
+    if (btn) { btn.disabled = true; btn.textContent = 'Checking...'; }
     try {
       var res = await api('GET', '/missions/' + S.missionId + '/submissions');
       if (res.success && res.data) {
@@ -644,9 +666,10 @@
           var h = '<div style="font-family:var(--font-mono);font-size:0.7rem;margin-top:8px">';
           h += '<strong>' + S.submissions.length + ' submission(s) found</strong>';
           S.submissions.forEach(function(sub) {
-            h += '<div class="cred-row" style="margin-top:8px;cursor:pointer" onclick="selectSubmission(\'' + sub.id + '\')">';
+            var subId = sub.submission_id || sub.id;
+            h += '<div class="cred-row" style="margin-top:8px;cursor:pointer" onclick="selectSubmission(\'' + subId + '\')">';
             h += '<span class="cred-label">' + esc(sub.status) + '</span>';
-            h += '<span class="cred-val">' + esc(sub.id) + '</span>';
+            h += '<span class="cred-val">' + esc(subId) + '</span>';
             h += '</div>';
           });
           h += '</div>';
@@ -658,7 +681,7 @@
         }
       } else { showRes('submissions', false, res); }
     } catch (e) { showRes('submissions', false, { error: e.message }); }
-    finally { btn.disabled = false; btn.textContent = 'Check Submissions'; }
+    finally { if (btn) { btn.disabled = false; btn.textContent = 'Check Submissions'; } }
   }
 
   function selectSubmission(id) {
@@ -668,7 +691,7 @@
 
   // ── 6. Review & Approve ──
   function renderReview() {
-    if (!S.selectedSub && S.submissions.length) S.selectedSub = S.submissions[0].id;
+    if (!S.selectedSub && S.submissions.length) S.selectedSub = S.submissions[0].submission_id || S.submissions[0].id;
     if (!S.selectedSub) return '<div class="info-box">No submission selected.</div>';
     var sub = S.submissions.find(function(s) { return s.id === S.selectedSub; });
     var h = '';

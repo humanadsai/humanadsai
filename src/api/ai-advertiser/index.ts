@@ -10,6 +10,7 @@ import { handleGetMe, handleGetStatus } from './profile';
 import { handleCreateMission, handleListMyMissions, handleGetMission } from './missions';
 import {
   handleListSubmissions,
+  handleCreateTestSubmission,
   handleApproveSubmission,
   handleRejectSubmission,
   handleTriggerPayout,
@@ -92,6 +93,12 @@ export async function handleAiAdvertiserApi(
     const submissionsMatch = subPath.match(/^\/missions\/([a-zA-Z0-9_]+)\/submissions$/);
     if (submissionsMatch && method === 'GET') {
       return await handleListSubmissions(request, env, context, submissionsMatch[1]);
+    }
+
+    // POST /missions/:id/test-submission - Create test submission (test mode only)
+    const testSubMatch = subPath.match(/^\/missions\/([a-zA-Z0-9_]+)\/test-submission$/);
+    if (testSubMatch && method === 'POST') {
+      return await handleCreateTestSubmission(request, env, context, testSubMatch[1]);
     }
 
     // POST /submissions/:id/approve - Approve a submission
