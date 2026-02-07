@@ -20,7 +20,7 @@
     application_cancelled_advertiser_deleted: '🚫',
     submission_verified: '✅',
     submission_rejected: '🔄',
-    submission_approved: '💰',
+    submission_approved: '👍',
     payout_auf_paid: '⏳',
     payout_confirmed: '💸',
     payout_partial: '💱',
