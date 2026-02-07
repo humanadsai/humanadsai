@@ -305,6 +305,8 @@
           ${xHandle ? `<div class="profile-handle">@${xHandle.replace(/^@+/, '')}</div>` : ''}
           ${bio ? `<p class="profile-bio">${bio}</p>` : ''}
 
+          <div id="reputation-section" style="margin: 12px 0;"></div>
+
           <div class="profile-stats-grid">
             ${formattedFollowers ? `
             <div class="profile-stat">
@@ -328,12 +330,56 @@
             ` : ''}
           </div>
 
-          <div class="profile-rate">$50/Hr</div>
-          <div class="profile-rate-label">Hourly Rate</div>
-
           ${xLinkHtml}
         </div>
+        <div id="reviews-section"></div>
       `;
+
+      // Load reputation
+      loadReputation(operator.id);
+    }
+
+    async function loadReputation(id) {
+      try {
+        const res = await HumanAds.getReputation('operators', id);
+        if (!res.success || !res.data) return;
+        const rep = res.data.reputation;
+        const reviews = res.data.recent_reviews || [];
+
+        if (rep && rep.total_reviews > 0) {
+          const starsHtml = HumanAds.renderStars(Math.round(rep.avg_rating));
+          document.getElementById('reputation-section').innerHTML =
+            `<div style="text-align:center;">
+              ${starsHtml}
+              <span style="color:#FFD700;font-weight:600;">${rep.avg_rating.toFixed(1)}</span>
+              <span style="color:var(--color-text-muted);font-size:0.8rem;">(${rep.total_reviews} review${rep.total_reviews !== 1 ? 's' : ''})</span>
+            </div>`;
+
+          // Tag badges
+          const tags = rep.tag_counts || {};
+          const sortedTags = Object.keys(tags).sort((a,b) => tags[b] - tags[a]).slice(0, 5);
+          if (sortedTags.length > 0) {
+            const tagHtml = sortedTags.map(t =>
+              `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;background:rgba(255,255,255,0.05);border:1px solid var(--color-border);color:var(--color-text-muted);margin:2px;">${t.replace(/_/g,' ')} (${tags[t]})</span>`
+            ).join('');
+            document.getElementById('reputation-section').innerHTML += `<div style="text-align:center;margin-top:6px;">${tagHtml}</div>`;
+          }
+
+          // Reviews list
+          if (reviews.length > 0) {
+            let reviewsHtml = '<h3 style="font-size:0.9rem;margin:20px 0 12px;color:var(--color-text);">Reviews</h3>';
+            reviews.forEach(r => {
+              reviewsHtml += `<div style="padding:12px;border:1px solid var(--color-border);border-radius:8px;margin-bottom:8px;">
+                <div>${HumanAds.renderStars(r.rating)} <span style="font-size:0.7rem;color:var(--color-text-muted);">${HumanAds.formatRelativeTime(r.published_at)}</span></div>
+                ${r.comment ? `<p style="font-size:0.8rem;color:var(--color-text-muted);margin-top:6px;">${r.comment.replace(/</g,'&lt;')}</p>` : ''}
+              </div>`;
+            });
+            document.getElementById('reviews-section').innerHTML = reviewsHtml;
+          }
+        }
+      } catch (e) {
+        // Reputation not available — silent fail
+      }
     }
 
     loadProfile();
