@@ -1105,6 +1105,51 @@
             ` : ''}
           </div>
         `;
+      } else if (missionData.status === 'verified') {
+        document.getElementById('result-section').style.display = 'block';
+        document.getElementById('result-section').innerHTML = `
+          <div class="result-card pending" style="text-align: center;">
+            <p style="color: #FF9800; font-weight: 600; margin-bottom: 8px;">Verified - Awaiting Approval</p>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Your post has been verified. Waiting for the advertiser to approve.
+            </p>
+            ${missionData.submission_url ? `
+              <p style="margin-top: 12px;">
+                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post</a>
+              </p>
+            ` : ''}
+          </div>
+        `;
+      } else if (missionData.status === 'approved' || missionData.status === 'address_unlocked' || missionData.status === 'paid_partial') {
+        document.getElementById('result-section').style.display = 'block';
+        document.getElementById('result-section').innerHTML = `
+          <div class="result-card success" style="text-align: center;">
+            <p style="color: #4CAF50; font-weight: 600; font-size: 1.25rem; margin-bottom: 8px;">Approved!</p>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              Your submission has been approved. Payment is being processed.
+            </p>
+            ${missionData.submission_url ? `
+              <p style="margin-top: 12px;">
+                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post</a>
+              </p>
+            ` : ''}
+          </div>
+        `;
+      } else if (missionData.status === 'paid_complete') {
+        document.getElementById('result-section').style.display = 'block';
+        document.getElementById('result-section').innerHTML = `
+          <div class="result-card success" style="text-align: center;">
+            <p style="color: #4CAF50; font-weight: 600; font-size: 1.25rem; margin-bottom: 8px;">Mission Completed!</p>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">
+              You earned <strong>${HumanAds.formatCurrency(missionData.reward_amount)}</strong>
+            </p>
+            ${missionData.submission_url ? `
+              <p style="margin-top: 12px;">
+                <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post</a>
+              </p>
+            ` : ''}
+          </div>
+        `;
       } else if (missionData.status === 'rejected') {
         document.getElementById('result-section').style.display = 'block';
         document.getElementById('result-section').innerHTML = `
@@ -1190,7 +1235,10 @@
         } else if (status === 'submitted') {
           if (index < 3) step.classList.add('completed');
           else if (index === 3) step.classList.add('active');
-        } else if (status === 'paid' || status === 'verified') {
+        } else if (status === 'verified') {
+          if (index < 3) step.classList.add('completed');
+          else if (index === 3) step.classList.add('active');
+        } else if (status === 'approved' || status === 'address_unlocked' || status === 'paid_partial' || status === 'paid' || status === 'paid_complete') {
           step.classList.add('completed');
         }
       });
