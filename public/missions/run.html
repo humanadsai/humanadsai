@@ -1273,34 +1273,53 @@
         // Submit with the composed content for verification
         const result = await HumanAds.submitMission(missionData.id, url, composedPost);
 
-        // Show success state on button
         HumanAds.setButtonLoading(submitBtn, false);
-        submitBtn.disabled = true;
+
+        // Replace entire page with completion screen
+        const contentEl = document.getElementById('mission-content');
 
         if (result.status === 'paid') {
-          submitBtn.textContent = 'PAID - Mission Complete!';
-          submitBtn.style.background = '#4CAF50';
-          submitBtn.style.borderColor = '#4CAF50';
-          submitBtn.style.color = '#fff';
-          HumanAds.showAlert(`Mission completed! You earned ${HumanAds.formatCurrency(result.reward_amount)}`);
+          contentEl.innerHTML = `
+            <div style="text-align: center; padding: 48px 0;">
+              <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(76, 175, 80, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; border: 3px solid #4CAF50;">
+                <span style="font-size: 2.5rem; color: #4CAF50;">&#10003;</span>
+              </div>
+              <h2 style="font-size: 1.5rem; margin-bottom: 8px; color: #4CAF50;">Mission Complete!</h2>
+              <p style="color: var(--color-text-muted); margin-bottom: 24px;">Your post has been verified and payment is confirmed.</p>
+              <div style="background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px;">You earned</div>
+                <div style="font-size: 2rem; font-weight: 700; color: #4CAF50;">${HumanAds.formatCurrency(result.reward_amount)}</div>
+              </div>
+              <a href="/missions/my" class="btn btn-primary" style="display: inline-block; padding: 12px 32px;">Back to My Missions</a>
+            </div>
+          `;
         } else if (result.status === 'rejected') {
-          submitBtn.textContent = 'REJECTED - Check Requirements';
-          submitBtn.style.background = '#F44336';
-          submitBtn.style.borderColor = '#F44336';
-          submitBtn.style.color = '#fff';
-          HumanAds.showAlert('Verification failed. Please check the requirements.', 'error');
+          contentEl.innerHTML = `
+            <div style="text-align: center; padding: 48px 0;">
+              <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(244, 67, 54, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; border: 3px solid #F44336;">
+                <span style="font-size: 2.5rem; color: #F44336;">&#10007;</span>
+              </div>
+              <h2 style="font-size: 1.5rem; margin-bottom: 8px; color: #F44336;">Verification Failed</h2>
+              <p style="color: var(--color-text-muted); margin-bottom: 24px;">Your submission didn't meet the requirements. Please check the guidelines and try again.</p>
+              <a href="/missions/my" class="btn btn-primary" style="display: inline-block; padding: 12px 32px;">Back to My Missions</a>
+            </div>
+          `;
         } else {
-          submitBtn.textContent = 'SUBMITTED - Awaiting Verification';
-          submitBtn.style.background = '#4CAF50';
-          submitBtn.style.borderColor = '#4CAF50';
-          submitBtn.style.color = '#fff';
-          HumanAds.showAlert('Submitted! Awaiting verification.');
+          contentEl.innerHTML = `
+            <div style="text-align: center; padding: 48px 0;">
+              <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(76, 175, 80, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; border: 3px solid #4CAF50;">
+                <span style="font-size: 2.5rem; color: #4CAF50;">&#10003;</span>
+              </div>
+              <h2 style="font-size: 1.5rem; margin-bottom: 8px; color: #4CAF50;">Submitted Successfully!</h2>
+              <p style="color: var(--color-text-muted); margin-bottom: 24px;">Your post is now being reviewed by AI. This usually takes a few minutes.</p>
+              <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                <p style="color: #FF9800; font-size: 0.875rem;">You'll be notified when verification is complete.</p>
+              </div>
+              <p style="margin-bottom: 24px;"><a href="${escapeHtml(url)}" target="_blank" style="color: var(--color-primary); font-size: 0.85rem;">View your post</a></p>
+              <a href="/missions/my" class="btn btn-primary" style="display: inline-block; padding: 12px 32px;">Back to My Missions</a>
+            </div>
+          `;
         }
-
-        // Reload to show updated status
-        setTimeout(() => {
-          window.location.reload();
-        }, 2500);
       } catch (error) {
         HumanAds.showAlert(error.message || 'Failed to submit.', 'error');
         HumanAds.setButtonLoading(submitBtn, false);
