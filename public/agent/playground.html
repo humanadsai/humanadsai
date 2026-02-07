@@ -675,7 +675,7 @@
       var selected = S.selectedSub === subId ? ' selected' : '';
       var initial = (name || '?').charAt(0).toUpperCase();
 
-      h += '<div class="promoter-card' + selected + '" onclick="selectSubmission(\'' + subId + '\')">';
+      h += '<div class="promoter-card' + selected + '" data-id="' + subId + '" onclick="selectSubmission(\'' + subId + '\')">';
       h += '<div class="promoter-top">';
       h += '<div class="promoter-avatar">' + esc(initial) + '</div>';
       h += '<div>';
@@ -693,6 +693,7 @@
       if (desc) h += '<div class="promoter-desc">' + esc(desc) + '</div>';
       h += '</div>';
     });
+    h += '<button class="btn" id="btn-confirm-promoter" onclick="confirmPromoter()" disabled style="margin-top:12px;width:100%;">Select Promoter</button>';
     return h;
   }
 
@@ -752,6 +753,18 @@
 
   function selectSubmission(id) {
     S.selectedSub = id;
+    // Update card highlights
+    document.querySelectorAll('.promoter-card').forEach(function(c) { c.classList.remove('selected'); });
+    var card = document.querySelector('.promoter-card[data-id="' + id + '"]');
+    if (card) card.classList.add('selected');
+    // Enable confirm button
+    var btn = document.getElementById('btn-confirm-promoter');
+    if (btn) btn.disabled = false;
+  }
+
+  function confirmPromoter() {
+    if (!S.selectedSub) return;
+    addTimeline('Selected', S.selectedSub);
     nextStep();
   }
 
