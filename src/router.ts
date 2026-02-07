@@ -1173,6 +1173,19 @@ async function handleAdminApi(
     return getConfigHistory(request, env);
   }
 
+  // Fallback: serve static assets from /public via env.ASSETS
+  // For non-API paths, try serving from static assets before returning 404
+  if (!path.startsWith('/api/')) {
+    try {
+      const assetResponse = await env.ASSETS.fetch(request);
+      if (assetResponse.status !== 404) {
+        return assetResponse;
+      }
+    } catch {
+      // Asset fetch failed, fall through to 404
+    }
+  }
+
   return errors.notFound(generateRequestId(), 'Endpoint');
 }
 

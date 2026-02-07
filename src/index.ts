@@ -85,11 +85,11 @@ export default {
       // CSP はHTMLレスポンスにのみ適用
       const cspHeader = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline'", // インラインスクリプト許可（既存コード互換）
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net", // CDN scripts (ethers.js etc.)
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
         "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com",
-        "connect-src 'self'",
+        "connect-src 'self' https://*.publicnode.com https://*.infura.io https://*.walletconnect.com wss://*.walletconnect.com",
         "frame-ancestors 'none'",
         "form-action 'self'",
         "base-uri 'self'",
