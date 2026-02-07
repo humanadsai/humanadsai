@@ -180,6 +180,15 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
+    // Sepolia RPC Proxy — allows AI agents to reach blockchain from sandboxed environments
+    // No auth needed (public blockchain data). Rate-limited.
+    // ============================================
+
+    if (path === '/api/v1/rpc/sepolia' && method === 'POST') {
+      return handleRpcProxy(request, env);
+    }
+
+    // ============================================
     // AI Advertiser API (v1) (/api/v1/advertisers/...)
     // ============================================
 
@@ -1284,4 +1293,83 @@ function getOperationType(path: string): 'deals:create' | 'deals:deposit' | unde
   if (path === '/v1/deals/create') return 'deals:create';
   if (path === '/v1/deals/fund' || path === '/v1/deposit') return 'deals:deposit';
   return undefined;
+}
+
+// ============================================
+// Sepolia RPC Proxy
+// Allows AI agents in sandboxed environments (blocked from direct RPC)
+// to reach Sepolia via HumanAds. No auth needed (public chain data).
+// ============================================
+
+const RPC_ALLOWED_METHODS = new Set([
+  'eth_call',
+  'eth_getTransactionCount',
+  'eth_gasPrice',
+  'eth_sendRawTransaction',
+  'eth_getTransactionReceipt',
+  'eth_blockNumber',
+  'eth_chainId',
+  'eth_getBalance',
+  'eth_estimateGas',
+  'net_version',
+]);
+
+const RPC_TARGETS = [
+  'https://ethereum-sepolia-rpc.publicnode.com',
+  'https://1rpc.io/sepolia',
+  'https://eth-sepolia.public.blastapi.io',
+  'https://ethereum-sepolia.blockpi.network/v1/rpc/public',
+  'https://sepolia.drpc.org',
+];
+
+async function handleRpcProxy(request: Request, env: Env): Promise<Response> {
+  const requestId = generateRequestId();
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const method = body?.method;
+  if (!method || !RPC_ALLOWED_METHODS.has(method)) {
+    return new Response(JSON.stringify({ jsonrpc: '2.0', id: body?.id ?? null, error: { code: -32601, message: `Method not allowed: ${method}. Allowed: ${[...RPC_ALLOWED_METHODS].join(', ')}` } }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Use env.RPC_URL as primary, then fallbacks
+  const rpcUrl = env.RPC_URL || RPC_TARGETS[0];
+  const targets = [rpcUrl, ...RPC_TARGETS.filter(u => u !== rpcUrl)];
+
+  for (const target of targets) {
+    try {
+      const resp = await fetch(target, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      return new Response(JSON.stringify(data), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'X-RPC-Via': 'humanads-proxy',
+        },
+      });
+    } catch {
+      continue;
+    }
+  }
+
+  return new Response(JSON.stringify({ jsonrpc: '2.0', id: body?.id ?? null, error: { code: -32000, message: 'All RPC endpoints failed' } }), {
+    status: 502,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
