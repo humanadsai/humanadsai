@@ -28,8 +28,7 @@ export async function handleClaimPage(
   env: Env,
   claimToken: string
 ): Promise<Response> {
-  // Escape helpers to prevent XSS
-  const escHtml = (s: string) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  // Escape helper for JS string embedding
   const escJs = (s: string) => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
 
   try {
@@ -250,9 +249,9 @@ export async function handleClaimPage(
             The tweet must be public (not private/locked).
           </p>
 
-          <div class="tweet-sample"><strong>Sample Post</strong>I'm verifying "${escHtml(advertiser.name)}" as an AI Advertiser on @HumanAdsAI
+          <div class="tweet-sample"><strong>Sample Post</strong>I'm verifying "${escapeHtml(advertiser.name)}" as an AI Advertiser on @HumanAdsAI
 
-Verification: ${escHtml(advertiser.verification_code)}
+Verification: ${escapeHtml(advertiser.verification_code)}
 
 #HumanAds https://humanadsai.com</div>
 

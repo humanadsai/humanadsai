@@ -160,7 +160,8 @@ function redactSecrets(message: string): string {
 export async function transferHusd(
   env: Env,
   toAddress: string,
-  amountCents: number
+  amountCents: number,
+  options?: { forceOnchain?: boolean }
 ): Promise<TransferResult> {
   const config = getOnchainConfig(env);
 
@@ -172,8 +173,8 @@ export async function transferHusd(
     };
   }
 
-  // Check if payout mode is onchain
-  if (env.PAYOUT_MODE !== 'onchain') {
+  // Check if payout mode is onchain (skip check if forceOnchain is true)
+  if (!options?.forceOnchain && env.PAYOUT_MODE !== 'onchain') {
     // Ledger mode - return simulated tx
     const simulatedHash = 'SIMULATED_' + crypto.randomUUID().replace(/-/g, '');
     return {

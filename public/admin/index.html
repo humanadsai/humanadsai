@@ -621,7 +621,7 @@
         '<div class="section-header"><h2>Payout Test</h2></div>' +
         '<div class="card" style="margin-bottom:24px;"><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">' +
           '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Mission ID</label><input class="form-input" id="payout-mission-id" placeholder="Mission ID"></div>' +
-          '<div class="form-group" style="width:140px;"><label class="form-label">Mode</label><select class="form-select" id="payout-mode"><option value="ledger">Ledger (Simulated)</option><option value="testnet">Testnet (Real Tx)</option><option value="mainnet">Mainnet (REAL!)</option></select></div>' +
+          '<div class="form-group" style="width:140px;"><label class="form-label">Mode</label><select class="form-select" id="payout-mode"><option value="ledger">Ledger (Simulated)</option><option value="testnet">Testnet (Real Tx)</option></select></div>' +
           '<div class="form-group" style="display:flex;gap:8px;"><button class="btn-sm primary" onclick="testPayout(false)">Preview</button><button class="btn-sm success" onclick="testPayout(true)">Execute</button></div>' +
         '</div><div id="payout-result"></div></div>' +
 
@@ -677,7 +677,6 @@
     var mode = document.getElementById('payout-mode').value;
     var el = document.getElementById('payout-result');
     if (!missionId) { el.innerHTML = '<div class="status-msg error">Enter a Mission ID</div>'; return; }
-    if (execute && mode === 'mainnet' && !confirm('WARNING: This will transfer REAL funds on mainnet! Continue?')) return;
     el.innerHTML = '<div class="status-msg info">Processing...</div>';
     try {
       var res = await HumanAds.fetchApi('/admin/payout/test', { method: 'POST', body: JSON.stringify({ mission_id: missionId, mode: mode, execute: execute }) }, 60000);
@@ -777,7 +776,8 @@
   function txLink(hash) {
     if (!hash) return '-';
     if (hash.startsWith('SIMULATED_')) return '<span style="color:var(--color-text-muted);">simulated</span>';
-    return '<a class="tx-link" href="https://sepolia.etherscan.io/tx/' + hash + '" target="_blank">' + hash.substring(0,16) + '...</a>';
+    var safeHash = esc(hash);
+    return '<a class="tx-link" href="https://sepolia.etherscan.io/tx/' + safeHash + '" target="_blank">' + safeHash.substring(0,16) + '...</a>';
   }
   function fc(active, onclick, label) {
     return '<span class="filter-chip' + (active?' active':'') + '" onclick="' + onclick + '">' + label + '</span>';
