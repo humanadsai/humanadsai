@@ -393,12 +393,28 @@
         '<div class="section-header"><h2>Agents (' + agents.length + ')</h2>' +
         '<button class="btn-sm primary" onclick="createAgent()">+ New Agent</button></div>' +
         '<div class="filters">' +
-          fc(!status, 'loadAgents()', 'All') + fc(status==='approved', "loadAgents('approved')", 'Approved') +
+          fc(!status, 'loadAgents()', 'All') + fc(status==='approved'||status==='active', "loadAgents('active')", 'Active') +
           fc(status==='pending_review', "loadAgents('pending_review')", 'Pending') + fc(status==='suspended', "loadAgents('suspended')", 'Suspended') +
+          fc(status==='revoked', "loadAgents('revoked')", 'Revoked') +
         '</div>' +
         (agents.length === 0 ? '<div class="empty">No agents found</div>' :
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Created</th></tr></thead><tbody>' +
-        agents.map(function(a) { return '<tr><td class="id-cell">' + a.id.substring(0,8) + '..</td><td>' + esc(a.name) + '</td><td>' + esc(a.email) + '</td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td>' + HumanAds.formatDate(a.created_at) + '</td></tr>'; }).join('') +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>' +
+        agents.map(function(a) {
+          var actions = '';
+          if (a.status === 'active' || a.status === 'approved') {
+            actions = '<button class="btn-sm warning" onclick="suspendAgent(\'' + a.id + '\',\'' + esc(a.name) + '\')">Suspend</button> ' +
+                      '<button class="btn-sm danger" onclick="revokeAgent(\'' + a.id + '\',\'' + esc(a.name) + '\')">Delete</button>';
+          } else if (a.status === 'suspended') {
+            actions = '<button class="btn-sm restore" onclick="activateAgent(\'' + a.id + '\',\'' + esc(a.name) + '\')">Restore</button> ' +
+                      '<button class="btn-sm danger" onclick="revokeAgent(\'' + a.id + '\',\'' + esc(a.name) + '\')">Delete</button>';
+          } else if (a.status === 'revoked') {
+            actions = '<button class="btn-sm restore" onclick="activateAgent(\'' + a.id + '\',\'' + esc(a.name) + '\')">Restore</button>';
+          } else if (a.status === 'pending_review') {
+            actions = '<button class="btn-sm success" onclick="activateAgent(\'' + a.id + '\',\'' + esc(a.name) + '\')">Approve</button> ' +
+                      '<button class="btn-sm danger" onclick="revokeAgent(\'' + a.id + '\',\'' + esc(a.name) + '\')">Delete</button>';
+          }
+          return '<tr><td class="id-cell">' + a.id.substring(0,8) + '..</td><td>' + esc(a.name) + '</td><td>' + esc(a.email||'') + '</td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td>' + HumanAds.formatDate(a.created_at) + '</td><td style="white-space:nowrap">' + actions + '</td></tr>';
+        }).join('') +
         '</tbody></table></div>');
     } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
   }
@@ -408,6 +424,33 @@
     var email = prompt('Agent Email:'); if (!email) return;
     HumanAds.fetchApi('/admin/agents', { method: 'POST', body: JSON.stringify({ name: name, email: email, status: 'approved' }) })
       .then(function(r) { if (r.success) { HumanAds.showAlert('Agent created!'); loadAgents(); } else HumanAds.showAlert(r.error?.message||'Failed','error'); });
+  }
+
+  function suspendAgent(id, name) {
+    if (!confirm('Suspend agent "' + name + '"?\nTheir missions will be hidden from public listings.')) return;
+    HumanAds.fetchApi('/admin/agents/' + id, { method: 'PUT', body: JSON.stringify({ status: 'suspended' }) })
+      .then(function(r) {
+        if (r.success) { HumanAds.showAlert('Agent suspended'); loadAgents('suspended'); }
+        else HumanAds.showAlert(r.error?.message||'Failed','error');
+      });
+  }
+
+  function activateAgent(id, name) {
+    if (!confirm('Restore agent "' + name + '" to active?')) return;
+    HumanAds.fetchApi('/admin/agents/' + id, { method: 'PUT', body: JSON.stringify({ status: 'active' }) })
+      .then(function(r) {
+        if (r.success) { HumanAds.showAlert('Agent activated'); loadAgents(); }
+        else HumanAds.showAlert(r.error?.message||'Failed','error');
+      });
+  }
+
+  function revokeAgent(id, name) {
+    if (!confirm('DELETE agent "' + name + '"?\nThis will revoke their API key and hide all deals. This action is hard to undo.')) return;
+    HumanAds.fetchApi('/admin/agents/' + id, { method: 'DELETE' })
+      .then(function(r) {
+        if (r.success) { HumanAds.showAlert('Agent deleted'); loadAgents(); }
+        else HumanAds.showAlert(r.error?.message||'Failed','error');
+      });
   }
 
   // ════════════════════════════════════════════════
