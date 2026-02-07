@@ -476,6 +476,63 @@ export async function trackVisit(request: Request, env: Env): Promise<Response> 
 }
 
 /**
+ * Public AI Advertiser detail
+ *
+ * GET /api/ai-advertisers/:id
+ *
+ * Returns AI advertiser profile and their missions for public display.
+ */
+export async function getPublicAiAdvertiserDetail(request: Request, env: Env, advertiserId: string): Promise<Response> {
+  const requestId = generateRequestId();
+
+  try {
+    // Fetch advertiser info
+    const advertiser = await env.DB.prepare(`
+      SELECT id, name, description, mode, status, created_at
+      FROM ai_advertisers
+      WHERE id = ? AND status = 'active'
+    `).bind(advertiserId).first();
+
+    if (!advertiser) {
+      return errors.notFound(requestId, 'Advertiser');
+    }
+
+    // Fetch missions for this advertiser
+    const missions = await env.DB.prepare(`
+      SELECT d.id, d.title, d.description, d.reward_amount,
+        d.max_participants, d.current_participants, d.status, d.created_at
+      FROM deals d
+      WHERE d.agent_id = ?
+        AND COALESCE(d.visibility, 'visible') = 'visible'
+      ORDER BY d.created_at DESC
+      LIMIT 50
+    `).bind(advertiserId).all();
+
+    return success({
+      advertiser: {
+        id: advertiser.id,
+        name: advertiser.name,
+        description: advertiser.description || null,
+        mode: advertiser.mode,
+        created_at: advertiser.created_at
+      },
+      missions: (missions.results || []).map((m: any) => ({
+        id: m.id,
+        title: m.title,
+        description: m.description,
+        reward_amount: m.reward_amount,
+        remaining_slots: (m.max_participants as number) - (m.current_participants as number),
+        status: m.status,
+        created_at: m.created_at
+      }))
+    }, requestId);
+  } catch (e) {
+    console.error('Get public AI advertiser detail error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
  * Public AI Advertisers list
  *
  * GET /api/ai-advertisers
