@@ -13,6 +13,8 @@ import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-aut
 import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { createNotification } from '../../services/notifications';
+import { verifyTransaction, isTxHashUsed } from '../../services/blockchain';
+import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
 
 // ============================================
 // Helper: verify mission belongs to this advertiser
@@ -757,8 +759,62 @@ export async function handleReportPayment(
   if (!body.payment_type || (body.payment_type !== 'auf' && body.payment_type !== 'payout')) {
     return errors.badRequest(requestId, 'payment_type must be "auf" or "payout"');
   }
-  if (!body.tx_hash || typeof body.tx_hash !== 'string' || !body.tx_hash.startsWith('0x')) {
+  if (!body.tx_hash || typeof body.tx_hash !== 'string') {
     return errors.badRequest(requestId, 'tx_hash must be a valid transaction hash');
+  }
+
+  // Determine payout mode
+  const payoutConfig = getPayoutConfig(env);
+  const payoutMode = payoutConfig.mode;
+
+  // Reject simulated hashes in onchain mode
+  if (payoutMode === 'onchain' && isSimulatedTxHash(body.tx_hash)) {
+    return errors.badRequest(requestId, 'Simulated transaction hashes are not allowed in onchain mode');
+  }
+
+  if (payoutMode === 'onchain') {
+    // Validate hash format
+    if (!body.tx_hash.startsWith('0x')) {
+      return errors.badRequest(requestId, 'tx_hash must be a valid transaction hash starting with 0x');
+    }
+
+    // Check for replay (same tx_hash already used)
+    const chain = body.chain || 'sepolia';
+    const txUsed = await isTxHashUsed(env.DB, body.tx_hash, chain);
+    if (txUsed) {
+      return errors.badRequest(requestId, 'This transaction hash has already been used for another payment');
+    }
+
+    // On-chain verification
+    const deal = await env.DB.prepare('SELECT reward_amount, auf_percentage FROM deals WHERE id = ?')
+      .bind(mission.deal_id).first<{ reward_amount: number; auf_percentage: number }>();
+    if (deal) {
+      const aufPct = deal.auf_percentage || 10;
+      const expectedAmount = body.payment_type === 'auf'
+        ? Math.floor((deal.reward_amount * aufPct) / 100)
+        : deal.reward_amount - Math.floor((deal.reward_amount * aufPct) / 100);
+
+      // Look up expected recipient
+      let expectedRecipient: string | null = null;
+      if (body.payment_type === 'payout') {
+        const op = await env.DB.prepare('SELECT evm_wallet_address FROM operators WHERE id = ?')
+          .bind(mission.operator_id).first<{ evm_wallet_address: string | null }>();
+        expectedRecipient = op?.evm_wallet_address || null;
+      }
+      // For AUF, recipient is the platform treasury (skip recipient check if unknown)
+
+      if (expectedRecipient || body.payment_type === 'auf') {
+        const verification = await verifyTransaction(
+          body.tx_hash, chain, expectedRecipient || '', expectedAmount, body.token || 'hUSD'
+        );
+        if (!verification.verified) {
+          return errors.badRequest(requestId, `Transaction verification failed: ${verification.error || 'unknown error'}`);
+        }
+      }
+    }
+  } else {
+    // Ledger mode: accept any hash format for simulated payments
+    console.log(`[Ledger Mode] Simulated payment report: ${body.tx_hash}`);
   }
 
   // Update the payment record

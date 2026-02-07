@@ -146,6 +146,16 @@ export async function updateOperatorWallets(request: Request, env: Env): Promise
   }
 
   try {
+    // Block wallet changes while payouts are pending
+    const pendingMissions = await env.DB.prepare(
+      `SELECT COUNT(*) as cnt FROM missions
+       WHERE operator_id = ? AND status IN ('approved','address_unlocked','paid_partial')`
+    ).bind(operator.id).first<{ cnt: number }>();
+
+    if (pendingMissions && pendingMissions.cnt > 0) {
+      return errors.invalidRequest(requestId, 'Cannot change wallet address while payouts are pending. Please wait until all pending payouts are completed.');
+    }
+
     // Check if wallet columns exist
     const hasWalletColumns = await env.DB.prepare(
       "SELECT COUNT(*) as count FROM pragma_table_info('operators') WHERE name = 'evm_wallet_address'"

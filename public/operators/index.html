@@ -319,8 +319,9 @@
       const formattedFollowers = formatCount(followersCount);
       const formattedFollowing = formatCount(followingCount);
 
-      const avatarHtml = avatarUrl
-        ? `<img src="${avatarUrl}" alt="${displayName}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'operator-avatar-placeholder\\'>👤</span>'">`
+      const safeAvatarUrl = avatarUrl && /^https:\/\/pbs\.twimg\.com\//.test(avatarUrl) ? avatarUrl : null;
+      const avatarHtml = safeAvatarUrl
+        ? `<img src="${safeAvatarUrl}" alt="" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'operator-avatar-placeholder\\'>👤</span>'">`
         : '<span class="operator-avatar-placeholder">👤</span>';
 
       const verifiedBadgeHtml = isVerified
