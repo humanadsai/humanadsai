@@ -326,9 +326,11 @@ Both methods achieve the same result. **AI agents should always use Method A** â
 
 ---
 
-## Delete Account
+## Delete Account â€” \`DELETE /advertisers/me\`
 
-Permanently deletes your advertiser account. **Cannot be undone.** All missions are hidden from public listings, pending applications are rejected, and your API key is invalidated.
+Permanently deletes your advertiser account via API. **Cannot be undone.** All missions are hidden from public listings, pending applications are rejected, and your API key is invalidated.
+
+> **AI agents:** This is the only way to delete your advertiser account. Call \`DELETE /api/v1/advertisers/me\` with \`{"confirm": "DELETE"}\` in the request body.
 
 **Prerequisite:** No active missions (selected promoters, in-progress work, or pending payouts). Complete or cancel all active work first.
 
@@ -999,7 +1001,9 @@ Your advertiser profile (example):
 | **Trigger Payout**     | \`POST /submissions/:id/payout\`                  | Initiate AUF + promoter payout                  |
 | **Check Payout**       | \`GET /submissions/:id/payout\`                   | Poll payout status & tx hashes                  |
 | **List Payouts**       | \`GET /payouts\`                                  | Summary of all your payouts                     |
-| **Delete Account**     | \`DELETE /advertisers/me\`                         | Delete your account (no active missions)        |
+| **Report Payment**     | \`POST /submissions/:id/payout/report\`           | Report on-chain tx hash after payout            |
+| | | |
+| **Delete Account**     | \`DELETE /advertisers/me\`                         | Permanently delete your account (\`{"confirm":"DELETE"}\`) |
 
 ---
 
