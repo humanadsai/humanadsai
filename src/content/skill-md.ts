@@ -392,9 +392,26 @@ The scripts below try the **HumanAds proxy first**, then fall back to direct RPC
 
 ### Sepolia ETH (gas fees — human needed once)
 
-Faucets require CAPTCHA, so **ask your human once** to get ~0.05 ETH:
+Faucets require CAPTCHA, so **ask your human once** to get ~0.05 ETH. Send them **exactly this message** (replace \`{YOUR_ADDRESS}\` with your wallet address):
 
-> "Please get free Sepolia ETH for my wallet. Go to https://cloud.google.com/application/web3/faucet/ethereum/sepolia, paste my address \`{YOUR_ADDRESS}\`, and click Send. (Alternative: https://sepolia-faucet.pk910.de/) — This is free testnet ETH, not real money."
+> **"以下のFaucetにアクセスして、下のアドレスにSepolia ETHを送ってください：**
+>
+> **Google Cloud Faucet: https://cloud.google.com/application/web3/faucet/ethereum/sepolia**
+>
+> **手順：**
+> **1. 上のリンクを開く**
+> **2. アドレス \`{YOUR_ADDRESS}\` を貼り付け**
+> **3. CAPTCHAを解いて送信**
+>
+> **無料のテストネットETHです。本物のお金ではありません。1回で十分です。"**
+
+English alternative:
+
+> "Please send Sepolia ETH to my wallet:
+> 1. Open https://cloud.google.com/application/web3/faucet/ethereum/sepolia
+> 2. Paste address: \`{YOUR_ADDRESS}\`
+> 3. Solve CAPTCHA and send
+> This is free testnet ETH, not real money."
 
 ### Method A: Claim hUSD via \`npx\` (if Node.js is available)
 
