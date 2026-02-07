@@ -101,6 +101,19 @@
     .info-box a { color: var(--color-cyan); }
     .warn-box { background: rgba(255,149,0,0.1); border: 1px solid rgba(255,149,0,0.3); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 0.75rem; color: #ff9500; line-height: 1.5; }
 
+    /* Promoter cards */
+    .promoter-card { background: var(--color-background-light); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    .promoter-card:hover { border-color: var(--color-primary); background: rgba(255,107,53,0.05); }
+    .promoter-card.selected { border-color: var(--color-primary); background: rgba(255,107,53,0.1); }
+    .promoter-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .promoter-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--color-background-card); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .promoter-name { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; }
+    .promoter-handle { font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-cyan); }
+    .promoter-verified { color: #1d9bf0; font-size: 0.7rem; }
+    .promoter-stats { display: flex; gap: 12px; font-family: var(--font-mono); font-size: 0.6rem; color: var(--color-text-muted); margin-bottom: 4px; }
+    .promoter-stats span { display: flex; align-items: center; gap: 3px; }
+    .promoter-desc { font-size: 0.65rem; color: var(--color-text-muted); line-height: 1.4; }
+
     /* Completion banner */
     .done-banner { background: linear-gradient(135deg, rgba(76,175,80,0.2), rgba(0,212,255,0.2)); border: 1px solid var(--color-success); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 16px; }
     .done-banner h2 { font-family: var(--font-mono); font-size: 1.1rem; color: var(--color-success); margin-bottom: 8px; }
@@ -625,34 +638,99 @@
   // ── 5. Check Submissions ──
   function renderSubmissions() {
     if (!S.missionId) return '<div class="info-box">Create a mission first.</div>';
-    var h = '<div class="info-box">Share your mission link so human promoters can claim it. Poll this endpoint to check for submissions.</div>';
+    var h = '<div class="info-box">Seed test promoters to simulate real submissions, then select one to continue the flow.</div>';
     h += credRow('Mission ID', S.missionId);
 
-    // Test submission button
-    h += '<div class="warn-box">No promoter yet? Create a simulated test submission to continue the flow.</div>';
+    // Seed test promoters
     h += curlBlock('POST', '/missions/' + S.missionId + '/test-submission', null, true);
-    h += '<button class="btn" onclick="createTestSubmission(this)" style="margin-bottom:16px;">Create Test Submission</button>';
-
-    h += '<div style="border-top:1px solid var(--color-border);padding-top:16px;margin-top:8px;">';
-    h += curlBlock('GET', '/missions/' + S.missionId + '/submissions', null, true);
+    h += '<div class="btn-row" style="margin-bottom:16px;">';
+    h += '<button class="btn" onclick="seedTestPromoters(this)">Seed Test Promoters</button>';
     h += '<button class="btn btn-outline" onclick="checkSubmissions(this)">Check Submissions</button>';
     h += '</div>';
-    h += '<div id="sub-list" style="margin-top:12px"></div>';
+
+    h += '<div id="sub-list"></div>';
     return h;
   }
 
-  async function createTestSubmission(btn) {
-    btn.disabled = true; btn.textContent = 'Creating...';
+  function formatFollowers(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return n.toString();
+  }
+
+  function renderPromoterCards(submissions) {
+    var h = '<div style="font-family:var(--font-mono);font-size:0.7rem;margin-bottom:8px;">';
+    h += '<strong>' + submissions.length + ' promoter(s)</strong> — select one to continue';
+    h += '</div>';
+    submissions.forEach(function(sub) {
+      var subId = sub.submission_id || sub.id;
+      var op = sub.operator || {};
+      var handle = op.x_handle || sub.x_handle || '';
+      var name = op.display_name || sub.display_name || handle;
+      var followers = sub.x_followers_count || 0;
+      var tweets = sub.x_tweet_count || 0;
+      var missions = sub.total_missions_completed || 0;
+      var earnings = sub.total_earnings || 0;
+      var verified = sub.x_verified || 0;
+      var desc = sub.x_description || op.x_description || '';
+      var selected = S.selectedSub === subId ? ' selected' : '';
+      var initial = (name || '?').charAt(0).toUpperCase();
+
+      h += '<div class="promoter-card' + selected + '" onclick="selectSubmission(\'' + subId + '\')">';
+      h += '<div class="promoter-top">';
+      h += '<div class="promoter-avatar">' + esc(initial) + '</div>';
+      h += '<div>';
+      h += '<div class="promoter-name">' + esc(name);
+      if (verified) h += ' <span class="promoter-verified">&#10003;</span>';
+      h += '</div>';
+      h += '<div class="promoter-handle">' + esc(handle) + '</div>';
+      h += '</div></div>';
+      h += '<div class="promoter-stats">';
+      h += '<span>' + formatFollowers(followers) + ' followers</span>';
+      h += '<span>' + formatFollowers(tweets) + ' posts</span>';
+      h += '<span>' + missions + ' missions</span>';
+      h += '<span>$' + (earnings / 100).toFixed(0) + ' earned</span>';
+      h += '</div>';
+      if (desc) h += '<div class="promoter-desc">' + esc(desc) + '</div>';
+      h += '</div>';
+    });
+    return h;
+  }
+
+  async function seedTestPromoters(btn) {
+    btn.disabled = true; btn.textContent = 'Seeding...';
     try {
       var res = await api('POST', '/missions/' + S.missionId + '/test-submission');
       if (res.success && res.data) {
         showRes('submissions', true, res.data);
-        addTimeline('Test Submission', res.data.submission_id);
-        // Auto-check submissions to populate the list
-        await checkSubmissions();
-      } else { showRes('submissions', false, res); }
+        addTimeline('Seeded', res.data.count + ' test promoters');
+        // Load as submissions for card display
+        S.submissions = (res.data.promoters || []).map(function(p) {
+          return {
+            submission_id: p.submission_id,
+            status: p.status || 'submitted',
+            operator: { id: p.operator_id, x_handle: (p.x_handle || '').replace(/^@/, ''), display_name: p.display_name },
+            x_handle: p.x_handle,
+            display_name: p.display_name,
+            x_followers_count: p.x_followers_count,
+            x_tweet_count: p.x_tweet_count,
+            x_verified: p.x_verified,
+            total_missions_completed: p.total_missions_completed,
+            total_earnings: p.total_earnings,
+            x_description: p.x_description,
+            submission_url: p.submission_url
+          };
+        });
+        document.getElementById('sub-list').innerHTML = renderPromoterCards(S.submissions);
+      } else {
+        // If already seeded, auto-check submissions
+        if (res.error && res.error.code === 'ALREADY_SEEDED') {
+          await checkSubmissions();
+        } else {
+          showRes('submissions', false, res);
+        }
+      }
     } catch (e) { showRes('submissions', false, { error: e.message }); }
-    finally { btn.disabled = false; btn.textContent = 'Create Test Submission'; }
+    finally { btn.disabled = false; btn.textContent = 'Seed Test Promoters'; }
   }
 
   async function checkSubmissions(btn) {
@@ -663,21 +741,9 @@
         S.submissions = res.data.submissions || res.data || [];
         showRes('submissions', true, res.data);
         if (S.submissions.length > 0) {
-          var h = '<div style="font-family:var(--font-mono);font-size:0.7rem;margin-top:8px">';
-          h += '<strong>' + S.submissions.length + ' submission(s) found</strong>';
-          S.submissions.forEach(function(sub) {
-            var subId = sub.submission_id || sub.id;
-            h += '<div class="cred-row" style="margin-top:8px;cursor:pointer" onclick="selectSubmission(\'' + subId + '\')">';
-            h += '<span class="cred-label">' + esc(sub.status) + '</span>';
-            h += '<span class="cred-val">' + esc(subId) + '</span>';
-            h += '</div>';
-          });
-          h += '</div>';
-          document.getElementById('sub-list').innerHTML = h;
-          addTimeline('Submissions', S.submissions.length + ' found');
-          nextStep();
+          document.getElementById('sub-list').innerHTML = renderPromoterCards(S.submissions);
         } else {
-          document.getElementById('sub-list').innerHTML = '<div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--color-text-muted)">No submissions yet. Share the mission and wait for promoters to claim and submit.</div>';
+          document.getElementById('sub-list').innerHTML = '<div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--color-text-muted)">No submissions yet. Click "Seed Test Promoters" to generate test data.</div>';
         }
       } else { showRes('submissions', false, res); }
     } catch (e) { showRes('submissions', false, { error: e.message }); }
@@ -693,14 +759,17 @@
   function renderReview() {
     if (!S.selectedSub && S.submissions.length) S.selectedSub = S.submissions[0].submission_id || S.submissions[0].id;
     if (!S.selectedSub) return '<div class="info-box">No submission selected.</div>';
-    var sub = S.submissions.find(function(s) { return s.id === S.selectedSub; });
+    var sub = S.submissions.find(function(s) { return (s.submission_id || s.id) === S.selectedSub; });
     var h = '';
     if (sub) {
+      var op = sub.operator || {};
+      var handle = op.x_handle || sub.x_handle || '';
+      var name = op.display_name || sub.display_name || handle;
       h += '<div class="wallet-box">';
       h += '<div style="font-family:var(--font-mono);font-size:0.7rem;">';
-      h += '<div><strong>Submission:</strong> ' + esc(sub.id) + '</div>';
+      h += '<div><strong>Submission:</strong> ' + esc(sub.submission_id || sub.id) + '</div>';
+      if (name) h += '<div><strong>Promoter:</strong> ' + esc(name) + ' (' + esc(handle) + ')</div>';
       if (sub.submission_url) h += '<div><strong>URL:</strong> <a href="' + esc(sub.submission_url) + '" target="_blank">' + esc(sub.submission_url) + '</a></div>';
-      if (sub.operator_handle) h += '<div><strong>Promoter:</strong> @' + esc(sub.operator_handle) + '</div>';
       h += '<div><strong>Status:</strong> ' + esc(sub.status) + '</div>';
       h += '</div></div>';
     }

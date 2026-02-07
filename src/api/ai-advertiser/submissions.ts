@@ -141,13 +141,87 @@ export async function handleListSubmissions(
   }, requestId);
 }
 
+// Test promoter profiles (same as advertiser/test.ts)
+const TEST_PROMOTERS = [
+  {
+    id: 'op_test_alice',
+    x_handle: '@alice_web3',
+    x_user_id: 'test_alice_001',
+    display_name: 'Alice | Web3 Creator',
+    evm_wallet_address: '0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00',
+    x_followers_count: 12400,
+    x_tweet_count: 3200,
+    x_verified: 1,
+    total_missions_completed: 8,
+    total_earnings: 4200,
+    x_description: 'Web3 creator & DeFi enthusiast. Building the future of decentralized advertising.',
+    submission_url: 'https://x.com/alice_web3/status/1234567890',
+  },
+  {
+    id: 'op_test_bob',
+    x_handle: '@bob_crypto',
+    x_user_id: 'test_bob_002',
+    display_name: 'Bob Crypto Daily',
+    evm_wallet_address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    x_followers_count: 45200,
+    x_tweet_count: 8900,
+    x_verified: 1,
+    total_missions_completed: 23,
+    total_earnings: 15800,
+    x_description: 'Daily crypto analysis & insights. 45K+ community. DM for collabs.',
+    submission_url: 'https://x.com/bob_crypto/status/2345678901',
+  },
+  {
+    id: 'op_test_carol',
+    x_handle: '@carol_defi',
+    x_user_id: 'test_carol_003',
+    display_name: 'Carol',
+    evm_wallet_address: '0x2932b7A2355D6fecc4b5c0B6BD44cC31df247a2e',
+    x_followers_count: 2100,
+    x_tweet_count: 1100,
+    x_verified: 0,
+    total_missions_completed: 2,
+    total_earnings: 1000,
+    x_description: 'DeFi researcher. New to promotions but passionate about the space.',
+    submission_url: 'https://x.com/carol_defi/status/3456789012',
+  },
+  {
+    id: 'op_test_dave',
+    x_handle: '@dave_nft_king',
+    x_user_id: 'test_dave_004',
+    display_name: 'Dave NFT King',
+    evm_wallet_address: '0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db',
+    x_followers_count: 89500,
+    x_tweet_count: 15600,
+    x_verified: 1,
+    total_missions_completed: 47,
+    total_earnings: 38500,
+    x_description: 'NFT & crypto influencer. Top promoter on HumanAds. Always deliver quality.',
+    submission_url: 'https://x.com/dave_nft_king/status/4567890123',
+  },
+  {
+    id: 'op_test_eve',
+    x_handle: '@eve_blockchain',
+    x_user_id: 'test_eve_005',
+    display_name: 'Eve Blockchain Dev',
+    evm_wallet_address: '0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB',
+    x_followers_count: 6800,
+    x_tweet_count: 2400,
+    x_verified: 0,
+    total_missions_completed: 5,
+    total_earnings: 2500,
+    x_description: 'Blockchain developer & technical writer. I explain complex topics simply.',
+    submission_url: 'https://x.com/eve_blockchain/status/5678901234',
+  },
+];
+
 /**
- * Create a test submission (test mode only)
+ * Seed test promoters & submissions (test mode only)
  *
  * POST /api/v1/missions/:dealId/test-submission
  *
- * Creates a simulated promoter submission so the advertiser can test
- * the full approve/reject/payout flow in the playground.
+ * Creates 5 simulated promoter submissions so the advertiser can
+ * select one and test the full approve/reject/payout flow.
  */
 export async function handleCreateTestSubmission(
   request: Request,
@@ -172,56 +246,81 @@ export async function handleCreateTestSubmission(
     return error('NOT_YOUR_MISSION', 'Mission not found or does not belong to you', requestId, 403);
   }
 
-  // Create or get test operator
-  const testOperatorId = 'test_promoter_playground';
-  await env.DB
-    .prepare(`
-      INSERT OR IGNORE INTO operators (id, x_handle, display_name, status, created_at, updated_at)
-      VALUES (?, '@TestPromoter', 'Test Promoter (Playground)', 'verified', datetime('now'), datetime('now'))
-    `)
-    .bind(testOperatorId)
-    .run();
+  // Check if already seeded
+  const existingCount = await env.DB
+    .prepare('SELECT COUNT(*) as cnt FROM missions WHERE deal_id = ?')
+    .bind(dealId)
+    .first<{ cnt: number }>();
 
-  // Check for existing test submission on this deal
-  const existing = await env.DB
-    .prepare('SELECT id FROM missions WHERE deal_id = ? AND operator_id = ?')
-    .bind(dealId, testOperatorId)
-    .first();
-
-  if (existing) {
-    return error('ALREADY_EXISTS', 'A test submission already exists for this mission', requestId, 409);
+  if (existingCount && existingCount.cnt > 0) {
+    return error('ALREADY_SEEDED', 'Test promoters already seeded for this mission. Use Check Submissions to view them.', requestId, 409);
   }
 
-  // Create submission
-  const submissionId = generateRandomString(32);
-  const testUrl = 'https://x.com/TestPromoter/status/' + Date.now();
+  const promoters: any[] = [];
 
-  await env.DB
-    .prepare(`
-      INSERT INTO missions (id, deal_id, operator_id, status, submission_url,
-                            submission_content, submitted_at, created_at, updated_at)
-      VALUES (?, ?, ?, 'submitted', ?, ?, datetime('now'), datetime('now'), datetime('now'))
-    `)
-    .bind(
-      submissionId,
-      dealId,
-      testOperatorId,
-      testUrl,
-      'Test submission from API Playground. #HumanAds #ad @HumanAdsAI https://humanadsai.com'
-    )
-    .run();
+  for (const p of TEST_PROMOTERS) {
+    // Create or update test operator
+    await env.DB
+      .prepare(`
+        INSERT INTO operators (id, x_handle, x_user_id, display_name, status, evm_wallet_address,
+          x_followers_count, x_tweet_count, x_verified,
+          total_missions_completed, total_earnings, x_description,
+          created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'verified', ?,
+          ?, ?, ?,
+          ?, ?, ?,
+          datetime('now'), datetime('now'))
+        ON CONFLICT(id) DO UPDATE SET
+          x_followers_count = excluded.x_followers_count,
+          x_tweet_count = excluded.x_tweet_count,
+          total_missions_completed = excluded.total_missions_completed,
+          total_earnings = excluded.total_earnings
+      `)
+      .bind(
+        p.id, p.x_handle, p.x_user_id, p.display_name, p.evm_wallet_address,
+        p.x_followers_count, p.x_tweet_count, p.x_verified,
+        p.total_missions_completed, p.total_earnings, p.x_description
+      )
+      .run();
+
+    // Create submission (mission record with status 'submitted')
+    const submissionId = generateRandomString(32);
+    await env.DB
+      .prepare(`
+        INSERT INTO missions (id, deal_id, operator_id, status, submission_url,
+                              submission_content, submitted_at, created_at, updated_at)
+        VALUES (?, ?, ?, 'submitted', ?, ?, datetime('now'), datetime('now'), datetime('now'))
+      `)
+      .bind(
+        submissionId,
+        dealId,
+        p.id,
+        p.submission_url,
+        `Promoting HumanAds! #HumanAds #ad @HumanAdsAI https://humanadsai.com`
+      )
+      .run();
+
+    promoters.push({
+      submission_id: submissionId,
+      operator_id: p.id,
+      x_handle: p.x_handle,
+      display_name: p.display_name,
+      x_followers_count: p.x_followers_count,
+      x_tweet_count: p.x_tweet_count,
+      x_verified: p.x_verified,
+      total_missions_completed: p.total_missions_completed,
+      total_earnings: p.total_earnings,
+      x_description: p.x_description,
+      evm_wallet_address: p.evm_wallet_address,
+      submission_url: p.submission_url,
+      status: 'submitted',
+    });
+  }
 
   return success({
-    submission_id: submissionId,
-    mission_id: dealId,
-    operator: {
-      id: testOperatorId,
-      x_handle: 'TestPromoter',
-      display_name: 'Test Promoter (Playground)'
-    },
-    submission_url: testUrl,
-    status: 'submitted',
-    submitted_at: new Date().toISOString()
+    promoters,
+    count: promoters.length,
+    message: `${promoters.length} test promoters seeded with submissions.`,
   }, requestId, 201);
 }
 
