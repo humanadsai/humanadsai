@@ -192,8 +192,16 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       return handleRpcProxy(request, env);
     }
 
-    // Faucet helper endpoints — ALL GET, no POST needed from AI
-    // These let AI agents claim hUSD entirely via GET requests.
+    // Faucet endpoints — ALL GET
+    // /api/v1/faucet → help/discovery
+    if (path === '/api/v1/faucet' && method === 'GET') {
+      return faucetJsonResponse({
+        message: 'HumanAds Faucet API — claim 1,000 hUSD with one GET request',
+        claim: 'GET https://humanadsai.com/api/v1/faucet/claim?address=YOUR_ADDRESS',
+        balance: 'GET https://humanadsai.com/api/v1/faucet/balance?address=YOUR_ADDRESS',
+        note: 'The claim endpoint sends hUSD directly from the server. No signing, no POST, no RPC needed.',
+      });
+    }
     if (path === '/api/v1/faucet/prepare' && method === 'GET') {
       return handleFaucetPrepare(request, env);
     }
@@ -396,7 +404,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       headers.set('Pragma', 'no-cache');
 
       // バージョン管理用ヘッダー
-      headers.set('X-Skill-Version', '2.3.0-2026-02-07');
+      headers.set('X-Skill-Version', '2.8.0-2026-02-07');
 
       return new Response(SKILL_MD, {
         status: 200,
@@ -1452,6 +1460,8 @@ async function handleFaucetPrepare(request: Request, env: Env): Promise<Response
 
     return faucetJsonResponse({
       success: true,
+      IMPORTANT: '⚠️ DO NOT use faucet/send — it returns 403 from AI sandboxes. Use faucet/claim instead!',
+      easier_method: `GET https://humanadsai.com/api/v1/faucet/claim?address=${address} — server sends hUSD directly, no signing needed`,
       tx: {
         nonce,
         gasPrice,
@@ -1461,12 +1471,6 @@ async function handleFaucetPrepare(request: Request, env: Env): Promise<Response
         data: '0x4b8bcb58',
         chainId: 11155111,
       },
-      instructions: [
-        '1. Sign this transaction with your private key (EIP-155, chainId=11155111)',
-        '2. Send signed tx via GET: https://humanadsai.com/api/v1/faucet/send?tx=0xSIGNED_HEX',
-        '3. Check receipt via GET: https://humanadsai.com/api/v1/faucet/receipt?hash=0xTX_HASH',
-        '4. Check balance via GET: https://humanadsai.com/api/v1/faucet/balance?address=YOUR_ADDRESS',
-      ],
     });
   } catch (e: any) {
     return faucetJsonResponse({
