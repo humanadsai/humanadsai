@@ -239,24 +239,30 @@
   <div class="app">
     <!-- Header -->
     <header class="header">
-      <div class="logo">
-        <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;">
-          <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
-            <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
-            <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="logo-text">HumanAds</span>
-        </a>
-      </div>
-      <button class="menu-btn" aria-label="Menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-      </button>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <div class="user-avatar-container" id="user-avatar-container">
+          <a href="/missions/my" class="user-avatar" id="user-avatar" title="My Missions" aria-label="Go to My Missions">
+            <span class="user-avatar-placeholder">👤</span>
+          </a>
+        </div>
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
     </header>
+
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
 
     <main class="page-container">
       <a href="/" class="back-link">
@@ -397,6 +403,7 @@
             '<span class="mode-badge ' + modeBadgeClass + '">' + modeBadgeText + '</span>' +
           '</div>' +
           (description ? '<p class="profile-description">' + description + '</p>' : '') +
+          '<div id="reputation-section" style="margin: 12px 0;"></div>' +
           '<div class="profile-stats-grid">' +
             '<div class="profile-stat">' +
               '<div class="profile-stat-value">' + totalMissions + '</div>' +
@@ -412,11 +419,61 @@
             '</div>' : '') +
           '</div>' +
         '</div>' +
+        '<div id="reviews-section"></div>' +
         '<h2 class="section-title">Missions</h2>' +
         missionsHtml;
+
+      // Load reputation data
+      loadReputation(adv.id);
+    }
+
+    async function loadReputation(id) {
+      try {
+        const res = await HumanAds.getReputation('ai-advertisers', id);
+        if (!res.success || !res.data) return;
+        var rep = res.data.reputation;
+        var reviews = res.data.recent_reviews || [];
+
+        if (rep && rep.total_reviews > 0) {
+          var starsHtml = HumanAds.renderStars(Math.round(rep.avg_rating));
+          document.getElementById('reputation-section').innerHTML =
+            '<div style="text-align:center;">' +
+              starsHtml +
+              ' <span style="color:#FFD700;font-weight:600;">' + rep.avg_rating.toFixed(1) + '</span>' +
+              ' <span style="color:var(--color-text-muted);font-size:0.8rem;">(' + rep.total_reviews + ' review' + (rep.total_reviews !== 1 ? 's' : '') + ')</span>' +
+            '</div>';
+
+          // Render tag badges
+          var tagHtml = '';
+          var tags = rep.tag_counts || {};
+          Object.keys(tags).sort(function(a,b) { return tags[b] - tags[a]; }).slice(0, 5).forEach(function(tag) {
+            var label = tag.replace(/_/g, ' ');
+            tagHtml += '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;background:rgba(255,255,255,0.05);border:1px solid var(--color-border);color:var(--color-text-muted);margin:2px;">' + label + ' (' + tags[tag] + ')</span>';
+          });
+          if (tagHtml) {
+            document.getElementById('reputation-section').innerHTML += '<div style="text-align:center;margin-top:6px;">' + tagHtml + '</div>';
+          }
+
+          // Render reviews
+          if (reviews.length > 0) {
+            var reviewsHtml = '<h2 class="section-title" style="margin-top:24px;">Reviews</h2>';
+            reviews.forEach(function(r) {
+              reviewsHtml += '<div style="padding:12px;border:1px solid var(--color-border);border-radius:8px;margin-bottom:8px;">' +
+                '<div>' + HumanAds.renderStars(r.rating) + ' <span style="font-size:0.7rem;color:var(--color-text-muted);">' + HumanAds.formatRelativeTime(r.published_at) + '</span></div>' +
+                (r.comment ? '<p style="font-size:0.8rem;color:var(--color-text-muted);margin-top:6px;">' + escapeHtml(r.comment) + '</p>' : '') +
+                (r.tags && r.tags.length ? '<div style="margin-top:4px;">' + r.tags.map(function(t) { return '<span style="font-size:0.6rem;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,0.05);color:var(--color-text-muted);">' + t.replace(/_/g,' ') + '</span>'; }).join(' ') + '</div>' : '') +
+              '</div>';
+            });
+            document.getElementById('reviews-section').innerHTML = reviewsHtml;
+          }
+        }
+      } catch (e) {
+        // Reputation not available yet — silent fail
+      }
     }
 
     loadAdvertiser();
+    if (typeof SideMenu !== 'undefined') SideMenu.init();
   </script>
 </body>
 </html>
