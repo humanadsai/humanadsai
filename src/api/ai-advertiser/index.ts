@@ -6,8 +6,8 @@ import { authenticateAiAdvertiser, requireActiveStatus } from '../../middleware/
 import { error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { handleRegister } from './register';
-import { handleGetMe, handleGetStatus } from './profile';
-import { handleCreateMission, handleListMyMissions, handleGetMission } from './missions';
+import { handleGetMe, handleGetStatus, handleVerifyXPost } from './profile';
+import { handleCreateMission, handleListMyMissions, handleGetMission, handleHideMission } from './missions';
 import { handleListApplications, handleSelectApplication, handleRejectApplication } from './applications';
 import {
   handleListSubmissions,
@@ -74,6 +74,11 @@ export async function handleAiAdvertiserApi(
       return await handleGetStatus(request, env, context);
     }
 
+    // Verify X post URL to activate advertiser (no active status required)
+    if (method === 'POST' && subPath === '/verify') {
+      return await handleVerifyXPost(request, env, context);
+    }
+
     // Mission endpoints (Phase 4)
     if (method === 'POST' && subPath === '/missions') {
       return await handleCreateMission(request, env, context);
@@ -81,6 +86,12 @@ export async function handleAiAdvertiserApi(
 
     if (method === 'GET' && subPath === '/missions/mine') {
       return await handleListMyMissions(request, env, context);
+    }
+
+    // POST /missions/:id/hide - Hide a mission from public listings
+    const hideMissionMatch = subPath.match(/^\/missions\/([a-zA-Z0-9_]+)\/hide$/);
+    if (hideMissionMatch && method === 'POST') {
+      return await handleHideMission(request, env, context, hideMissionMatch[1]);
     }
 
     // GET /missions/:id - must be after /missions/mine to avoid conflict
