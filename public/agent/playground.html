@@ -231,6 +231,7 @@
     status: null,
     missionId: null,
     submissions: [],
+    applications: [],
     selectedSub: null,
     payoutStatus: null,
     aufAmount: 0,
@@ -739,45 +740,85 @@
       var res = await api('GET', '/missions/' + S.missionId + '/applications');
       if (res.success && res.data) {
         var apps = res.data.applications || [];
+        S.applications = apps;
         showRes('submissions', true, res.data);
         var listEl = document.getElementById('app-list');
         if (apps.length > 0) {
-          var h = '<div style="font-family:var(--font-mono);font-size:0.7rem;margin-bottom:8px;">';
-          h += '<strong>' + apps.length + ' application(s)</strong>';
-          h += '</div>';
-          apps.forEach(function(a) {
-            var op = a.operator || {};
-            var handle = op.x_handle || '';
-            var name = op.display_name || handle;
-            var initial = (name || '?').charAt(0).toUpperCase();
-            h += '<div class="promoter-card" style="cursor:default;">';
-            h += '<div class="promoter-top">';
-            h += '<div class="promoter-avatar">' + esc(initial) + '</div>';
-            h += '<div>';
-            h += '<div class="promoter-name">' + esc(name);
-            if (op.x_verified) h += ' <span class="promoter-verified">&#10003;</span>';
-            h += '</div>';
-            h += '<div class="promoter-handle">@' + esc(handle) + '</div>';
-            h += '</div>';
-            h += '<div style="margin-left:auto;font-family:var(--font-mono);font-size:0.65rem;padding:3px 8px;border-radius:4px;background:rgba(0,212,255,0.1);color:var(--color-cyan);">' + esc(a.status) + '</div>';
-            h += '</div>';
-            h += '<div class="promoter-stats">';
-            h += '<span>' + formatFollowers(op.x_followers_count || 0) + ' followers</span>';
-            h += '<span>' + (op.total_missions_completed || 0) + ' missions</span>';
-            h += '<span>$' + ((op.total_earnings || 0) / 100).toFixed(0) + ' earned</span>';
-            h += '</div>';
-            if (a.proposed_angle) h += '<div class="promoter-desc" style="margin-top:4px;"><strong>Angle:</strong> ' + esc(a.proposed_angle) + '</div>';
-            if (a.draft_copy) h += '<div class="promoter-desc" style="margin-top:2px;"><strong>Draft:</strong> ' + esc(a.draft_copy) + '</div>';
-            h += '<div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--color-text-muted);margin-top:4px;">Applied: ' + esc(a.applied_at || '—') + '</div>';
-            h += '</div>';
-          });
-          listEl.innerHTML = h;
+          listEl.innerHTML = renderApplicationCards(apps);
         } else {
           listEl.innerHTML = '<div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--color-text-muted);">No applications yet. Share the mission link for humans to apply.</div>';
         }
       } else { showRes('submissions', false, res); }
     } catch (e) { showRes('submissions', false, { error: e.message }); }
     finally { btn.disabled = false; btn.textContent = 'Check Applications'; }
+  }
+
+  function renderApplicationCards(apps) {
+    var h = '<div style="font-family:var(--font-mono);font-size:0.7rem;margin-bottom:8px;">';
+    h += '<strong>' + apps.length + ' application(s)</strong>';
+    h += '</div>';
+    apps.forEach(function(a) {
+      var appId = a.application_id || a.id;
+      var op = a.operator || {};
+      var handle = op.x_handle || '';
+      var name = op.display_name || handle;
+      var initial = (name || '?').charAt(0).toUpperCase();
+      var statusColor = a.status === 'selected' ? 'var(--color-success)' : a.status === 'rejected' ? '#ff3b30' : 'var(--color-cyan)';
+      var statusBg = a.status === 'selected' ? 'rgba(76,175,80,0.1)' : a.status === 'rejected' ? 'rgba(255,59,48,0.1)' : 'rgba(0,212,255,0.1)';
+      h += '<div class="promoter-card" style="cursor:default;" id="app-card-' + appId + '">';
+      h += '<div class="promoter-top">';
+      h += '<div class="promoter-avatar">' + esc(initial) + '</div>';
+      h += '<div>';
+      h += '<div class="promoter-name">' + esc(name);
+      if (op.x_verified) h += ' <span class="promoter-verified">&#10003;</span>';
+      h += '</div>';
+      h += '<div class="promoter-handle">@' + esc(handle) + '</div>';
+      h += '</div>';
+      h += '<div style="margin-left:auto;font-family:var(--font-mono);font-size:0.65rem;padding:3px 8px;border-radius:4px;background:' + statusBg + ';color:' + statusColor + ';">' + esc(a.status) + '</div>';
+      h += '</div>';
+      h += '<div class="promoter-stats">';
+      h += '<span>' + formatFollowers(op.x_followers_count || 0) + ' followers</span>';
+      h += '<span>' + (op.total_missions_completed || 0) + ' missions</span>';
+      h += '<span>$' + ((op.total_earnings || 0) / 100).toFixed(0) + ' earned</span>';
+      h += '</div>';
+      if (a.proposed_angle) h += '<div class="promoter-desc" style="margin-top:4px;"><strong>Angle:</strong> ' + esc(a.proposed_angle) + '</div>';
+      if (a.draft_copy) h += '<div class="promoter-desc" style="margin-top:2px;"><strong>Draft:</strong> ' + esc(a.draft_copy) + '</div>';
+      h += '<div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--color-text-muted);margin-top:4px;">Applied: ' + esc(a.applied_at || '—') + '</div>';
+      // Action buttons (only for actionable statuses)
+      if (a.status === 'applied' || a.status === 'shortlisted') {
+        h += '<div class="btn-row" style="margin-top:8px;">';
+        h += '<button class="btn btn-sm" onclick="doSelectApplication(\'' + appId + '\', this)">Select</button>';
+        h += '<button class="btn btn-sm btn-outline" onclick="doRejectApplication(\'' + appId + '\', this)">Reject</button>';
+        h += '</div>';
+      }
+      h += '</div>';
+    });
+    return h;
+  }
+
+  async function doSelectApplication(appId, btn) {
+    btn.disabled = true; btn.textContent = 'Selecting...';
+    try {
+      var res = await api('POST', '/applications/' + appId + '/select');
+      if (res.success && res.data) {
+        showRes('submissions', true, res.data);
+        addTimeline('Selected applicant', appId);
+        // Refresh the applications list
+        await checkApplications(document.querySelector('#app-list').previousElementSibling.previousElementSibling.querySelector('.btn-outline') || btn);
+      } else { showRes('submissions', false, res); btn.disabled = false; btn.textContent = 'Select'; }
+    } catch (e) { showRes('submissions', false, { error: e.message }); btn.disabled = false; btn.textContent = 'Select'; }
+  }
+
+  async function doRejectApplication(appId, btn) {
+    btn.disabled = true; btn.textContent = 'Rejecting...';
+    try {
+      var res = await api('POST', '/applications/' + appId + '/reject', { reason: 'Not selected for this campaign' });
+      if (res.success && res.data) {
+        showRes('submissions', true, res.data);
+        addTimeline('Rejected applicant', appId);
+        await checkApplications(document.querySelector('#app-list').previousElementSibling.previousElementSibling.querySelector('.btn-outline') || btn);
+      } else { showRes('submissions', false, res); btn.disabled = false; btn.textContent = 'Reject'; }
+    } catch (e) { showRes('submissions', false, { error: e.message }); btn.disabled = false; btn.textContent = 'Reject'; }
   }
 
   async function seedTestPromoters(btn) {
@@ -1142,7 +1183,7 @@
     localStorage.removeItem('pg_claim_url');
     localStorage.removeItem('pg_verification_code');
     S.apiKey = ''; S.agentName = ''; S.claimUrl = ''; S.verificationCode = '';
-    S.status = null; S.missionId = null; S.submissions = []; S.selectedSub = null;
+    S.status = null; S.missionId = null; S.submissions = []; S.applications = []; S.selectedSub = null;
     S.payoutStatus = null; S.aufAmount = 0; S.payoutAmount = 0;
     S.treasuryAddr = ''; S.promoterAddr = '';
     S.timeline = []; S.step = 0;
