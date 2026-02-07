@@ -58,7 +58,56 @@
     .profile-handle {
       font-size: 0.875rem;
       color: var(--color-text-muted);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .profile-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
       margin-bottom: var(--spacing-md);
+    }
+
+    .profile-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .profile-meta-item svg {
+      width: 12px;
+      height: 12px;
+      opacity: 0.6;
+    }
+
+    .profile-x-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-md);
+      font-size: 0.8rem;
+    }
+
+    .profile-x-stat {
+      text-align: center;
+    }
+
+    .profile-x-stat-value {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .profile-x-stat-label {
+      font-size: 0.65rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     .profile-bio {
@@ -265,7 +314,7 @@
       const displayName = operator.display_name || operator.x_handle || 'Human';
       const avatarUrl = operator.avatar_url;
       const xHandle = operator.x_handle;
-      const bio = operator.bio || '';
+      const bio = operator.x_description || operator.bio || '';
       const totalMissions = operator.total_missions_completed || 0;
       const totalEarnings = operator.total_earnings || 0;
 
@@ -273,25 +322,60 @@
       document.title = `${displayName} - HumanAds`;
 
       const avatarHtml = avatarUrl
-        ? `<img src="${avatarUrl}" alt="${displayName}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\"font-size:2.5rem;color:var(--color-text-muted)\">👤</span>'">`
+        ? `<img src="${avatarUrl.replace('_normal.', '_200x200.')}" alt="${displayName}" onerror="this.src='${avatarUrl}'; this.onerror=function(){this.style.display='none'; this.parentElement.innerHTML='<span style=\\'font-size:2.5rem;color:var(--color-text-muted)\\'>👤</span>'}">`
         : '<span style="font-size:2.5rem;color:var(--color-text-muted)">👤</span>';
 
       const verifiedBadgeHtml = operator.x_verified
         ? `<span class="human-verified-badge" style="font-size: 0.75rem;">
              <svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-             Verified
+             ${operator.x_verified_type || 'Verified'}
            </span>`
         : '';
 
       const xLinkHtml = xHandle
-        ? `<a href="https://x.com/${xHandle}" target="_blank" rel="noopener noreferrer" class="x-link">
+        ? `<a href="https://x.com/${xHandle.replace(/^@+/, '')}" target="_blank" rel="noopener noreferrer" class="x-link">
              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
              @${xHandle.replace(/^@+/, '')}
            </a>`
         : '';
 
-      const followersCount = operator.x_followers_count;
-      const formattedFollowers = formatFollowerCount(followersCount);
+      // X stats row (followers, following, posts)
+      const followers = operator.x_followers_count || 0;
+      const following = operator.x_following_count || 0;
+      const tweets = operator.x_tweet_count || 0;
+      const hasXStats = followers > 0 || following > 0 || tweets > 0;
+
+      let xStatsHtml = '';
+      if (hasXStats) {
+        xStatsHtml = '<div class="profile-x-stats">';
+        if (followers > 0) xStatsHtml += `<div class="profile-x-stat"><div class="profile-x-stat-value">${formatFollowerCount(followers)}</div><div class="profile-x-stat-label">Followers</div></div>`;
+        if (following > 0) xStatsHtml += `<div class="profile-x-stat"><div class="profile-x-stat-value">${formatFollowerCount(following)}</div><div class="profile-x-stat-label">Following</div></div>`;
+        if (tweets > 0) xStatsHtml += `<div class="profile-x-stat"><div class="profile-x-stat-value">${formatFollowerCount(tweets)}</div><div class="profile-x-stat-label">Posts</div></div>`;
+        xStatsHtml += '</div>';
+      }
+
+      // Meta info (location, X account age)
+      let metaItems = [];
+      if (operator.x_location) {
+        metaItems.push(`<span class="profile-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> ${escapeHtml(operator.x_location)}</span>`);
+      }
+      if (operator.x_url) {
+        const urlDisplay = operator.x_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+        metaItems.push(`<span class="profile-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> <a href="${escapeHtml(operator.x_url)}" target="_blank" style="color:var(--color-text-muted);text-decoration:none;">${escapeHtml(urlDisplay)}</a></span>`);
+      }
+      if (operator.x_created_at) {
+        const xJoined = new Date(operator.x_created_at);
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        metaItems.push(`<span class="profile-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> X since ${monthNames[xJoined.getMonth()]} ${xJoined.getFullYear()}</span>`);
+      }
+      const metaHtml = metaItems.length > 0 ? `<div class="profile-meta">${metaItems.join('')}</div>` : '';
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
 
       document.getElementById('profile-content').innerHTML = `
         <div class="profile-card">
@@ -299,21 +383,17 @@
             ${avatarHtml}
           </div>
           <div class="profile-name">
-            ${displayName}
+            ${escapeHtml(displayName)}
             ${verifiedBadgeHtml}
           </div>
           ${xHandle ? `<div class="profile-handle">@${xHandle.replace(/^@+/, '')}</div>` : ''}
-          ${bio ? `<p class="profile-bio">${bio}</p>` : ''}
+          ${xStatsHtml}
+          ${metaHtml}
+          ${bio ? `<p class="profile-bio">${escapeHtml(bio)}</p>` : ''}
 
           <div id="reputation-section" style="margin: 12px 0;"></div>
 
           <div class="profile-stats-grid">
-            ${formattedFollowers ? `
-            <div class="profile-stat">
-              <div class="profile-stat-value">${formattedFollowers}</div>
-              <div class="profile-stat-label">X Followers</div>
-            </div>
-            ` : ''}
             <div class="profile-stat">
               <div class="profile-stat-value">${totalMissions}</div>
               <div class="profile-stat-label">Missions</div>
