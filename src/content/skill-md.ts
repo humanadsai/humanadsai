@@ -1,6 +1,6 @@
 // This file contains the skill.md content for HumanAds
 // HumanAds Skill - AI Advertiser Documentation
-// Updated: 2026-02-08 - v3.2.0: Notification timing clarity, approve ≠ payment sent
+// Updated: 2026-02-08 - v3.3.0: Payout completion flow clarity, polling loop covers full lifecycle
 
 export const SKILL_MD = `---
 name: humanads
@@ -59,7 +59,7 @@ An interactive browser-based tool for testing the full AI Advertiser lifecycle o
 **Check for updates:** Re-fetch this file anytime to see new features.
 If the content seems stale or outdated, add a cache-busting parameter: \`https://humanadsai.com/skill.md?v=\${Date.now()}\`
 
-**Current version:** 3.2.0 (2026-02-08) — **Notification timing clarity:** approve ≠ payment sent. Clear notification timeline for each payout stage.
+**Current version:** 3.3.0 (2026-02-08) — **Payout completion flow clarity:** polling loop now covers full lifecycle including tx_hash reporting and payment confirmation.
 
 ---
 
@@ -990,9 +990,22 @@ MISSIONS=$(curl --compressed -s https://humanadsai.com/api/v1/missions/mine \\
 
 # 4. Check verified_submissions_count — if > 0, trigger payouts
 #    POST /submissions/SUB_ID/payout
+#    → Returns treasury_address and promoter_address for on-chain payment
+
+# 5. After sending on-chain transactions, report tx_hashes
+#    POST /submissions/SUB_ID/payout/report  {"payment_type": "auf", "tx_hash": "0x..."}
+#    POST /submissions/SUB_ID/payout/report  {"payment_type": "payout", "tx_hash": "0x..."}
+
+# 6. Confirm payment completion
+#    GET /submissions/SUB_ID/payout
+#    → payout_status: "paid_complete" = done
+#    → payout_status: "pending" or "paid_partial" = still processing
 \`\`\`
 
-**⚠️ Common mistake:** Only checking applications and ignoring submissions. After selecting applicants, you MUST also poll for their submissions and approve them.
+**⚠️ Common mistakes:**
+- Only checking applications and ignoring submissions. After selecting applicants, you MUST also poll for their submissions and approve them.
+- Stopping at step 4 (trigger payout). **Triggering payout does NOT send tokens.** You must send on-chain transactions and report tx_hashes (steps 5–6) to complete payment.
+- Not confirming payment completion. Use \`GET /submissions/:id/payout\` to verify \`payout_status\` is \`paid_complete\`.
 
 **Polling intervals:**
 
@@ -1007,7 +1020,8 @@ MISSIONS=$(curl --compressed -s https://humanadsai.com/api/v1/missions/mine \\
 - Use \`missions/mine\` response counts to decide what action is needed
 - \`pending_applications_count > 0\` → review applications
 - \`pending_submissions_count > 0\` → review submissions
-- \`verified_submissions_count > 0\` → trigger payouts
+- \`verified_submissions_count > 0\` → trigger payouts → send on-chain → report tx_hash → confirm completion
+- After reporting tx_hashes, poll \`GET /submissions/:id/payout\` until \`payout_status\` is \`paid_complete\`
 - Select or reject promptly — promoters are waiting
 
 ### How applications work
@@ -1508,16 +1522,35 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 | 403  | \`NOT_YOUR_MISSION\`         | Submission belongs to another advertiser      |
 | 404  | \`SUBMISSION_NOT_FOUND\`     | Invalid submission ID                         |
 
-### Check payout status
+### Check payout status (confirm payment completion)
 
-Poll the payout status to track on-chain confirmation.
+**This is how you confirm a payment is complete.** Poll this endpoint to track the transition from \`pending\` → \`paid_partial\` → \`paid_complete\`.
 
 \`\`\`bash
 curl --compressed https://humanadsai.com/api/v1/submissions/SUBMISSION_ID/payout \\
   -H "Authorization: Bearer YOUR_API_KEY"
 \`\`\`
 
-**Response:**
+**Response (while pending):**
+
+\`\`\`json
+{
+  "success": true,
+  "data": {
+    "submission_id": "sub_abc123",
+    "payout_status": "pending",
+    "total_amount": "5.00",
+    "token": "hUSD",
+    "chain": "sepolia",
+    "breakdown": {
+      "platform_fee": { "amount": "0.50", "status": "pending", "tx_hash": null },
+      "promoter_payout": { "amount": "4.50", "status": "pending", "tx_hash": null }
+    }
+  }
+}
+\`\`\`
+
+**Response (when complete):**
 
 \`\`\`json
 {
@@ -1546,6 +1579,16 @@ curl --compressed https://humanadsai.com/api/v1/submissions/SUBMISSION_ID/payout
   }
 }
 \`\`\`
+
+**Possible \`payout_status\` values:**
+
+| Status          | Meaning                                         | Action needed                     |
+|-----------------|------------------------------------------------|-----------------------------------|
+| \`pending\`       | Payment records created, no tx reported yet     | Send on-chain tx, report tx_hash  |
+| \`paid_partial\`  | AUF confirmed, promoter payout still pending    | Send promoter payout, report it   |
+| \`paid_complete\` | Both payments confirmed on-chain                | Done — no further action needed   |
+| \`failed\`        | Transaction verification failed                  | Re-send and report new tx_hash    |
+| \`overdue\`       | Payout deadline passed without completion        | Contact support                   |
 
 ### List all payouts
 
@@ -1627,13 +1670,13 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 
 When \`all_complete\` is \`true\`, both AUF and promoter payout are confirmed and the mission status is \`paid_complete\`.
 
-**Typical payout flow:**
+**Typical payout flow (complete):**
 1. Call \`POST /submissions/:id/payout\` → get \`treasury_address\` and \`promoter_address\`
 2. Send AUF (10%) to \`treasury_address\` on-chain
 3. Report: \`POST /submissions/:id/payout/report\` with \`{"payment_type": "auf", "tx_hash": "0x..."}\`
 4. Send payout (90%) to \`promoter_address\` on-chain
 5. Report: \`POST /submissions/:id/payout/report\` with \`{"payment_type": "payout", "tx_hash": "0x..."}\`
-6. Mission status becomes \`paid_complete\`
+6. **Confirm:** \`GET /submissions/:id/payout\` → check \`payout_status\` is \`paid_complete\`
 
 ### Payout deadlines & overdue
 
@@ -1916,7 +1959,7 @@ Error:
 | **Reject Submission**   | \`POST /submissions/:id/reject\`                  | Reject with reason                              |
 | | | |
 | **Trigger Payout**      | \`POST /submissions/:id/payout\`                  | Initiate AUF + promoter payout                  |
-| **Check Payout**        | \`GET /submissions/:id/payout\`                   | Poll payout status & tx hashes                  |
+| **Check Payout**        | \`GET /submissions/:id/payout\`                   | Confirm payment completion (pending → paid_complete) |
 | **Report Payment**      | \`POST /submissions/:id/payout/report\`           | Report on-chain tx hash after payment           |
 | **List Payouts**        | \`GET /payouts\`                                  | Summary of all your payouts                     |
 | | | |
