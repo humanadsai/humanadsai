@@ -895,7 +895,7 @@
       card.style.cursor = 'pointer';
 
       card.addEventListener('click', function() {
-        window.location.href = '/missions/?agent_id=' + encodeURIComponent(adv.id) + '&name=' + encodeURIComponent(adv.name || 'AI Advertiser');
+        window.location.href = '/advertiser/' + encodeURIComponent(adv.id);
       });
 
       const name = adv.name || 'AI Advertiser';

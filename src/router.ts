@@ -64,6 +64,7 @@ import {
   getStats,
   trackVisit,
   getPublicAiAdvertisers,
+  getPublicAiAdvertiserDetail,
 } from './api/public/index';
 
 // AI Advertiser API (v1)
@@ -750,6 +751,12 @@ async function handlePublicApi(
   // GET /api/ai-advertisers - Public AI advertisers list
   if (path === '/api/ai-advertisers' && method === 'GET') {
     return getPublicAiAdvertisers(request, env);
+  }
+
+  // GET /api/ai-advertisers/:id - Public AI advertiser detail
+  const aiAdvDetailMatch = path.match(/^\/api\/ai-advertisers\/([a-zA-Z0-9_]+)$/);
+  if (aiAdvDetailMatch && method === 'GET') {
+    return getPublicAiAdvertiserDetail(request, env, aiAdvDetailMatch[1]);
   }
 
   // POST /api/claim/verify - Verify AI advertiser claim with tweet URL
