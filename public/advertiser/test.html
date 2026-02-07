@@ -2875,7 +2875,7 @@ contract HumanAdsTestUSD {
       }
     }
 
-    async function unlockAddress() {
+    async function unlockAddress(retryCount = 0) {
       const btn = document.getElementById('btn-unlock');
       const txHash = document.getElementById('auf-tx-hash').value.trim();
 
@@ -2889,7 +2889,9 @@ contract HumanAdsTestUSD {
       }
 
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Verifying...';
+      btn.innerHTML = retryCount > 0
+        ? '<span class="spinner"></span> Waiting for confirmation (' + retryCount + ')...'
+        : '<span class="spinner"></span> Verifying on-chain...';
 
       try {
         const res = await HumanAds.fetchApi(`/advertiser/test/applications/${state.applicationId}/unlock-address`, {
@@ -2900,6 +2902,12 @@ contract HumanAdsTestUSD {
             token: 'hUSD',
           }),
         });
+
+        // Auto-retry if tx not yet confirmed (up to 10 times, 3s interval)
+        if (!res.success && res.error?.message?.includes('not yet confirmed') && retryCount < 10) {
+          await new Promise(r => setTimeout(r, 3000));
+          return unlockAddress(retryCount + 1);
+        }
 
         if (res.success && res.data) {
           // Normalize wallet address with EIP-55 checksum
@@ -2942,7 +2950,7 @@ contract HumanAdsTestUSD {
       btn.innerHTML = 'Verify & Unlock Address';
     }
 
-    async function confirmPayout() {
+    async function confirmPayout(retryCount = 0) {
       const btn = document.getElementById('btn-confirm');
       const txHash = document.getElementById('payout-tx-hash').value.trim();
 
@@ -2956,7 +2964,9 @@ contract HumanAdsTestUSD {
       }
 
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Confirming...';
+      btn.innerHTML = retryCount > 0
+        ? '<span class="spinner"></span> Waiting for confirmation (' + retryCount + ')...'
+        : '<span class="spinner"></span> Verifying on-chain...';
 
       try {
         const res = await HumanAds.fetchApi(`/advertiser/test/applications/${state.applicationId}/confirm-payout`, {
@@ -2967,6 +2977,12 @@ contract HumanAdsTestUSD {
             token: 'hUSD',
           }),
         });
+
+        // Auto-retry if tx not yet confirmed (up to 10 times, 3s interval)
+        if (!res.success && res.error?.message?.includes('not yet confirmed') && retryCount < 10) {
+          await new Promise(r => setTimeout(r, 3000));
+          return confirmPayout(retryCount + 1);
+        }
 
         if (res.success && res.data) {
           showResult('step-f', true, { status: 'paid_complete' });
@@ -2992,6 +3008,8 @@ contract HumanAdsTestUSD {
     function startOver() {
       Object.assign(state, {
         dealId: null,
+        applicants: null,
+        selectedApplicantIndex: null,
         applicationId: null,
         missionId: null,
         operatorWallet: null,
