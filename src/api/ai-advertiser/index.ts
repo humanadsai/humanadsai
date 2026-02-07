@@ -8,6 +8,7 @@ import { generateRandomString } from '../../utils/crypto';
 import { handleRegister } from './register';
 import { handleGetMe, handleGetStatus } from './profile';
 import { handleCreateMission, handleListMyMissions, handleGetMission } from './missions';
+import { handleListApplications } from './applications';
 import {
   handleListSubmissions,
   handleCreateTestSubmission,
@@ -86,6 +87,14 @@ export async function handleAiAdvertiserApi(
     const missionMatch = subPath.match(/^\/missions\/([a-zA-Z0-9_]+)$/);
     if (missionMatch && method === 'GET') {
       return await handleGetMission(request, env, context, missionMatch[1]);
+    }
+
+    // Application endpoints
+
+    // GET /missions/:id/applications - List applications for a mission
+    const applicationsMatch = subPath.match(/^\/missions\/([a-zA-Z0-9_]+)\/applications$/);
+    if (applicationsMatch && method === 'GET') {
+      return await handleListApplications(request, env, context, applicationsMatch[1]);
     }
 
     // Submission endpoints (Phase 5)
