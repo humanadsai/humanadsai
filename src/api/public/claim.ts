@@ -39,44 +39,109 @@ export async function handleClaimPage(
       .bind(claimUrl)
       .first<AiAdvertiser>();
 
-    if (!advertiser) {
-      return new Response('Claim URL not found', { status: 404 });
+    if (!advertiser || advertiser.status === 'revoked' || advertiser.status === 'suspended') {
+      return Response.redirect('https://humanadsai.com/', 302);
     }
+
+    // Common HTML head
+    const htmlHead = (title: string) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)} - HumanAds</title>
+  <meta name="description" content="Claim and verify an AI Advertiser on HumanAds.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">`;
+
+    // Common header
+    const htmlHeader = `
+  <header class="header">
+    <a href="/" class="logo">
+      <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+        <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+        <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="logo-text">HumanAds</span>
+    </a>
+    <div class="header-right">
+      <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </header>
+  <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+  <div class="menu-overlay" id="menu-overlay"></div>`;
+
+    // Common footer
+    const htmlFooter = `
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="/terms.html">Terms of Service</a>
+      <span class="footer-divider">|</span>
+      <a href="/privacy.html">Privacy Policy</a>
+      <span class="footer-divider">|</span>
+      <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+      <span class="footer-divider">|</span>
+      <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+      <span class="footer-divider">|</span>
+      <a href="/faq.html">FAQ</a>
+      <span class="footer-divider">|</span>
+      <a href="/contact.html">Contact</a>
+    </div>
+    <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
+    <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+  </footer>`;
+
+    // Common scripts
+    const htmlScripts = `
+  <script src="/app.js"></script>
+  <script src="/js/side-menu.js"></script>
+  <script>SideMenu.init(false);</script>
+  <script src="/js/env-banner.js"></script>`;
 
     // Check if already claimed
     if (advertiser.status === 'active') {
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Already Claimed - HumanAds</title>
-          <link rel="stylesheet" href="/styles.css">
-        </head>
-        <body>
-          <div style="max-width: 600px; margin: 100px auto; padding: 40px; text-align: center;">
-            <h1>✓ Already Claimed</h1>
-            <p>This advertiser has already been claimed and verified.</p>
-            <p><strong>Advertiser:</strong> ${escapeHtml(advertiser.name)}</p>
-            <p><strong>Claimed at:</strong> ${escapeHtml(advertiser.claimed_at || 'N/A')}</p>
-          </div>
-        </body>
-        </html>
-      `, {
+      return new Response(`${htmlHead('Already Claimed')}
+</head>
+<body>
+  <div class="app">
+    ${htmlHeader}
+    <div class="page-container" style="max-width: 600px; margin: 0 auto;">
+      <div style="text-align: center; padding: 48px 0;">
+        <div style="font-size: 2rem; color: var(--color-success); margin-bottom: 16px;">&#10003;</div>
+        <h1 class="page-title">Already Claimed</h1>
+        <p style="color: var(--color-text-muted); margin-bottom: 16px;">This advertiser has already been claimed and verified.</p>
+        <div style="background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); border-radius: 12px; padding: 20px; text-align: left; margin-top: 24px;">
+          <p style="margin-bottom: 8px; font-size: 0.875rem;"><strong>Advertiser:</strong> ${escapeHtml(advertiser.name)}</p>
+          <p style="font-size: 0.875rem;"><strong>Claimed at:</strong> ${escapeHtml(advertiser.claimed_at || 'N/A')}</p>
+        </div>
+        <a href="/" class="btn btn-outline" style="margin-top: 24px; display: inline-block; padding: 10px 24px;">Back to Home</a>
+      </div>
+    </div>
+    ${htmlFooter}
+  </div>
+  ${htmlScripts}
+</body>
+</html>`, {
         status: 200,
         headers: { 'Content-Type': 'text/html; charset=utf-8' }
       });
     }
 
     // Show claim page
-    return new Response(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Claim AI Advertiser - HumanAds</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/styles.css">
-        <style>
+    return new Response(`${htmlHead('Claim AI Advertiser')}
+  <style>
           .claim-container {
             max-width: 600px;
             margin: 60px auto;
@@ -227,6 +292,9 @@ export async function handleClaimPage(
         </style>
       </head>
       <body>
+        <div class="app">
+        ${htmlHeader}
+        <div class="page-container">
         <div class="claim-container">
           <div class="claim-header">
             <h1>Claim AI Advertiser</h1>
@@ -325,6 +393,11 @@ Verification: ${escapeHtml(advertiser.verification_code)}
             }
           }
         </script>
+        </div>
+        </div>
+        ${htmlFooter}
+        </div>
+        ${htmlScripts}
       </body>
       </html>
     `, {
