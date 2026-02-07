@@ -865,17 +865,32 @@
     if (!S.selectedSub) return '<div class="info-box">Approve a submission first.</div>';
     var h = '<div class="info-box">Trigger the payout flow. The system splits the payment: <strong>10% AUF</strong> (platform fee) + <strong>90% promoter payout</strong>. Both are paid in hUSD on Sepolia.</div>';
 
-    // Trigger payout
+    // Wallet connection prompt — required before triggering payout
+    h += '<div class="wallet-box"><h4>Wallet Connection</h4>';
+    if (S.walletAddr) {
+      h += '<div class="wallet-status" style="color:var(--color-primary);">Connected: ' + truncAddr(S.walletAddr) + '</div>';
+      h += '<button class="btn btn-sm btn-outline" onclick="disconnectWallet()" style="margin-top:4px;">Disconnect</button>';
+    } else {
+      h += '<div class="wallet-status">Connect your wallet to send on-chain payments.</div>';
+      h += '<button class="btn" onclick="connectWallet(this)" style="margin-top:4px;">Connect MetaMask</button>';
+    }
+    h += '</div>';
+
+    // Trigger payout — only enabled when wallet is connected
     h += curlBlock('POST', '/submissions/' + S.selectedSub + '/payout', null, true);
-    h += '<button class="btn" onclick="triggerPayout(this)" id="btn-trigger">Trigger Payout</button>';
+    if (S.walletAddr) {
+      h += '<button class="btn" onclick="triggerPayout(this)" id="btn-trigger">Trigger Payout</button>';
+    } else {
+      h += '<button class="btn" disabled title="Connect wallet first" style="opacity:0.5;cursor:not-allowed;">Trigger Payout</button>';
+    }
 
     // Payout status
     h += '<div id="payout-progress" style="margin-top:16px;display:none">';
     h += '<div class="wallet-box" id="payout-details"></div>';
 
-    // Wallet for sending
+    // Payment buttons
     h += '<div class="wallet-box"><h4>Send Payment via Wallet</h4>';
-    h += '<div class="wallet-status">' + (S.walletAddr ? 'Wallet: ' + truncAddr(S.walletAddr) : '<button class="btn btn-sm" onclick="connectWallet(this)">Connect Wallet</button>') + '</div>';
+    h += '<div class="wallet-status">' + (S.walletAddr ? 'Wallet: ' + truncAddr(S.walletAddr) : 'Wallet not connected') + '</div>';
     h += '<div class="btn-row" style="margin-top:8px">';
     h += '<button class="btn btn-sm" onclick="sendAufPayment(this)" id="btn-auf" disabled>Send AUF (10%)</button>';
     h += '<button class="btn btn-sm" onclick="sendPromoterPayment(this)" id="btn-prom" disabled>Send Payout (90%)</button>';
@@ -900,25 +915,45 @@
         showRes('payout', true, res.data);
         addTimeline('Payout triggered', S.selectedSub);
         document.getElementById('payout-progress').style.display = 'block';
-        // Auto-prompt wallet connection if not connected
-        if (!S.walletAddr) {
-          await connectWallet(document.getElementById('btn-trigger'));
-        }
         updatePayoutUI();
       } else { showRes('payout', false, res); }
     } catch (e) { showRes('payout', false, { error: e.message }); }
     finally { btn.disabled = false; btn.textContent = 'Trigger Payout'; }
   }
 
+  function payoutRow(label, value, isAddr) {
+    var display = esc(value || '—');
+    if (isAddr && value) {
+      display = '<a href="' + EXPLORER + '/address/' + value + '" target="_blank" style="color:var(--color-cyan);text-decoration:none;word-break:break-all;">' + esc(value) + '</a>';
+    }
+    return '<tr><td style="padding:6px 8px 6px 0;color:var(--color-text-muted);white-space:nowrap;vertical-align:top;">' + label + '</td><td style="padding:6px 0;word-break:break-all;">' + display + '</td></tr>';
+  }
+
   function updatePayoutUI() {
     var el = document.getElementById('payout-details');
     if (!el) return;
-    var h = '<h4>Payout Details</h4>';
-    h += '<div style="font-family:var(--font-mono);font-size:0.7rem;">';
-    h += '<div>AUF (10%): <strong>' + formatUsd(S.aufAmount) + '</strong> &rarr; ' + truncAddr(S.treasuryAddr) + '</div>';
-    h += '<div>Payout (90%): <strong>' + formatUsd(S.payoutAmount) + '</strong> &rarr; ' + (S.promoterAddr ? truncAddr(S.promoterAddr) : 'unlocked after AUF') + '</div>';
-    if (S.payoutStatus && S.payoutStatus.status) h += '<div>Status: <strong>' + esc(S.payoutStatus.status) + '</strong></div>';
-    h += '</div>';
+    var totalAmount = S.aufAmount + S.payoutAmount;
+    var aufTokens = (S.aufAmount / 100).toFixed(2);
+    var payoutTokens = (S.payoutAmount / 100).toFixed(2);
+    var totalTokens = (totalAmount / 100).toFixed(2);
+    var h = '<h4>Payout Confirmation</h4>';
+    h += '<table style="font-family:var(--font-mono);font-size:0.7rem;width:100%;border-collapse:collapse;">';
+    h += '<tr><td colspan="2" style="padding:8px 0 4px;font-weight:700;color:var(--color-primary);border-bottom:1px solid var(--color-border);">1. AUF — Platform Fee (10%)</td></tr>';
+    h += payoutRow('Amount', formatUsd(S.aufAmount) + ' (' + aufTokens + ' hUSD)');
+    h += payoutRow('To (Treasury)', S.treasuryAddr, true);
+    h += '<tr><td colspan="2" style="padding:12px 0 4px;font-weight:700;color:var(--color-primary);border-bottom:1px solid var(--color-border);">2. Payout — Promoter Reward (90%)</td></tr>';
+    h += payoutRow('Amount', formatUsd(S.payoutAmount) + ' (' + payoutTokens + ' hUSD)');
+    h += payoutRow('To (Promoter)', S.promoterAddr || 'Unlocked after AUF payment', !!S.promoterAddr);
+    h += '<tr><td colspan="2" style="padding:12px 0 4px;border-bottom:1px solid var(--color-border);"></td></tr>';
+    h += payoutRow('Total', formatUsd(totalAmount) + ' (' + totalTokens + ' hUSD)');
+    h += payoutRow('Token', 'hUSD (ERC-20)');
+    h += payoutRow('Contract', HUSD_CONTRACT, true);
+    h += payoutRow('Network', 'Sepolia Testnet (Chain ID: 11155111)');
+    h += payoutRow('From (Your Wallet)', S.walletAddr || 'Not connected');
+    if (S.payoutStatus && S.payoutStatus.status) {
+      h += payoutRow('Status', S.payoutStatus.status);
+    }
+    h += '</table>';
     el.innerHTML = h;
     // Enable send buttons
     var aufBtn = document.getElementById('btn-auf');
