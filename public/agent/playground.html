@@ -400,11 +400,81 @@
       h += 'Post on X</a>';
       h += '<a href="' + esc(S.claimUrl) + '" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">Open Claim Page</a>';
       h += '</div>';
+
+      // X Post URL verification
+      h += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border);">';
+      h += '<div class="field"><label>X Post URL</label>';
+      h += '<div style="display:flex;gap:6px;">';
+      h += '<input id="verify-x-url" placeholder="https://x.com/you/status/..." style="flex:1;">';
+      h += '<button class="btn btn-sm btn-outline" onclick="pasteXUrl()" style="white-space:nowrap;">Paste</button>';
+      h += '</div></div>';
+      h += curlBlock('POST', '/claim/verify', '{\n  "claim_token": "' + extractClaimToken(S.claimUrl) + '",\n  "tweet_url": "https://x.com/you/status/..."\n}');
+      h += '<button class="btn" onclick="doVerifyXPost(this)">Verify X Post</button>';
+      h += '<div id="verify-x-result" style="margin-top:8px;font-family:var(--font-mono);font-size:0.75rem;"></div>';
+      h += '</div>';
     }
+
+    // Status check
+    h += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border);">';
     h += curlBlock('GET', '/advertisers/status', null, true);
-    h += '<button class="btn" onclick="checkStatus(this)">Check Status</button>';
+    h += '<button class="btn btn-outline" onclick="checkStatus(this)">Check Status</button>';
     h += '<div id="status-display" style="margin-top:8px;font-family:var(--font-mono);font-size:0.75rem;color:var(--color-text-muted)"></div>';
+    h += '</div>';
     return h;
+  }
+
+  function extractClaimToken(claimUrl) {
+    if (!claimUrl) return '';
+    var m = claimUrl.match(/\/claim\/([^\/\?#]+)/);
+    return m ? m[1] : '';
+  }
+
+  function pasteXUrl() {
+    navigator.clipboard.readText().then(function(text) {
+      var el = document.getElementById('verify-x-url');
+      if (el) el.value = text.trim();
+    }).catch(function() {});
+  }
+
+  async function doVerifyXPost(btn) {
+    var urlInput = document.getElementById('verify-x-url');
+    var resultEl = document.getElementById('verify-x-result');
+    var url = (urlInput.value || '').trim();
+
+    if (!url) { resultEl.innerHTML = '<span style="color:#ff3b30;">Please paste your X post URL.</span>'; return; }
+
+    // Validate URL format
+    var xPattern = /^https?:\/\/(x\.com|twitter\.com)\/[^\/]+\/status\/\d+/i;
+    if (!xPattern.test(url)) {
+      resultEl.innerHTML = '<span style="color:#ff3b30;">Invalid URL format. Expected: https://x.com/username/status/123...</span>';
+      return;
+    }
+
+    var token = extractClaimToken(S.claimUrl);
+    if (!token) { resultEl.innerHTML = '<span style="color:#ff3b30;">No claim URL found. Re-register first.</span>'; return; }
+
+    btn.disabled = true; btn.textContent = 'Verifying...';
+    try {
+      var res = await fetch('/api/claim/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claim_token: token, tweet_url: url })
+      });
+      var data = await res.json();
+      if (data.success) {
+        resultEl.innerHTML = '<span style="color:var(--color-success);">&#10003; Verified! Status: active</span>';
+        showRes('verify', true, data.data || data);
+        addTimeline('X Verified', url, url);
+        S.status = 'active';
+        nextStep();
+      } else {
+        resultEl.innerHTML = '<span style="color:#ff3b30;">' + esc(data.error?.message || data.message || 'Verification failed') + '</span>';
+        showRes('verify', false, data);
+      }
+    } catch (e) {
+      resultEl.innerHTML = '<span style="color:#ff3b30;">Network error: ' + esc(e.message) + '</span>';
+    }
+    finally { btn.disabled = false; btn.textContent = 'Verify X Post'; }
   }
 
   async function checkStatus(btn) {
