@@ -259,15 +259,14 @@ function showAlert(message, type = 'success') {
   const alertEl = document.createElement('div');
   alertEl.className = `alert alert-${type}`;
   alertEl.textContent = message;
+  alertEl.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;min-width:300px;max-width:90vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:opacity 0.3s ease;';
 
-  const container = document.querySelector('.page-container') || document.querySelector('.app');
-  if (container) {
-    container.insertBefore(alertEl, container.firstChild);
+  document.body.appendChild(alertEl);
 
-    setTimeout(() => {
-      alertEl.remove();
-    }, 5000);
-  }
+  setTimeout(() => {
+    alertEl.style.opacity = '0';
+    setTimeout(() => alertEl.remove(), 300);
+  }, 5000);
 }
 
 function setButtonLoading(button, loading) {
