@@ -1005,6 +1005,17 @@
         // Switch hero CTAs to logged-in version
         document.getElementById('hero-cta-logged-out').style.display = 'none';
         document.getElementById('hero-cta-logged-in').style.display = 'block';
+
+        // Load notifications for logged-in users
+        if (!document.getElementById('notifications-script')) {
+          const script = document.createElement('script');
+          script.id = 'notifications-script';
+          script.src = '/js/notifications.js';
+          script.onload = function () {
+            if (window.Notifications) window.Notifications.init();
+          };
+          document.head.appendChild(script);
+        }
       }
 
       console.log('[Auth] isLoggedIn:', isLoggedIn, 'user:', user ? user.x_handle : 'null');
