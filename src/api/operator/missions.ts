@@ -434,6 +434,7 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
       FROM missions m
       JOIN deals d ON m.deal_id = d.id
       WHERE m.operator_id = ?
+        AND COALESCE(d.visibility, 'visible') = 'visible'
     `;
     const params: (string | number)[] = [operator.id];
 
