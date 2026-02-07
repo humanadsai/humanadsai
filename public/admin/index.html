@@ -757,16 +757,27 @@
     try {
       var res = await HumanAds.fetchApi('/admin/config/payment-profile');
       if (!res.success) throw new Error(res.error?.message || 'Failed');
-      var p = res.data;
+      var d = res.data;
+      var cur = d.current || {};
+      var profileName = cur.id || cur.name || '-';
+      var isTest = cur.is_testnet !== false;
       panel.innerHTML =
         '<div class="card" style="margin-bottom:16px;"><div class="card-title">Current Payment Profile</div>' +
-        '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;"><span class="env-badge ' + (p.profile==='test'?'ledger':'onchain') + '" style="font-size:0.9rem;padding:6px 14px;"><span class="dot"></span> ' + (p.profile||'-') + '</span></div>' +
+        '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;"><span class="env-badge ' + (isTest?'ledger':'onchain') + '" style="font-size:0.9rem;padding:6px 14px;"><span class="dot"></span> ' + esc(profileName) + '</span>' +
+        (cur.is_ready ? '<span class="env-badge onchain" style="font-size:0.7rem;"><span class="dot"></span> Ready</span>' : '') + '</div>' +
         '<div class="config-info" style="border-top:none;padding-top:0;">' +
-          '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + (p.payout_mode||'-') + '</span></div>' +
-          '<div class="config-row"><span class="config-label">Chain</span><span class="config-val">' + (p.chain||'-') + '</span></div>' +
-          '<div class="config-row"><span class="config-label">Token</span><span class="config-val">' + (p.token||'-') + '</span></div>' +
-          '<div class="config-row"><span class="config-label">Updated</span><span class="config-val">' + (p.updated_at?HumanAds.formatRelativeTime(p.updated_at):'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + (d.payout_mode||'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Chain</span><span class="config-val">' + (cur.chain||'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Token</span><span class="config-val">' + (cur.token||'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Treasury</span><span class="config-val">' + (cur.treasury?cur.treasury.substring(0,14)+'...':'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Updated</span><span class="config-val">' + (d.updated_at?HumanAds.formatRelativeTime(d.updated_at):'-') + '</span></div>' +
+          (d.reason ? '<div class="config-row"><span class="config-label">Reason</span><span class="config-val">' + esc(d.reason) + '</span></div>' : '') +
         '</div></div>' +
+        (d.available_profiles && d.available_profiles.length > 0 ?
+          '<div class="card" style="margin-bottom:16px;"><div class="card-title">Available Profiles</div>' +
+          '<div class="table-wrap"><table class="data-table"><thead><tr><th>Profile</th><th>Chain</th><th>Token</th><th>Testnet</th><th>Ready</th></tr></thead><tbody>' +
+          d.available_profiles.map(function(ap) { return '<tr' + (ap.id===cur.id?' style="background:rgba(76,175,80,0.08);"':'') + '><td><strong>' + esc(ap.id) + '</strong></td><td>' + (ap.chain||'-') + '</td><td>' + (ap.token||'-') + '</td><td>' + (ap.is_testnet?'Yes':'No') + '</td><td><span class="status-badge ' + (ap.is_ready?'confirmed':'pending') + '">' + (ap.is_ready?'Ready':'Not Ready') + '</span></td></tr>'; }).join('') +
+          '</tbody></table></div></div>' : '') +
         '<p style="font-size:0.75rem;color:var(--color-text-muted);">To change profile: update wrangler.jsonc PAYOUT_MODE or use the config API.</p>';
     } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
   }
