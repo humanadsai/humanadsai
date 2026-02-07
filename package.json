@@ -26,6 +26,7 @@
     "wrangler": "^3.0.0"
   },
   "dependencies": {
+    "svix": "^1.84.1",
     "viem": "^2.45.1"
   }
 }

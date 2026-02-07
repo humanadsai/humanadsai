@@ -36,6 +36,8 @@ export interface Env {
   FAUCET_COOLDOWN_SECONDS?: string;
   // Resend Webhook (Svix signature verification)
   RESEND_WEBHOOK_SECRET?: string;
+  // Resend API Key (for sending emails)
+  RESEND_API_KEY?: string;
 }
 
 // ============================================
@@ -711,4 +713,62 @@ export interface MissionSubmission {
 
 export interface SubmissionRejectRequest {
   reason: string;
+}
+
+// ============================================
+// Email System Types
+// ============================================
+
+export interface OperatorEmail {
+  id: string;
+  operator_id: string;
+  email: string;
+  is_primary: number;
+  verified_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LoginToken {
+  id: string;
+  operator_id: string | null;
+  email: string | null;
+  token_hash: string;
+  purpose: 'login' | 'email_verify' | 'email_change';
+  expires_at: string;
+  used_at: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+}
+
+export interface EmailLog {
+  id: string;
+  operator_id: string | null;
+  to_email: string;
+  template: string;
+  subject: string | null;
+  resend_message_id: string | null;
+  status: string;
+  error_message: string | null;
+  metadata: string | null;
+  created_at: string;
+}
+
+export interface EmailPreference {
+  operator_id: string;
+  category: string;
+  enabled: number;
+  updated_at: string;
+}
+
+export interface EmailAuditEntry {
+  id: string;
+  operator_id: string;
+  action: string;
+  old_value: string | null;
+  new_value: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
 }

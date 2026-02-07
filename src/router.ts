@@ -56,6 +56,7 @@ import {
 
 // Auth API
 import { handleXLogin, handleXCallback } from './api/auth/x';
+import { handleEmailLoginRequest, handleEmailLoginCallback } from './api/auth/email';
 
 // Account API
 import { handleAccountDelete, handleAccountDeleteCheck } from './api/account/delete';
@@ -117,6 +118,14 @@ import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 
 // Advertiser Test API
 import { handleAdvertiserTestApi } from './api/advertiser/test';
+
+// Operator Email API
+import { addOperatorEmail, getOperatorEmail, removeOperatorEmail, verifyOperatorEmail } from './api/operator/email';
+import { requestEmailChange, verifyEmailChange } from './api/operator/email-change';
+import { getEmailPreferences, updateEmailPreference } from './api/operator/email-preferences';
+
+// Admin Email API
+import { getEmailStats, getEmailLogs, getEmailSuppressions, removeEmailSuppression } from './api/admin/emails';
 
 // Webhook API
 import { handleResendWebhook } from './api/webhooks/resend';
@@ -702,6 +711,50 @@ async function handleOperatorApi(
   }
 
   // ============================================
+  // Operator Email Routes
+  // ============================================
+
+  // POST /api/operator/email - Add email
+  if (path === '/api/operator/email' && method === 'POST') {
+    return addOperatorEmail(request, env);
+  }
+
+  // GET /api/operator/email - Get email (masked)
+  if (path === '/api/operator/email' && method === 'GET') {
+    return getOperatorEmail(request, env);
+  }
+
+  // DELETE /api/operator/email - Remove email
+  if (path === '/api/operator/email' && method === 'DELETE') {
+    return removeOperatorEmail(request, env);
+  }
+
+  // GET /api/operator/email/verify - Verify email token
+  if (path === '/api/operator/email/verify' && method === 'GET') {
+    return verifyOperatorEmail(request, env);
+  }
+
+  // POST /api/operator/email/change - Request email change
+  if (path === '/api/operator/email/change' && method === 'POST') {
+    return requestEmailChange(request, env);
+  }
+
+  // GET /api/operator/email/change/verify - Verify new email
+  if (path === '/api/operator/email/change/verify' && method === 'GET') {
+    return verifyEmailChange(request, env);
+  }
+
+  // GET /api/operator/email-preferences - Get preferences
+  if (path === '/api/operator/email-preferences' && method === 'GET') {
+    return getEmailPreferences(request, env);
+  }
+
+  // PUT /api/operator/email-preferences - Update a preference
+  if (path === '/api/operator/email-preferences' && method === 'PUT') {
+    return updateEmailPreference(request, env);
+  }
+
+  // ============================================
   // Notification Routes
   // ============================================
 
@@ -930,6 +983,18 @@ async function handleAuthApi(
   // GET /auth/x/callback
   if (path === '/auth/x/callback' && method === 'GET') {
     return handleXCallback(request, env);
+  }
+
+  // POST /auth/email/login - Magic link request
+  if (path === '/auth/email/login' && method === 'POST') {
+    const emailRateResult = await checkRateLimit(env, ip, 'auth:email_login');
+    if (!emailRateResult.allowed) return errors.rateLimited(generateRequestId(), emailRateResult.retryAfter);
+    return handleEmailLoginRequest(request, env);
+  }
+
+  // GET /auth/email/verify - Magic link callback
+  if (path === '/auth/email/verify' && method === 'GET') {
+    return handleEmailLoginCallback(request, env);
   }
 
   // GET /auth/logout
@@ -1251,6 +1316,31 @@ async function handleAdminApi(
   // POST /api/admin/token-ops/log - Log owner mint/transfer operation
   if (path === '/api/admin/token-ops/log' && method === 'POST') {
     return logTokenOp(request, env);
+  }
+
+  // ============================================
+  // Email Management
+  // ============================================
+
+  // GET /api/admin/emails/stats
+  if (path === '/api/admin/emails/stats' && method === 'GET') {
+    return getEmailStats(request, env);
+  }
+
+  // GET /api/admin/emails/logs
+  if (path === '/api/admin/emails/logs' && method === 'GET') {
+    return getEmailLogs(request, env);
+  }
+
+  // GET /api/admin/emails/suppressions
+  if (path === '/api/admin/emails/suppressions' && method === 'GET') {
+    return getEmailSuppressions(request, env);
+  }
+
+  // DELETE /api/admin/emails/suppressions/:email
+  const suppressionMatch = path.match(/^\/api\/admin\/emails\/suppressions\/(.+)$/);
+  if (suppressionMatch && method === 'DELETE') {
+    return removeEmailSuppression(request, env, suppressionMatch[1]);
   }
 
   // GET /api/admin/env-check - Lightweight treasury key check

@@ -1,6 +1,6 @@
 import type { Env, Application, Mission, AuthContext } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
-import { createNotification } from '../../services/notifications';
+import { createNotificationWithEmail } from '../../services/email-notifications';
 
 /**
  * Get applications for a mission (AI Agent)
@@ -171,7 +171,7 @@ export async function shortlistApplication(
       .run();
 
     // Notify operator
-    await createNotification(env.DB, {
+    await createNotificationWithEmail(env.DB, env, {
       recipientId: application.operator_id,
       type: 'application_shortlisted',
       title: 'Application Shortlisted',
@@ -331,7 +331,7 @@ export async function selectApplication(
     }
 
     // Notify operator
-    await createNotification(env.DB, {
+    await createNotificationWithEmail(env.DB, env, {
       recipientId: application.operator_id,
       type: 'application_selected',
       title: 'You\'ve Been Selected!',
@@ -419,7 +419,7 @@ export async function rejectApplication(
       .run();
 
     // Notify operator
-    await createNotification(env.DB, {
+    await createNotificationWithEmail(env.DB, env, {
       recipientId: application.operator_id,
       type: 'application_rejected',
       title: 'Application Not Selected',

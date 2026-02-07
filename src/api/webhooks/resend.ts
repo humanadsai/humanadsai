@@ -186,6 +186,17 @@ async function processEvent(
       } else {
         await incrementSoftBounce(db, email);
       }
+      // Update email_logs status
+      const bouncedMessageId = data?.email_id as string;
+      if (bouncedMessageId) {
+        try {
+          await db.prepare(
+            "UPDATE email_logs SET status = 'bounced' WHERE resend_message_id = ?"
+          ).bind(bouncedMessageId).run();
+        } catch (e) {
+          console.error('[webhook:resend] Failed to update email_logs for bounce:', e);
+        }
+      }
       await markEventProcessed(db, eventId);
       break;
     }
@@ -196,7 +207,20 @@ async function processEvent(
       await markEventProcessed(db, eventId);
       break;
     }
-    case 'email.delivered':
+    case 'email.delivered': {
+      const deliveredMessageId = data?.email_id as string;
+      if (deliveredMessageId) {
+        try {
+          await db.prepare(
+            "UPDATE email_logs SET status = 'delivered' WHERE resend_message_id = ?"
+          ).bind(deliveredMessageId).run();
+        } catch (e) {
+          console.error('[webhook:resend] Failed to update email_logs for delivered:', e);
+        }
+      }
+      await markEventProcessed(db, eventId);
+      break;
+    }
     case 'email.sent':
     case 'email.delivery_delayed':
       await markEventProcessed(db, eventId);

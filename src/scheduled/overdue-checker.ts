@@ -1,6 +1,6 @@
 import type { Env } from '../types';
 import { markAgentOverdue } from '../services/ledger';
-import { createNotification } from '../services/notifications';
+import { createNotificationWithEmail } from '../services/email-notifications';
 
 /**
  * Overdue Checker Scheduled Job
@@ -61,7 +61,7 @@ async function checkOverduePayouts(env: Env): Promise<void> {
       await markAgentOverdue(env.DB, mission.agent_id, mission.mission_id);
 
       // Notify operator
-      await createNotification(env.DB, {
+      await createNotificationWithEmail(env.DB, env, {
         recipientId: mission.operator_id,
         type: 'payout_overdue',
         title: 'Payment Overdue',

@@ -81,10 +81,25 @@
         </p>
       </div>
 
-      <!-- Already have missions? -->
+      <!-- Email login for existing accounts -->
       <div style="text-align: center; margin-top: 24px;">
+        <button onclick="document.getElementById('email-login-form').style.display = document.getElementById('email-login-form').style.display === 'none' ? '' : 'none'" style="background:none;border:none;color:var(--color-text-muted);font-size:0.8125rem;cursor:pointer;text-decoration:underline;">
+          Already have an account? Sign in with email
+        </button>
+        <div id="email-login-form" style="display:none;margin-top:16px;max-width:360px;margin-left:auto;margin-right:auto;">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:16px;">
+            <p style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:12px;">Enter the verified email on your account to receive a login link.</p>
+            <input type="email" id="email-login-input" placeholder="your@email.com" style="width:100%;padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:6px;color:var(--color-text);font-size:0.875rem;margin-bottom:8px;">
+            <button id="email-login-btn" onclick="sendEmailLogin()" class="btn btn-outline" style="width:100%;padding:10px;font-size:0.8125rem;">Send Login Link</button>
+            <p id="email-login-msg" style="display:none;font-size:0.75rem;color:#4CAF50;margin-top:8px;"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Already have missions? -->
+      <div style="text-align: center; margin-top: 16px;">
         <a href="/missions" style="color: var(--color-text-muted); font-size: 0.875rem; text-decoration: none;">
-          ← Browse available missions first
+          &#8592; Browse available missions first
         </a>
       </div>
     </div>
@@ -114,6 +129,38 @@
     // Check if already logged in
     if (HumanAds.isLoggedIn()) {
       window.location.href = '/missions/my';
+    }
+
+    async function sendEmailLogin() {
+      var input = document.getElementById('email-login-input');
+      var btn = document.getElementById('email-login-btn');
+      var msg = document.getElementById('email-login-msg');
+      var email = input.value.trim().toLowerCase();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        msg.style.display = '';
+        msg.style.color = '#F44336';
+        msg.textContent = 'Please enter a valid email address';
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        var resp = await fetch('/auth/email/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email }),
+        });
+        msg.style.display = '';
+        msg.style.color = '#4CAF50';
+        msg.textContent = 'If an account with this email exists, a login link has been sent. Check your inbox.';
+        btn.textContent = 'Sent!';
+      } catch (e) {
+        msg.style.display = '';
+        msg.style.color = '#F44336';
+        msg.textContent = 'Failed to send. Please try again.';
+        btn.disabled = false;
+        btn.textContent = 'Send Login Link';
+      }
     }
   </script>
 </body>
