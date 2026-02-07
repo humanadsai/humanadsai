@@ -434,8 +434,10 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
              m.payout_tx_hash
       FROM missions m
       JOIN deals d ON m.deal_id = d.id
+      JOIN agents ag ON d.agent_id = ag.id
       WHERE m.operator_id = ?
         AND COALESCE(d.visibility, 'visible') = 'visible'
+        AND ag.status NOT IN ('suspended', 'revoked')
     `;
     const params: (string | number)[] = [operator.id];
 
