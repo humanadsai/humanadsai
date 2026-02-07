@@ -667,11 +667,21 @@
     var h = '<div class="info-box">Seed test promoters to simulate real submissions, then select one to continue the flow.</div>';
     h += credRow('Mission ID', S.missionId);
 
+    // Check applications
+    h += curlBlock('GET', '/missions/' + S.missionId + '/applications', null, true);
+    h += '<div class="btn-row" style="margin-bottom:16px;">';
+    h += '<button class="btn btn-outline" onclick="checkApplications(this)">Check Applications</button>';
+    h += '</div>';
+    h += '<div id="app-list"></div>';
+
     // Seed test promoters
+    h += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border);">';
+    h += '<div class="step-desc">No real applications yet? Seed test promoters to simulate submissions and continue the flow.</div>';
     h += curlBlock('POST', '/missions/' + S.missionId + '/test-submission', null, true);
     h += '<div class="btn-row" style="margin-bottom:16px;">';
     h += '<button class="btn" onclick="seedTestPromoters(this)">Seed Test Promoters</button>';
     h += '<button class="btn btn-outline" onclick="checkSubmissions(this)">Check Submissions</button>';
+    h += '</div>';
     h += '</div>';
 
     h += '<div id="sub-list"></div>';
@@ -721,6 +731,53 @@
     });
     h += '<button class="btn" id="btn-confirm-promoter" onclick="confirmPromoter()" disabled style="margin-top:12px;width:100%;">Select Promoter</button>';
     return h;
+  }
+
+  async function checkApplications(btn) {
+    btn.disabled = true; btn.textContent = 'Checking...';
+    try {
+      var res = await api('GET', '/missions/' + S.missionId + '/applications');
+      if (res.success && res.data) {
+        var apps = res.data.applications || [];
+        showRes('submissions', true, res.data);
+        var listEl = document.getElementById('app-list');
+        if (apps.length > 0) {
+          var h = '<div style="font-family:var(--font-mono);font-size:0.7rem;margin-bottom:8px;">';
+          h += '<strong>' + apps.length + ' application(s)</strong>';
+          h += '</div>';
+          apps.forEach(function(a) {
+            var op = a.operator || {};
+            var handle = op.x_handle || '';
+            var name = op.display_name || handle;
+            var initial = (name || '?').charAt(0).toUpperCase();
+            h += '<div class="promoter-card" style="cursor:default;">';
+            h += '<div class="promoter-top">';
+            h += '<div class="promoter-avatar">' + esc(initial) + '</div>';
+            h += '<div>';
+            h += '<div class="promoter-name">' + esc(name);
+            if (op.x_verified) h += ' <span class="promoter-verified">&#10003;</span>';
+            h += '</div>';
+            h += '<div class="promoter-handle">@' + esc(handle) + '</div>';
+            h += '</div>';
+            h += '<div style="margin-left:auto;font-family:var(--font-mono);font-size:0.65rem;padding:3px 8px;border-radius:4px;background:rgba(0,212,255,0.1);color:var(--color-cyan);">' + esc(a.status) + '</div>';
+            h += '</div>';
+            h += '<div class="promoter-stats">';
+            h += '<span>' + formatFollowers(op.x_followers_count || 0) + ' followers</span>';
+            h += '<span>' + (op.total_missions_completed || 0) + ' missions</span>';
+            h += '<span>$' + ((op.total_earnings || 0) / 100).toFixed(0) + ' earned</span>';
+            h += '</div>';
+            if (a.proposed_angle) h += '<div class="promoter-desc" style="margin-top:4px;"><strong>Angle:</strong> ' + esc(a.proposed_angle) + '</div>';
+            if (a.draft_copy) h += '<div class="promoter-desc" style="margin-top:2px;"><strong>Draft:</strong> ' + esc(a.draft_copy) + '</div>';
+            h += '<div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--color-text-muted);margin-top:4px;">Applied: ' + esc(a.applied_at || '—') + '</div>';
+            h += '</div>';
+          });
+          listEl.innerHTML = h;
+        } else {
+          listEl.innerHTML = '<div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--color-text-muted);">No applications yet. Share the mission link for humans to apply.</div>';
+        }
+      } else { showRes('submissions', false, res); }
+    } catch (e) { showRes('submissions', false, { error: e.message }); }
+    finally { btn.disabled = false; btn.textContent = 'Check Applications'; }
   }
 
   async function seedTestPromoters(btn) {
