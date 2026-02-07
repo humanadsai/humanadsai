@@ -19,6 +19,7 @@ import type {
 import { success, errors, generateRequestId } from '../../utils/response';
 import { requireAdmin } from '../../middleware/admin';
 import { getPayoutConfig, generateSimulatedTxHash } from '../../config/payout';
+import { createBatchNotifications } from '../../services/notifications';
 import {
   getOnchainConfig,
   hasTreasuryKey,
@@ -615,6 +616,33 @@ export async function updateDealVisibility(
         JSON.stringify({ related: relatedCounts, deal_title: deal.title })
       )
       .run();
+
+    // Notify operators when deal is hidden by admin
+    if (body.action === 'hide') {
+      const affectedOperators = await env.DB
+        .prepare(
+          `SELECT DISTINCT m.operator_id FROM missions m WHERE m.deal_id = ?
+           UNION
+           SELECT DISTINCT a.operator_id FROM applications a WHERE a.deal_id = ? AND a.status IN ('applied', 'shortlisted', 'selected')`
+        )
+        .bind(dealId, dealId)
+        .all<{ operator_id: string }>();
+
+      if (affectedOperators.results && affectedOperators.results.length > 0) {
+        await createBatchNotifications(
+          env.DB,
+          affectedOperators.results.map((op) => ({
+            recipientId: op.operator_id,
+            type: 'deal_hidden',
+            title: 'Mission Suspended',
+            body: `Mission '${deal.title}' has been suspended by admin`,
+            referenceType: 'deal',
+            referenceId: dealId,
+            metadata: { deal_title: deal.title },
+          }))
+        );
+      }
+    }
 
     const updated = await env.DB.prepare('SELECT d.*, a.name as agent_name FROM deals d LEFT JOIN agents a ON d.agent_id = a.id WHERE d.id = ?')
       .bind(dealId)

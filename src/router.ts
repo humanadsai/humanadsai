@@ -46,6 +46,12 @@ import {
 } from './api/operator/missions';
 import { getOperatorWallets, updateOperatorWallets } from './api/operator/wallets';
 import { getVerifyCode, verifyPost } from './api/operator/verification';
+import {
+  listNotifications,
+  getNotificationCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from './api/operator/notifications';
 
 // Auth API
 import { handleXLogin, handleXCallback } from './api/auth/x';
@@ -153,7 +159,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // Operator API (/api/operator/..., /api/missions/...)
     // ============================================
 
-    if (path.startsWith('/api/operator/') || path.startsWith('/api/missions/') || path.startsWith('/api/my/') || path.startsWith('/api/applications/')) {
+    if (path.startsWith('/api/operator/') || path.startsWith('/api/missions/') || path.startsWith('/api/my/') || path.startsWith('/api/applications/') || path.startsWith('/api/notifications')) {
       return handleOperatorApi(request, env, path, method);
     }
 
@@ -661,6 +667,31 @@ async function handleOperatorApi(
   const withdrawMatch = path.match(/^\/api\/applications\/([a-zA-Z0-9_]+)\/withdraw$/);
   if (withdrawMatch && method === 'POST') {
     return withdrawApplication(request, env, withdrawMatch[1]);
+  }
+
+  // ============================================
+  // Notification Routes
+  // ============================================
+
+  // GET /api/notifications/count - Unread count
+  if (path === '/api/notifications/count' && method === 'GET') {
+    return getNotificationCount(request, env);
+  }
+
+  // POST /api/notifications/read-all - Mark all as read
+  if (path === '/api/notifications/read-all' && method === 'POST') {
+    return markAllNotificationsRead(request, env);
+  }
+
+  // POST /api/notifications/:id/read - Mark single as read
+  const notifReadMatch = path.match(/^\/api\/notifications\/([a-zA-Z0-9]+)\/read$/);
+  if (notifReadMatch && method === 'POST') {
+    return markNotificationRead(request, env, notifReadMatch[1]);
+  }
+
+  // GET /api/notifications - List notifications
+  if (path === '/api/notifications' && method === 'GET') {
+    return listNotifications(request, env);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

@@ -1,5 +1,6 @@
 import type { Env, Application, Mission, AuthContext } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
+import { createNotification } from '../../services/notifications';
 
 /**
  * Get applications for a mission (AI Agent)
@@ -123,13 +124,13 @@ export async function shortlistApplication(
   try {
     // Get application and verify agent owns the deal
     const application = await env.DB.prepare(
-      `SELECT a.*, d.agent_id
+      `SELECT a.*, d.agent_id, d.title as deal_title
        FROM applications a
        JOIN deals d ON a.deal_id = d.id
        WHERE a.id = ?`
     )
       .bind(applicationId)
-      .first<Application & { agent_id: string }>();
+      .first<Application & { agent_id: string; deal_title: string }>();
 
     if (!application) {
       return errors.notFound(requestId, 'Application');
@@ -169,6 +170,17 @@ export async function shortlistApplication(
       .bind(aiScore, aiNotes, applicationId)
       .run();
 
+    // Notify operator
+    await createNotification(env.DB, {
+      recipientId: application.operator_id,
+      type: 'application_shortlisted',
+      title: 'Application Shortlisted',
+      body: `Your application for '${application.deal_title}' has been shortlisted`,
+      referenceType: 'application',
+      referenceId: applicationId,
+      metadata: { deal_title: application.deal_title, deal_id: application.deal_id },
+    });
+
     return success(
       {
         application_id: applicationId,
@@ -205,7 +217,7 @@ export async function selectApplication(
     // Get application and deal info
     const application = await env.DB.prepare(
       `SELECT a.*, d.agent_id, d.id as deal_id, d.slots_total, d.slots_selected,
-              d.max_participants, d.current_participants, d.status as deal_status
+              d.max_participants, d.current_participants, d.status as deal_status, d.title as deal_title
        FROM applications a
        JOIN deals d ON a.deal_id = d.id
        WHERE a.id = ?`
@@ -220,6 +232,7 @@ export async function selectApplication(
           max_participants: number;
           current_participants: number;
           deal_status: string;
+          deal_title: string;
         }
       >();
 
@@ -317,6 +330,17 @@ export async function selectApplication(
       return errors.conflict(requestId, 'No slots available (race condition)');
     }
 
+    // Notify operator
+    await createNotification(env.DB, {
+      recipientId: application.operator_id,
+      type: 'application_selected',
+      title: 'You\'ve Been Selected!',
+      body: `You've been selected for '${application.deal_title}'! A mission has been created.`,
+      referenceType: 'mission',
+      referenceId: missionId,
+      metadata: { deal_title: application.deal_title, deal_id: application.deal_id, mission_id: missionId },
+    });
+
     return success(
       {
         application_id: applicationId,
@@ -351,13 +375,13 @@ export async function rejectApplication(
   try {
     // Get application and verify agent owns the deal
     const application = await env.DB.prepare(
-      `SELECT a.*, d.agent_id
+      `SELECT a.*, d.agent_id, d.title as deal_title
        FROM applications a
        JOIN deals d ON a.deal_id = d.id
        WHERE a.id = ?`
     )
       .bind(applicationId)
-      .first<Application & { agent_id: string }>();
+      .first<Application & { agent_id: string; deal_title: string }>();
 
     if (!application) {
       return errors.notFound(requestId, 'Application');
@@ -393,6 +417,17 @@ export async function rejectApplication(
     )
       .bind(aiNotes, applicationId)
       .run();
+
+    // Notify operator
+    await createNotification(env.DB, {
+      recipientId: application.operator_id,
+      type: 'application_rejected',
+      title: 'Application Not Selected',
+      body: `Your application for '${application.deal_title}' was not selected`,
+      referenceType: 'application',
+      referenceId: applicationId,
+      metadata: { deal_title: application.deal_title, deal_id: application.deal_id },
+    });
 
     return success(
       {

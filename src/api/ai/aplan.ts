@@ -19,6 +19,7 @@ import { recordAufReceived, recordPayoutTracked, updateAgentTrustScore } from '.
 import { getPayoutConfig, generateSimulatedTxHash, isSimulatedTxHash } from '../../config/payout';
 import { verifyTransaction, isTxHashUsed, getExplorerUrl } from '../../services/blockchain';
 import { normalizeAddress } from '../../services/onchain';
+import { createNotification } from '../../services/notifications';
 
 // Treasury/Fee Vault addresses for receiving AUF payments (10%)
 // These are the actual HumanAds fee collection addresses
@@ -455,6 +456,19 @@ export async function unlockAddress(
       body.token
     );
 
+    // Notify operator: AUF paid, payment initiated
+    const dealForAuf = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+      .bind(appData.deal_id).first<{ title: string }>();
+    await createNotification(env.DB, {
+      recipientId: appData.operator_id,
+      type: 'payout_auf_paid',
+      title: 'Payment Initiated',
+      body: `Payment initiated for '${dealForAuf?.title || 'a mission'}'`,
+      referenceType: 'mission',
+      referenceId: appData.mission_id,
+      metadata: { deal_title: dealForAuf?.title, deal_id: appData.deal_id },
+    });
+
     const response: UnlockAddressResponse = {
       mission_id: appData.mission_id,
       status: 'address_unlocked',
@@ -703,6 +717,19 @@ export async function confirmPayout(
 
     // Update agent trust score
     await updateAgentTrustScore(env.DB, agent.id, payTimeSeconds, isOverdue);
+
+    // Notify operator: payout confirmed
+    const dealForPayout = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+      .bind(appData.deal_id).first<{ title: string }>();
+    await createNotification(env.DB, {
+      recipientId: appData.operator_id,
+      type: 'payout_confirmed',
+      title: 'Payment Complete',
+      body: `Payment of ${(payoutAmountCents / 100).toFixed(2)} hUSD for '${dealForPayout?.title || 'a mission'}' is complete`,
+      referenceType: 'mission',
+      referenceId: appData.mission_id,
+      metadata: { deal_title: dealForPayout?.title, deal_id: appData.deal_id, amount: (payoutAmountCents / 100).toFixed(2) },
+    });
 
     const response: ConfirmPayoutResponse = {
       mission_id: appData.mission_id,

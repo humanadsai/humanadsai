@@ -1,5 +1,6 @@
 import type { Env } from '../types';
 import { markAgentOverdue } from '../services/ledger';
+import { createNotification } from '../services/notifications';
 
 /**
  * Overdue Checker Scheduled Job
@@ -40,7 +41,7 @@ async function checkOverduePayouts(env: Env): Promise<void> {
 
   // Find missions that are past deadline and still in payment states
   const overdueMissions = await env.DB.prepare(
-    `SELECT m.id as mission_id, m.status, d.agent_id
+    `SELECT m.id as mission_id, m.status, m.operator_id, d.agent_id, d.title as deal_title, d.id as deal_id
      FROM missions m
      JOIN deals d ON m.deal_id = d.id
      WHERE m.payout_deadline_at IS NOT NULL
@@ -50,7 +51,7 @@ async function checkOverduePayouts(env: Env): Promise<void> {
      LIMIT 100`
   )
     .bind(now)
-    .all<{ mission_id: string; status: string; agent_id: string }>();
+    .all<{ mission_id: string; status: string; operator_id: string; agent_id: string; deal_title: string; deal_id: string }>();
 
   console.log(`Found ${overdueMissions.results?.length || 0} overdue missions`);
 
@@ -58,6 +59,17 @@ async function checkOverduePayouts(env: Env): Promise<void> {
     try {
       console.log(`Marking mission ${mission.mission_id} as overdue for agent ${mission.agent_id}`);
       await markAgentOverdue(env.DB, mission.agent_id, mission.mission_id);
+
+      // Notify operator
+      await createNotification(env.DB, {
+        recipientId: mission.operator_id,
+        type: 'payout_overdue',
+        title: 'Payment Overdue',
+        body: `Payment for '${mission.deal_title}' is overdue — support has been notified`,
+        referenceType: 'mission',
+        referenceId: mission.mission_id,
+        metadata: { deal_title: mission.deal_title, deal_id: mission.deal_id },
+      });
     } catch (error) {
       console.error(`Error marking mission ${mission.mission_id} as overdue:`, error);
     }

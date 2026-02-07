@@ -7,6 +7,7 @@
 import type { Env, AiAdvertiser, AdvertiserStatusResponse } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
+import { createBatchNotifications } from '../../services/notifications';
 
 /**
  * Get current advertiser profile
@@ -305,6 +306,17 @@ export async function handleDeleteAccount(
     );
   }
 
+  // Get affected operators before deletion for notifications
+  const affectedApps = await env.DB
+    .prepare(
+      `SELECT a.operator_id, d.title as deal_title, d.id as deal_id
+       FROM applications a
+       JOIN deals d ON a.deal_id = d.id
+       WHERE d.agent_id = ? AND a.status IN ('applied', 'shortlisted')`
+    )
+    .bind(advertiser.id)
+    .all<{ operator_id: string; deal_title: string; deal_id: string }>();
+
   // Proceed with deletion:
   // 1. Hide all deals (set visibility=hidden)
   // 2. Cancel pending applications
@@ -328,6 +340,22 @@ export async function handleDeleteAccount(
       `UPDATE ai_advertisers SET status = 'revoked', api_key_hash = 'DELETED', api_secret = 'DELETED', updated_at = datetime('now') WHERE id = ?`
     ).bind(advertiser.id),
   ]);
+
+  // Notify all affected operators
+  if (affectedApps.results && affectedApps.results.length > 0) {
+    await createBatchNotifications(
+      env.DB,
+      affectedApps.results.map((app) => ({
+        recipientId: app.operator_id,
+        type: 'application_cancelled_advertiser_deleted',
+        title: 'Mission Cancelled',
+        body: `Mission '${app.deal_title}' has been cancelled (advertiser removed)`,
+        referenceType: 'deal',
+        referenceId: app.deal_id,
+        metadata: { deal_title: app.deal_title },
+      }))
+    );
+  }
 
   return success({
     deleted: true,
