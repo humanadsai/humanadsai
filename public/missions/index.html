@@ -328,6 +328,7 @@
               ${mission.is_ai_advertiser ? '<span class="ai-badge">AI</span>' : ''}
             </div>
             ${mission.agent_description ? `<div class="mission-advertiser-desc">${escapeHtml(mission.agent_description)}</div>` : ''}
+            ${mission.advertiser_x_handle ? `<div class="mission-advertiser-backed" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px;">backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a></div>` : ''}
           </div>
         </div>
         <p class="mission-item-description">${escapeHtml(description)}</p>
@@ -374,11 +375,21 @@
 
           avatarContainer.classList.add('visible');
 
-          if (user && user.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+          if (user && user.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(user.avatar_url)) {
+            const img = document.createElement('img');
+            img.src = user.avatar_url;
+            img.alt = user.display_name || user.x_handle || 'User';
+            img.onerror = function() { this.parentElement.innerHTML = '<span class="user-avatar-placeholder">👤</span>'; };
+            avatarEl.textContent = '';
+            avatarEl.appendChild(img);
           } else if (user.x_handle) {
             const initial = user.x_handle.charAt(0).toUpperCase();
-            avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+            const span = document.createElement('span');
+            span.className = 'user-avatar-placeholder';
+            span.style.fontWeight = '600';
+            span.textContent = initial;
+            avatarEl.textContent = '';
+            avatarEl.appendChild(span);
           }
 
           if (user.x_handle) {

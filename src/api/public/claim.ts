@@ -457,6 +457,7 @@ export async function handleClaimVerify(
     }
 
     const tweetId = tweetUrlMatch[3];
+    const xHandle = tweetUrlMatch[2];
 
     // Look up advertiser by claim_url
     const claimUrl = `https://humanadsai.com/claim/${claimToken}`;
@@ -508,10 +509,11 @@ export async function handleClaimVerify(
             claimed_at = datetime('now'),
             verification_tweet_id = ?,
             verification_tweet_url = ?,
+            x_handle = ?,
             updated_at = datetime('now')
         WHERE id = ?
       `)
-      .bind(operatorId, tweetId, tweetUrl, advertiser.id)
+      .bind(operatorId, tweetId, tweetUrl, xHandle, advertiser.id)
       .run();
 
     if (!updateResult.success) {

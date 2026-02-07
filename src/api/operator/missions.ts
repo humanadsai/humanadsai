@@ -38,12 +38,14 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
         json_extract(a.metadata, '$.is_sample') as is_sample,
         json_extract(d.metadata, '$.created_via') as created_via,
         json_extract(d.metadata, '$.ai_advertiser_name') as ai_advertiser_name,
+        ai_adv.x_handle as advertiser_x_handle,
         (SELECT COUNT(*) FROM missions WHERE deal_id = d.id) as mission_count,
         COALESCE(d.applications_count, 0) as applications_count,
         COALESCE(d.slots_total, d.max_participants) as slots_total,
         COALESCE(d.slots_selected, d.current_participants) as slots_selected
        FROM deals d
        JOIN agents a ON d.agent_id = a.id
+       LEFT JOIN ai_advertisers ai_adv ON d.agent_id = ai_adv.id
        WHERE d.status = 'active'
        AND COALESCE(d.visibility, 'visible') = 'visible'
        AND a.status NOT IN ('suspended', 'revoked')
@@ -108,6 +110,7 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
         agent_description: (deal.agent_description as string) || null,
         is_ai_advertiser: isAiAdvertiser,
         expires_at: deal.expires_at,
+        advertiser_x_handle: isAiAdvertiser ? (deal.advertiser_x_handle as string) || null : null,
         is_accepted: appInfo?.status === 'selected' || !!appInfo?.mission_id,
         application_status: appInfo?.status || null,
         mission_id: appInfo?.mission_id || null,
@@ -431,10 +434,14 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
 
     let query = `
       SELECT m.*, d.title as deal_title, d.requirements, d.reward_amount,
-             m.payout_tx_hash
+             m.payout_tx_hash,
+             ag.name as agent_name,
+             json_extract(d.metadata, '$.created_via') as created_via,
+             ai_adv.x_handle as advertiser_x_handle
       FROM missions m
       JOIN deals d ON m.deal_id = d.id
       JOIN agents ag ON d.agent_id = ag.id
+      LEFT JOIN ai_advertisers ai_adv ON d.agent_id = ai_adv.id
       WHERE m.operator_id = ?
         AND COALESCE(d.visibility, 'visible') = 'visible'
         AND ag.status NOT IN ('suspended', 'revoked')
@@ -458,6 +465,7 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
           const payoutTxHash = m.payout_tx_hash as string | null;
           const isSimulated = payoutTxHash ? isSimulatedTxHash(payoutTxHash) : false;
 
+          const isAiAdvertiser = m.created_via === 'ai_advertiser_api';
           return {
             id: m.id,
             deal_id: m.deal_id,
@@ -470,6 +478,9 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
             verified_at: m.verified_at,
             paid_at: m.paid_at,
             created_at: m.created_at,
+            agent_name: m.agent_name,
+            is_ai_advertiser: isAiAdvertiser,
+            advertiser_x_handle: isAiAdvertiser ? (m.advertiser_x_handle as string) || null : null,
             // Include simulated payment flag
             is_simulated: isSimulated,
           };

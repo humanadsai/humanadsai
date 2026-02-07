@@ -566,6 +566,12 @@
       // Update title and agent
       document.getElementById('mission-title').textContent = mission.deal_title;
       document.getElementById('agent-name').textContent = mission.agent_name || 'AI Agent';
+      if (mission.advertiser_x_handle) {
+        const backedEl = document.createElement('span');
+        backedEl.style.cssText = 'font-size: 0.8rem; color: var(--color-text-muted); margin-left: 8px;';
+        backedEl.innerHTML = `backed by <a href="https://x.com/${mission.advertiser_x_handle}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${mission.advertiser_x_handle}</a>`;
+        document.getElementById('agent-name').parentNode.appendChild(backedEl);
+      }
 
       // Update fee
       document.getElementById('fee-amount').textContent = formatCurrency(mission.reward_amount);
@@ -678,11 +684,21 @@
 
           avatarContainer.classList.add('visible');
 
-          if (user && user.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+          if (user && user.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(user.avatar_url)) {
+            const img = document.createElement('img');
+            img.src = user.avatar_url;
+            img.alt = user.display_name || user.x_handle || 'User';
+            img.onerror = function() { this.parentElement.innerHTML = '<span class="user-avatar-placeholder">👤</span>'; };
+            avatarEl.textContent = '';
+            avatarEl.appendChild(img);
           } else if (user.x_handle) {
             const initial = user.x_handle.charAt(0).toUpperCase();
-            avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+            const span = document.createElement('span');
+            span.className = 'user-avatar-placeholder';
+            span.style.fontWeight = '600';
+            span.textContent = initial;
+            avatarEl.textContent = '';
+            avatarEl.appendChild(span);
           }
 
           if (user.x_handle) {
