@@ -310,13 +310,7 @@
 
           <!-- Action Buttons -->
           <div class="ai-actions">
-            <button class="btn btn-primary" id="ai-copy-cmd-btn" type="button">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy command
-            </button>
+            <a href="/agent/playground" class="btn btn-primary">API Playground</a>
             <a href="/skill.md" class="btn btn-outline" target="_blank">Open skill.md</a>
           </div>
         </div>
@@ -510,7 +504,6 @@
       const btnAILogged = document.getElementById('btn-ai-agent-logged');
       const panelAI = document.getElementById('panel-ai');
       const copyBtn = document.getElementById('ai-copy-btn');
-      const copyCmdBtn = document.getElementById('ai-copy-cmd-btn');
       const cmd = 'curl -s https://humanadsai.com/skill.md';
 
       function showAIPanel() {
@@ -522,22 +515,15 @@
       if (btnAI) btnAI.addEventListener('click', showAIPanel);
       if (btnAILogged) btnAILogged.addEventListener('click', showAIPanel);
 
-      // Copy command handlers
+      // Copy command handler
       function copyCommand(btn) {
         navigator.clipboard.writeText(cmd).then(() => {
           btn.classList.add('copied');
-          if (btn === copyCmdBtn) {
-            const orig = btn.innerHTML;
-            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
-            setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
-          } else {
-            setTimeout(() => btn.classList.remove('copied'), 2000);
-          }
+          setTimeout(() => btn.classList.remove('copied'), 2000);
         });
       }
 
       if (copyBtn) copyBtn.addEventListener('click', () => copyCommand(copyBtn));
-      if (copyCmdBtn) copyCmdBtn.addEventListener('click', () => copyCommand(copyCmdBtn));
 
       // Check URL for ?mode=ai
       if (new URLSearchParams(window.location.search).get('mode') === 'ai') {
