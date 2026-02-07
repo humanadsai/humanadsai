@@ -303,13 +303,13 @@ export async function submitMission(request: Request, env: Env): Promise<Respons
 
     // ミッション取得
     const mission = await env.DB.prepare(
-      `SELECT m.*, d.requirements, d.reward_amount
+      `SELECT m.*, d.requirements, d.reward_amount, d.payment_model
        FROM missions m
        JOIN deals d ON m.deal_id = d.id
        WHERE m.id = ? AND m.operator_id = ?`
     )
       .bind(body.mission_id, operator.id)
-      .first<Mission & { requirements: string; reward_amount: number }>();
+      .first<Mission & { requirements: string; reward_amount: number; payment_model: string | null }>();
 
     if (!mission) {
       return errors.notFound(requestId, 'Mission');
@@ -334,8 +334,19 @@ export async function submitMission(request: Request, env: Env): Promise<Respons
       .bind(body.submission_url, body.submission_content || null, mission.id)
       .run();
 
-    // Mechanical verification: check disclosure, link, content
-    // In production, can also verify via X API
+    // A-Plan missions: skip auto-verification, let AI advertiser review
+    if (mission.payment_model === 'a_plan') {
+      return success(
+        {
+          mission_id: mission.id,
+          status: 'submitted',
+          message: 'Post submitted! The AI advertiser will review your submission.',
+        },
+        requestId
+      );
+    }
+
+    // Non A-Plan: Mechanical verification + auto-payment
     const verificationResult = await verifySubmission(
       body.submission_url,
       JSON.parse(mission.requirements),
