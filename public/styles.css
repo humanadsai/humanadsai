@@ -771,6 +771,64 @@ body {
   margin-bottom: var(--spacing-sm);
 }
 
+.mission-advertiser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--color-background-light);
+  border-radius: 8px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.mission-advertiser-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), #ff9966);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.mission-advertiser-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mission-advertiser-name {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mission-advertiser-name .ai-badge {
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--color-cyan);
+  letter-spacing: 0.5px;
+}
+
+.mission-advertiser-desc {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .mission-item-description {
   color: var(--color-text-muted);
   font-size: 0.875rem;
