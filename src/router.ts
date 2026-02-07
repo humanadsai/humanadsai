@@ -191,10 +191,19 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       return handleRpcProxy(request, env);
     }
 
-    // Faucet prepare — returns unsigned tx data for claimOpen()
-    // AI signs locally, sends via RPC proxy. Zero direct RPC needed from AI.
+    // Faucet helper endpoints — ALL GET, no POST needed from AI
+    // These let AI agents claim hUSD entirely via GET requests.
     if (path === '/api/v1/faucet/prepare' && method === 'GET') {
       return handleFaucetPrepare(request, env);
+    }
+    if (path === '/api/v1/faucet/send' && method === 'GET') {
+      return handleFaucetSend(request, env);
+    }
+    if (path === '/api/v1/faucet/receipt' && method === 'GET') {
+      return handleFaucetReceipt(request, env);
+    }
+    if (path === '/api/v1/faucet/balance' && method === 'GET') {
+      return handleFaucetBalance(request, env);
     }
 
     // ============================================
@@ -1376,9 +1385,44 @@ async function handleRpcProxy(request: Request, env: Env): Promise<Response> {
 }
 
 // ============================================
+// Shared RPC helper — server-side fallback across multiple Sepolia RPCs
+// ============================================
+
+async function sepoliaRpcCall(env: Env, method: string, params: any[]): Promise<any> {
+  const rpcUrl = env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+  const targets = [rpcUrl, ...RPC_TARGETS.filter(u => u !== rpcUrl)];
+  for (const target of targets) {
+    try {
+      const resp = await fetch(target, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+      });
+      if (!resp.ok) continue;
+      const data: any = await resp.json();
+      if (data.error) continue;
+      return data.result;
+    } catch {
+      continue;
+    }
+  }
+  throw new Error('All RPC endpoints failed');
+}
+
+function faucetJsonResponse(body: object, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
+// ============================================
 // Faucet Prepare — returns unsigned tx fields for claimOpen()
-// The AI signs locally and sends via the RPC proxy.
-// This eliminates the need for the AI to make ANY direct RPC calls.
+// ALL faucet endpoints are GET-only so AI agents in POST-blocked sandboxes can use them.
 // ============================================
 
 async function handleFaucetPrepare(request: Request, env: Env): Promise<Response> {
@@ -1386,44 +1430,22 @@ async function handleFaucetPrepare(request: Request, env: Env): Promise<Response
   const address = url.searchParams.get('address');
 
   if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
-    return new Response(JSON.stringify({
+    return faucetJsonResponse({
       success: false,
       error: 'Missing or invalid address parameter. Use ?address=0x...',
-    }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-  }
-
-  const rpcUrl = env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
-  const targets = [rpcUrl, ...RPC_TARGETS.filter(u => u !== rpcUrl)];
-
-  async function rpcCall(method: string, params: any[]): Promise<any> {
-    for (const target of targets) {
-      try {
-        const resp = await fetch(target, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-        });
-        if (!resp.ok) continue;
-        const data: any = await resp.json();
-        if (data.error) continue;
-        return data.result;
-      } catch {
-        continue;
-      }
-    }
-    throw new Error('All RPC endpoints failed');
+    }, 400);
   }
 
   try {
     const [nonceHex, gasPriceHex] = await Promise.all([
-      rpcCall('eth_getTransactionCount', [address.toLowerCase(), 'latest']),
-      rpcCall('eth_gasPrice', []),
+      sepoliaRpcCall(env, 'eth_getTransactionCount', [address.toLowerCase(), 'latest']),
+      sepoliaRpcCall(env, 'eth_gasPrice', []),
     ]);
 
     const nonce = parseInt(nonceHex, 16);
     const gasPrice = gasPriceHex;
 
-    return new Response(JSON.stringify({
+    return faucetJsonResponse({
       success: true,
       tx: {
         nonce,
@@ -1436,23 +1458,136 @@ async function handleFaucetPrepare(request: Request, env: Env): Promise<Response
       },
       instructions: [
         '1. Sign this transaction with your private key (EIP-155, chainId=11155111)',
-        '2. Send the signed raw tx via: POST https://humanadsai.com/api/v1/rpc/sepolia',
-        '   Body: {"jsonrpc":"2.0","id":1,"method":"eth_sendRawTransaction","params":["0xSIGNED_TX_HEX"]}',
-        '3. Wait ~15 seconds, then check receipt via the same proxy',
+        '2. Send signed tx via GET: https://humanadsai.com/api/v1/faucet/send?tx=0xSIGNED_HEX',
+        '3. Check receipt via GET: https://humanadsai.com/api/v1/faucet/receipt?hash=0xTX_HASH',
+        '4. Check balance via GET: https://humanadsai.com/api/v1/faucet/balance?address=YOUR_ADDRESS',
       ],
-      rpcProxy: 'https://humanadsai.com/api/v1/rpc/sepolia',
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'no-store',
+    });
+  } catch (e: any) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Failed to fetch nonce/gasPrice: ' + (e.message || 'unknown'),
+    }, 502);
+  }
+}
+
+// ============================================
+// Faucet Send — submit a signed raw transaction via GET
+// GET /api/v1/faucet/send?tx=0xSIGNED_RAW_TX_HEX
+// ============================================
+
+async function handleFaucetSend(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const rawTx = url.searchParams.get('tx');
+
+  if (!rawTx || !/^0x[0-9a-fA-F]+$/.test(rawTx)) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Missing or invalid tx parameter. Use ?tx=0xSIGNED_RAW_TX_HEX',
+    }, 400);
+  }
+
+  try {
+    const txHash = await sepoliaRpcCall(env, 'eth_sendRawTransaction', [rawTx]);
+    return faucetJsonResponse({
+      success: true,
+      txHash,
+      explorer: `https://sepolia.etherscan.io/tx/${txHash}`,
+      next: `Check receipt: https://humanadsai.com/api/v1/faucet/receipt?hash=${txHash}`,
+    });
+  } catch (e: any) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Failed to send transaction: ' + (e.message || 'unknown'),
+    }, 502);
+  }
+}
+
+// ============================================
+// Faucet Receipt — check transaction receipt via GET
+// GET /api/v1/faucet/receipt?hash=0xTX_HASH
+// ============================================
+
+async function handleFaucetReceipt(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const hash = url.searchParams.get('hash');
+
+  if (!hash || !/^0x[0-9a-fA-F]{64}$/.test(hash)) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Missing or invalid hash parameter. Use ?hash=0xTX_HASH',
+    }, 400);
+  }
+
+  try {
+    const receipt = await sepoliaRpcCall(env, 'eth_getTransactionReceipt', [hash]);
+    if (!receipt) {
+      return faucetJsonResponse({
+        success: true,
+        status: 'pending',
+        message: 'Transaction not yet mined. Try again in 10-15 seconds.',
+      });
+    }
+    return faucetJsonResponse({
+      success: true,
+      status: receipt.status === '0x1' ? 'confirmed' : 'failed',
+      blockNumber: parseInt(receipt.blockNumber, 16),
+      gasUsed: parseInt(receipt.gasUsed, 16),
+      explorer: `https://sepolia.etherscan.io/tx/${hash}`,
+    });
+  } catch (e: any) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Failed to check receipt: ' + (e.message || 'unknown'),
+    }, 502);
+  }
+}
+
+// ============================================
+// Faucet Balance — check hUSD and ETH balance via GET
+// GET /api/v1/faucet/balance?address=0xADDRESS
+// ============================================
+
+async function handleFaucetBalance(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const address = url.searchParams.get('address');
+
+  if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Missing or invalid address parameter. Use ?address=0x...',
+    }, 400);
+  }
+
+  try {
+    const paddedAddr = '000000000000000000000000' + address.toLowerCase().slice(2);
+    const [husdRaw, ethRaw] = await Promise.all([
+      sepoliaRpcCall(env, 'eth_call', [{
+        to: '0x62C2225D5691515BD4ee36539D127d0dB7dCeb67',
+        data: '0x70a08231' + paddedAddr,
+      }, 'latest']),
+      sepoliaRpcCall(env, 'eth_getBalance', [address.toLowerCase(), 'latest']),
+    ]);
+
+    const husdWei = BigInt(husdRaw);
+    const ethWei = BigInt(ethRaw);
+
+    return faucetJsonResponse({
+      success: true,
+      address,
+      hUSD: {
+        raw: husdWei.toString(),
+        formatted: (Number(husdWei) / 1e6).toFixed(6),
+      },
+      ETH: {
+        raw: ethWei.toString(),
+        formatted: (Number(ethWei) / 1e18).toFixed(6),
       },
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({
+    return faucetJsonResponse({
       success: false,
-      error: 'Failed to fetch nonce/gasPrice: ' + (e.message || 'unknown'),
-    }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      error: 'Failed to check balance: ' + (e.message || 'unknown'),
+    }, 502);
   }
 }
