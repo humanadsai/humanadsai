@@ -367,7 +367,7 @@
               Profile
             </h2>
             <div class="profile-header">
-              <div class="profile-avatar">
+              <a href="https://x.com/${(profile.x_handle || '').replace(/^@+/, '')}" target="_blank" rel="noopener noreferrer" class="profile-avatar" style="text-decoration:none;">
                 ${profile.x_profile_image_url
                   ? `<img src="${profile.x_profile_image_url}" alt="Avatar">`
                   : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -375,12 +375,15 @@
                       <circle cx="12" cy="7" r="4"/>
                     </svg>`
                 }
-              </div>
+              </a>
               <div class="profile-info">
                 <h3>${profile.display_name || 'Unknown'}</h3>
                 <a href="https://x.com/${(profile.x_handle || '').replace(/^@+/, '')}" target="_blank" rel="noopener noreferrer" class="handle" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
                   <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                   @${(profile.x_handle || 'unknown').replace(/^@+/, '')}
+                </a>
+                <a href="/operators/detail?id=${profile.id || ''}" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--color-primary);margin-top:4px;">
+                  View HumanAds Profile →
                 </a>
               </div>
             </div>
