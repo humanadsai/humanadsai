@@ -2693,9 +2693,9 @@ body {
    ============================================ */
 
 .mission-progress {
-  display: flex;
-  justify-content: space-between;
-  margin: 16px 0 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 16px 0 4px;
   position: relative;
 }
 
@@ -2703,8 +2703,8 @@ body {
   content: '';
   position: absolute;
   top: 50%;
-  left: 12%;
-  right: 12%;
+  left: 12px;
+  right: 12px;
   height: 2px;
   background: var(--color-border);
   transform: translateY(-50%);
@@ -2722,6 +2722,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  justify-self: center;
   font-size: 10px;
 }
 
@@ -2743,11 +2744,15 @@ body {
 }
 
 .progress-labels {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   font-size: 0.65rem;
   color: var(--color-text-muted);
   margin-top: 4px;
+}
+
+.progress-labels span {
+  text-align: center;
 }
 
 .progress-message {
