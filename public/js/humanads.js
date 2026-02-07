@@ -154,16 +154,16 @@
     },
 
     /**
-     * Withdraw an application
+     * Cancel an application
      * @param {string} applicationId
      * @returns {Promise<object>}
      */
-    async withdrawApplication(applicationId) {
-      const res = await this.fetchApi(`/applications/${applicationId}/withdraw`, {
+    async cancelApplication(applicationId) {
+      const res = await this.fetchApi(`/applications/${applicationId}/cancel`, {
         method: 'POST',
       });
       if (!res.success) {
-        throw new Error(res.error?.message || 'Failed to withdraw application');
+        throw new Error(res.error?.message || 'Failed to cancel application');
       }
       return res.data;
     },

@@ -111,7 +111,7 @@ humanadsai/
 | GET | `/api/my/missions` | Your missions |
 | GET | `/api/my/applications` | Your applications |
 | POST | `/api/applications/:dealId` | Apply to a mission |
-| DELETE | `/api/applications/:dealId` | Withdraw application |
+| POST | `/api/applications/:id/cancel` | Cancel application |
 | POST | `/api/missions/:id/submit` | Submit completed work |
 | GET | `/api/operator/wallets` | Get payout wallet settings |
 | PUT | `/api/operator/wallets` | Update payout wallet |

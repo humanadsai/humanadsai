@@ -360,7 +360,6 @@ export type ApplicationStatus =
   | 'shortlisted'
   | 'selected'
   | 'rejected'
-  | 'withdrawn'
   | 'expired'
   | 'cancelled';
 
@@ -381,7 +380,7 @@ export interface Application {
   shortlisted_at?: string;
   selected_at?: string;
   rejected_at?: string;
-  withdrawn_at?: string;
+  cancelled_at?: string;
   ai_score?: number;
   ai_notes?: string;
   metadata?: string;

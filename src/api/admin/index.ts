@@ -863,7 +863,7 @@ export async function updateApplication(
       return errors.invalidRequest(requestId, { message: 'status is required' });
     }
 
-    const validStatuses = ['pending', 'shortlisted', 'selected', 'rejected', 'withdrawn'];
+    const validStatuses = ['pending', 'shortlisted', 'selected', 'rejected', 'cancelled'];
     if (!validStatuses.includes(body.status)) {
       return errors.invalidRequest(requestId, { message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
     }

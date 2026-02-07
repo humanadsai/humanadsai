@@ -47,7 +47,7 @@ async function getApplicationWithOwnership(
  * GET /api/v1/missions/:dealId/applications
  *
  * Query parameters:
- *   status - Filter by status: applied, shortlisted, selected, rejected, withdrawn
+ *   status - Filter by status: applied, shortlisted, selected, rejected, cancelled
  *   limit  - Max results (1-100, default 50)
  *   offset - Pagination offset (default 0)
  */
@@ -79,7 +79,7 @@ export async function handleListApplications(
     SELECT a.id, a.deal_id, a.operator_id, a.status,
            a.proposed_angle, a.estimated_post_time_window,
            a.draft_copy, a.language, a.audience_fit, a.portfolio_links,
-           a.applied_at, a.shortlisted_at, a.selected_at, a.rejected_at, a.withdrawn_at,
+           a.applied_at, a.shortlisted_at, a.selected_at, a.rejected_at, a.cancelled_at,
            a.ai_score, a.ai_notes,
            a.created_at, a.updated_at,
            o.x_handle, o.display_name, o.x_followers_count, o.x_tweet_count,
@@ -146,7 +146,7 @@ export async function handleListApplications(
     shortlisted_at: a.shortlisted_at || null,
     selected_at: a.selected_at || null,
     rejected_at: a.rejected_at || null,
-    withdrawn_at: a.withdrawn_at || null
+    cancelled_at: a.cancelled_at || null
   }));
 
   return success({
