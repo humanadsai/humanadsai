@@ -112,7 +112,9 @@
     .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; }
     .data-table th { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; }
-    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .data-table tr:hover { background: rgba(255,255,255,0.05); }
+    .data-table tr[onclick]:hover { background: rgba(255,107,53,0.08); }
+    .data-table tr[onclick] td a:hover { color: var(--color-primary); }
     .data-table tr:last-child td { border-bottom: none; }
 
     /* Status Badges */
@@ -412,9 +414,9 @@
                   </thead>
                   <tbody>
                     ${missions.map(m => `
-                      <tr>
+                      <tr style="cursor: pointer;" onclick="window.location.href='/missions/apply.html?id=${m.deal.id}'">
                         <td>
-                          <div style="font-weight: 500; margin-bottom: 2px;">${m.deal.title}</div>
+                          <a href="/missions/apply.html?id=${m.deal.id}" style="font-weight: 500; margin-bottom: 2px; color: var(--color-text); text-decoration: none; display: block;" onclick="event.stopPropagation();">${m.deal.title}</a>
                           <div style="font-size: 0.7rem; color: var(--color-text-muted);">
                             ${formatDate(m.deal.created_at)}
                           </div>
