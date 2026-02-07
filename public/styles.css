@@ -1646,7 +1646,8 @@ body {
    ============================================ */
 
 .what-is-section {
-  margin: var(--spacing-lg) 0;
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
 }
 
 .what-is-card {
