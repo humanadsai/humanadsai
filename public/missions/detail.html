@@ -619,7 +619,7 @@
       try {
         const data = await HumanAds.loadMyMissions();
         const missions = data.missions || [];
-        const mission = missions.find(m => m.id === missionId);
+        const mission = missions.find(m => m.id === missionId || m.deal_id === missionId);
 
         if (!mission) {
           document.getElementById('loading-state').style.display = 'none';
