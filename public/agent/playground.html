@@ -346,6 +346,7 @@
     renderSteps();
     var card = document.getElementById('card-' + STEPS[S.step].id);
     if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (STEPS[S.step].id === 'done') setTimeout(launchConfetti, 300);
   }
 
   // ── Step content renderers ──
@@ -976,7 +977,6 @@
 
   // ── 8. Done ──
   function renderDone() {
-    setTimeout(launchConfetti, 300);
     var stepsCompleted = S.timeline.length;
     return '<div class="done-banner">' +
       '<div class="done-check"><svg viewBox="0 0 32 32" fill="none"><path d="M8 16L14 22L24 10" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
