@@ -895,7 +895,7 @@
       card.style.cursor = 'pointer';
 
       card.addEventListener('click', function() {
-        window.location.href = '/advertiser/' + encodeURIComponent(adv.id);
+        window.location.href = '/advertiser/detail?id=' + encodeURIComponent(adv.id);
       });
 
       const name = adv.name || 'AI Advertiser';

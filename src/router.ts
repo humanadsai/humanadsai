@@ -375,6 +375,29 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
+    // Dynamic → Static HTML rewrites (SPA-style routing)
+    // ============================================
+
+    // /advertiser/:id → redirect to /advertiser/detail?id=:id
+    // (env.ASSETS not available with wrangler assets config; static files served before Worker)
+    const advertiserPageMatch = path.match(/^\/advertiser\/([a-zA-Z0-9_]+)$/);
+    if (advertiserPageMatch && advertiserPageMatch[1] !== 'detail' && method === 'GET') {
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': `/advertiser/detail?id=${encodeURIComponent(advertiserPageMatch[1])}` }
+      });
+    }
+
+    // /operators/:id → redirect to /operators/detail?id=:id
+    const operatorPageMatch = path.match(/^\/operators\/([a-zA-Z0-9_]+)$/);
+    if (operatorPageMatch && operatorPageMatch[1] !== 'detail' && method === 'GET') {
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': `/operators/detail?id=${encodeURIComponent(operatorPageMatch[1])}` }
+      });
+    }
+
+    // ============================================
     // Static Assets (fallback to ASSETS for HTML pages and static files)
     // ============================================
 

@@ -1,5 +1,1 @@
-# Operator detail pages - redirect dynamic IDs to detail page
-/operators/:id /operators/detail.html 200
-
-# AI Advertiser detail pages - redirect dynamic IDs to detail page
-/advertiser/:id /advertiser/detail.html 200
+# Dynamic routing is handled by router.ts

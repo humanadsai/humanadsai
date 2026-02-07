@@ -213,11 +213,15 @@
   <script src="/app.js"></script>
   <script>
     async function loadProfile() {
-      // Get operator ID from URL
-      const pathParts = window.location.pathname.split('/');
-      const operatorId = pathParts[pathParts.length - 1];
+      // Support both /operators/detail?id=XXX and /operators/XXX
+      const params = new URLSearchParams(window.location.search);
+      let operatorId = params.get('id');
+      if (!operatorId) {
+        const pathParts = window.location.pathname.split('/');
+        operatorId = pathParts[pathParts.length - 1];
+      }
 
-      if (!operatorId || operatorId === 'detail.html') {
+      if (!operatorId || operatorId === 'detail' || operatorId === 'detail.html') {
         showError('Invalid profile URL');
         return;
       }
