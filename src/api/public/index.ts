@@ -18,9 +18,11 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
       `SELECT d.id, d.title, d.description, d.requirements, d.reward_amount,
         d.max_participants, d.current_participants, d.expires_at, d.created_at,
         d.metadata,
-        a.name as agent_name
+        a.name as agent_name,
+        ai_adv.x_handle as advertiser_x_handle
        FROM deals d
        JOIN agents a ON d.agent_id = a.id
+       LEFT JOIN ai_advertisers ai_adv ON d.agent_id = ai_adv.id
        WHERE d.status = 'active'
        AND COALESCE(d.visibility, 'visible') = 'visible'
        AND a.status NOT IN ('suspended', 'revoked')
@@ -45,6 +47,13 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
               // ignore parse errors
             }
           }
+          let isAiAdvertiser = false;
+          if (d.metadata) {
+            try {
+              const meta2 = JSON.parse(d.metadata as string);
+              isAiAdvertiser = meta2.created_via === 'ai_advertiser_api';
+            } catch {}
+          }
           return {
             id: d.id,
             title: d.title,
@@ -53,6 +62,7 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
             reward_amount: d.reward_amount,
             remaining_slots: (d.max_participants as number) - (d.current_participants as number),
             agent_name: d.agent_name,
+            advertiser_x_handle: isAiAdvertiser ? (d.advertiser_x_handle as string) || null : null,
             expires_at: d.expires_at,
             created_at: d.created_at,
             is_sample: isSample,
@@ -82,9 +92,11 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
 
   try {
     const deal = await env.DB.prepare(
-      `SELECT d.*, a.name as agent_name
+      `SELECT d.*, a.name as agent_name,
+        ai_adv.x_handle as advertiser_x_handle
        FROM deals d
        JOIN agents a ON d.agent_id = a.id
+       LEFT JOIN ai_advertisers ai_adv ON d.agent_id = ai_adv.id
        WHERE d.id = ? AND d.status = 'active'
        AND COALESCE(d.visibility, 'visible') = 'visible'
        AND a.status NOT IN ('suspended', 'revoked')`
@@ -107,6 +119,14 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
       }
     }
 
+    let isAiAdvertiser = false;
+    if (deal.metadata) {
+      try {
+        const meta2 = JSON.parse(deal.metadata as string);
+        isAiAdvertiser = meta2.created_via === 'ai_advertiser_api';
+      } catch {}
+    }
+
     return success(
       {
         deal: {
@@ -117,6 +137,7 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
           reward_amount: deal.reward_amount,
           remaining_slots: (deal.max_participants as number) - (deal.current_participants as number),
           agent_name: deal.agent_name,
+          advertiser_x_handle: isAiAdvertiser ? (deal.advertiser_x_handle as string) || null : null,
           expires_at: deal.expires_at,
           created_at: deal.created_at,
           is_sample: isSample,
@@ -490,7 +511,7 @@ export async function getPublicAiAdvertiserDetail(request: Request, env: Env, ad
   try {
     // Fetch advertiser info
     const advertiser = await env.DB.prepare(`
-      SELECT id, name, description, mode, status, created_at
+      SELECT id, name, description, mode, status, x_handle, created_at
       FROM ai_advertisers
       WHERE id = ? AND status = 'active'
     `).bind(advertiserId).first();
@@ -516,6 +537,7 @@ export async function getPublicAiAdvertiserDetail(request: Request, env: Env, ad
         name: advertiser.name,
         description: advertiser.description || null,
         mode: advertiser.mode,
+        x_handle: advertiser.x_handle || null,
         created_at: advertiser.created_at
       },
       missions: (missions.results || []).map((m: any) => ({
@@ -552,7 +574,7 @@ export async function getPublicAiAdvertisers(request: Request, env: Env): Promis
     // Fetch active advertisers with their mission counts
     const advertisers = await env.DB.prepare(`
       SELECT
-        a.id, a.name, a.description, a.mode, a.status, a.created_at,
+        a.id, a.name, a.description, a.mode, a.status, a.x_handle, a.created_at,
         COUNT(d.id) AS missions_count,
         SUM(CASE WHEN d.status = 'open' THEN 1 ELSE 0 END) AS open_missions_count
       FROM ai_advertisers a
@@ -577,6 +599,7 @@ export async function getPublicAiAdvertisers(request: Request, env: Env): Promis
         name: adv.name,
         description: adv.description || null,
         mode: adv.mode,
+        x_handle: adv.x_handle || null,
         missions_count: adv.missions_count || 0,
         open_missions_count: adv.open_missions_count || 0,
         created_at: adv.created_at

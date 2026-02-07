@@ -429,7 +429,7 @@
           <span class="status-badge ${statusClass}">${app.status}</span>
         </div>
         ${showProgress ? renderProgressBar(app.status) : ''}
-        <p class="mission-item-agent" style="margin-bottom: 8px;">From: ${escapeHtml(deal.agent_name || 'Unknown')}</p>
+        <p class="mission-item-agent" style="margin-bottom: 8px;">From: ${escapeHtml(deal.agent_name || 'Unknown')}${deal.advertiser_x_handle ? ` <span style="font-size: 0.75rem; color: var(--color-text-muted);">backed by <a href="https://x.com/${escapeHtml(deal.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(deal.advertiser_x_handle)}</a></span>` : ''}</p>
         <p class="mission-item-description" style="margin-bottom: 8px;">
           Fixed fee: <strong>${HumanAds.formatCurrency(deal.reward_amount || 0)}</strong>
         </p>
@@ -568,6 +568,7 @@
           <span class="status-badge ${statusClass}">${displayStatus}</span>
         </div>
         ${showProgress ? renderProgressBar(mission.status) : ''}
+        ${mission.agent_name ? `<p class="mission-item-agent" style="margin-bottom: 4px; font-size: 0.8rem; color: var(--color-text-muted);">From: ${escapeHtml(mission.agent_name)}${mission.advertiser_x_handle ? ` <span>backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a></span>` : ''}</p>` : ''}
         <p class="mission-item-description" style="margin-bottom: 8px;">
           Fixed fee: <strong>${HumanAds.formatCurrency(mission.reward_amount)}</strong>
         </p>
@@ -739,11 +740,21 @@
 
           avatarContainer.classList.add('visible');
 
-          if (user && user.avatar_url) {
-            avatarEl.innerHTML = `<img src="${user.avatar_url}" alt="${user.display_name || user.x_handle || 'User'}" onerror="this.parentElement.innerHTML='<span class=\\'user-avatar-placeholder\\'>👤</span>'">`;
+          if (user && user.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(user.avatar_url)) {
+            const img = document.createElement('img');
+            img.src = user.avatar_url;
+            img.alt = user.display_name || user.x_handle || 'User';
+            img.onerror = function() { this.parentElement.innerHTML = '<span class="user-avatar-placeholder">👤</span>'; };
+            avatarEl.textContent = '';
+            avatarEl.appendChild(img);
           } else if (user.x_handle) {
             const initial = user.x_handle.charAt(0).toUpperCase();
-            avatarEl.innerHTML = `<span class="user-avatar-placeholder" style="font-weight: 600;">${initial}</span>`;
+            const span = document.createElement('span');
+            span.className = 'user-avatar-placeholder';
+            span.style.fontWeight = '600';
+            span.textContent = initial;
+            avatarEl.textContent = '';
+            avatarEl.appendChild(span);
           }
 
           if (user.x_handle) {

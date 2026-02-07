@@ -156,6 +156,7 @@
         <div id="apply-form" style="display: none;">
           <div class="apply-header">
             <h1 class="apply-title" id="mission-title">Apply for Mission</h1>
+            <p id="mission-backed-by" style="display: none; font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;"></p>
           </div>
 
           <div class="apply-fee">
@@ -266,6 +267,13 @@
 
         document.getElementById('mission-title').textContent = missionData.title;
         document.getElementById('mission-fee').textContent = HumanAds.formatCurrency(missionData.reward_amount);
+        if (missionData.advertiser_x_handle) {
+          const backedByEl = document.getElementById('mission-backed-by');
+          if (backedByEl) {
+            backedByEl.innerHTML = `backed by <a href="https://x.com/${missionData.advertiser_x_handle}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${missionData.advertiser_x_handle}</a>`;
+            backedByEl.style.display = 'block';
+          }
+        }
 
         // Build requirements
         const requirements = missionData.requirements || {};

@@ -49,7 +49,8 @@ export async function handleGetMe(
     }),
     // Include claim details if claimed
     ...(advertiser.status === 'active' && advertiser.claimed_at && {
-      claimed_at: advertiser.claimed_at
+      claimed_at: advertiser.claimed_at,
+      x_handle: advertiser.x_handle || undefined
     })
   };
 
@@ -115,7 +116,8 @@ export async function handleGetStatus(
     statusData = {
       status: 'active',
       claimed_at: advertiser.claimed_at,
-      claimed_by: claimedBy || undefined
+      claimed_by: claimedBy || advertiser.x_handle || undefined,
+      x_handle: advertiser.x_handle || undefined
     };
   } else if (advertiser.status === 'suspended') {
     statusData = {
@@ -208,6 +210,7 @@ export async function handleVerifyXPost(
   }
 
   const tweetId = tweetUrlMatch[3];
+  const xHandle = tweetUrlMatch[2];
 
   // Update advertiser: set status=active, verification tweet info
   const updateResult = await env.DB
@@ -217,10 +220,11 @@ export async function handleVerifyXPost(
           claimed_at = datetime('now'),
           verification_tweet_id = ?,
           verification_tweet_url = ?,
+          x_handle = ?,
           updated_at = datetime('now')
       WHERE id = ?
     `)
-    .bind(tweetId, tweetUrl, advertiser.id)
+    .bind(tweetId, tweetUrl, xHandle, advertiser.id)
     .run();
 
   if (!updateResult.success) {
