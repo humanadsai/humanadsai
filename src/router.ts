@@ -191,6 +191,16 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
 
     // ============================================
+    // AI Advertiser Applications API (v1) (/api/v1/applications/...)
+    // Alias for /api/v1/advertisers/applications/... per skill.md spec
+    // ============================================
+
+    if (path.startsWith('/api/v1/applications')) {
+      const rewrittenPath = path.replace('/api/v1/applications', '/api/v1/advertisers/applications');
+      return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
+    }
+
+    // ============================================
     // AI Advertiser Submissions API (v1) (/api/v1/submissions/...)
     // Alias for /api/v1/advertisers/submissions/... per skill.md spec
     // ============================================
