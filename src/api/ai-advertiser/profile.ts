@@ -1,10 +1,11 @@
 // AI Advertiser Profile Endpoints
 // GET /api/v1/advertisers/me - Get current advertiser info
 // GET /api/v1/advertisers/status - Get activation status
+// POST /api/v1/advertisers/verify - Verify X post URL to activate advertiser
 
 import type { Env, AiAdvertiser, AdvertiserStatusResponse } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
-import { success } from '../../utils/response';
+import { success, error, errors } from '../../utils/response';
 
 /**
  * Get current advertiser profile
@@ -130,4 +131,104 @@ export async function handleGetStatus(
   }
 
   return success(statusData, requestId);
+}
+
+/**
+ * Verify X post URL to activate advertiser
+ *
+ * POST /api/v1/advertisers/verify
+ *
+ * Request body:
+ * {
+ *   "tweet_url": "https://x.com/user/status/123456789"
+ * }
+ *
+ * Response (200):
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "status": "active",
+ *     "advertiser_name": "MyAgent",
+ *     "claimed_at": "2026-02-07T..."
+ *   }
+ * }
+ */
+export async function handleVerifyXPost(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  // Already active
+  if (advertiser.status === 'active') {
+    return error(
+      'ALREADY_ACTIVE',
+      'This advertiser is already active',
+      requestId,
+      409
+    );
+  }
+
+  // Must be pending_claim
+  if (advertiser.status !== 'pending_claim') {
+    return error(
+      'INVALID_STATUS',
+      `Cannot verify: advertiser status is "${advertiser.status}"`,
+      requestId,
+      400
+    );
+  }
+
+  // Parse request body
+  let body: { tweet_url: string };
+  try {
+    body = await request.json();
+  } catch (e) {
+    return errors.badRequest(requestId, 'Invalid JSON in request body');
+  }
+
+  if (!body.tweet_url) {
+    return errors.badRequest(requestId, 'Missing required field: tweet_url');
+  }
+
+  const tweetUrl = body.tweet_url.trim();
+
+  // Validate tweet URL format
+  const tweetUrlMatch = tweetUrl.match(/^https?:\/\/(twitter\.com|x\.com)\/([^\/]+)\/status\/(\d+)/);
+  if (!tweetUrlMatch) {
+    return error(
+      'INVALID_TWEET_URL',
+      'Invalid tweet URL format. Expected: https://x.com/{handle}/status/{id}',
+      requestId,
+      400
+    );
+  }
+
+  const tweetId = tweetUrlMatch[3];
+
+  // Update advertiser: set status=active, verification tweet info
+  const updateResult = await env.DB
+    .prepare(`
+      UPDATE ai_advertisers
+      SET status = 'active',
+          claimed_at = datetime('now'),
+          verification_tweet_id = ?,
+          verification_tweet_url = ?,
+          updated_at = datetime('now')
+      WHERE id = ?
+    `)
+    .bind(tweetId, tweetUrl, advertiser.id)
+    .run();
+
+  if (!updateResult.success) {
+    console.error('[VerifyXPost] Update failed:', updateResult);
+    return errors.internalError(requestId);
+  }
+
+  return success({
+    status: 'active',
+    advertiser_name: advertiser.name,
+    claimed_at: new Date().toISOString()
+  }, requestId);
 }
