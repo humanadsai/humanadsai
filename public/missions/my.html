@@ -66,7 +66,7 @@
       border: 1px solid rgba(255, 152, 0, 0.4);
       color: #FFB74D;
     }
-    .status-verified, .status-paid, .status-selected {
+    .status-verified, .status-approved, .status-address_unlocked, .status-paid, .status-paid_partial, .status-paid_complete, .status-selected {
       background: rgba(76, 175, 80, 0.25);
       border: 1px solid rgba(76, 175, 80, 0.4);
       color: #81C784;
@@ -316,11 +316,15 @@
           steps[3].active = true;
           break;
         case 'verified':
+        case 'approved':
+        case 'address_unlocked':
+        case 'paid_partial':
           steps[1].completed = true;
           steps[2].completed = true;
           steps[3].active = true;
           break;
         case 'paid':
+        case 'paid_complete':
           steps[1].completed = true;
           steps[2].completed = true;
           steps[3].completed = true;
@@ -342,7 +346,13 @@
           return 'Waiting for AI review';
         case 'verified':
           return 'Verified! Awaiting payment';
+        case 'approved':
+        case 'address_unlocked':
+          return 'Approved! Payment processing';
+        case 'paid_partial':
+          return 'Partial payment sent';
         case 'paid':
+        case 'paid_complete':
           return 'Paid!';
         default:
           return '';
@@ -455,6 +465,9 @@
       // Map status for display
       let displayStatus = mission.status;
       if (mission.status === 'accepted') displayStatus = 'In Progress';
+      else if (mission.status === 'address_unlocked') displayStatus = 'approved';
+      else if (mission.status === 'paid_partial') displayStatus = 'approved';
+      else if (mission.status === 'paid_complete') displayStatus = 'paid';
       let statusClass = `status-${mission.status}`;
       let actionHtml = '';
 
@@ -522,10 +535,29 @@
             </button>
           </div>
         `;
+      } else if (mission.status === 'approved' || mission.status === 'address_unlocked' || mission.status === 'paid_partial') {
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; text-align: center;">
+            <p style="color: #4CAF50; font-size: 0.875rem;">
+              Approved! Payment is being processed...
+            </p>
+          </div>
+        `;
+      } else if (mission.status === 'paid_complete') {
+        const simulatedBadge = mission.is_simulated
+          ? `<span style="display: inline-block; background: rgba(255, 152, 0, 0.25); border: 1px solid rgba(255, 152, 0, 0.4); color: #FFB74D; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-left: 8px;">SIMULATED</span>`
+          : '';
+        actionHtml = `
+          <div style="margin-top: 16px; padding: 12px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; text-align: center;">
+            <p style="color: #4CAF50; font-weight: 600;">
+              Earned: ${HumanAds.formatCurrency(mission.reward_amount)}${simulatedBadge}
+            </p>
+          </div>
+        `;
       }
 
       // Show progress bar for active missions
-      const showProgress = ['accepted', 'submitted', 'verified', 'paid'].includes(mission.status);
+      const showProgress = ['accepted', 'submitted', 'verified', 'approved', 'address_unlocked', 'paid_partial', 'paid', 'paid_complete'].includes(mission.status);
 
       el.innerHTML = `
         <div class="mission-item-badges">
