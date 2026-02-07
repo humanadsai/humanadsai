@@ -809,6 +809,7 @@ export async function listApplications(request: Request, env: Env): Promise<Resp
   try {
     const url = new URL(request.url);
     const dealId = url.searchParams.get('deal_id');
+    const operatorId = url.searchParams.get('operator_id');
     const status = url.searchParams.get('status');
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100);
     const offset = parseInt(url.searchParams.get('offset') || '0');
@@ -823,6 +824,10 @@ export async function listApplications(request: Request, env: Env): Promise<Resp
     if (dealId) {
       conditions.push('a.deal_id = ?');
       params.push(dealId);
+    }
+    if (operatorId) {
+      conditions.push('a.operator_id = ?');
+      params.push(operatorId);
     }
     if (status) {
       conditions.push('a.status = ?');

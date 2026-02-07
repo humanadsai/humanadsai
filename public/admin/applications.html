@@ -35,6 +35,12 @@
     .id-cell { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
     .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .action-btns { display: flex; gap: 4px; }
+    .operator-filter { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .operator-filter-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); background: rgba(255,107,53,0.15); border: 1px solid var(--color-primary); color: var(--color-primary); }
+    .operator-filter-badge .clear-btn { cursor: pointer; opacity: 0.7; font-size: 1rem; line-height: 1; }
+    .operator-filter-badge .clear-btn:hover { opacity: 1; }
+    .operator-link { color: var(--color-primary); cursor: pointer; text-decoration: none; }
+    .operator-link:hover { text-decoration: underline; }
   </style>
   <script src="/js/analytics.js"></script>
 </head>
@@ -61,6 +67,27 @@
   <script src="/js/humanads.js"></script>
   <script>
     let currentStatus = null;
+    let currentOperatorId = null;
+    let currentOperatorHandle = null;
+
+    function filterByOperator(operatorId, handle) {
+      currentOperatorId = operatorId;
+      currentOperatorHandle = handle;
+      // Update URL without reload
+      const params = new URLSearchParams(window.location.search);
+      params.set('operator_id', operatorId);
+      window.history.replaceState({}, '', '?' + params.toString());
+      loadApplications(currentStatus);
+    }
+
+    function clearOperatorFilter() {
+      currentOperatorId = null;
+      currentOperatorHandle = null;
+      const params = new URLSearchParams(window.location.search);
+      params.delete('operator_id');
+      window.history.replaceState({}, '', params.toString() ? '?' + params.toString() : window.location.pathname);
+      loadApplications(currentStatus);
+    }
 
     async function loadApplications(status = null) {
       currentStatus = status;
@@ -68,7 +95,11 @@
       content.innerHTML = '<div class="loading">Loading applications...</div>';
 
       try {
-        const url = status ? `/admin/applications?status=${status}` : '/admin/applications';
+        const params = new URLSearchParams();
+        if (status) params.set('status', status);
+        if (currentOperatorId) params.set('operator_id', currentOperatorId);
+        const qs = params.toString();
+        const url = qs ? `/admin/applications?${qs}` : '/admin/applications';
         const res = await HumanAds.fetchApi(url);
 
         if (!res.success) {
@@ -78,10 +109,21 @@
 
         const applications = res.data.applications || [];
 
+        const operatorFilterHtml = currentOperatorId
+          ? `<div class="operator-filter">
+               <span>Filtered by:</span>
+               <span class="operator-filter-badge">
+                 @${HumanAds.escapeHtml(currentOperatorHandle || 'user')}
+                 <span class="clear-btn" onclick="clearOperatorFilter()" title="Clear filter">&times;</span>
+               </span>
+             </div>`
+          : '';
+
         content.innerHTML = `
           <div class="admin-header">
             <h1>Applications (${applications.length})</h1>
           </div>
+          ${operatorFilterHtml}
           <div class="filters">
             <span class="filter-chip ${!status ? 'active' : ''}" onclick="loadApplications()">All</span>
             <span class="filter-chip ${status === 'pending' ? 'active' : ''}" onclick="loadApplications('pending')">Pending</span>
@@ -96,11 +138,13 @@
                   <tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Applied</th><th>Selected</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
-                  ${applications.map(a => `
+                  ${applications.map(a => {
+                    const handle = HumanAds.escapeHtml((a.x_handle || 'unknown').replace(/^@+/, ''));
+                    return `
                     <tr>
                       <td class="id-cell">${a.id.substring(0,8)}...</td>
                       <td>${HumanAds.escapeHtml(a.deal_title || a.deal_id?.substring(0,8) || 'N/A')}</td>
-                      <td>@${HumanAds.escapeHtml((a.x_handle || 'unknown').replace(/^@+/, ''))}</td>
+                      <td><a class="operator-link" onclick="filterByOperator('${a.operator_id}', '${handle}')" title="Filter by this operator">@${handle}</a></td>
                       <td><span class="status-badge ${a.status}">${a.status}</span></td>
                       <td>${HumanAds.formatDate(a.created_at)}</td>
                       <td>${a.selected_at ? HumanAds.formatDate(a.selected_at) : '-'}</td>
@@ -116,7 +160,7 @@
                         `}
                       </td>
                     </tr>
-                  `).join('')}
+                  `}).join('')}
                 </tbody>
               </table>
             `}
@@ -153,6 +197,7 @@
         return;
       }
       const params = new URLSearchParams(window.location.search);
+      currentOperatorId = params.get('operator_id');
       loadApplications(params.get('status'));
       SideMenu.init(true, true);
     })();
