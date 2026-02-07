@@ -537,7 +537,7 @@ export async function getPublicAiAdvertiserDetail(request: Request, env: Env, ad
         name: advertiser.name,
         description: advertiser.description || null,
         mode: advertiser.mode,
-        x_handle: advertiser.x_handle || null,
+        x_handle: advertiser.x_handle ? advertiser.x_handle.replace(/^@+/, '').split('?')[0] : null,
         created_at: advertiser.created_at
       },
       missions: (missions.results || []).map((m: any) => ({
@@ -599,7 +599,7 @@ export async function getPublicAiAdvertisers(request: Request, env: Env): Promis
         name: adv.name,
         description: adv.description || null,
         mode: adv.mode,
-        x_handle: adv.x_handle || null,
+        x_handle: adv.x_handle ? adv.x_handle.replace(/^@+/, '').split('?')[0] : null,
         missions_count: adv.missions_count || 0,
         open_missions_count: adv.open_missions_count || 0,
         created_at: adv.created_at
