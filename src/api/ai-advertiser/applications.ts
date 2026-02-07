@@ -7,7 +7,7 @@
 import type { Env } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
-import { createNotification } from '../../services/notifications';
+import { createNotificationWithEmail } from '../../services/email-notifications';
 
 // Helper: verify application belongs to this advertiser's deal
 async function getApplicationWithOwnership(
@@ -256,7 +256,7 @@ export async function handleSelectApplication(
   // Notify operator
   const dealForNotif = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
     .bind(application.deal_id).first<{ title: string }>();
-  await createNotification(env.DB, {
+  await createNotificationWithEmail(env.DB, env, {
     recipientId: application.operator_id,
     type: 'application_selected',
     title: 'You\'ve Been Selected!',
@@ -322,7 +322,7 @@ export async function handleRejectApplication(
   // Notify operator
   const dealForNotif2 = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
     .bind(application.deal_id).first<{ title: string }>();
-  await createNotification(env.DB, {
+  await createNotificationWithEmail(env.DB, env, {
     recipientId: application.operator_id,
     type: 'application_rejected',
     title: 'Application Not Selected',

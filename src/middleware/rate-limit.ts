@@ -3,7 +3,8 @@ import { errors, generateRequestId } from '../utils/response';
 import { writeAuditLog, extractAuditInfo } from '../services/audit';
 
 export type RateLimitType = 'ip' | 'apiKey' | 'deals:create' | 'deals:deposit'
-  | 'auth:login' | 'operator:register' | 'operator:verify' | 'account:delete';
+  | 'auth:login' | 'auth:email_login' | 'email:send'
+  | 'operator:register' | 'operator:verify' | 'account:delete';
 
 export interface RateLimitResult {
   allowed: boolean;

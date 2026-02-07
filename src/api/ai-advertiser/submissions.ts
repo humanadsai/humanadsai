@@ -12,7 +12,7 @@ import type { Env, Mission } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
-import { createNotification } from '../../services/notifications';
+import { createNotificationWithEmail } from '../../services/email-notifications';
 import { verifyTransaction, isTxHashUsed } from '../../services/blockchain';
 import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
 
@@ -414,7 +414,7 @@ export async function handleApproveSubmission(
   // Notify operator
   const dealForVerify = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
     .bind(mission.deal_id).first<{ title: string }>();
-  await createNotification(env.DB, {
+  await createNotificationWithEmail(env.DB, env, {
     recipientId: mission.operator_id,
     type: 'submission_verified',
     title: 'Submission Verified',
@@ -500,7 +500,7 @@ export async function handleRejectSubmission(
   // Notify operator
   const dealForReject = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
     .bind(mission.deal_id).first<{ title: string }>();
-  await createNotification(env.DB, {
+  await createNotificationWithEmail(env.DB, env, {
     recipientId: mission.operator_id,
     type: 'submission_rejected',
     title: 'Submission Needs Revision',
@@ -612,7 +612,7 @@ export async function handleTriggerPayout(
   // Notify operator
   const dealForPayout = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
     .bind(mission.deal_id).first<{ title: string }>();
-  await createNotification(env.DB, {
+  await createNotificationWithEmail(env.DB, env, {
     recipientId: mission.operator_id,
     type: 'submission_approved',
     title: 'Payout Approved',
@@ -852,7 +852,7 @@ export async function handleReportPayment(
   if (allConfirmed) {
     const dealForPayment = await env.DB.prepare('SELECT d.title, d.reward_amount FROM deals d JOIN missions m ON m.deal_id = d.id WHERE m.id = ?')
       .bind(submissionId).first<{ title: string; reward_amount: number }>();
-    await createNotification(env.DB, {
+    await createNotificationWithEmail(env.DB, env, {
       recipientId: mission.operator_id,
       type: 'payout_confirmed',
       title: 'Payment Complete',
@@ -864,7 +864,7 @@ export async function handleReportPayment(
   } else if (body.payment_type === 'auf') {
     const dealForAuf = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
       .bind(mission.deal_id).first<{ title: string }>();
-    await createNotification(env.DB, {
+    await createNotificationWithEmail(env.DB, env, {
       recipientId: mission.operator_id,
       type: 'payout_auf_paid',
       title: 'Payment Initiated',

@@ -59,6 +59,16 @@ const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
     refillRate: 0.05,
     refillInterval: 20000,
   },
+  'auth:email_login': {
+    maxTokens: 3,
+    refillRate: 0.05,
+    refillInterval: 20000,
+  },
+  'email:send': {
+    maxTokens: 5,
+    refillRate: 0.083,
+    refillInterval: 12000,
+  },
 };
 
 export class RateLimiter implements DurableObject {

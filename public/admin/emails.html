@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Dashboard | Admin | HumanAds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .admin-page { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; }
+    .tab-bar {
+      display: flex; gap: 0; overflow-x: auto; border-bottom: 1px solid var(--color-border);
+      margin-bottom: 24px; position: sticky; top: 56px; background: var(--color-bg); z-index: 50; padding-top: 8px;
+    }
+    .tab-btn {
+      padding: 10px 16px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500;
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--color-text-muted); cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    }
+    .tab-btn:hover { color: var(--color-text); }
+    .tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 600; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 10px; padding: 16px;
+    }
+    .stat-card h3 { font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px; }
+    .stat-card .value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; }
+    .data-table {
+      width: 100%; border-collapse: collapse; font-size: 0.75rem;
+    }
+    .data-table th {
+      text-align: left; padding: 8px 12px; font-family: var(--font-mono); font-size: 0.65rem;
+      color: var(--color-text-muted); text-transform: uppercase; border-bottom: 1px solid var(--color-border);
+    }
+    .data-table td {
+      padding: 10px 12px; border-bottom: 1px solid var(--color-border); font-family: var(--font-mono);
+      vertical-align: middle;
+    }
+    .data-table tr:hover td { background: rgba(255,255,255,0.03); }
+    .status-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 600;
+    }
+    .status-badge.sent { background: rgba(52,199,89,0.15); color: #34c759; }
+    .status-badge.delivered { background: rgba(52,199,89,0.3); color: #34c759; }
+    .status-badge.failed { background: rgba(255,59,48,0.15); color: #ff3b30; }
+    .status-badge.bounced { background: rgba(255,149,0,0.15); color: #ff9500; }
+    .btn-sm {
+      padding: 4px 10px; font-size: 0.65rem; font-family: var(--font-mono); border-radius: 6px;
+      background: none; border: 1px solid var(--color-border); color: var(--color-text); cursor: pointer;
+    }
+    .btn-sm:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .btn-sm.danger:hover { border-color: #ff3b30; color: #ff3b30; }
+    .pagination {
+      display: flex; justify-content: center; gap: 8px; margin-top: 16px;
+    }
+    .loading-state {
+      text-align: center; padding: 48px 0; color: var(--color-text-muted);
+    }
+    .spinner {
+      display: inline-block; width: 24px; height: 24px;
+      border: 2px solid var(--color-border); border-top-color: var(--color-primary);
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .mono { font-family: var(--font-mono); }
+    .truncate { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .table-wrap { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <div class="admin-page">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <a href="/admin" style="color:var(--color-text-muted);text-decoration:none;font-size:0.75rem;font-family:var(--font-mono);">&larr; Admin</a>
+      </div>
+      <h1 style="font-family:var(--font-mono);font-size:1.5rem;margin-bottom:24px;">Email Dashboard</h1>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="stats">Stats</button>
+        <button class="tab-btn" data-tab="logs">Send Logs</button>
+        <button class="tab-btn" data-tab="suppressions">Suppressions</button>
+      </div>
+
+      <!-- Stats Tab -->
+      <div class="tab-panel active" id="tab-stats">
+        <div id="stats-loading" class="loading-state"><span class="spinner"></span></div>
+        <div id="stats-content" style="display:none;">
+          <div class="stats-grid" id="stats-grid"></div>
+        </div>
+      </div>
+
+      <!-- Logs Tab -->
+      <div class="tab-panel" id="tab-logs">
+        <div id="logs-loading" class="loading-state"><span class="spinner"></span></div>
+        <div id="logs-content" style="display:none;">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>To</th>
+                  <th>Template</th>
+                  <th>Status</th>
+                  <th>Resend ID</th>
+                </tr>
+              </thead>
+              <tbody id="logs-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="logs-pagination"></div>
+        </div>
+      </div>
+
+      <!-- Suppressions Tab -->
+      <div class="tab-panel" id="tab-suppressions">
+        <div id="supp-loading" class="loading-state"><span class="spinner"></span></div>
+        <div id="supp-content" style="display:none;">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Reason</th>
+                  <th>Bounces</th>
+                  <th>Since</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="supp-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="supp-pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script>
+    SideMenu.init(true);
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+    function shortDate(s) { if (!s) return '-'; try { return new Date(s).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); } catch { return s; } }
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        if (btn.dataset.tab === 'logs' && !logsLoaded) loadLogs();
+        if (btn.dataset.tab === 'suppressions' && !suppLoaded) loadSuppressions();
+      });
+    });
+
+    // Stats
+    async function loadStats() {
+      try {
+        var resp = await fetch('/api/admin/emails/stats');
+        var json = await resp.json();
+        var d = json.data;
+        var grid = document.getElementById('stats-grid');
+        grid.innerHTML =
+          '<div class="stat-card"><h3>Total Emails</h3><div class="value">' + d.total_emails + '</div></div>' +
+          '<div class="stat-card"><h3>Verified</h3><div class="value">' + d.verified_emails + '</div></div>' +
+          '<div class="stat-card"><h3>Suppressed</h3><div class="value">' + d.suppressed_emails + '</div></div>' +
+          '<div class="stat-card"><h3>Sent Today</h3><div class="value">' + d.sent_today + '</div></div>' +
+          '<div class="stat-card"><h3>Failed Today</h3><div class="value">' + d.failed_today + '</div></div>' +
+          '<div class="stat-card"><h3>Bounce Rate</h3><div class="value">' + d.bounce_rate + '%</div></div>';
+        document.getElementById('stats-loading').style.display = 'none';
+        document.getElementById('stats-content').style.display = '';
+      } catch (e) {
+        document.getElementById('stats-loading').innerHTML = '<p>Failed to load stats</p>';
+      }
+    }
+    loadStats();
+
+    // Logs
+    var logsLoaded = false;
+    var logsOffset = 0;
+    async function loadLogs(offset) {
+      logsOffset = offset || 0;
+      document.getElementById('logs-loading').style.display = '';
+      document.getElementById('logs-content').style.display = 'none';
+      try {
+        var resp = await fetch('/api/admin/emails/logs?limit=50&offset=' + logsOffset);
+        var json = await resp.json();
+        var logs = json.data.logs;
+        var total = json.data.total;
+        var tbody = document.getElementById('logs-tbody');
+        tbody.innerHTML = '';
+        logs.forEach(function(log) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + esc(shortDate(log.created_at)) + '</td>' +
+            '<td class="truncate">' + esc(log.to_email) + '</td>' +
+            '<td>' + esc(log.template) + '</td>' +
+            '<td><span class="status-badge ' + esc(log.status) + '">' + esc(log.status) + '</span></td>' +
+            '<td class="truncate" style="max-width:120px;">' + esc(log.resend_message_id || '-') + '</td>';
+          tbody.appendChild(tr);
+        });
+        // Pagination
+        var pag = document.getElementById('logs-pagination');
+        pag.innerHTML = '';
+        if (logsOffset > 0) {
+          var prev = document.createElement('button');
+          prev.className = 'btn-sm';
+          prev.textContent = 'Previous';
+          prev.onclick = function() { loadLogs(logsOffset - 50); };
+          pag.appendChild(prev);
+        }
+        if (logsOffset + 50 < total) {
+          var next = document.createElement('button');
+          next.className = 'btn-sm';
+          next.textContent = 'Next';
+          next.onclick = function() { loadLogs(logsOffset + 50); };
+          pag.appendChild(next);
+        }
+        document.getElementById('logs-loading').style.display = 'none';
+        document.getElementById('logs-content').style.display = '';
+        logsLoaded = true;
+      } catch (e) {
+        document.getElementById('logs-loading').innerHTML = '<p>Failed to load logs</p>';
+      }
+    }
+
+    // Suppressions
+    var suppLoaded = false;
+    var suppOffset = 0;
+    async function loadSuppressions(offset) {
+      suppOffset = offset || 0;
+      document.getElementById('supp-loading').style.display = '';
+      document.getElementById('supp-content').style.display = 'none';
+      try {
+        var resp = await fetch('/api/admin/emails/suppressions?limit=50&offset=' + suppOffset);
+        var json = await resp.json();
+        var items = json.data.suppressions;
+        var total = json.data.total;
+        var tbody = document.getElementById('supp-tbody');
+        tbody.innerHTML = '';
+        items.forEach(function(item) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td class="truncate">' + esc(item.email) + '</td>' +
+            '<td>' + esc(item.reason) + '</td>' +
+            '<td>' + (item.bounce_count || 0) + '</td>' +
+            '<td>' + esc(shortDate(item.suppressed_at)) + '</td>' +
+            '<td><button class="btn-sm danger" onclick="removeSuppression(\'' + esc(item.email) + '\', this)">Remove</button></td>';
+          tbody.appendChild(tr);
+        });
+        var pag = document.getElementById('supp-pagination');
+        pag.innerHTML = '';
+        if (suppOffset > 0) {
+          var prev = document.createElement('button');
+          prev.className = 'btn-sm';
+          prev.textContent = 'Previous';
+          prev.onclick = function() { loadSuppressions(suppOffset - 50); };
+          pag.appendChild(prev);
+        }
+        if (suppOffset + 50 < total) {
+          var next = document.createElement('button');
+          next.className = 'btn-sm';
+          next.textContent = 'Next';
+          next.onclick = function() { loadSuppressions(suppOffset + 50); };
+          pag.appendChild(next);
+        }
+        document.getElementById('supp-loading').style.display = 'none';
+        document.getElementById('supp-content').style.display = '';
+        suppLoaded = true;
+      } catch (e) {
+        document.getElementById('supp-loading').innerHTML = '<p>Failed to load suppressions</p>';
+      }
+    }
+
+    async function removeSuppression(email, btn) {
+      if (!confirm('Remove suppression for ' + email + '?')) return;
+      btn.disabled = true;
+      btn.textContent = '...';
+      try {
+        var resp = await fetch('/api/admin/emails/suppressions/' + encodeURIComponent(email), { method: 'DELETE' });
+        if (resp.ok) {
+          btn.closest('tr').remove();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Remove';
+          alert('Failed to remove suppression');
+        }
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Remove';
+        alert('Failed to remove suppression');
+      }
+    }
+  </script>
+  <script src="/js/env-banner.js"></script>
+</body>
+</html>

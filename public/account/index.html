@@ -439,6 +439,18 @@
             </a>
           </div>
 
+          <!-- Email Card -->
+          <div class="account-card" id="email-card">
+            <h2>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="M22 7l-10 7L2 7"/>
+              </svg>
+              Email
+            </h2>
+            <div id="email-card-content" style="color:var(--color-text-muted);font-size:0.875rem;">Loading...</div>
+          </div>
+
           <!-- Activity Card -->
           <div class="account-card">
             <h2>
@@ -542,6 +554,52 @@
         const isAdmin = meRes.data.user?.is_admin === true;
         SideMenu.init(true, isAdmin);
 
+        // Load email status
+        try {
+          const emailRes = await HumanAds.fetchApi('/operator/email');
+          const emailContent = document.getElementById('email-card-content');
+          if (emailRes.success && emailRes.data && emailRes.data.email) {
+            const verified = emailRes.data.verified;
+            emailContent.innerHTML = `
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <span style="font-family:var(--font-mono);font-size:0.875rem;">${emailRes.data.email}</span>
+                ${verified
+                  ? '<span class="status-badge connected" style="font-size:0.7rem;">Verified</span>'
+                  : '<span class="status-badge user" style="font-size:0.7rem;color:#ff9500;">Unverified</span>'}
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <a href="/settings/notifications" class="manage-link" style="margin-top:0;">Notification Settings</a>
+              </div>
+            `;
+          } else {
+            emailContent.innerHTML = `
+              <p style="margin-bottom:12px;color:var(--color-text-muted);">No email address added. Add one to enable email notifications and account recovery.</p>
+              <button class="btn btn-outline" style="font-size:0.75rem;padding:8px 16px;" onclick="addEmailPrompt()">Add Email</button>
+            `;
+          }
+        } catch (emailErr) {
+          console.error('Email card error:', emailErr);
+          const emailContent = document.getElementById('email-card-content');
+          if (emailContent) emailContent.textContent = 'Failed to load email status';
+        }
+
+        // Check URL params for email verification status
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('email_verified') === '1') {
+          const banner = document.createElement('div');
+          banner.style.cssText = 'background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);color:#4CAF50;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:0.875rem;';
+          banner.textContent = 'Email verified successfully!';
+          document.querySelector('.account-header').after(banner);
+          history.replaceState(null, '', '/account');
+        }
+        if (urlParams.get('email_changed') === '1') {
+          const banner = document.createElement('div');
+          banner.style.cssText = 'background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);color:#4CAF50;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:0.875rem;';
+          banner.textContent = 'Email changed successfully!';
+          document.querySelector('.account-header').after(banner);
+          history.replaceState(null, '', '/account');
+        }
+
       } catch (e) {
         console.error('Account page error:', e);
         content.innerHTML = `
@@ -554,6 +612,32 @@
         SideMenu.init(true);
       }
     })();
+
+    async function addEmailPrompt() {
+      var email = prompt('Enter your email address:');
+      if (!email) return;
+      email = email.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Invalid email format');
+        return;
+      }
+      try {
+        var resp = await fetch('/api/operator/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email }),
+        });
+        var data = await resp.json();
+        if (resp.ok) {
+          var el = document.getElementById('email-card-content');
+          if (el) el.innerHTML = '<p style="color:#4CAF50;">Verification email sent! Check your inbox.</p>';
+        } else {
+          alert(data.error?.message || 'Failed to add email');
+        }
+      } catch (e) {
+        alert('Failed to add email');
+      }
+    }
   </script>
   <script src="/js/env-banner.js"></script>
 </body>

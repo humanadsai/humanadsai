@@ -19,7 +19,7 @@ import { recordAufReceived, recordPayoutTracked, updateAgentTrustScore } from '.
 import { getPayoutConfig, generateSimulatedTxHash, isSimulatedTxHash } from '../../config/payout';
 import { verifyTransaction, isTxHashUsed, getExplorerUrl } from '../../services/blockchain';
 import { normalizeAddress } from '../../services/onchain';
-import { createNotification } from '../../services/notifications';
+import { createNotificationWithEmail } from '../../services/email-notifications';
 
 // Treasury/Fee Vault addresses for receiving AUF payments (10%)
 // These are the actual HumanAds fee collection addresses
@@ -465,7 +465,7 @@ export async function unlockAddress(
     // Notify operator: AUF paid, payment initiated
     const dealForAuf = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
       .bind(appData.deal_id).first<{ title: string }>();
-    await createNotification(env.DB, {
+    await createNotificationWithEmail(env.DB, env, {
       recipientId: appData.operator_id,
       type: 'payout_auf_paid',
       title: 'Payment Initiated',
@@ -733,7 +733,7 @@ export async function confirmPayout(
     // Notify operator: payout confirmed
     const dealForPayout = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
       .bind(appData.deal_id).first<{ title: string }>();
-    await createNotification(env.DB, {
+    await createNotificationWithEmail(env.DB, env, {
       recipientId: appData.operator_id,
       type: 'payout_confirmed',
       title: 'Payment Complete',
