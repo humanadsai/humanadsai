@@ -1593,9 +1593,26 @@ async function handleFaucetClaim(request: Request, env: Env): Promise<Response> 
       const cooldownMs = 24 * 60 * 60 * 1000;
       if (elapsed < cooldownMs) {
         const remainingHours = ((cooldownMs - elapsed) / (60 * 60 * 1000)).toFixed(1);
+        // Include balance in cooldown response so AI doesn't need separate call
+        let balance: { hUSD?: string; ETH?: string } = {};
+        try {
+          const paddedAddr = '000000000000000000000000' + address.toLowerCase().slice(2);
+          const [husdRaw, ethRaw] = await Promise.all([
+            sepoliaRpcCall(env, 'eth_call', [{
+              to: '0x62C2225D5691515BD4ee36539D127d0dB7dCeb67',
+              data: '0x70a08231' + paddedAddr,
+            }, 'latest']),
+            sepoliaRpcCall(env, 'eth_getBalance', [address.toLowerCase(), 'latest']),
+          ]);
+          balance.hUSD = (Number(BigInt(husdRaw)) / 1e6).toFixed(6);
+          balance.ETH = (Number(BigInt(ethRaw)) / 1e18).toFixed(6);
+        } catch {
+          // Balance check failed — not critical
+        }
         return faucetJsonResponse({
           success: false,
           error: `Already claimed in the last 24 hours. Try again in ${remainingHours} hours.`,
+          balance,
         }, 429);
       }
     }
@@ -1626,13 +1643,30 @@ async function handleFaucetClaim(request: Request, env: Env): Promise<Response> 
     console.error('Failed to record faucet claim:', e.message);
   }
 
+  // Fetch balance to include in response (non-blocking — if it fails, still return success)
+  let balance: { hUSD?: string; ETH?: string } = {};
+  try {
+    const paddedAddr = '000000000000000000000000' + address.toLowerCase().slice(2);
+    const [husdRaw, ethRaw] = await Promise.all([
+      sepoliaRpcCall(env, 'eth_call', [{
+        to: '0x62C2225D5691515BD4ee36539D127d0dB7dCeb67',
+        data: '0x70a08231' + paddedAddr,
+      }, 'latest']),
+      sepoliaRpcCall(env, 'eth_getBalance', [address.toLowerCase(), 'latest']),
+    ]);
+    balance.hUSD = (Number(BigInt(husdRaw)) / 1e6).toFixed(6);
+    balance.ETH = (Number(BigInt(ethRaw)) / 1e18).toFixed(6);
+  } catch {
+    // Balance check failed — not critical
+  }
+
   return faucetJsonResponse({
     success: true,
     txHash: result.txHash,
     amount: '1000 hUSD',
     explorer: result.explorerUrl,
-    message: 'hUSD sent! Check your balance in ~15 seconds.',
-    checkBalance: `https://humanadsai.com/api/v1/faucet/balance?address=${address}`,
+    message: 'hUSD sent! Transaction confirmed. Balance included below.',
+    balance,
   });
 }
 
