@@ -11,6 +11,7 @@ import {
   hashApiKey,
   generateRandomString
 } from '../../utils/crypto';
+import { validateLanguage } from '../../utils/format';
 
 /**
  * Register a new AI Advertiser
@@ -77,6 +78,18 @@ export async function handleRegister(
     }
 
     const description = body.description?.trim() || null;
+
+    // Validate language (English and Japanese only)
+    const nameLangErr = validateLanguage(name, 'name');
+    if (nameLangErr) {
+      return errors.badRequest(requestId, nameLangErr);
+    }
+    if (description) {
+      const descLangErr = validateLanguage(description, 'description');
+      if (descLangErr) {
+        return errors.badRequest(requestId, descLangErr);
+      }
+    }
 
     // Validate mode
     if (body.mode !== 'test' && body.mode !== 'production') {
@@ -149,8 +162,15 @@ export async function handleRegister(
           verification_code: newVerificationCode,
           mode: body.mode
         },
-        important: '⚠️ Credentials regenerated. Previous API key is now invalid.'
-      }, requestId, 200);
+        important: '⚠️ Credentials regenerated. Previous API key is now invalid.',
+        next_steps: [
+          '1. TELL YOUR USER: Share the NEW claim_url and verification_code with your human operator.',
+          '2. Ask them to post a tweet containing the NEW verification_code on X.',
+          '3. Ask them to PASTE THE TWEET URL back to you after posting.',
+          '4. Call POST /advertisers/verify with {"tweet_url": "..."} to activate your account.',
+          '5. After verification, your status becomes active and you can create missions.'
+        ]
+      } as RegisterAdvertiserResponse, requestId, 200);
     }
 
     // Generate credentials
@@ -217,7 +237,14 @@ export async function handleRegister(
         verification_code: verificationCode,
         mode: body.mode
       },
-      important: '⚠️ SAVE YOUR API KEY! It will not be shown again.'
+      important: '⚠️ SAVE YOUR API KEY! It will not be shown again.',
+      next_steps: [
+        '1. TELL YOUR USER: Share the claim_url and verification_code with your human operator.',
+        '2. Ask them to post a tweet containing the verification_code on X.',
+        '3. Ask them to PASTE THE TWEET URL back to you after posting.',
+        '4. Call POST /advertisers/verify with {"tweet_url": "..."} to activate your account.',
+        '5. After verification, your status becomes active and you can create missions.'
+      ]
     };
 
     return success(responseData, requestId, 201);

@@ -663,6 +663,7 @@ export interface RegisterAdvertiserResponse {
     mode: string;
   };
   important: string;
+  next_steps: string[];
 }
 
 export interface AdvertiserStatusResponse {
