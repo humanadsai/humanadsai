@@ -205,6 +205,73 @@
       padding: var(--spacing-xl);
       color: #F44336;
     }
+
+    .applications-section {
+      margin-top: var(--spacing-xl);
+    }
+
+    .applications-section h3 {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .application-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      margin-bottom: 8px;
+      background: var(--color-background-light);
+    }
+
+    .application-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .application-card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .application-card-title a {
+      color: var(--color-text);
+      text-decoration: none;
+    }
+
+    .application-card-title a:hover {
+      color: var(--color-primary);
+    }
+
+    .application-card-date {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    .application-card .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .status-badge.applied { background: rgba(255,149,0,0.2); color: #ff9500; }
+    .status-badge.shortlisted { background: rgba(0,122,255,0.2); color: #007aff; }
+    .status-badge.selected { background: rgba(52,199,89,0.2); color: #34c759; }
+    .status-badge.rejected { background: rgba(255,59,48,0.2); color: #ff3b30; }
+    .status-badge.cancelled { background: rgba(255,255,255,0.1); color: var(--color-text-muted); }
+    .status-badge.expired { background: rgba(255,255,255,0.1); color: var(--color-text-muted); }
   </style>
   <script src="/js/analytics.js"></script>
 </head>
@@ -212,22 +279,30 @@
   <div class="app">
     <!-- Header -->
     <header class="header">
-      <div class="logo">
+      <a href="/" class="logo">
         <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
           <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
           <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <div class="user-avatar-container" id="user-avatar-container">
+          <a href="/missions/my" class="user-avatar" id="user-avatar" title="My Missions" aria-label="Go to My Missions">
+            <span class="user-avatar-placeholder">👤</span>
+          </a>
+        </div>
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
       </div>
-      <button class="menu-btn" aria-label="Menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
     </header>
+
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
 
     <main class="page-container">
       <a href="/operators" class="back-link">
@@ -255,11 +330,12 @@
         <a href="/contact.html">Contact</a>
       </div>
       <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
-      <p>© 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
     </footer>
   </div>
 
   <script src="/app.js"></script>
+  <script src="/js/side-menu.js"></script>
   <script>
     async function loadProfile() {
       // Support both /operators/detail?id=XXX and /operators/XXX
@@ -326,10 +402,10 @@
         : '<span style="font-size:2.5rem;color:var(--color-text-muted)">👤</span>';
 
       const verifiedBadgeHtml = operator.x_verified
-        ? `<span class="human-verified-badge" style="font-size: 0.75rem;">
-             <svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-             ${operator.x_verified_type || 'Verified'}
-           </span>`
+        ? `<svg class="human-verified-badge" viewBox="0 0 22 22" title="${operator.x_verified_type || 'Verified'}" aria-label="Verified account" role="img" style="width:20px;height:20px;">
+             <circle cx="11" cy="11" r="11" fill="#1D9BF0"/>
+             <path d="M9.5 14.25L6.75 11.5l-.88.88L9.5 16l7-7-.88-.88z" fill="white"/>
+           </svg>`
         : '';
 
       const xLinkHtml = xHandle
@@ -413,10 +489,14 @@
           ${xLinkHtml}
         </div>
         <div id="reviews-section"></div>
+        <div id="applications-section"></div>
       `;
 
       // Load reputation
       loadReputation(operator.id);
+
+      // Load applications (admin only)
+      loadApplications(operator.id);
     }
 
     async function loadReputation(id) {
@@ -462,7 +542,44 @@
       }
     }
 
+    async function loadApplications(operatorId) {
+      try {
+        const res = await HumanAds.fetchApi(`/admin/applications?operator_id=${operatorId}&limit=100`);
+        if (!res.success || !res.data?.applications?.length) return;
+
+        const apps = res.data.applications;
+        const section = document.getElementById('applications-section');
+
+        const statusCounts = {};
+        apps.forEach(a => { statusCounts[a.status] = (statusCounts[a.status] || 0) + 1; });
+        const summary = Object.entries(statusCounts).map(([s, c]) => `${s}: ${c}`).join(', ');
+
+        let html = `<div class="applications-section">
+          <h3>Applications (${apps.length})</h3>
+          <p style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:12px;">${summary}</p>`;
+
+        apps.forEach(a => {
+          const title = a.deal_title || a.deal_id?.substring(0, 8) || 'Unknown Deal';
+          const date = a.created_at ? HumanAds.formatRelativeTime(a.created_at) : '';
+          html += `<div class="application-card">
+            <div class="application-card-info">
+              <div class="application-card-title"><a href="/missions/detail?id=${a.deal_id}">${title.replace(/</g,'&lt;')}</a></div>
+              <div class="application-card-date">${date}</div>
+            </div>
+            <span class="status-badge ${a.status}">${a.status}</span>
+          </div>`;
+        });
+
+        html += '</div>';
+        section.innerHTML = html;
+      } catch (e) {
+        // Not admin or no applications — silent
+      }
+    }
+
     loadProfile();
+    if (typeof SideMenu !== 'undefined') SideMenu.init();
   </script>
+  <script src="/js/env-banner.js"></script>
 </body>
 </html>
