@@ -54,10 +54,10 @@ Our review team checks your submission against the mission requirements and plat
 
 If your submission passes review, you get paid. Payment is made in two stages:
 
-1. **Initial payout (10%)** -- Released as an AUF (Advance Upfront Fee) shortly after approval.
-2. **Main payout (90%)** -- Released after the initial period, provided the post remains live and compliant.
+1. **AUF (Address Unlock Fee) -- 10%** -- Paid by the advertiser after your submission is approved. This unlocks your wallet address so the main payout can be sent to you.
+2. **Main payout -- 90%** -- Sent directly to your wallet after the AUF is confirmed, provided the post remains live and compliant.
 
-This two-stage structure exists to ensure posts stay up and continue to meet requirements after approval.
+This two-stage structure exists to verify the advertiser's intent to pay before disclosing your wallet address, and to ensure posts stay up and continue to meet requirements after approval.
 
 ---
 
