@@ -2,6 +2,7 @@
 // GET /api/v1/advertisers/me - Get current advertiser info
 // GET /api/v1/advertisers/status - Get activation status
 // POST /api/v1/advertisers/verify - Verify X post URL to activate advertiser
+// DELETE /api/v1/advertisers/me - Delete advertiser account
 
 import type { Env, AiAdvertiser, AdvertiserStatusResponse } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
@@ -94,7 +95,7 @@ export async function handleGetStatus(
       status: 'pending_claim',
       claim_url: advertiser.claim_url,
       verification_code: advertiser.verification_code,
-      next_step: 'Complete human claim and X verification. Visit your claim_url and post a verification tweet on X that includes your verification_code.'
+      next_step: 'Complete human claim and X verification. Visit your claim_url and post on X with your verification_code. After posting, paste the post URL back so verification can be completed via API.'
     };
   } else if (advertiser.status === 'active') {
     // Fetch operator info if claimed
@@ -230,5 +231,108 @@ export async function handleVerifyXPost(
     status: 'active',
     advertiser_name: advertiser.name,
     claimed_at: new Date().toISOString()
+  }, requestId);
+}
+
+/**
+ * Delete advertiser account
+ *
+ * DELETE /api/v1/advertisers/me
+ *
+ * Permanently deletes the advertiser account if no active missions exist.
+ * Requires confirmation text "DELETE" in request body.
+ */
+export async function handleDeleteAccount(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  // Parse body - confirmation required
+  let body: { confirm: string };
+  try {
+    body = await request.json();
+  } catch {
+    return errors.badRequest(requestId, 'Invalid JSON in request body');
+  }
+
+  if (!body.confirm || body.confirm !== 'DELETE') {
+    return error(
+      'CONFIRMATION_REQUIRED',
+      'You must send {"confirm": "DELETE"} to confirm account deletion.',
+      requestId,
+      400
+    );
+  }
+
+  // Check for active missions (selected promoters, in-progress, submitted, etc.)
+  const activeMissions = await env.DB
+    .prepare(
+      `SELECT COUNT(*) as count FROM missions m
+       JOIN deals d ON m.deal_id = d.id
+       WHERE d.agent_id = ?
+       AND m.status IN ('accepted', 'submitted', 'verified', 'approved', 'address_unlocked', 'paid_partial')`
+    )
+    .bind(advertiser.id)
+    .first<{ count: number }>();
+
+  if (activeMissions && activeMissions.count > 0) {
+    return error(
+      'HAS_ACTIVE_MISSIONS',
+      `Cannot delete account: ${activeMissions.count} mission(s) are in progress. Complete or cancel all active missions first.`,
+      requestId,
+      409
+    );
+  }
+
+  // Check for selected applications not yet converted to missions
+  const selectedApps = await env.DB
+    .prepare(
+      `SELECT COUNT(*) as count FROM applications a
+       JOIN deals d ON a.deal_id = d.id
+       WHERE d.agent_id = ? AND a.status = 'selected'`
+    )
+    .bind(advertiser.id)
+    .first<{ count: number }>();
+
+  if (selectedApps && selectedApps.count > 0) {
+    return error(
+      'HAS_SELECTED_PROMOTERS',
+      `Cannot delete account: ${selectedApps.count} selected promoter(s) awaiting mission start. Complete or cancel first.`,
+      requestId,
+      409
+    );
+  }
+
+  // Proceed with deletion:
+  // 1. Hide all deals (set visibility=hidden)
+  // 2. Cancel pending applications
+  // 3. Revoke the advertiser record
+  // 4. Remove agent record
+
+  await env.DB.batch([
+    // Hide all deals from public listings
+    env.DB.prepare(
+      `UPDATE deals SET visibility = 'hidden', visibility_changed_at = datetime('now'), visibility_changed_by = 'account_deletion', updated_at = datetime('now') WHERE agent_id = ?`
+    ).bind(advertiser.id),
+
+    // Reject all pending/shortlisted applications for this advertiser's deals
+    env.DB.prepare(
+      `UPDATE applications SET status = 'rejected', ai_notes = 'Advertiser account deleted', updated_at = datetime('now')
+       WHERE deal_id IN (SELECT id FROM deals WHERE agent_id = ?) AND status IN ('applied', 'shortlisted')`
+    ).bind(advertiser.id),
+
+    // Revoke the advertiser (keep record for audit, but mark as revoked)
+    env.DB.prepare(
+      `UPDATE ai_advertisers SET status = 'revoked', api_key_hash = 'DELETED', api_secret = 'DELETED', updated_at = datetime('now') WHERE id = ?`
+    ).bind(advertiser.id),
+  ]);
+
+  return success({
+    deleted: true,
+    advertiser_id: advertiser.id,
+    advertiser_name: advertiser.name,
+    message: 'Account deleted. All missions hidden and pending applications rejected. API key is now invalid.'
   }, requestId);
 }
