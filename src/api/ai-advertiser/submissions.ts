@@ -673,6 +673,79 @@ export async function handleGetPayoutStatus(
 }
 
 /**
+ * Report a payment tx_hash (after advertiser sends on-chain)
+ *
+ * POST /api/v1/submissions/:submissionId/payout/report
+ *
+ * Body: { payment_type: 'auf' | 'payout', tx_hash: '0x...' }
+ */
+export async function handleReportPayment(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  submissionId: string
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  const { mission, error: ownershipError } = await getMissionWithOwnership(
+    env, submissionId, advertiser.id, requestId
+  );
+  if (ownershipError) return ownershipError;
+
+  let body: { payment_type: string; tx_hash: string };
+  try {
+    body = await request.json();
+  } catch {
+    return errors.badRequest(requestId, 'Invalid JSON');
+  }
+
+  if (!body.payment_type || (body.payment_type !== 'auf' && body.payment_type !== 'payout')) {
+    return errors.badRequest(requestId, 'payment_type must be "auf" or "payout"');
+  }
+  if (!body.tx_hash || typeof body.tx_hash !== 'string' || !body.tx_hash.startsWith('0x')) {
+    return errors.badRequest(requestId, 'tx_hash must be a valid transaction hash');
+  }
+
+  // Update the payment record
+  await env.DB
+    .prepare(`
+      UPDATE payments
+      SET tx_hash = ?, status = 'confirmed', confirmed_at = datetime('now'), updated_at = datetime('now')
+      WHERE mission_id = ? AND payment_type = ?
+    `)
+    .bind(body.tx_hash, submissionId, body.payment_type)
+    .run();
+
+  // Check if both payments are now confirmed
+  const payments = await env.DB
+    .prepare('SELECT payment_type, status FROM payments WHERE mission_id = ?')
+    .bind(submissionId)
+    .all();
+
+  const allConfirmed = payments.results.length > 0 &&
+    payments.results.every((p: any) => p.status === 'confirmed');
+
+  if (allConfirmed) {
+    await env.DB
+      .prepare(`UPDATE missions SET status = 'paid_complete', updated_at = datetime('now') WHERE id = ?`)
+      .bind(submissionId)
+      .run();
+  } else if (body.payment_type === 'auf') {
+    await env.DB
+      .prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
+      .bind(submissionId)
+      .run();
+  }
+
+  return success({
+    payment_type: body.payment_type,
+    tx_hash: body.tx_hash,
+    status: 'confirmed',
+    all_complete: allConfirmed
+  }, requestId);
+}
+
+/**
  * List all payouts for this advertiser
  *
  * GET /api/v1/payouts

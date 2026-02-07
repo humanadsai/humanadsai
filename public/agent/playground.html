@@ -213,6 +213,7 @@
     payoutAmount: 0,
     treasuryAddr: '',
     promoterAddr: '',
+    aufPaid: false,
     // Wallet
     provider: null,
     signer: null,
@@ -892,8 +893,9 @@
     // Enable send buttons
     var aufBtn = document.getElementById('btn-auf');
     var promBtn = document.getElementById('btn-prom');
-    if (aufBtn && S.walletAddr && S.treasuryAddr) aufBtn.disabled = false;
-    if (promBtn && S.walletAddr && S.promoterAddr) promBtn.disabled = false;
+    if (aufBtn && S.walletAddr && S.treasuryAddr && !S.aufPaid) aufBtn.disabled = false;
+    if (aufBtn && S.aufPaid) { aufBtn.disabled = true; aufBtn.textContent = 'AUF Sent ✓'; }
+    if (promBtn && S.walletAddr && S.promoterAddr && S.aufPaid) promBtn.disabled = false;
   }
 
   async function sendAufPayment(btn) {
@@ -906,11 +908,13 @@
       btn.textContent = 'Confirming...';
       await tx.wait();
       addTimeline('AUF sent', tx.hash, EXPLORER + '/tx/' + tx.hash);
-      showRes('payout', true, { auf_tx: tx.hash, status: 'AUF payment sent' });
-      // Poll to update status
-      await pollPayout();
+      // Report tx_hash to backend
+      await api('POST', '/submissions/' + S.selectedSub + '/payout/report', { payment_type: 'auf', tx_hash: tx.hash });
+      S.aufPaid = true;
+      showRes('payout', true, { auf_tx: tx.hash, status: 'AUF payment sent. Now send promoter payout.' });
+      updatePayoutUI();
     } catch (e) { showRes('payout', false, { error: 'AUF send failed: ' + e.message }); }
-    finally { btn.disabled = false; btn.textContent = 'Send AUF (10%)'; }
+    finally { if (!S.aufPaid) { btn.disabled = false; btn.textContent = 'Send AUF (10%)'; } }
   }
 
   async function sendPromoterPayment(btn) {
@@ -923,10 +927,13 @@
       btn.textContent = 'Confirming...';
       await tx.wait();
       addTimeline('Payout sent', tx.hash, EXPLORER + '/tx/' + tx.hash);
-      showRes('payout', true, { payout_tx: tx.hash, status: 'Promoter payout sent' });
-      await pollPayout();
-    } catch (e) { showRes('payout', false, { error: 'Payout send failed: ' + e.message }); }
-    finally { btn.disabled = false; btn.textContent = 'Send Payout (90%)'; }
+      // Report tx_hash to backend
+      var reportRes = await api('POST', '/submissions/' + S.selectedSub + '/payout/report', { payment_type: 'payout', tx_hash: tx.hash });
+      btn.textContent = 'Payout Sent ✓';
+      showRes('payout', true, { payout_tx: tx.hash, status: 'All payments complete!' });
+      addTimeline('Complete', 'All payments confirmed');
+      nextStep();
+    } catch (e) { showRes('payout', false, { error: 'Payout send failed: ' + e.message }); btn.disabled = false; btn.textContent = 'Send Payout (90%)'; }
   }
 
   async function pollPayout(btn) {
