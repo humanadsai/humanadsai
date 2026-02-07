@@ -26,6 +26,11 @@
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
+
+  /* Desktop container */
+  --container-max: 1200px;
+  --content-max: 720px;
+  --gutter: clamp(16px, 2.2vw, 28px);
 }
 
 * {
@@ -508,7 +513,8 @@ body {
 
 @media (min-width: 768px) {
   .app {
-    padding: var(--spacing-xl);
+    max-width: var(--container-max);
+    padding: var(--spacing-xl) var(--gutter);
   }
 
   .hero-title {
@@ -517,6 +523,55 @@ body {
 
   .stat-number {
     font-size: 1.5rem;
+  }
+
+  /* --- Text-heavy pages: cap readable width --- */
+  .legal-page,
+  .guidelines-page,
+  .faq-page,
+  .account-page {
+    max-width: var(--content-max);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* --- Hero section: comfortable reading width --- */
+  .hero {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* --- Form / detail pages: keep comfortable width --- */
+  .page-container,
+  .apply-container {
+    max-width: var(--content-max);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* --- Mission list: 2-column grid --- */
+  .missions-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* --- Mission preview cards on homepage: 2-column grid --- */
+  .missions-preview-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* --- Carousel: 3 cards visible --- */
+  .human-carousel-card {
+    flex: 0 0 calc(33.333% - var(--spacing-md));
+  }
+
+  /* --- What-is section: comfortable width --- */
+  .what-is-section {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -1555,11 +1610,7 @@ body {
   color: var(--color-text-muted);
 }
 
-@media (min-width: 768px) {
-  .human-carousel-card {
-    flex: 0 0 calc(50% - var(--spacing-sm));
-  }
-}
+/* carousel card sizing now handled in main @media (min-width: 768px) block above */
 
 /* ============================================
    What HumanAds Is Section
@@ -2527,4 +2578,39 @@ body {
   background: rgba(255, 152, 0, 0.25);
   border: 1px solid rgba(255, 152, 0, 0.4);
   color: #FFB74D;
+}
+
+/* ============================================
+   Desktop Overflow Protection
+   ============================================ */
+
+img, video, svg, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  overflow-x: auto;
+  display: block;
+  max-width: 100%;
+}
+
+pre, code {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Prevent flex children from causing horizontal overflow */
+.app > *,
+.missions-list > *,
+.missions-preview-list > * {
+  min-width: 0;
+}
+
+/* Long URLs / hashes word-break */
+.legal-content a,
+.guidelines-section a,
+.result-box pre {
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
