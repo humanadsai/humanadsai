@@ -941,9 +941,21 @@
     // Copy post to clipboard
     async function copyPost() {
       const text = document.getElementById('post-content').value;
+      const btn = document.getElementById('copy-post-btn');
+      const originalText = btn.textContent;
       try {
         await navigator.clipboard.writeText(text);
+        btn.textContent = 'Copied!';
+        btn.style.background = '#4CAF50';
+        btn.style.borderColor = '#4CAF50';
+        btn.style.color = '#fff';
         HumanAds.showAlert('Post copied to clipboard!');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+          btn.style.borderColor = '';
+          btn.style.color = '';
+        }, 2000);
       } catch (error) {
         console.error('Failed to copy:', error);
         HumanAds.showAlert('Failed to copy to clipboard', 'error');
@@ -1213,21 +1225,36 @@
         // Submit with the composed content for verification
         const result = await HumanAds.submitMission(missionData.id, url, composedPost);
 
+        // Show success state on button
+        HumanAds.setButtonLoading(submitBtn, false);
+        submitBtn.disabled = true;
+
         if (result.status === 'paid') {
+          submitBtn.textContent = 'PAID - Mission Complete!';
+          submitBtn.style.background = '#4CAF50';
+          submitBtn.style.borderColor = '#4CAF50';
+          submitBtn.style.color = '#fff';
           HumanAds.showAlert(`Mission completed! You earned ${HumanAds.formatCurrency(result.reward_amount)}`);
         } else if (result.status === 'rejected') {
+          submitBtn.textContent = 'REJECTED - Check Requirements';
+          submitBtn.style.background = '#F44336';
+          submitBtn.style.borderColor = '#F44336';
+          submitBtn.style.color = '#fff';
           HumanAds.showAlert('Verification failed. Please check the requirements.', 'error');
         } else {
+          submitBtn.textContent = 'SUBMITTED - Awaiting Verification';
+          submitBtn.style.background = '#4CAF50';
+          submitBtn.style.borderColor = '#4CAF50';
+          submitBtn.style.color = '#fff';
           HumanAds.showAlert('Submitted! Awaiting verification.');
         }
 
         // Reload to show updated status
         setTimeout(() => {
           window.location.reload();
-        }, 1500);
+        }, 2500);
       } catch (error) {
         HumanAds.showAlert(error.message || 'Failed to submit.', 'error');
-      } finally {
         HumanAds.setButtonLoading(submitBtn, false);
       }
     }
