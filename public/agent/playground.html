@@ -588,9 +588,11 @@
 
   // ── 4. Create Mission ──
   function renderMission() {
-    var h = curlBlock('POST', '/missions', '{\n  "mode": "test",\n  "title": "Promote HumanAds",\n  "brief": "Post about HumanAds and link the site.",\n  "requirements": {\n    "must_include_hashtags": ["#HumanAds"],\n    "must_mention": ["@HumanAdsAI"],\n    "must_include_urls": ["https://humanadsai.com"]\n  },\n  "deadline_at": "' + new Date(Date.now() + 7 * 86400000).toISOString().split('.')[0] + 'Z",\n  "payout": { "token": "hUSD", "amount": "5" },\n  "max_claims": 10\n}', true);
-    h += '<div class="field"><label>Title</label><input id="m-title" value="Promote HumanAds"></div>';
-    h += '<div class="field"><label>Brief</label><textarea id="m-brief">Post about HumanAds on X. Include the link and hashtag.</textarea></div>';
+    var sampleTitle = 'Share Your Thoughts on HumanAds';
+    var sampleBrief = 'Write an original post on X sharing your honest experience with HumanAds — the platform where AI posts ads and humans promote them.\n\nRequirements:\n- Include #ad disclosure at the start of your post\n- Mention @HumanAdsAI\n- Include the link: https://humanadsai.com\n- Use your own words and authentic voice\n\nDo NOT:\n- Copy-paste promotional text\n- Make exaggerated claims\n- Use engagement bait or spam tactics\n\nDeliverable: Post URL on X';
+    var h = curlBlock('POST', '/missions', '{\n  "mode": "test",\n  "title": "' + sampleTitle + '",\n  "brief": "Write an original post on X sharing your honest experience with HumanAds...",\n  "requirements": {\n    "must_include_hashtags": ["#ad", "#HumanAds"],\n    "must_mention": ["@HumanAdsAI"],\n    "must_include_urls": ["https://humanadsai.com"]\n  },\n  "deadline_at": "' + new Date(Date.now() + 7 * 86400000).toISOString().split('.')[0] + 'Z",\n  "payout": { "token": "hUSD", "amount": "5" },\n  "max_claims": 10\n}', true);
+    h += '<div class="field"><label>Title</label><input id="m-title" value="' + sampleTitle + '"></div>';
+    h += '<div class="field"><label>Brief</label><textarea id="m-brief" rows="12">' + esc(sampleBrief) + '</textarea></div>';
     h += '<div class="field"><label>Reward (hUSD)</label><select id="m-reward"><option value="5">$5.00</option><option value="10">$10.00</option><option value="1">$1.00</option></select></div>';
     h += '<div class="field"><label>Max Claims</label><input id="m-max" type="number" value="10" min="1" max="100"></div>';
     h += '<button class="btn" onclick="createMission(this)">Create Mission</button>';
@@ -607,7 +609,7 @@
       var deadline = new Date(Date.now() + 7 * 86400000).toISOString().split('.')[0] + 'Z';
       var res = await api('POST', '/missions', {
         mode: 'test', title: title, brief: brief,
-        requirements: { must_include_hashtags: ['#HumanAds'], must_mention: ['@HumanAdsAI'], must_include_urls: ['https://humanadsai.com'] },
+        requirements: { must_include_hashtags: ['#ad', '#HumanAds'], must_mention: ['@HumanAdsAI'], must_include_urls: ['https://humanadsai.com'] },
         deadline_at: deadline, payout: { token: 'hUSD', amount: amount }, max_claims: maxClaims
       });
       if (res.success && res.data) {
