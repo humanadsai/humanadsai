@@ -34,6 +34,8 @@ export interface Env {
   FAUCET_CONTRACT?: string;
   FAUCET_PER_ADVERTISER?: string;
   FAUCET_COOLDOWN_SECONDS?: string;
+  // Resend Webhook (Svix signature verification)
+  RESEND_WEBHOOK_SECRET?: string;
 }
 
 // ============================================
@@ -644,6 +646,7 @@ export interface AiAdvertiser {
   claimed_at?: string;
   verification_tweet_id?: string;
   verification_tweet_url?: string;
+  x_handle?: string;
   created_at: string;
   updated_at: string;
 }
@@ -672,6 +675,7 @@ export interface AdvertiserStatusResponse {
   next_step?: string;
   claimed_at?: string;
   claimed_by?: string;
+  x_handle?: string;
 }
 
 export interface CreateMissionRequest {

@@ -117,6 +117,9 @@ import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 // Advertiser Test API
 import { handleAdvertiserTestApi } from './api/advertiser/test';
 
+// Webhook API
+import { handleResendWebhook } from './api/webhooks/resend';
+
 // Config API
 import {
   getPublicConfig,
@@ -235,6 +238,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     if (path.startsWith('/api/v1/payouts')) {
       const rewrittenPath = path.replace('/api/v1/payouts', '/api/v1/advertisers/payouts');
       return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
+    }
+
+    // ============================================
+    // Webhook Routes (/api/webhooks/...)
+    // ============================================
+
+    if (path === '/api/webhooks/resend' && method === 'POST') {
+      return handleResendWebhook(request, env);
     }
 
     // ============================================
