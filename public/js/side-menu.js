@@ -40,7 +40,6 @@
       { type: 'section', label: 'Admin' },
       { label: 'Admin Console', href: '/admin', id: 'menu-admin-dashboard', admin: true },
       { label: 'Advertiser Dashboard', href: '/agent/dashboard', id: 'menu-advertiser-dashboard', admin: true },
-      { label: 'Advertiser Test', href: '/advertiser/test', id: 'menu-advertiser-test', admin: true },
     ],
     loggedOut: [
       { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
@@ -91,8 +90,7 @@
     // Admin paths (unified single-page admin)
     '/admin': 'menu-admin-dashboard',
     '/admin/index.html': 'menu-admin-dashboard',
-    '/advertiser/test': 'menu-advertiser-test',
-    '/advertiser/test.html': 'menu-advertiser-test'
+    '/advertiser/test': 'menu-advertiser-test'
   };
 
   /**
