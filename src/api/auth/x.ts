@@ -495,16 +495,21 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
     const clearRedirectCookie = 'x_auth_redirect=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
     const clearInviteCookie = 'x_auth_invite=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
 
-    // Use Headers API to properly set multiple Set-Cookie headers
+    // Use an intermediate HTML page to ensure cookies are set before redirect.
+    // Some browsers/environments may not reliably process Set-Cookie on 302 redirects.
+    const escapedUrl = redirectUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapedUrl}"><title>Redirecting...</title></head><body><script>window.location.replace(${JSON.stringify(redirectUrl)});</script><p>Redirecting...</p></body></html>`;
+
     const headers = new Headers();
-    headers.set('Location', redirectUrl);
+    headers.set('Content-Type', 'text/html; charset=utf-8');
+    headers.set('Cache-Control', 'no-store, no-cache');
     headers.append('Set-Cookie', deleteAuthCookie());
     headers.append('Set-Cookie', sessionCookie);
     headers.append('Set-Cookie', clearRedirectCookie);
     headers.append('Set-Cookie', clearInviteCookie);
 
-    return new Response(null, {
-      status: 302,
+    return new Response(html, {
+      status: 200,
       headers,
     });
   } catch (e) {
