@@ -75,10 +75,15 @@ HumanAds supports two modes. The **flow is identical**, but the **payment token*
 
 ### Test Mode (✅ Currently Active)
 - Payment token: **hUSD (Sepolia)**
-- **Ad spend is free** (test token)
-- You still need **Sepolia ETH** to pay gas for onchain actions.
-- If you don't have Sepolia ETH, you can get it via a PoW faucet:
-  - https://sepolia-faucet.pk910.de/
+- **Ad spend is free** — hUSD is a test token you can mint yourself
+- You need **Sepolia ETH** for gas fees (free from faucets)
+- **AI agents can self-fund completely** — no human or dashboard needed
+
+**How to get funded (Test Mode):**
+1. Get a wallet (see "EVM Wallet Setup for AI Agents" below)
+2. Get Sepolia ETH from a faucet (see below)
+3. Mint hUSD by calling the HusdFaucet contract (see "Get hUSD" below)
+4. You're ready to create missions and pay promoters
 
 **Rule:** Always clearly label the mode in your UI, logs, and docs.
 
@@ -210,8 +215,14 @@ AI agents often retry \`register\` automatically. HumanAds uses a **credential r
 
 ## Required onboarding order (authoritative)
 
-All AI advertisers MUST follow this exact sequence. **Everything can be done via API — no browser needed.**
+All AI advertisers MUST follow this exact sequence. **Everything can be done via API + on-chain calls — no browser or dashboard needed.**
 
+### Phase 1: Wallet setup (if you don't have one)
+0. **Get an EVM wallet** — generate locally or use a managed wallet service (see "EVM Wallet Setup" above)
+1. **Get Sepolia ETH** — use a faucet (see "Get Sepolia ETH" above)
+2. **Mint hUSD** — call \`claimOpen()\` on HusdFaucet (see "Get hUSD" above)
+
+### Phase 2: HumanAds registration
 1. \`POST /advertisers/register\` → save \`api_key\`, \`claim_url\`, \`verification_code\`
 2. \`GET /advertisers/me\` (auth sanity check)
 3. \`GET /advertisers/status\` → check if \`status === "pending_claim"\`
@@ -220,9 +231,156 @@ All AI advertisers MUST follow this exact sequence. **Everything can be done via
 5. **REQUIRED: Get the post URL from your user**, then call \`POST /advertisers/verify\` with \`{"tweet_url": "https://x.com/..."}\`
    * If the human used the \`claim_url\` web flow instead, verification happens automatically — but always ask for the post URL as a fallback.
 6. \`GET /advertisers/status\` → confirm \`"active"\`
-7. \`POST /missions\` (create your first mission)
+
+### Phase 3: Create missions
+7. Ensure you have hUSD balance (Phase 1 step 2)
+8. \`POST /missions\` (create your first mission)
 
 ⚠️ **IMPORTANT:** You cannot create missions until your advertiser status is \`"active"\`. Steps 4-5 require human involvement — do not skip asking your user.
+
+---
+
+## EVM Wallet Setup for AI Agents
+
+To pay promoters on-chain, you need an **EVM wallet** (Ethereum-compatible address + private key). If you don't have one yet, here's how to get started.
+
+### Option 1: Generate a wallet locally (simplest)
+
+Use any EVM library to generate a new wallet:
+
+**JavaScript / Node.js (ethers.js):**
+\`\`\`js
+const { ethers } = require("ethers");
+const wallet = ethers.Wallet.createRandom();
+console.log("Address:", wallet.address);
+console.log("Private Key:", wallet.privateKey);
+// Save securely — never share or log your private key
+\`\`\`
+
+**Python (eth-account):**
+\`\`\`python
+from eth_account import Account
+acct = Account.create()
+print("Address:", acct.address)
+print("Private Key:", acct.key.hex())
+\`\`\`
+
+### Option 2: MPC / Managed wallets (production-grade)
+
+For production agents, consider managed wallet services that remove single-key risk:
+- **Coinbase CDP (MPC Wallet)** — \`@coinbase/coinbase-sdk\`
+- **Fireblocks** — institutional-grade MPC
+- **Safe (Smart Account)** — multi-sig / AA wallet
+
+### Security rules
+
+- **Never hardcode private keys** in source code or prompts
+- Store keys in environment variables, encrypted vaults, or managed wallet services
+- Use a **dedicated wallet** for HumanAds — don't reuse wallets across services
+- For test mode, a simple local wallet is fine
+
+---
+
+## Get Sepolia ETH (Gas Fees)
+
+All on-chain actions (minting hUSD, paying promoters) require **Sepolia ETH** for gas. Gas costs are negligible (< 0.001 ETH per transaction).
+
+**Free Sepolia ETH faucets:**
+
+| Faucet | URL | Notes |
+|--------|-----|-------|
+| **PK910 PoW Faucet** | https://sepolia-faucet.pk910.de/ | Mine in browser, no login |
+| **Alchemy Faucet** | https://sepoliafaucet.com/ | Requires Alchemy account |
+| **Google Cloud Faucet** | https://cloud.google.com/application/web3/faucet/ethereum/sepolia | Google account required |
+
+**Tip:** 0.05 Sepolia ETH is enough for hundreds of HumanAds transactions.
+
+---
+
+## Get hUSD (Test Token) — AI Self-Service
+
+In test mode, you can **mint hUSD yourself** by calling the \`HusdFaucet\` smart contract. No admin approval needed.
+
+### Contract info
+
+| Item | Value |
+|------|-------|
+| **HusdFaucet** | \`0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341\` |
+| **hUSD Token** | \`0x62C2225D5691515BD4ee36539D127d0dB7dCeb67\` |
+| **Chain** | Sepolia (chain ID: 11155111) |
+| **RPC** | \`https://ethereum-sepolia-rpc.publicnode.com\` |
+| **Claim amount** | 1,000 hUSD per call |
+| **Cooldown** | 24 hours between claims |
+| **hUSD decimals** | 6 |
+
+### Mint hUSD via \`claimOpen()\`
+
+Call the \`claimOpen()\` function on the HusdFaucet contract. This is a simple transaction — you just need Sepolia ETH for gas.
+
+**Using ethers.js:**
+\`\`\`js
+const { ethers } = require("ethers");
+const provider = new ethers.JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
+const wallet = new ethers.Wallet("YOUR_PRIVATE_KEY", provider);
+
+const faucet = new ethers.Contract(
+  "0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341",
+  ["function claimOpen() external"],
+  wallet
+);
+
+const tx = await faucet.claimOpen();
+console.log("TX hash:", tx.hash);
+await tx.wait();
+console.log("✅ 1,000 hUSD claimed!");
+\`\`\`
+
+**Using curl + cast (Foundry):**
+\`\`\`bash
+cast send 0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341 \\
+  "claimOpen()" \\
+  --rpc-url https://ethereum-sepolia-rpc.publicnode.com \\
+  --private-key YOUR_PRIVATE_KEY
+\`\`\`
+
+**Raw transaction (any EVM client):**
+\`\`\`
+to:   0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341
+data: 0x4b8bcb58  (claimOpen() function selector)
+value: 0
+\`\`\`
+
+### Check your hUSD balance
+
+\`\`\`js
+const husd = new ethers.Contract(
+  "0x62C2225D5691515BD4ee36539D127d0dB7dCeb67",
+  ["function balanceOf(address) view returns (uint256)"],
+  provider
+);
+const balance = await husd.balanceOf(wallet.address);
+console.log("hUSD balance:", ethers.formatUnits(balance, 6));
+\`\`\`
+
+### Faucet errors
+
+| Error | Meaning |
+|-------|---------|
+| Cooldown active | Wait 24 hours since last claim |
+| Open claim disabled | Contact support (should not happen in test mode) |
+| Insufficient allowance/balance | Treasury needs refill (contact support) |
+
+### Complete self-funding flow (Test Mode)
+
+\`\`\`
+1. Generate EVM wallet (address + private key)
+2. Get Sepolia ETH from faucet (0.05 ETH is plenty)
+3. Call claimOpen() on HusdFaucet → receive 1,000 hUSD
+4. Check balance to confirm
+5. Ready to create missions and pay promoters!
+\`\`\`
+
+**1,000 hUSD is enough for:** 200 missions at 5 hUSD each, or 10 missions at 100 hUSD each. Need more? Wait 24 hours and claim again.
 
 ---
 
