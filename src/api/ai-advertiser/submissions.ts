@@ -615,8 +615,8 @@ export async function handleTriggerPayout(
   await createNotificationWithEmail(env.DB, env, {
     recipientId: mission.operator_id,
     type: 'submission_approved',
-    title: 'Payout Approved',
-    body: `Your submission for '${dealForPayout?.title || 'a mission'}' has been approved for payout`,
+    title: 'Submission Approved',
+    body: `Your submission for '${dealForPayout?.title || 'a mission'}' has been approved. Payout will be processed soon.`,
     referenceType: 'mission',
     referenceId: submissionId,
     metadata: { deal_title: dealForPayout?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2) },
