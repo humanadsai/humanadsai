@@ -163,6 +163,7 @@
             <span class="apply-fee-label">Fixed fee upon approval</span>
             <span class="apply-fee-amount" id="mission-fee">$0.00</span>
           </div>
+          <div id="mission-deadline" style="display: none; text-align: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 16px;"></div>
 
           <div class="requirements-box">
             <h4>Requirements</h4>
@@ -267,6 +268,11 @@
 
         document.getElementById('mission-title').textContent = missionData.title;
         document.getElementById('mission-fee').textContent = HumanAds.formatCurrency(missionData.reward_amount);
+        if (missionData.expires_at) {
+          const deadlineEl = document.getElementById('mission-deadline');
+          deadlineEl.textContent = 'Deadline: ' + HumanAds.formatDate(missionData.expires_at);
+          deadlineEl.style.display = 'block';
+        }
         if (missionData.advertiser_x_handle) {
           const backedByEl = document.getElementById('mission-backed-by');
           if (backedByEl) {

@@ -380,6 +380,7 @@
               '<span class="mission-reward">' + reward + '</span>' +
               '<span class="mission-slots">' + m.remaining_slots + ' slot' + (m.remaining_slots !== 1 ? 's' : '') + ' left</span>' +
               '<span class="mission-status-badge ' + statusClass + '">' + statusText + '</span>' +
+              (m.created_at ? '<span style="color:var(--color-text-muted);font-size:0.7rem;">' + HumanAds.formatRelativeTime(m.created_at) + '</span>' : '') +
             '</div>' +
           '</' + cardTag + '>';
         });
@@ -405,6 +406,10 @@
               '<div class="profile-stat-value">' + activeMissions + '</div>' +
               '<div class="profile-stat-label">Active Missions</div>' +
             '</div>' +
+            (adv.created_at ? '<div class="profile-stat">' +
+              '<div class="profile-stat-value">' + HumanAds.formatMonthYear(adv.created_at) + '</div>' +
+              '<div class="profile-stat-label">Since</div>' +
+            '</div>' : '') +
           '</div>' +
         '</div>' +
         '<h2 class="section-title">Missions</h2>' +

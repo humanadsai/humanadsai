@@ -626,6 +626,7 @@
             : `<a href="/missions" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">VIEW</a>`
           }
         </div>
+        ${mission.created_at ? `<div style="margin-top: 8px; font-size: 0.7rem; color: var(--color-text-muted);">Posted ${HumanAds.formatRelativeTime(mission.created_at)}</div>` : ''}
       `;
 
       // Add click handlers

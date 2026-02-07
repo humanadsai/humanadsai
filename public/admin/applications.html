@@ -93,7 +93,7 @@
             ${applications.length === 0 ? '<div class="empty">No applications found</div>' : `
               <table class="data-table">
                 <thead>
-                  <tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Applied</th><th>Actions</th></tr>
+                  <tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Applied</th><th>Selected</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                   ${applications.map(a => `
@@ -103,6 +103,7 @@
                       <td>@${HumanAds.escapeHtml((a.x_handle || 'unknown').replace(/^@+/, ''))}</td>
                       <td><span class="status-badge ${a.status}">${a.status}</span></td>
                       <td>${HumanAds.formatDate(a.created_at)}</td>
+                      <td>${a.selected_at ? HumanAds.formatDate(a.selected_at) : '-'}</td>
                       <td class="action-btns">
                         ${a.status === 'pending' ? `
                           <button class="btn-sm success" onclick="updateApplication('${a.id}', 'shortlisted')">Shortlist</button>

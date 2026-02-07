@@ -93,7 +93,7 @@
             ${operators.length === 0 ? '<div class="empty">No operators found</div>' : `
               <table class="data-table">
                 <thead>
-                  <tr><th></th><th>Handle</th><th>Name</th><th>Status</th><th>Role</th><th>Followers</th><th>Missions</th><th>Actions</th></tr>
+                  <tr><th></th><th>Handle</th><th>Name</th><th>Status</th><th>Role</th><th>Followers</th><th>Missions</th><th>Created</th><th>Verified</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                   ${operators.map(o => `
@@ -105,6 +105,8 @@
                       <td><span class="status-badge ${o.role || 'user'}">${o.role || 'user'}</span></td>
                       <td>${(o.x_followers_count || 0).toLocaleString()}</td>
                       <td>${o.total_missions_completed || 0}</td>
+                      <td>${o.created_at ? HumanAds.formatDate(o.created_at) : '-'}</td>
+                      <td>${o.verified_at ? HumanAds.formatDate(o.verified_at) : '-'}</td>
                       <td>
                         <button class="btn-sm" onclick="toggleAdmin('${o.id}', '${o.role}')">${o.role === 'admin' ? 'Remove Admin' : 'Make Admin'}</button>
                       </td>
