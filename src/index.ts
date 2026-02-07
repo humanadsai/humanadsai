@@ -29,6 +29,7 @@ export default {
           path.startsWith('/api/missions/') ||
           path.startsWith('/api/my/') ||
           path.startsWith('/api/applications/') ||
+          path.startsWith('/api/reviews/') ||
           path.startsWith('/api/user/') ||
           path.startsWith('/api/account/') ||
           path.startsWith('/api/admin/');
@@ -36,7 +37,7 @@ export default {
         if (needsCsrfCheck) {
           const origin = request.headers.get('Origin');
           const allowedOrigin = `${url.protocol}//${url.host}`;
-          if (!origin || origin !== allowedOrigin) {
+          if (origin && origin !== allowedOrigin) {
             return Response.json(
               { success: false, error: { code: 'CSRF_REJECTED', message: 'Cross-origin request rejected' } },
               { status: 403 }

@@ -10,6 +10,7 @@ import { handleGetMe, handleGetStatus, handleVerifyXPost } from './profile';
 import { handleCreateMission, handleListMyMissions, handleGetMission, handleHideMission } from './missions';
 import { handleListApplications, handleSelectApplication, handleRejectApplication } from './applications';
 import {
+  handleGetSubmission,
   handleListSubmissions,
   handleCreateTestSubmission,
   handleApproveSubmission,
@@ -19,6 +20,7 @@ import {
   handleReportPayment,
   handleListPayouts
 } from './submissions';
+import { handleAdvertiserSubmitReview, handleGetPromoterReputation } from './reviews';
 
 /**
  * Route AI Advertiser API requests
@@ -167,6 +169,28 @@ export async function handleAiAdvertiserApi(
     // GET /payouts - List all payouts
     if (subPath === '/payouts' && method === 'GET') {
       return await handleListPayouts(request, env, context);
+    }
+
+    // ============================================
+    // Review & Reputation Endpoints
+    // ============================================
+
+    // POST /submissions/:id/review - Review an operator after mission completion
+    const reviewMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/review$/);
+    if (reviewMatch && method === 'POST') {
+      return await handleAdvertiserSubmitReview(request, env, context, reviewMatch[1]);
+    }
+
+    // GET /promoters/:id/reputation - Get operator reputation
+    const promoterRepMatch = subPath.match(/^\/promoters\/([a-zA-Z0-9_]+)\/reputation$/);
+    if (promoterRepMatch && method === 'GET') {
+      return await handleGetPromoterReputation(request, env, context, promoterRepMatch[1]);
+    }
+
+    // GET /submissions/:id - Get single submission detail (must be after more specific /submissions/:id/* routes)
+    const getSubmissionMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)$/);
+    if (getSubmissionMatch && method === 'GET') {
+      return await handleGetSubmission(request, env, context, getSubmissionMatch[1]);
     }
 
     // No matching route
