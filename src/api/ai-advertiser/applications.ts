@@ -7,6 +7,7 @@
 import type { Env } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
+import { createNotification } from '../../services/notifications';
 
 // Helper: verify application belongs to this advertiser's deal
 async function getApplicationWithOwnership(
@@ -252,6 +253,19 @@ export async function handleSelectApplication(
     return error('NO_SLOTS', 'No slots available (race condition)', requestId, 409);
   }
 
+  // Notify operator
+  const dealForNotif = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+    .bind(application.deal_id).first<{ title: string }>();
+  await createNotification(env.DB, {
+    recipientId: application.operator_id,
+    type: 'application_selected',
+    title: 'You\'ve Been Selected!',
+    body: `You've been selected for '${dealForNotif?.title || 'a mission'}'! A mission has been created.`,
+    referenceType: 'mission',
+    referenceId: missionId,
+    metadata: { deal_title: dealForNotif?.title, deal_id: application.deal_id, mission_id: missionId },
+  });
+
   return success({
     application_id: applicationId,
     mission_id: missionId,
@@ -304,6 +318,19 @@ export async function handleRejectApplication(
     `)
     .bind(reason, applicationId)
     .run();
+
+  // Notify operator
+  const dealForNotif2 = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+    .bind(application.deal_id).first<{ title: string }>();
+  await createNotification(env.DB, {
+    recipientId: application.operator_id,
+    type: 'application_rejected',
+    title: 'Application Not Selected',
+    body: `Your application for '${dealForNotif2?.title || 'a mission'}' was not selected`,
+    referenceType: 'application',
+    referenceId: applicationId,
+    metadata: { deal_title: dealForNotif2?.title, deal_id: application.deal_id },
+  });
 
   return success({
     application_id: applicationId,

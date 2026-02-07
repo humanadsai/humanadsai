@@ -207,6 +207,22 @@
   }
 
   /**
+   * Load notifications script dynamically for authenticated users
+   */
+  function loadNotifications() {
+    if (document.getElementById('notifications-script')) return;
+    const script = document.createElement('script');
+    script.id = 'notifications-script';
+    script.src = '/js/notifications.js';
+    script.onload = function () {
+      if (window.Notifications) {
+        window.Notifications.init();
+      }
+    };
+    document.head.appendChild(script);
+  }
+
+  /**
    * Initialize side menu
    * @param {boolean|null} isLoggedIn - Pass true/false if known, null to auto-detect
    * @param {boolean|null} isAdmin - Pass true/false if known, null to auto-detect
@@ -225,6 +241,11 @@
 
     renderSideMenu(isLoggedIn, isAdmin || false);
     initMenuToggle();
+
+    // Load notifications for authenticated users
+    if (isLoggedIn) {
+      loadNotifications();
+    }
   }
 
   // Expose to global scope

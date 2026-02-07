@@ -12,6 +12,7 @@ import type { Env, Mission } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
+import { createNotification } from '../../services/notifications';
 
 // ============================================
 // Helper: verify mission belongs to this advertiser
@@ -408,6 +409,19 @@ export async function handleApproveSubmission(
     .bind(verificationResult, submissionId)
     .run();
 
+  // Notify operator
+  const dealForVerify = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+    .bind(mission.deal_id).first<{ title: string }>();
+  await createNotification(env.DB, {
+    recipientId: mission.operator_id,
+    type: 'submission_verified',
+    title: 'Submission Verified',
+    body: `Your submission for '${dealForVerify?.title || 'a mission'}' has been verified`,
+    referenceType: 'mission',
+    referenceId: submissionId,
+    metadata: { deal_title: dealForVerify?.title, deal_id: mission.deal_id },
+  });
+
   return success({
     submission_id: submissionId,
     status: 'verified',
@@ -480,6 +494,19 @@ export async function handleRejectSubmission(
     `)
     .bind(body.reason.trim(), submissionId)
     .run();
+
+  // Notify operator
+  const dealForReject = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+    .bind(mission.deal_id).first<{ title: string }>();
+  await createNotification(env.DB, {
+    recipientId: mission.operator_id,
+    type: 'submission_rejected',
+    title: 'Submission Needs Revision',
+    body: `Your submission for '${dealForReject?.title || 'a mission'}' needs revision`,
+    referenceType: 'mission',
+    referenceId: submissionId,
+    metadata: { deal_title: dealForReject?.title, deal_id: mission.deal_id, reason: body.reason.trim() },
+  });
 
   return success({
     submission_id: submissionId,
@@ -579,6 +606,19 @@ export async function handleTriggerPayout(
     `).bind(payoutPaymentId, submissionId, advertiser.id, mission.operator_id,
             promoterPayoutCents, chain, payoutToken, payoutDeadline, promoterAddress)
   ]);
+
+  // Notify operator
+  const dealForPayout = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+    .bind(mission.deal_id).first<{ title: string }>();
+  await createNotification(env.DB, {
+    recipientId: mission.operator_id,
+    type: 'submission_approved',
+    title: 'Payout Approved',
+    body: `Your submission for '${dealForPayout?.title || 'a mission'}' has been approved for payout`,
+    referenceType: 'mission',
+    referenceId: submissionId,
+    metadata: { deal_title: dealForPayout?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2) },
+  });
 
   return success({
     submission_id: submissionId,
@@ -750,6 +790,33 @@ export async function handleReportPayment(
       .prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
       .bind(submissionId)
       .run();
+  }
+
+  // Notify operator about payment
+  if (allConfirmed) {
+    const dealForPayment = await env.DB.prepare('SELECT d.title, d.reward_amount FROM deals d JOIN missions m ON m.deal_id = d.id WHERE m.id = ?')
+      .bind(submissionId).first<{ title: string; reward_amount: number }>();
+    await createNotification(env.DB, {
+      recipientId: mission.operator_id,
+      type: 'payout_confirmed',
+      title: 'Payment Complete',
+      body: `Payment of ${dealForPayment ? (dealForPayment.reward_amount / 100).toFixed(2) : '?'} hUSD for '${dealForPayment?.title || 'a mission'}' is complete`,
+      referenceType: 'mission',
+      referenceId: submissionId,
+      metadata: { deal_title: dealForPayment?.title, amount: dealForPayment ? (dealForPayment.reward_amount / 100).toFixed(2) : null },
+    });
+  } else if (body.payment_type === 'auf') {
+    const dealForAuf = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+      .bind(mission.deal_id).first<{ title: string }>();
+    await createNotification(env.DB, {
+      recipientId: mission.operator_id,
+      type: 'payout_auf_paid',
+      title: 'Payment Initiated',
+      body: `Payment initiated for '${dealForAuf?.title || 'a mission'}'`,
+      referenceType: 'mission',
+      referenceId: submissionId,
+      metadata: { deal_title: dealForAuf?.title, deal_id: mission.deal_id },
+    });
   }
 
   return success({
