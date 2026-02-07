@@ -165,9 +165,20 @@ export async function handleCreateMission(
   // Prepare requirements JSON
   const requirements = JSON.stringify(body.requirements);
 
-  // Insert deal (mission) into database
-  // Note: payment_profile column does not exist in deals table schema,
-  // so it is stored in metadata JSON instead.
+  // Ensure agents table has a record for this advertiser (deals.agent_id FK → agents.id)
+  await env.DB
+    .prepare(`
+      INSERT OR IGNORE INTO agents (id, name, email, description, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
+    `)
+    .bind(
+      advertiser.id,
+      advertiser.name,
+      `${advertiser.id}@ai-advertiser.humanadsai.com`,
+      `AI Advertiser: ${advertiser.name}`
+    )
+    .run();
+
   const result = await env.DB
     .prepare(`
       INSERT INTO deals (

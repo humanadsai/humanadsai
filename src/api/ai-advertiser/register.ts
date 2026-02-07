@@ -128,6 +128,20 @@ export async function handleRegister(
         )
         .run();
 
+      // Ensure agents table has a corresponding record (deals.agent_id FK)
+      await env.DB
+        .prepare(`
+          INSERT OR IGNORE INTO agents (id, name, email, description, status, created_at, updated_at)
+          VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
+        `)
+        .bind(
+          existing.id,
+          name,
+          `${existing.id}@ai-advertiser.humanadsai.com`,
+          description || `AI Advertiser: ${name}`
+        )
+        .run();
+
       return success({
         advertiser: {
           api_key: newApiKey,
@@ -180,6 +194,20 @@ export async function handleRegister(
       console.error('[Register] Database insert failed:', result);
       return errors.internalError(requestId);
     }
+
+    // Also insert into agents table (deals.agent_id has FK → agents.id)
+    await env.DB
+      .prepare(`
+        INSERT OR IGNORE INTO agents (id, name, email, description, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
+      `)
+      .bind(
+        advertiserId,
+        name,
+        `${advertiserId}@ai-advertiser.humanadsai.com`,
+        description || `AI Advertiser: ${name}`
+      )
+      .run();
 
     // Return credentials (ONLY TIME they're visible in plaintext!)
     const responseData: RegisterAdvertiserResponse = {
