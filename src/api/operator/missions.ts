@@ -342,50 +342,90 @@ export async function submitMission(request: Request, env: Env): Promise<Respons
 
     if (verificationResult.success) {
       // 検証成功 - 支払い処理
-      const paymentResult = await releaseToOperator(
-        env.DB,
-        mission.id,
-        operator.id,
-        mission.reward_amount,
-        `mission-payment-${mission.id}`
-      );
-
-      if (paymentResult.success) {
-        await env.DB.batch([
-          // ミッション更新
-          env.DB.prepare(
-            `UPDATE missions SET
-              status = 'paid',
-              verified_at = datetime('now'),
-              verification_result = ?,
-              paid_at = datetime('now'),
-              updated_at = datetime('now')
-             WHERE id = ?`
-          ).bind(JSON.stringify(verificationResult), mission.id),
-          // Operator統計更新
-          env.DB.prepare(
-            `UPDATE operators SET
-              total_missions_completed = total_missions_completed + 1,
-              total_earnings = total_earnings + ?,
-              updated_at = datetime('now')
-             WHERE id = ?`
-          ).bind(mission.reward_amount, operator.id),
-        ]);
-
-        return success(
-          {
-            mission_id: mission.id,
-            status: 'paid',
-            verification: verificationResult,
-            reward_amount: mission.reward_amount,
-            message: 'Mission verified and paid!',
-          },
-          requestId
+      try {
+        const paymentResult = await releaseToOperator(
+          env.DB,
+          mission.id,
+          operator.id,
+          mission.reward_amount,
+          `mission-payment-${mission.id}`
         );
+
+        if (paymentResult.success) {
+          await env.DB.batch([
+            // ミッション更新
+            env.DB.prepare(
+              `UPDATE missions SET
+                status = 'paid',
+                verified_at = datetime('now'),
+                verification_result = ?,
+                paid_at = datetime('now'),
+                updated_at = datetime('now')
+               WHERE id = ?`
+            ).bind(JSON.stringify(verificationResult), mission.id),
+            // Operator統計更新
+            env.DB.prepare(
+              `UPDATE operators SET
+                total_missions_completed = total_missions_completed + 1,
+                total_earnings = total_earnings + ?,
+                updated_at = datetime('now')
+               WHERE id = ?`
+            ).bind(mission.reward_amount, operator.id),
+          ]);
+
+          return success(
+            {
+              mission_id: mission.id,
+              status: 'paid',
+              verification: verificationResult,
+              reward_amount: mission.reward_amount,
+              message: 'Mission verified and paid!',
+            },
+            requestId
+          );
+        }
+
+        // 支払い失敗（releaseToOperator が success: false を返した場合）
+        console.error('Payment failed for mission:', mission.id, paymentResult.error);
+      } catch (paymentError) {
+        // 支払い処理中のエラー（テーブル未存在など）
+        console.error('Payment error for mission:', mission.id, paymentError);
       }
+
+      // 検証成功だが支払い失敗 → verified 状態で保存
+      await env.DB.prepare(
+        `UPDATE missions SET
+          status = 'verified',
+          verified_at = datetime('now'),
+          verification_result = ?,
+          updated_at = datetime('now')
+         WHERE id = ?`
+      )
+        .bind(JSON.stringify(verificationResult), mission.id)
+        .run();
+
+      // Operator統計更新（完了カウントのみ、earnings は支払い時に加算）
+      await env.DB.prepare(
+        `UPDATE operators SET
+          total_missions_completed = total_missions_completed + 1,
+          updated_at = datetime('now')
+         WHERE id = ?`
+      )
+        .bind(operator.id)
+        .run();
+
+      return success(
+        {
+          mission_id: mission.id,
+          status: 'submitted',
+          verification: verificationResult,
+          message: 'Post verified! Awaiting payment processing.',
+        },
+        requestId
+      );
     }
 
-    // 検証失敗または支払い失敗
+    // 検証失敗
     await env.DB.prepare(
       `UPDATE missions SET
         status = 'rejected',
