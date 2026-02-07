@@ -245,6 +245,9 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
 
   console.log('[X Callback] User info received:', userInfo.username);
 
+  // Normalize x_handle: strip leading @ to prevent @@handle in display
+  const xHandleNormalized = (userInfo.username || '').replace(/^@+/, '');
+
   // Save or update operator in database
   const sessionToken = generateSessionToken();
   const sessionTokenHash = await sha256Hex(sessionToken);
@@ -311,7 +314,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
           WHERE x_user_id = ?`
         )
           .bind(
-            userInfo.username!,
+            xHandleNormalized,
             userInfo.name!,
             userInfo.profile_image_url || null,
             userInfo.description || null,
@@ -345,7 +348,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
             updated_at = datetime('now')
           WHERE x_user_id = ?`
         )
-          .bind(userInfo.username!, userInfo.name!, sessionTokenHash, sessionExpiresAt, userInfo.id!)
+          .bind(xHandleNormalized, userInfo.name!, sessionTokenHash, sessionExpiresAt, userInfo.id!)
           .run();
       }
     } else {
@@ -404,7 +407,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
         )
           .bind(
             userInfo.id!,
-            userInfo.username!,
+            xHandleNormalized,
             userInfo.name!,
             userInfo.profile_image_url || null,
             userInfo.description || null,
@@ -441,7 +444,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
         )
           .bind(
             userInfo.id!,
-            userInfo.username!,
+            xHandleNormalized,
             userInfo.name!,
             userInfo.profile_image_url || null,
             userInfo.description || null,
@@ -468,7 +471,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
           `INSERT INTO operators (x_user_id, x_handle, display_name, status, verified_at, session_token_hash, session_expires_at)
           VALUES (?, ?, ?, 'verified', datetime('now'), ?, ?)`
         )
-          .bind(userInfo.id!, userInfo.username!, userInfo.name!, sessionTokenHash, sessionExpiresAt)
+          .bind(userInfo.id!, xHandleNormalized, userInfo.name!, sessionTokenHash, sessionExpiresAt)
           .run();
       }
 

@@ -110,8 +110,10 @@ async function loadStats() {
 // Missions
 // ============================================
 
-async function loadAvailableMissions(limit = 20, offset = 0) {
-  const data = await fetchApi(`/missions/available?limit=${limit}&offset=${offset}`);
+async function loadAvailableMissions(limit = 20, offset = 0, agentId = null) {
+  let url = `/missions/available?limit=${limit}&offset=${offset}`;
+  if (agentId) url += `&agent_id=${encodeURIComponent(agentId)}`;
+  const data = await fetchApi(url);
   return data.data;
 }
 

@@ -121,6 +121,14 @@
         You are paid for creating sponsored content, not for engagement. No payment for repost/like/follow.
       </div>
 
+      <!-- Agent filter banner (shown when filtered by advertiser) -->
+      <div id="agent-filter-banner" style="display:none;margin-bottom:16px;padding:10px 14px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:8px;font-size:0.8rem;display:none;">
+        <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="agent-filter-text" style="color:var(--color-text);"></span>
+          <a href="/missions/" style="color:var(--color-cyan);font-family:var(--font-mono);font-size:0.7rem;text-decoration:none;">Show all missions</a>
+        </span>
+      </div>
+
       <!-- Login CTA for non-authenticated users (info only, not error) -->
       <div id="login-cta" class="mission-card" style="display: none; margin-bottom: 24px; border-left: 3px solid var(--color-primary);">
         <p style="margin-bottom: 12px; font-size: 0.9rem;">
@@ -202,6 +210,11 @@
       }, 5000);
     }
 
+    // Read agent_id filter from URL
+    const pageParams = new URLSearchParams(window.location.search);
+    const filterAgentId = pageParams.get('agent_id') || null;
+    const filterAgentName = pageParams.get('name') || null;
+
     async function loadMissions(append = false) {
       if (isLoading) return;
       isLoading = true;
@@ -218,7 +231,7 @@
       }
 
       try {
-        const data = await HumanAds.loadAvailableMissions(limit, offset);
+        const data = await HumanAds.loadAvailableMissions(limit, offset, filterAgentId);
         const missions = data.missions || [];
         const isAuthenticated = data.is_authenticated === true;
 
@@ -422,6 +435,16 @@
       if (urlParams.get('applied') === '1') {
         showPageAlert('Application submitted! You will be notified when selected.', 'success');
         window.history.replaceState({}, '', '/missions');
+      }
+
+      // Show agent filter banner if filtering
+      if (filterAgentId) {
+        const banner = document.getElementById('agent-filter-banner');
+        const text = document.getElementById('agent-filter-text');
+        banner.style.display = 'block';
+        text.textContent = filterAgentName
+          ? `Missions by ${filterAgentName}`
+          : 'Filtered by advertiser';
       }
 
       loadMissions();
