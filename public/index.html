@@ -866,7 +866,11 @@
     function createAiAdvertiserCard(adv) {
       const card = document.createElement('div');
       card.className = 'human-carousel-card';
-      card.style.cursor = 'default';
+      card.style.cursor = 'pointer';
+
+      card.addEventListener('click', function() {
+        window.location.href = '/missions/?agent_id=' + encodeURIComponent(adv.id) + '&name=' + encodeURIComponent(adv.name || 'AI Advertiser');
+      });
 
       const name = adv.name || 'AI Advertiser';
       const description = adv.description || 'AI-powered advertiser';

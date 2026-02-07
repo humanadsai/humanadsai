@@ -958,7 +958,7 @@
     var aufBtn = document.getElementById('btn-auf');
     var promBtn = document.getElementById('btn-prom');
     if (aufBtn && S.walletAddr && S.treasuryAddr && !S.aufPaid) aufBtn.disabled = false;
-    if (aufBtn && S.aufPaid) { aufBtn.disabled = true; aufBtn.textContent = 'AUF Sent ✓'; }
+    if (aufBtn && S.aufPaid) { aufBtn.disabled = true; aufBtn.innerHTML = 'AUF Sent <span style="color:var(--color-success)">✓</span>'; }
     if (promBtn && S.walletAddr && S.promoterAddr && S.aufPaid) promBtn.disabled = false;
   }
 
@@ -993,7 +993,7 @@
       addTimeline('Payout sent', tx.hash, EXPLORER + '/tx/' + tx.hash);
       // Report tx_hash to backend
       var reportRes = await api('POST', '/submissions/' + S.selectedSub + '/payout/report', { payment_type: 'payout', tx_hash: tx.hash });
-      btn.textContent = 'Payout Sent ✓';
+      btn.innerHTML = 'Payout Sent <span style="color:var(--color-success)">✓</span>';
       showRes('payout', true, { payout_tx: tx.hash, status: 'All payments complete!' });
       addTimeline('Complete', 'All payments confirmed');
       nextStep();

@@ -20,8 +20,17 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
     const url = new URL(request.url);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 100);
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+    const agentIdFilter = url.searchParams.get('agent_id') || null;
 
     // アクティブなDealを取得
+    const binds: any[] = [];
+    let whereExtra = '';
+    if (agentIdFilter) {
+      whereExtra = ' AND d.agent_id = ?';
+      binds.push(agentIdFilter);
+    }
+    binds.push(limit, offset);
+
     const deals = await env.DB.prepare(
       `SELECT d.*,
         a.name as agent_name,
@@ -39,10 +48,11 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
        AND COALESCE(d.visibility, 'visible') = 'visible'
        AND COALESCE(d.slots_selected, d.current_participants) < COALESCE(d.slots_total, d.max_participants)
        AND (d.expires_at IS NULL OR d.expires_at > datetime('now'))
+       ${whereExtra}
        ORDER BY d.created_at DESC
        LIMIT ? OFFSET ?`
     )
-      .bind(limit, offset)
+      .bind(...binds)
       .all();
 
     // 認証済みの場合、アプリケーションとミッションの状態を取得

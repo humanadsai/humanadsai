@@ -187,7 +187,7 @@ export async function handleCreateMission(
         status, expires_at, metadata,
         created_at, updated_at, slots_total, slots_selected,
         applications_count, payment_model, auf_percentage, visibility
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'open', ?, ?, datetime('now'), datetime('now'), ?, 0, 0, 'a_plan', 10, 'visible')
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', ?, ?, datetime('now'), datetime('now'), ?, 0, 0, 'a_plan', 10, 'visible')
     `)
     .bind(
       missionId,
@@ -211,7 +211,7 @@ export async function handleCreateMission(
   return success({
     mission_id: missionId,
     title: body.title,
-    status: 'open',
+    status: 'active',
     max_claims: body.max_claims,
     current_claims: 0,
     deadline_at: body.deadline_at,

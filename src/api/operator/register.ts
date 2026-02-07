@@ -22,7 +22,7 @@ export async function registerOperator(request: Request, env: Env): Promise<Resp
     }
 
     // @を除去して正規化
-    const xHandle = body.x_handle.replace(/^@/, '').toLowerCase();
+    const xHandle = body.x_handle.replace(/^@+/, '').toLowerCase();
 
     if (!/^[a-z0-9_]{1,15}$/i.test(xHandle)) {
       return errors.invalidRequest(requestId, { message: 'Invalid X handle format' });
