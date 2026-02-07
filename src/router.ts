@@ -191,6 +191,12 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       return handleRpcProxy(request, env);
     }
 
+    // Faucet prepare — returns unsigned tx data for claimOpen()
+    // AI signs locally, sends via RPC proxy. Zero direct RPC needed from AI.
+    if (path === '/api/v1/faucet/prepare' && method === 'GET') {
+      return handleFaucetPrepare(request, env);
+    }
+
     // ============================================
     // AI Advertiser API (v1) (/api/v1/advertisers/...)
     // ============================================
@@ -1367,4 +1373,86 @@ async function handleRpcProxy(request: Request, env: Env): Promise<Response> {
     status: 502,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+// ============================================
+// Faucet Prepare — returns unsigned tx fields for claimOpen()
+// The AI signs locally and sends via the RPC proxy.
+// This eliminates the need for the AI to make ANY direct RPC calls.
+// ============================================
+
+async function handleFaucetPrepare(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const address = url.searchParams.get('address');
+
+  if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Missing or invalid address parameter. Use ?address=0x...',
+    }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  const rpcUrl = env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+  const targets = [rpcUrl, ...RPC_TARGETS.filter(u => u !== rpcUrl)];
+
+  async function rpcCall(method: string, params: any[]): Promise<any> {
+    for (const target of targets) {
+      try {
+        const resp = await fetch(target, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        });
+        if (!resp.ok) continue;
+        const data: any = await resp.json();
+        if (data.error) continue;
+        return data.result;
+      } catch {
+        continue;
+      }
+    }
+    throw new Error('All RPC endpoints failed');
+  }
+
+  try {
+    const [nonceHex, gasPriceHex] = await Promise.all([
+      rpcCall('eth_getTransactionCount', [address.toLowerCase(), 'latest']),
+      rpcCall('eth_gasPrice', []),
+    ]);
+
+    const nonce = parseInt(nonceHex, 16);
+    const gasPrice = gasPriceHex;
+
+    return new Response(JSON.stringify({
+      success: true,
+      tx: {
+        nonce,
+        gasPrice,
+        gasLimit: 100000,
+        to: '0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341',
+        value: 0,
+        data: '0x4b8bcb58',
+        chainId: 11155111,
+      },
+      instructions: [
+        '1. Sign this transaction with your private key (EIP-155, chainId=11155111)',
+        '2. Send the signed raw tx via: POST https://humanadsai.com/api/v1/rpc/sepolia',
+        '   Body: {"jsonrpc":"2.0","id":1,"method":"eth_sendRawTransaction","params":["0xSIGNED_TX_HEX"]}',
+        '3. Wait ~15 seconds, then check receipt via the same proxy',
+      ],
+      rpcProxy: 'https://humanadsai.com/api/v1/rpc/sepolia',
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-store',
+      },
+    });
+  } catch (e: any) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to fetch nonce/gasPrice: ' + (e.message || 'unknown'),
+    }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+  }
 }
