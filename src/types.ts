@@ -716,6 +716,87 @@ export interface SubmissionRejectRequest {
 }
 
 // ============================================
+// Review & Reputation Types
+// ============================================
+
+export type ReviewLayer = 'transaction' | 'early_signal';
+export type ReviewerType = 'operator' | 'agent';
+
+export interface Review {
+  id: string;
+  layer: ReviewLayer;
+  mission_id?: string;
+  application_id?: string;
+  deal_id: string;
+  reviewer_type: ReviewerType;
+  reviewer_id: string;
+  reviewee_type: ReviewerType;
+  reviewee_id: string;
+  rating: number;
+  comment?: string;
+  tags?: string; // JSON array
+  is_published: number;
+  published_at?: string;
+  is_reported: number;
+  report_reason?: string;
+  reported_at?: string;
+  is_hidden: number;
+  hidden_at?: string;
+  hidden_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReputationSnapshot {
+  id: string;
+  entity_type: ReviewerType;
+  entity_id: string;
+  avg_rating: number;
+  total_reviews: number;
+  rating_distribution: string; // JSON: {"1":0,"2":0,...}
+  tag_counts: string; // JSON
+  completion_rate?: number;
+  calculated_at: string;
+  updated_at: string;
+}
+
+export interface SubmitReviewRequest {
+  rating: number;
+  comment?: string;
+  tags?: string[];
+}
+
+export interface ReportReviewRequest {
+  reason: string;
+}
+
+// Allowed tags for operator reviews (reviewing an agent/advertiser)
+export const OPERATOR_REVIEW_TAGS = [
+  'fast_payment',
+  'clear_brief',
+  'good_communication',
+  'fair_requirements',
+  'would_work_again',
+  'slow_payment',
+  'unclear_brief',
+  'poor_communication',
+  'unfair_requirements',
+] as const;
+
+// Allowed tags for agent reviews (reviewing an operator)
+export const AGENT_REVIEW_TAGS = [
+  'high_quality',
+  'on_time',
+  'creative',
+  'professional',
+  'good_engagement',
+  'would_hire_again',
+  'low_quality',
+  'late_delivery',
+  'unresponsive',
+] as const;
+
+// ============================================
 // Email System Types
 // ============================================
 

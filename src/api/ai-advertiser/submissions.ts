@@ -51,6 +51,96 @@ async function getMissionWithOwnership(
 }
 
 /**
+ * Get a single submission by ID
+ *
+ * GET /api/v1/submissions/:submissionId
+ */
+export async function handleGetSubmission(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  submissionId: string
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  const { mission, error: ownershipError } = await getMissionWithOwnership(
+    env, submissionId, advertiser.id, requestId
+  );
+  if (ownershipError) return ownershipError;
+
+  // Get operator info
+  const operator = await env.DB
+    .prepare('SELECT id, x_handle, display_name, evm_wallet_address FROM operators WHERE id = ?')
+    .bind(mission.operator_id)
+    .first<{ id: string; x_handle: string | null; display_name: string | null; evm_wallet_address: string | null }>();
+
+  // Get payment records for payout status
+  const payments = await env.DB
+    .prepare('SELECT payment_type, amount_cents, status, tx_hash, confirmed_at, to_address, chain, token FROM payments WHERE mission_id = ?')
+    .bind(submissionId)
+    .all();
+
+  const aufPayment = payments.results.find((p: any) => p.payment_type === 'auf') as any;
+  const payoutPayment = payments.results.find((p: any) => p.payment_type === 'payout') as any;
+
+  let payoutStatus: string | null = null;
+  if (aufPayment || payoutPayment) {
+    if (aufPayment?.status === 'confirmed' && payoutPayment?.status === 'confirmed') {
+      payoutStatus = 'paid_complete';
+    } else if (aufPayment?.status === 'confirmed') {
+      payoutStatus = 'paid_partial';
+    } else if (aufPayment?.status === 'failed' || payoutPayment?.status === 'failed') {
+      payoutStatus = 'failed';
+    } else {
+      payoutStatus = 'pending';
+    }
+  }
+
+  // Get deal info
+  const deal = await env.DB
+    .prepare('SELECT title, reward_amount, metadata FROM deals WHERE id = ?')
+    .bind(mission.deal_id)
+    .first<{ title: string; reward_amount: number; metadata: string | null }>();
+
+  return success({
+    submission_id: mission.id,
+    mission_id: mission.deal_id,
+    mission_title: deal?.title || null,
+    operator: {
+      id: operator?.id || mission.operator_id,
+      x_handle: operator?.x_handle ? operator.x_handle.replace(/^@+/, '') : null,
+      display_name: operator?.display_name || null,
+      evm_wallet_address: operator?.evm_wallet_address || null,
+    },
+    submission_url: mission.submission_url || null,
+    submission_content: mission.submission_content || null,
+    status: mission.status,
+    submitted_at: mission.submitted_at || null,
+    verified_at: mission.verified_at || null,
+    approved_at: mission.approved_at || null,
+    rejected_at: mission.status === 'rejected' ? mission.updated_at : null,
+    rejection_reason: mission.status === 'rejected' ? mission.verification_result : null,
+    payout_status: payoutStatus,
+    payout_deadline_at: mission.payout_deadline_at || null,
+    reward_amount: deal ? (deal.reward_amount / 100).toFixed(2) : null,
+    payments: (aufPayment || payoutPayment) ? {
+      platform_fee: aufPayment ? {
+        amount: (aufPayment.amount_cents / 100).toFixed(2),
+        status: aufPayment.status,
+        tx_hash: aufPayment.tx_hash || null,
+        confirmed_at: aufPayment.confirmed_at || null,
+      } : null,
+      promoter_payout: payoutPayment ? {
+        amount: (payoutPayment.amount_cents / 100).toFixed(2),
+        status: payoutPayment.status,
+        tx_hash: payoutPayment.tx_hash || null,
+        confirmed_at: payoutPayment.confirmed_at || null,
+      } : null,
+    } : null,
+  }, requestId);
+}
+
+/**
  * List submissions for a mission
  *
  * GET /api/v1/missions/:missionId/submissions
@@ -119,6 +209,15 @@ export async function handleListSubmissions(
     .bind(...countParams)
     .first<{ cnt: number }>();
 
+  // Derive payout_status from mission status
+  const derivePayoutStatus = (status: string): string | null => {
+    if (status === 'approved') return 'pending';
+    if (status === 'paid_partial') return 'paid_partial';
+    if (status === 'paid_complete') return 'paid_complete';
+    if (status === 'overdue') return 'overdue';
+    return null;
+  };
+
   const submissions = result.results.map((m: any) => ({
     submission_id: m.id,
     mission_id: m.deal_id,
@@ -134,7 +233,7 @@ export async function handleListSubmissions(
     verified_at: m.verified_at || null,
     rejected_at: m.status === 'rejected' ? m.updated_at : null,
     rejection_reason: m.status === 'rejected' ? m.verification_result : null,
-    payout_status: null
+    payout_status: derivePayoutStatus(m.status)
   }));
 
   return success({
