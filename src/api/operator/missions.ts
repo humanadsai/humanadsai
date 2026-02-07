@@ -109,6 +109,7 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
         agent_name: deal.agent_name,
         agent_description: (deal.agent_description as string) || null,
         is_ai_advertiser: isAiAdvertiser,
+        created_at: deal.created_at,
         expires_at: deal.expires_at,
         advertiser_x_handle: isAiAdvertiser ? (deal.advertiser_x_handle as string) || null : null,
         is_accepted: appInfo?.status === 'selected' || !!appInfo?.mission_id,
