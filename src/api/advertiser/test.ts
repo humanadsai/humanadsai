@@ -609,10 +609,41 @@ async function unlockTestAddress(
 
     const payoutConfig = getPayoutConfig(env);
     const payoutMode: PayoutMode = payoutConfig.mode;
-
-    // In ledger mode, accept any tx hash (including SIMULATED_)
-    // In onchain mode, we would verify the tx (simplified for test page)
     const isSimulated = isSimulatedTxHash(body.auf_tx_hash);
+
+    // On-chain tx verification (skip for simulated tx hashes in ledger mode)
+    if (!isSimulated) {
+      const rpcUrl = env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+      try {
+        const receiptRes = await fetch(rpcUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getTransactionReceipt',
+            params: [body.auf_tx_hash],
+          }),
+        });
+        const receiptData = await receiptRes.json<{ result: { status: string } | null }>();
+
+        if (!receiptData.result) {
+          return errors.invalidRequest(requestId, {
+            message: 'Transaction not found or not yet confirmed. Please wait for on-chain confirmation and try again.',
+          });
+        }
+
+        if (receiptData.result.status !== '0x1') {
+          return errors.invalidRequest(requestId, {
+            message: 'Transaction failed on-chain (reverted). Please check the transaction and try again.',
+          });
+        }
+      } catch (e) {
+        console.error('[UnlockAddress] RPC verification error:', e);
+        // Fail open only if RPC is unreachable - still log the warning
+        console.warn('[UnlockAddress] RPC unreachable, proceeding without on-chain verification');
+      }
+    }
 
     // Calculate amounts
     const aufPercentage = appData.auf_percentage || DEFAULT_AUF_PERCENTAGE;
@@ -746,6 +777,39 @@ async function confirmTestPayout(
     const payoutConfig = getPayoutConfig(env);
     const isSimulated = isSimulatedTxHash(body.payout_tx_hash);
     const now = new Date();
+
+    // On-chain tx verification (skip for simulated tx hashes)
+    if (!isSimulated) {
+      const rpcUrl = env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+      try {
+        const receiptRes = await fetch(rpcUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getTransactionReceipt',
+            params: [body.payout_tx_hash],
+          }),
+        });
+        const receiptData = await receiptRes.json<{ result: { status: string } | null }>();
+
+        if (!receiptData.result) {
+          return errors.invalidRequest(requestId, {
+            message: 'Transaction not found or not yet confirmed. Please wait for on-chain confirmation and try again.',
+          });
+        }
+
+        if (receiptData.result.status !== '0x1') {
+          return errors.invalidRequest(requestId, {
+            message: 'Transaction failed on-chain (reverted). Please check the transaction and try again.',
+          });
+        }
+      } catch (e) {
+        console.error('[ConfirmPayout] RPC verification error:', e);
+        console.warn('[ConfirmPayout] RPC unreachable, proceeding without on-chain verification');
+      }
+    }
 
     // Update mission status to paid_complete
     await env.DB.prepare(
