@@ -190,6 +190,21 @@ export function submissionVerifiedEmail(dealTitle: string, unsubscribeUrl?: stri
   };
 }
 
+export function submissionApprovedEmail(dealTitle: string, unsubscribeUrl?: string): { subject: string; html: string; headers: Record<string, string> } {
+  return {
+    subject: `Submission Approved - ${dealTitle}`,
+    html: layout('Submission Approved', `
+      <h2 style="margin:0 0 16px;font-size:18px;color:${TEXT_COLOR};">Submission Approved</h2>
+      <p style="color:${TEXT_MUTED};">Your submission for <strong style="color:${TEXT_COLOR};">${dealTitle}</strong> has been approved.</p>
+      <p style="color:${TEXT_MUTED};">Payout will be processed soon. You'll receive another notification when the payment is confirmed on-chain.</p>
+      ${button('View My Missions', `${BASE_URL}/missions/my`)}
+    `, unsubscribeUrl),
+    headers: unsubscribeUrl
+      ? { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+      : { 'List-Unsubscribe': `<${BASE_URL}/settings/notifications>` },
+  };
+}
+
 export function submissionRejectedEmail(dealTitle: string, reason: string, unsubscribeUrl?: string): { subject: string; html: string; headers: Record<string, string> } {
   return {
     subject: `Submission Needs Revision - ${dealTitle}`,

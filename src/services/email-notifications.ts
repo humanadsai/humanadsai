@@ -12,6 +12,7 @@ import {
   payoutInitiatedEmail,
   payoutCompletedEmail,
   submissionVerifiedEmail,
+  submissionApprovedEmail,
   submissionRejectedEmail,
   missionSelectedEmail,
   accountWarningEmail,
@@ -91,8 +92,10 @@ async function sendNotificationEmail(
         email = payoutCompletedEmail(dealTitle, amount, meta?.tx_hash, unsubUrl);
         break;
       case 'submission_verified':
-      case 'submission_approved':
         email = submissionVerifiedEmail(dealTitle, unsubUrl);
+        break;
+      case 'submission_approved':
+        email = submissionApprovedEmail(dealTitle, unsubUrl);
         break;
       case 'submission_rejected':
       case 'needs_revision':
