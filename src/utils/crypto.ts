@@ -60,11 +60,18 @@ export async function hashApiKey(key: string): Promise<string> {
 }
 
 /**
- * APIキーを検証
+ * APIキーを検証 (constant-time comparison to prevent timing attacks)
  */
 export async function verifyApiKeyHash(key: string, hash: string): Promise<boolean> {
   const computed = await hashApiKey(key);
-  return computed === hash;
+  if (computed.length !== hash.length) {
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < computed.length; i++) {
+    result |= computed.charCodeAt(i) ^ hash.charCodeAt(i);
+  }
+  return result === 0;
 }
 
 /**
@@ -72,11 +79,25 @@ export async function verifyApiKeyHash(key: string, hash: string): Promise<boole
  */
 export function generateRandomString(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const array = new Uint8Array(length);
+  const charsLen = chars.length; // 62
+  // Use rejection sampling to eliminate modulo bias (256 % 62 = 8)
+  const maxUnbiased = 256 - (256 % charsLen); // 248
+  const array = new Uint8Array(length * 2); // Over-allocate for rejections
   crypto.getRandomValues(array);
-  return Array.from(array)
-    .map((b) => chars[b % chars.length])
-    .join('');
+  let result = '';
+  let i = 0;
+  while (result.length < length) {
+    if (i >= array.length) {
+      // Extremely unlikely but refill if needed
+      crypto.getRandomValues(array);
+      i = 0;
+    }
+    if (array[i] < maxUnbiased) {
+      result += chars[array[i] % charsLen];
+    }
+    i++;
+  }
+  return result;
 }
 
 /**
@@ -133,9 +154,12 @@ export function generateClaimToken(): string {
  */
 export function generateAiAdvertiserVerificationCode(): string {
   const words = ['reef', 'wave', 'tide', 'sail', 'port', 'ship', 'moon', 'star', 'wind', 'blue'];
-  const word = words[Math.floor(Math.random() * words.length)];
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed ambiguous chars
-  const code = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  // Use crypto.getRandomValues instead of Math.random for security-sensitive tokens
+  const randomBytes = new Uint8Array(5); // 1 for word selection + 4 for code chars
+  crypto.getRandomValues(randomBytes);
+  const word = words[randomBytes[0] % words.length];
+  const code = Array.from(randomBytes.slice(1), (b) => chars[b % chars.length]).join('');
   return `${word}-${code}`;
 }
 

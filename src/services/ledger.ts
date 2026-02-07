@@ -140,19 +140,20 @@ export async function holdEscrow(
     return { success: false, error: 'Insufficient funds' };
   }
 
-  const newAvailable = balance.available - amount;
-  const newPending = balance.pending + amount;
   const escrowId = crypto.randomUUID().replace(/-/g, '');
+  // Pre-compute expected balance_after for ledger entry (tracking only)
+  const expectedAvailableAfter = balance.available - amount;
 
-  // バッチで実行
+  // Use relative SQL updates (available = available - ?) with WHERE guard
+  // to prevent TOCTOU race conditions on concurrent requests
   await db.batch([
-    // 残高更新
+    // 残高更新 - atomic decrement with sufficient-funds guard
     db
       .prepare(
-        `UPDATE balances SET available = ?, pending = ?, updated_at = datetime('now')
-         WHERE owner_type = 'agent' AND owner_id = ? AND currency = 'USD'`
+        `UPDATE balances SET available = available - ?, pending = pending + ?, updated_at = datetime('now')
+         WHERE owner_type = 'agent' AND owner_id = ? AND currency = 'USD' AND available >= ?`
       )
-      .bind(newAvailable, newPending, agentId),
+      .bind(amount, amount, agentId, amount),
     // エスクロー作成
     db
       .prepare(
@@ -171,7 +172,7 @@ export async function holdEscrow(
           ?, 'deal', ?, 'Escrow hold for deal', ?
         )`
       )
-      .bind(agentId, -amount, newAvailable, dealId, idempotencyKey),
+      .bind(agentId, -amount, expectedAvailableAfter, dealId, idempotencyKey),
   ]);
 
   const escrow = await db
@@ -236,34 +237,34 @@ export async function releaseToOperator(
     return { success: false, error: 'Agent balance not found' };
   }
 
-  const newOperatorAvailable = operatorBalance.available + amount;
-  const newAgentPending = agentBalance.pending - amount;
-  const newEscrowAmount = escrow.amount - amount;
+  // Use relative SQL updates to prevent TOCTOU race conditions
+  // Pre-compute expected balance_after values for ledger entries (tracking only)
+  const expectedOperatorAvailable = operatorBalance.available + amount;
 
   // バッチで実行
   await db.batch([
-    // Operator残高更新
+    // Operator残高更新 - atomic increment
     db
       .prepare(
-        `UPDATE balances SET available = ?, updated_at = datetime('now')
+        `UPDATE balances SET available = available + ?, updated_at = datetime('now')
          WHERE owner_type = 'operator' AND owner_id = ? AND currency = 'USD'`
       )
-      .bind(newOperatorAvailable, operatorId),
-    // Agent pending更新
+      .bind(amount, operatorId),
+    // Agent pending更新 - atomic decrement
     db
       .prepare(
-        `UPDATE balances SET pending = ?, updated_at = datetime('now')
+        `UPDATE balances SET pending = pending - ?, updated_at = datetime('now')
          WHERE owner_type = 'agent' AND owner_id = ? AND currency = 'USD'`
       )
-      .bind(newAgentPending, mission.agent_id),
+      .bind(amount, mission.agent_id),
     // エスクロー更新
     db
       .prepare(
-        `UPDATE escrow_holds SET amount = ?, status = CASE WHEN ? <= 0 THEN 'released' ELSE status END,
-         released_at = CASE WHEN ? <= 0 THEN datetime('now') ELSE released_at END
-         WHERE id = ?`
+        `UPDATE escrow_holds SET amount = amount - ?, status = CASE WHEN amount - ? <= 0 THEN 'released' ELSE status END,
+         released_at = CASE WHEN amount - ? <= 0 THEN datetime('now') ELSE released_at END
+         WHERE id = ? AND amount >= ?`
       )
-      .bind(newEscrowAmount, newEscrowAmount, newEscrowAmount, escrow.id),
+      .bind(amount, amount, amount, escrow.id, amount),
     // Operator台帳エントリ
     db
       .prepare(
@@ -275,7 +276,7 @@ export async function releaseToOperator(
           ?, 'mission', ?, 'Mission reward', ?
         )`
       )
-      .bind(operatorId, amount, newOperatorAvailable, missionId, idempotencyKey),
+      .bind(operatorId, amount, expectedOperatorAvailable, missionId, idempotencyKey),
     // Agent台帳エントリ
     db
       .prepare(

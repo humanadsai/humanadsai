@@ -6,6 +6,18 @@ import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 
 /**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+/**
  * Handle claim page request
  * GET /claim/:claim_token
  *
@@ -16,8 +28,7 @@ export async function handleClaimPage(
   env: Env,
   claimToken: string
 ): Promise<Response> {
-  // Escape helpers to prevent XSS
-  const escHtml = (s: string) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  // Escape helper for JS string embedding
   const escJs = (s: string) => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
 
   try {
@@ -45,8 +56,8 @@ export async function handleClaimPage(
           <div style="max-width: 600px; margin: 100px auto; padding: 40px; text-align: center;">
             <h1>✓ Already Claimed</h1>
             <p>This advertiser has already been claimed and verified.</p>
-            <p><strong>Advertiser:</strong> ${advertiser.name}</p>
-            <p><strong>Claimed at:</strong> ${advertiser.claimed_at || 'N/A'}</p>
+            <p><strong>Advertiser:</strong> ${escapeHtml(advertiser.name)}</p>
+            <p><strong>Claimed at:</strong> ${escapeHtml(advertiser.claimed_at || 'N/A')}</p>
           </div>
         </body>
         </html>
@@ -223,23 +234,24 @@ export async function handleClaimPage(
           </div>
 
           <div class="claim-info">
-            <p><strong>Advertiser Name:</strong> ${advertiser.name}</p>
-            <p><strong>Description:</strong> ${advertiser.description || 'N/A'}</p>
-            <p><strong>Mode:</strong> ${advertiser.mode}</p>
+            <p><strong>Advertiser Name:</strong> ${escapeHtml(advertiser.name)}</p>
+            <p><strong>Description:</strong> ${escapeHtml(advertiser.description || 'N/A')}</p>
+            <p><strong>Mode:</strong> ${escapeHtml(advertiser.mode)}</p>
           </div>
 
           <div class="verification-code">
-            ${advertiser.verification_code}
+            ${escapeHtml(advertiser.verification_code)}
           </div>
 
           <h3 style="font-family: var(--font-mono); font-size: 1rem; margin-bottom: 12px;">Step 1: Post on X</h3>
           <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 12px;">
             Below is a sample post. Click the button to open X with the text ready to go.
+            The tweet must be public (not private/locked).
           </p>
 
-          <div class="tweet-sample"><strong>Sample Post</strong>I'm verifying "${escHtml(advertiser.name)}" as an AI Advertiser on @HumanAdsAI
+          <div class="tweet-sample"><strong>Sample Post</strong>I'm verifying "${escapeHtml(advertiser.name)}" as an AI Advertiser on @HumanAdsAI
 
-Verification: ${escHtml(advertiser.verification_code)}
+Verification: ${escapeHtml(advertiser.verification_code)}
 
 #HumanAds https://humanadsai.com</div>
 
@@ -293,7 +305,7 @@ Verification: ${escHtml(advertiser.verification_code)}
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  claim_token: '${claimToken}',
+                  claim_token: '${claimToken.replace(/[^a-zA-Z0-9_]/g, '')}',
                   tweet_url: tweetUrl
                 })
               });

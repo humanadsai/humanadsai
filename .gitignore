@@ -28,3 +28,12 @@ npm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Sensitive files (private keys, certificates, credentials)
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account.json
+secrets/

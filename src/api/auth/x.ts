@@ -30,11 +30,16 @@ const getRedirectCookie = (request: Request): string | null => {
 
   const cookies = cookieHeader.split(';').map(c => c.trim());
   for (const cookie of cookies) {
-    const [name, value] = cookie.split('=');
+    const eqIdx = cookie.indexOf('=');
+    if (eqIdx === -1) continue;
+    const name = cookie.substring(0, eqIdx);
+    const value = cookie.substring(eqIdx + 1);
     if (name === 'x_auth_redirect' && value) {
       try {
         const decoded = decodeURIComponent(value);
         // Only allow relative paths for security
+        // Block protocol-relative URLs (//evil.com) which bypass startsWith('/') check
+        if (decoded.startsWith('//') || decoded.startsWith('/\\')) return null;
         return decoded.startsWith('/') ? decoded : null;
       } catch {
         return null;
@@ -51,7 +56,10 @@ const getInviteCookie = (request: Request): string | null => {
 
   const cookies = cookieHeader.split(';').map(c => c.trim());
   for (const cookie of cookies) {
-    const [name, value] = cookie.split('=');
+    const eqIdx = cookie.indexOf('=');
+    if (eqIdx === -1) continue;
+    const name = cookie.substring(0, eqIdx);
+    const value = cookie.substring(eqIdx + 1);
     if (name === 'x_auth_invite' && value) {
       try {
         return decodeURIComponent(value);
@@ -63,12 +71,14 @@ const getInviteCookie = (request: Request): string | null => {
   return null;
 };
 
-// Generate unique invite code
+// Generate unique invite code using cryptographically secure randomness
 const generateInviteCode = (): string => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const randomBytes = new Uint8Array(6);
+  crypto.getRandomValues(randomBytes);
   let code = 'HADS_';
   for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(randomBytes[i] % chars.length);
   }
   return code;
 };
@@ -94,7 +104,9 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
     const inviteCode = requestUrl.searchParams.get('invite') || '';
 
     // Only allow relative paths for security
-    const safeRedirect = redirectAfterLogin.startsWith('/') ? redirectAfterLogin : '/missions/my';
+    // Block protocol-relative URLs (//evil.com) which bypass startsWith('/') check
+    const safeRedirect = (redirectAfterLogin.startsWith('/') && !redirectAfterLogin.startsWith('//') && !redirectAfterLogin.startsWith('/\\'))
+      ? redirectAfterLogin : '/missions/my';
     console.log(`[X Login] [${requestId}] Will redirect to after login:`, safeRedirect);
     if (inviteCode) {
       console.log(`[X Login] [${requestId}] Invite code:`, inviteCode);
@@ -106,9 +118,7 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
       redirectUri: getRedirectUri(request),
     };
 
-    console.log(`[X Login] [${requestId}] Redirect URI:`, config.redirectUri);
-    console.log(`[X Login] [${requestId}] Client ID present:`, !!config.clientId);
-    console.log(`[X Login] [${requestId}] Client Secret present:`, !!config.clientSecret);
+    // Avoid logging sensitive config details (redirect URI, credential presence)
 
     const { url, state, codeVerifier } = await buildAuthUrl(config);
 
@@ -187,7 +197,7 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
 
   // Verify state matches
   if (cookieData.state !== state) {
-    console.error('[X Callback] State mismatch! Expected:', cookieData.state.substring(0, 10) + '...', 'Got:', state.substring(0, 10) + '...');
+    console.error('[X Callback] State mismatch detected (values redacted for security)');
     return createErrorRedirect('State mismatch. Possible CSRF attack.');
   }
 
@@ -241,15 +251,10 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
   const sessionExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
 
   try {
-    // DEBUG: Check what tables exist in D1
-    console.log('[X Callback] Checking D1 database tables...');
-    const tables = await env.DB.prepare(
-      "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-    ).all<{ name: string }>();
-    console.log('[X Callback] D1 tables:', tables.results?.map(t => t.name).join(', ') || 'NONE');
-
-    // Check if operators table exists
-    const hasOperators = tables.results?.some(t => t.name === 'operators');
+    // Check if operators table exists (without leaking full schema in logs)
+    const hasOperators = await env.DB.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='operators'"
+    ).first<{ name: string }>();
     if (!hasOperators) {
       console.error('[X Callback] FATAL: operators table not found in D1. Run migration first.');
       return createErrorRedirect('Database not initialized. Please contact support.');
@@ -477,7 +482,10 @@ export async function handleXCallback(request: Request, env: Env): Promise<Respo
     }
 
     // Get redirect URL from cookie (if set during login)
-    const redirectUrl = getRedirectCookie(request) || '/missions/my';
+    const rawRedirectUrl = getRedirectCookie(request) || '/missions/my';
+    // Validate redirect URL one more time before use
+    const redirectUrl = (rawRedirectUrl.startsWith('/') && !rawRedirectUrl.startsWith('//') && !rawRedirectUrl.startsWith('/\\'))
+      ? rawRedirectUrl : '/missions/my';
     console.log('[X Callback] Login successful! Redirecting to:', redirectUrl);
 
     const sessionCookie = `session=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;

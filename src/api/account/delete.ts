@@ -33,7 +33,10 @@ function getSessionToken(request: Request): string | null {
 
   const cookies = cookieHeader.split(';').map(c => c.trim());
   for (const cookie of cookies) {
-    const [name, value] = cookie.split('=');
+    const eqIdx = cookie.indexOf('=');
+    if (eqIdx === -1) continue;
+    const name = cookie.substring(0, eqIdx);
+    const value = cookie.substring(eqIdx + 1);
     if (name === 'session') {
       return value;
     }
@@ -108,7 +111,7 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
       const activeMissions = await env.DB.prepare(`
         SELECT COUNT(*) as count FROM missions
         WHERE operator_id = ?
-          AND status IN ('accepted', 'submitted', 'verified')
+          AND status IN ('accepted', 'submitted', 'verified', 'approved', 'address_unlocked', 'paid_partial')
       `).bind(operator.id).first<{ count: number }>();
       activeMissionCount = activeMissions?.count || 0;
     } catch (missionError) {
@@ -162,7 +165,7 @@ export async function handleAccountDelete(request: Request, env: Env): Promise<R
     const deletedAt = new Date().toISOString();
     const metadata = JSON.stringify({
       deleted_at: deletedAt,
-      original_handle: operator.x_handle,
+      // original_handle intentionally omitted for user privacy
     });
 
     // Use a minimal UPDATE that only touches columns we know exist
@@ -352,7 +355,7 @@ export async function handleAccountDeleteCheck(request: Request, env: Env): Prom
       const activeMissions = await env.DB.prepare(`
         SELECT COUNT(*) as count FROM missions
         WHERE operator_id = ?
-          AND status IN ('accepted', 'submitted', 'verified')
+          AND status IN ('accepted', 'submitted', 'verified', 'approved', 'address_unlocked', 'paid_partial')
       `).bind(operator.id).first<{ count: number }>();
       activeMissionCount = activeMissions?.count || 0;
     } catch (e) {

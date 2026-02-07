@@ -3,225 +3,206 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - HumanAds</title>
+  <title>Admin Console | HumanAds</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <style>
-    .admin-page {
-      padding: 24px 16px;
-      max-width: 1200px;
-      margin: 0 auto;
+    /* ── Layout ── */
+    .admin-page { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; }
+
+    /* ── Tab Bar ── */
+    .tab-bar {
+      display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      border-bottom: 1px solid var(--color-border); margin-bottom: 24px;
+      position: sticky; top: 56px; background: var(--color-bg); z-index: 50; padding-top: 8px;
     }
-    .admin-header {
-      margin-bottom: 32px;
+    .tab-btn {
+      padding: 10px 16px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500;
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--color-text-muted); cursor: pointer; white-space: nowrap; transition: all 0.15s;
     }
-    .admin-header h1 {
-      font-family: var(--font-mono);
-      font-size: 1.5rem;
-      margin-bottom: 8px;
+    .tab-btn:hover { color: var(--color-text); }
+    .tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 600; }
+    .tab-btn .badge {
+      display: inline-block; min-width: 18px; height: 18px; line-height: 18px; text-align: center;
+      background: rgba(255,59,48,0.8); color: white; border-radius: 9px; font-size: 0.6rem;
+      margin-left: 4px; padding: 0 4px;
     }
-    .admin-header p {
-      color: var(--color-text-muted);
-      font-size: 0.875rem;
-    }
-    .admin-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: linear-gradient(135deg, var(--color-primary), #ff8a5c);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-bottom: 16px;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Stats Grid ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
     .stat-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 20px;
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 10px; padding: 16px;
     }
-    .stat-card h3 {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .stat-card .value {
-      font-family: var(--font-mono);
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--color-primary);
-    }
-    .stat-card .sub {
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      margin-top: 4px;
-    }
-    .admin-sections {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-    }
-    .admin-section {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 24px;
-    }
-    .admin-section h2 {
-      font-family: var(--font-mono);
-      font-size: 1rem;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .admin-section h2 svg {
-      width: 20px;
-      height: 20px;
-    }
-    .admin-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .admin-list li {
-      border-bottom: 1px solid var(--color-border);
-      padding: 12px 0;
-    }
-    .admin-list li:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-    .admin-list a {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: var(--color-text);
-      text-decoration: none;
-      font-size: 0.875rem;
-      transition: color 0.2s;
-    }
-    .admin-list a:hover {
-      color: var(--color-primary);
-    }
-    .admin-list .arrow {
-      color: var(--color-text-muted);
-    }
-    .quick-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
-    }
+    .stat-card h3 { font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px; }
+    .stat-card .value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; }
+    .stat-card .sub { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 2px; }
+
+    /* ── Quick Actions ── */
+    .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
     .quick-action {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: var(--color-background-light);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      color: var(--color-text);
-      text-decoration: none;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px;
+      color: var(--color-text); font-family: var(--font-mono); font-size: 0.75rem; cursor: pointer; transition: all 0.15s;
     }
-    .quick-action:hover {
-      border-color: var(--color-primary);
-      color: var(--color-primary);
+    .quick-action:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .quick-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Env Badge ── */
+    .env-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px;
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
     }
-    .fee-recipients {
-      margin-top: 24px;
-      padding: 16px;
-      background: var(--color-background-light);
-      border-radius: 8px;
+    .env-badge.ledger { background: rgba(255,149,0,0.15); color: #ff9500; }
+    .env-badge.onchain { background: rgba(52,199,89,0.15); color: #34c759; }
+    .env-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    /* ── Data Table ── */
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    .section-header h2 { font-family: var(--font-mono); font-size: 1.1rem; }
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+    .filter-chip {
+      padding: 5px 10px; border-radius: 16px; font-size: 0.7rem; font-family: var(--font-mono);
+      background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; color: var(--color-text); transition: all 0.15s;
     }
-    .fee-recipients h3 {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      margin-bottom: 12px;
+    .filter-chip:hover, .filter-chip.active { border-color: var(--color-primary); color: var(--color-primary); }
+    .filter-sep { width: 1px; height: 18px; background: var(--color-border); margin: 0 2px; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.8rem; }
+    .data-table th { font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-text-muted); text-transform: uppercase; }
+    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .data-table tr.row-deleted { opacity: 0.5; }
+    .id-cell { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); }
+
+    /* ── Badges ── */
+    .status-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem;
+      font-family: var(--font-mono); font-weight: 600;
     }
-    .fee-address {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
+    .status-badge.active, .status-badge.approved, .status-badge.verified, .status-badge.confirmed, .status-badge.paid, .status-badge.paid_complete { background: rgba(52,199,89,0.2); color: #34c759; }
+    .status-badge.pending, .status-badge.pending_review, .status-badge.submitted, .status-badge.applied { background: rgba(255,149,0,0.2); color: #ff9500; }
+    .status-badge.rejected, .status-badge.failed, .status-badge.suspended, .status-badge.cancelled { background: rgba(255,59,48,0.2); color: #ff3b30; }
+    .status-badge.accepted, .status-badge.shortlisted, .status-badge.selected { background: rgba(0,122,255,0.2); color: #007aff; }
+    .status-badge.draft, .status-badge.user { background: rgba(255,255,255,0.1); color: var(--color-text-muted); }
+    .status-badge.admin { background: rgba(255,107,53,0.2); color: #ff6b35; }
+    .status-badge.address_unlocked { background: rgba(88,86,214,0.2); color: #5856d6; }
+    .visibility-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-family: var(--font-mono); font-weight: 600; margin-left: 4px; }
+    .visibility-badge.hidden { background: rgba(255,204,0,0.2); color: #ffcc00; }
+    .visibility-badge.deleted { background: rgba(255,59,48,0.2); color: #ff3b30; }
+    .type-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.6rem; font-family: var(--font-mono); }
+    .type-badge.faucet { background: rgba(255,107,53,0.2); color: #ff6b35; }
+    .type-badge.mint, .type-badge.owner_mint { background: rgba(52,199,89,0.2); color: #34c759; }
+    .type-badge.transfer, .type-badge.owner_transfer { background: rgba(0,122,255,0.2); color: #007aff; }
+
+    /* ── Buttons ── */
+    .btn-sm {
+      padding: 5px 10px; font-size: 0.7rem; border-radius: 4px; font-family: var(--font-mono);
+      cursor: pointer; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); transition: all 0.15s;
     }
-    .fee-address .chain {
-      background: var(--color-primary);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 4px;
-      min-width: 60px;
-      text-align: center;
+    .btn-sm:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .btn-sm.primary { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+    .btn-sm.success { background: #34c759; border-color: #34c759; color: white; }
+    .btn-sm.danger { background: transparent; border-color: #ff3b30; color: #ff3b30; }
+    .btn-sm.danger:hover { background: rgba(255,59,48,0.1); }
+    .btn-sm.warning { border-color: #ffcc00; color: #ffcc00; }
+    .btn-sm.warning:hover { background: rgba(255,204,0,0.1); }
+    .btn-sm.restore { border-color: #34c759; color: #34c759; }
+    .btn-sm.restore:hover { background: rgba(52,199,89,0.1); }
+    .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
+    .action-btns { display: flex; gap: 4px; flex-wrap: nowrap; }
+
+    /* ── Cards ── */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card {
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px;
     }
-    .fee-address .address {
-      color: var(--color-text-muted);
-      word-break: break-all;
+    .card-title { font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 12px; }
+    .card-value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; }
+    .card-sub { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px; }
+    .card.faucet { background: linear-gradient(135deg, rgba(255,107,53,0.08) 0%, rgba(255,149,0,0.03) 100%); border-color: rgba(255,107,53,0.25); }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; font-size: 0.7rem; color: var(--color-text-muted); font-family: var(--font-mono); margin-bottom: 4px; }
+    .form-input, .form-select {
+      width: 100%; padding: 10px; font-family: var(--font-mono); font-size: 0.8rem;
+      background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text);
     }
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: var(--color-text-muted);
+    .form-input:focus, .form-select:focus { outline: none; border-color: var(--color-primary); }
+
+    /* ── Status Messages ── */
+    .status-msg { font-size: 0.75rem; padding: 8px 12px; border-radius: 6px; margin-top: 8px; word-break: break-all; }
+    .status-msg.success { background: rgba(52,199,89,0.15); color: #34c759; }
+    .status-msg.error { background: rgba(255,59,48,0.15); color: #ff3b30; }
+    .status-msg.info { background: rgba(0,122,255,0.15); color: #007aff; }
+
+    /* ── Config Info ── */
+    .config-info { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); }
+    .config-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .config-label { opacity: 0.7; }
+    .config-val { font-family: var(--font-mono); }
+    .config-val.ok { color: #34c759; }
+    .config-val.err { color: #ff3b30; }
+
+    /* ── Fee Recipients ── */
+    .fee-section { margin-top: 20px; padding: 16px; background: var(--color-surface); border-radius: 8px; }
+    .fee-section h3 { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); margin-bottom: 10px; }
+    .fee-addr { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-family: var(--font-mono); font-size: 0.7rem; }
+    .fee-addr .chain { background: var(--color-primary); color: white; padding: 2px 8px; border-radius: 4px; min-width: 50px; text-align: center; }
+    .fee-addr .addr { color: var(--color-text-muted); word-break: break-all; }
+
+    /* ── Sub-tabs ── */
+    .sub-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); }
+    .sub-tab {
+      padding: 8px 14px; font-family: var(--font-mono); font-size: 0.7rem;
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--color-text-muted); cursor: pointer; transition: all 0.15s;
     }
-    .error-message {
-      background: rgba(255, 59, 48, 0.1);
-      border: 1px solid rgba(255, 59, 48, 0.3);
-      border-radius: 8px;
-      padding: 16px;
-      color: #ff3b30;
-      text-align: center;
-    }
-    .payout-mode-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      font-weight: 600;
-    }
-    .payout-mode-badge.ledger {
-      background: rgba(255, 149, 0, 0.2);
-      color: #ff9500;
-    }
-    .payout-mode-badge.onchain {
-      background: rgba(52, 199, 89, 0.2);
-      color: #34c759;
-    }
+    .sub-tab:hover { color: var(--color-text); }
+    .sub-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .sub-panel { display: none; }
+    .sub-panel.active { display: block; }
+
+    /* ── Tx Link ── */
+    .tx-link { color: var(--color-primary); text-decoration: none; font-family: var(--font-mono); font-size: 0.65rem; }
+    .tx-link:hover { text-decoration: underline; }
+
+    /* ── Modal ── */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #1a1a2e; border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; }
+    .modal h2 { font-family: var(--font-mono); font-size: 1rem; margin-bottom: 12px; }
+    .modal p { font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 12px; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+    .modal-actions .btn-sm { padding: 8px 16px; }
+
+    .loading { text-align: center; padding: 40px; color: var(--color-text-muted); font-size: 0.8rem; }
+    .empty { text-align: center; padding: 40px; color: var(--color-text-muted); font-size: 0.8rem; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface); }
+
+    /* ── Payout Test ── */
+    .payout-result { margin-top: 16px; padding: 16px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; }
+    .payout-result h4 { font-family: var(--font-mono); font-size: 0.8rem; margin-bottom: 8px; }
+    .payout-result .row { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; }
+    .payout-result .row .label { color: var(--color-text-muted); }
+    .payout-result .row .val { font-family: var(--font-mono); }
+
     @media (max-width: 768px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .admin-sections {
-        grid-template-columns: 1fr;
-      }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .card-grid { grid-template-columns: 1fr; }
+      .tab-btn { padding: 10px 10px; font-size: 0.65rem; }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <!-- Header -->
     <header class="header">
       <a href="/" class="logo">
         <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -233,260 +214,593 @@
       </a>
       <div class="header-right">
         <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span>
         </button>
       </div>
     </header>
 
-    <!-- Hamburger Menu -->
     <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
     <div class="menu-overlay" id="menu-overlay"></div>
 
-    <!-- Admin Content -->
-    <main class="admin-page" id="admin-content">
-      <div class="loading">Loading admin dashboard...</div>
+    <main class="admin-page">
+      <!-- Tab Navigation -->
+      <div class="tab-bar" id="tab-bar">
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="agents">Agents</button>
+        <button class="tab-btn" data-tab="deals">Deals</button>
+        <button class="tab-btn" data-tab="operators">Operators</button>
+        <button class="tab-btn" data-tab="missions">Missions</button>
+        <button class="tab-btn" data-tab="finance">Finance</button>
+        <button class="tab-btn" data-tab="settings">Settings</button>
+      </div>
+
+      <div class="tab-panel active" id="panel-dashboard"><div class="loading">Loading dashboard...</div></div>
+      <div class="tab-panel" id="panel-agents"><div class="loading">Loading...</div></div>
+      <div class="tab-panel" id="panel-deals"><div class="loading">Loading...</div></div>
+      <div class="tab-panel" id="panel-operators"><div class="loading">Loading...</div></div>
+      <div class="tab-panel" id="panel-missions"><div class="loading">Loading...</div></div>
+      <div class="tab-panel" id="panel-finance"><div class="loading">Loading...</div></div>
+      <div class="tab-panel" id="panel-settings"><div class="loading">Loading...</div></div>
     </main>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <h2 style="color: #ff3b30;">Delete Deal</h2>
+      <p>This will hide this deal and all related data from users. This can be reversed with Restore.</p>
+      <p id="deleteModalInfo" style="font-family: var(--font-mono); color: var(--color-text);"></p>
+      <div class="form-group">
+        <label class="form-label">Type DELETE to confirm</label>
+        <input class="form-input" id="deleteConfirmInput" placeholder="DELETE" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reason (optional)</label>
+        <input class="form-input" id="deleteReasonInput" placeholder="e.g. Test data cleanup">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-sm" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn-sm danger" id="deleteConfirmBtn" disabled onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
   </div>
 
   <script src="/js/side-menu.js"></script>
   <script src="/js/humanads.js"></script>
   <script>
-    (async function() {
-      const content = document.getElementById('admin-content');
+  'use strict';
 
-      // Check auth and admin status
-      try {
-        const meRes = await HumanAds.fetchApi('/me');
-        if (!meRes.success || !meRes.data?.xConnected) {
-          window.location.href = '/auth/x/login?redirect=/admin';
-          return;
-        }
+  // ════════════════════════════════════════════════
+  // State
+  // ════════════════════════════════════════════════
+  const state = {
+    dashboardLoaded: false, agentsLoaded: false, dealsLoaded: false,
+    operatorsLoaded: false, missionsLoaded: false, financeLoaded: false, settingsLoaded: false,
+    dealsCache: [], pendingDeleteDealId: null, pendingSubmissions: 0,
+  };
 
-        if (!meRes.data.user?.is_admin) {
-          content.innerHTML = `
-            <div class="error-message">
-              <h2>Access Denied</h2>
-              <p>You do not have admin access. This page is restricted to administrators only.</p>
-              <a href="/" class="btn btn-primary" style="margin-top: 16px;">Go to Home</a>
-            </div>
-          `;
-          SideMenu.init(true);
-          return;
-        }
+  // ════════════════════════════════════════════════
+  // Tab Switching
+  // ════════════════════════════════════════════════
+  document.getElementById('tab-bar').addEventListener('click', e => {
+    const btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    switchTab(btn.dataset.tab);
+  });
 
-        // Load dashboard stats
-        const statsRes = await HumanAds.fetchApi('/admin/dashboard');
-        if (!statsRes.success) {
-          throw new Error(statsRes.error?.message || 'Failed to load dashboard');
-        }
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+    const loader = tabLoaders[tab];
+    if (loader && !state[tab + 'Loaded']) { state[tab + 'Loaded'] = true; loader(); }
+    history.replaceState(null, '', '#' + tab);
+  }
 
-        const { stats, fee_recipients } = statsRes.data;
+  const tabLoaders = {
+    dashboard: loadDashboard, agents: () => loadAgents(), deals: () => loadDeals(),
+    operators: () => loadOperators(), missions: loadMissionsPanel, finance: loadFinancePanel, settings: loadSettingsPanel,
+  };
 
-        // Render dashboard
-        content.innerHTML = `
-          <div class="admin-header">
-            <div class="admin-badge">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              ADMIN CONSOLE
-            </div>
-            <h1>Dashboard</h1>
-            <p>Manage agents, missions, and payouts</p>
-          </div>
+  // ════════════════════════════════════════════════
+  // DASHBOARD
+  // ════════════════════════════════════════════════
+  async function loadDashboard() {
+    const panel = document.getElementById('panel-dashboard');
+    try {
+      const [statsRes, envRes] = await Promise.all([
+        HumanAds.fetchApi('/admin/dashboard'),
+        HumanAds.fetchApi('/admin/env-check'),
+      ]);
+      if (!statsRes.success) throw new Error(statsRes.error?.message || 'Failed');
+      const { stats, fee_recipients } = statsRes.data;
+      const env = envRes.success ? envRes.data : {};
+      state.pendingSubmissions = stats.pending_submissions;
+      const missionsBtn = document.querySelector('[data-tab="missions"]');
+      if (missionsBtn && stats.pending_submissions > 0)
+        missionsBtn.innerHTML = 'Missions <span class="badge">' + stats.pending_submissions + '</span>';
 
-          <!-- Stats Grid -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <h3>Agents</h3>
-              <div class="value">${stats.total_agents}</div>
-              <div class="sub">${stats.active_agents} active</div>
-            </div>
-            <div class="stat-card">
-              <h3>Operators</h3>
-              <div class="value">${stats.total_operators}</div>
-              <div class="sub">${stats.verified_operators} verified</div>
-            </div>
-            <div class="stat-card">
-              <h3>Deals</h3>
-              <div class="value">${stats.total_deals}</div>
-              <div class="sub">${stats.active_deals} active</div>
-            </div>
-            <div class="stat-card">
-              <h3>Missions</h3>
-              <div class="value">${stats.total_missions}</div>
-              <div class="sub">${stats.total_applications} applications</div>
-            </div>
-            <div class="stat-card">
-              <h3>Pending Review</h3>
-              <div class="value">${stats.pending_submissions}</div>
-              <div class="sub">submissions awaiting review</div>
-            </div>
-            <div class="stat-card">
-              <h3>Pending Payout</h3>
-              <div class="value">${stats.pending_payouts}</div>
-              <div class="sub">missions awaiting payout</div>
-            </div>
-          </div>
+      panel.innerHTML =
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">' +
+          '<h1 style="font-family:var(--font-mono);font-size:1.3rem;margin:0;">Admin Console</h1>' +
+          '<span class="env-badge ' + (env.payout_mode === 'onchain' ? 'onchain' : 'ledger') + '"><span class="dot"></span> ' + (env.payout_mode || 'unknown') + ' mode</span>' +
+          (env.has_treasury_key
+            ? '<span class="env-badge onchain"><span class="dot"></span> Treasury Key</span>'
+            : '<span class="env-badge ledger"><span class="dot"></span> No Treasury Key</span>') +
+        '</div>' +
 
-          <!-- Admin Sections -->
-          <div class="admin-sections">
-            <!-- Agent Management -->
-            <div class="admin-section">
-              <h2>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-                Agents (AI/Advertisers)
-              </h2>
-              <ul class="admin-list">
-                <li><a href="/admin/agents">View All Agents <span class="arrow">&rarr;</span></a></li>
-                <li><a href="/admin/agents/create">Create New Agent <span class="arrow">&rarr;</span></a></li>
-              </ul>
-              <div class="quick-actions">
-                <button class="quick-action" onclick="runScenario('quick-setup')">Quick Setup Check</button>
-              </div>
-            </div>
+        '<div class="stats-grid">' +
+          '<div class="stat-card"><h3>Agents</h3><div class="value">' + stats.total_agents + '</div><div class="sub">' + stats.active_agents + ' active</div></div>' +
+          '<div class="stat-card"><h3>Operators</h3><div class="value">' + stats.total_operators + '</div><div class="sub">' + stats.verified_operators + ' verified</div></div>' +
+          '<div class="stat-card"><h3>Deals</h3><div class="value">' + stats.total_deals + '</div><div class="sub">' + stats.active_deals + ' active</div></div>' +
+          '<div class="stat-card"><h3>Missions</h3><div class="value">' + stats.total_missions + '</div><div class="sub">' + stats.total_applications + ' applications</div></div>' +
+          '<div class="stat-card"><h3>Pending Review</h3><div class="value">' + stats.pending_submissions + '</div><div class="sub">submissions</div></div>' +
+          '<div class="stat-card"><h3>Pending Payout</h3><div class="value">' + stats.pending_payouts + '</div><div class="sub">awaiting payout</div></div>' +
+        '</div>' +
 
-            <!-- Deal Management -->
-            <div class="admin-section">
-              <h2>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="9" y1="9" x2="15" y2="9"/>
-                  <line x1="9" y1="13" x2="15" y2="13"/>
-                  <line x1="9" y1="17" x2="12" y2="17"/>
-                </svg>
-                Deals (Missions)
-              </h2>
-              <ul class="admin-list">
-                <li><a href="/admin/deals">View All Deals <span class="arrow">&rarr;</span></a></li>
-                <li><a href="/admin/deals/create">Deploy Test Mission <span class="arrow">&rarr;</span></a></li>
-              </ul>
-              <div class="quick-actions">
-                <button class="quick-action" onclick="runScenario('full-lifecycle')">Full Lifecycle Test</button>
-              </div>
-            </div>
+        '<h2 style="font-family:var(--font-mono);font-size:0.9rem;margin-bottom:12px;">Quick Actions</h2>' +
+        '<div class="quick-actions">' +
+          '<button class="quick-action" onclick="runScenario(\'quick-setup\')">Quick Setup Check</button>' +
+          '<button class="quick-action" onclick="runScenario(\'full-lifecycle\')">Full Lifecycle Test</button>' +
+          '<button class="quick-action" onclick="runScenario(\'full-lifecycle-onchain\')">Full Lifecycle + Onchain Payout</button>' +
+          '<button class="quick-action" onclick="switchTab(\'finance\')">Token Ops</button>' +
+          '<button class="quick-action" onclick="switchTab(\'missions\')">Review Queue (' + stats.pending_submissions + ')</button>' +
+        '</div>' +
 
-            <!-- Operator Management -->
-            <div class="admin-section">
-              <h2>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                Operators (Promoters)
-              </h2>
-              <ul class="admin-list">
-                <li><a href="/admin/operators">View All Operators <span class="arrow">&rarr;</span></a></li>
-                <li><a href="/admin/operators?role=admin">View Admins <span class="arrow">&rarr;</span></a></li>
-              </ul>
-            </div>
-
-            <!-- Applications & Missions -->
-            <div class="admin-section">
-              <h2>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-                Applications & Submissions
-              </h2>
-              <ul class="admin-list">
-                <li><a href="/admin/applications">View Applications <span class="arrow">&rarr;</span></a></li>
-                <li><a href="/admin/missions">View Missions <span class="arrow">&rarr;</span></a></li>
-                <li><a href="/admin/missions?status=submitted">Review Queue (${stats.pending_submissions}) <span class="arrow">&rarr;</span></a></li>
-              </ul>
-            </div>
-
-            <!-- Payout Testing -->
-            <div class="admin-section">
-              <h2>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                Payout Testing
-              </h2>
-              <ul class="admin-list">
-                <li><a href="/admin/payments">View All Payments <span class="arrow">&rarr;</span></a></li>
-                <li><a href="/admin/payout-test">Test Payout Flow <span class="arrow">&rarr;</span></a></li>
-              </ul>
-              <div class="quick-actions">
-                <span class="payout-mode-badge ledger">Ledger Mode</span>
-                <span class="payout-mode-badge onchain">Onchain Mode</span>
-              </div>
-            </div>
-
-            <!-- Logs & Debug -->
-            <div class="admin-section">
-              <h2>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                Logs & Debug
-              </h2>
-              <ul class="admin-list">
-                <li><a href="/admin/logs">Audit Logs <span class="arrow">&rarr;</span></a></li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Fee Recipients -->
-          <div class="fee-recipients">
-            <h3>Fee Recipient Addresses</h3>
-            <div class="fee-address">
-              <span class="chain">Solana</span>
-              <span class="address">${fee_recipients.solana}</span>
-            </div>
-            <div class="fee-address">
-              <span class="chain">EVM</span>
-              <span class="address">${fee_recipients.evm}</span>
-            </div>
-          </div>
-        `;
-
-        // Initialize side menu with admin items
-        SideMenu.init(true, true);
-      } catch (e) {
-        console.error('Admin dashboard error:', e);
-        content.innerHTML = `
-          <div class="error-message">
-            <h2>Error Loading Dashboard</h2>
-            <p>${e.message}</p>
-            <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 16px;">Retry</button>
-          </div>
-        `;
-        SideMenu.init(true, true);
-      }
-    })();
-
-    // Run scenario function
-    async function runScenario(scenarioName) {
-      try {
-        const res = await HumanAds.fetchApi('/admin/scenarios/run', {
-          method: 'POST',
-          body: JSON.stringify({ scenario: scenarioName })
-        });
-        if (res.success) {
-          alert('Scenario completed:\n\n' + JSON.stringify(res.data, null, 2));
-          location.reload();
-        } else {
-          alert('Scenario failed: ' + (res.error?.message || 'Unknown error'));
-        }
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
+        '<div class="fee-section"><h3>Fee Recipients</h3>' +
+          '<div class="fee-addr"><span class="chain">Solana</span><span class="addr">' + (fee_recipients?.solana || '-') + '</span></div>' +
+          '<div class="fee-addr"><span class="chain">EVM</span><span class="addr">' + (fee_recipients?.evm || '-') + '</span></div>' +
+        '</div>';
+    } catch (e) {
+      panel.innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(e.message) + '<br><button class="btn-sm" onclick="state.dashboardLoaded=false;loadDashboard()" style="margin-top:12px;">Retry</button></div>';
     }
+  }
+
+  async function runScenario(name) {
+    var btn = event && event.target;
+    if (btn) { btn.disabled = true; btn.textContent = 'Running...'; }
+    try {
+      var timeout = name.includes('onchain') ? 120000 : 30000;
+      var res = await HumanAds.fetchApi('/admin/scenarios/run', { method: 'POST', body: JSON.stringify({ scenario: name }) }, timeout);
+      if (res.success) {
+        HumanAds.showAlert('Scenario completed!');
+        alert('Result:\n\n' + JSON.stringify(res.data, null, 2));
+        state.dashboardLoaded = false; loadDashboard();
+      } else {
+        HumanAds.showAlert(res.error?.message || 'Scenario failed', 'error');
+      }
+    } catch (e) { HumanAds.showAlert(e.message, 'error'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = name.replace(/-/g, ' '); } }
+  }
+
+  // ════════════════════════════════════════════════
+  // AGENTS
+  // ════════════════════════════════════════════════
+  async function loadAgents(status) {
+    var panel = document.getElementById('panel-agents');
+    panel.innerHTML = '<div class="loading">Loading agents...</div>';
+    try {
+      var url = status ? '/admin/agents?status=' + status : '/admin/agents';
+      var res = await HumanAds.fetchApi(url);
+      if (!res.success) throw new Error(res.error?.message || 'Failed');
+      var agents = res.data.agents || [];
+      panel.innerHTML =
+        '<div class="section-header"><h2>Agents (' + agents.length + ')</h2>' +
+        '<button class="btn-sm primary" onclick="createAgent()">+ New Agent</button></div>' +
+        '<div class="filters">' +
+          fc(!status, 'loadAgents()', 'All') + fc(status==='approved', "loadAgents('approved')", 'Approved') +
+          fc(status==='pending_review', "loadAgents('pending_review')", 'Pending') + fc(status==='suspended', "loadAgents('suspended')", 'Suspended') +
+        '</div>' +
+        (agents.length === 0 ? '<div class="empty">No agents found</div>' :
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Created</th></tr></thead><tbody>' +
+        agents.map(function(a) { return '<tr><td class="id-cell">' + a.id.substring(0,8) + '..</td><td>' + esc(a.name) + '</td><td>' + esc(a.email) + '</td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td>' + HumanAds.formatDate(a.created_at) + '</td></tr>'; }).join('') +
+        '</tbody></table></div>');
+    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+  }
+
+  function createAgent() {
+    var name = prompt('Agent Name:'); if (!name) return;
+    var email = prompt('Agent Email:'); if (!email) return;
+    HumanAds.fetchApi('/admin/agents', { method: 'POST', body: JSON.stringify({ name: name, email: email, status: 'approved' }) })
+      .then(function(r) { if (r.success) { HumanAds.showAlert('Agent created!'); loadAgents(); } else HumanAds.showAlert(r.error?.message||'Failed','error'); });
+  }
+
+  // ════════════════════════════════════════════════
+  // DEALS
+  // ════════════════════════════════════════════════
+  async function loadDeals(status, visibility) {
+    var panel = document.getElementById('panel-deals');
+    panel.innerHTML = '<div class="loading">Loading deals...</div>';
+    try {
+      var params = new URLSearchParams();
+      if (status) params.set('status', status);
+      if (visibility) params.set('visibility', visibility);
+      var qs = params.toString();
+      var res = await HumanAds.fetchApi('/admin/deals' + (qs ? '?' + qs : ''));
+      if (!res.success) throw new Error(res.error?.message || 'Failed');
+      state.dealsCache = res.data.deals || [];
+      renderDeals(status, visibility);
+    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+  }
+
+  function renderDeals(status, visibility) {
+    var deals = state.dealsCache;
+    var panel = document.getElementById('panel-deals');
+    panel.innerHTML =
+      '<div class="section-header"><h2>Deals (' + deals.length + ')</h2></div>' +
+      '<div class="filters">' +
+        fc(!status&&!visibility, 'loadDeals()', 'All') +
+        fc(status==='active'&&!visibility, "loadDeals('active')", 'Active') +
+        fc(status==='completed', "loadDeals('completed')", 'Completed') +
+        fc(status==='cancelled', "loadDeals('cancelled')", 'Cancelled') +
+        '<span class="filter-sep"></span>' +
+        '<span class="filter-chip' + (visibility==='hidden'?' active':'') + '" onclick="loadDeals(null,\'hidden\')" style="' + (visibility==='hidden'?'color:#ffcc00;border-color:#ffcc00;':'') + '">Hidden</span>' +
+        '<span class="filter-chip' + (visibility==='deleted'?' active':'') + '" onclick="loadDeals(null,\'deleted\')" style="' + (visibility==='deleted'?'color:#ff3b30;border-color:#ff3b30;':'') + '">Deleted</span>' +
+      '</div>' +
+      (deals.length===0 ? '<div class="empty">No deals found</div>' :
+      '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Title</th><th>Agent</th><th>Status</th><th>Reward</th><th>Slots</th><th>Created</th><th>Actions</th></tr></thead><tbody>' +
+      deals.map(dealRow).join('') + '</tbody></table></div>');
+  }
+
+  function dealRow(d) {
+    var v = d.visibility || 'visible';
+    var vb = v==='hidden'?'<span class="visibility-badge hidden">HIDDEN</span>':v==='deleted'?'<span class="visibility-badge deleted">DELETED</span>':'';
+    var btns = '';
+    var t = esc(d.title).replace(/'/g, "\\'");
+    if (v==='visible') btns = '<button class="btn-sm warning" onclick="dealVis(\'' + d.id + '\',\'hide\')">Hide</button><button class="btn-sm danger" onclick="openDeleteModal(\'' + d.id + '\',\'' + t + '\')">Delete</button>';
+    else if (v==='hidden') btns = '<button class="btn-sm restore" onclick="dealVis(\'' + d.id + '\',\'unhide\')">Unhide</button><button class="btn-sm danger" onclick="openDeleteModal(\'' + d.id + '\',\'' + t + '\')">Delete</button>';
+    else if (v==='deleted') btns = '<button class="btn-sm restore" onclick="dealVis(\'' + d.id + '\',\'restore\')">Restore</button>';
+    return '<tr class="' + (v==='deleted'?'row-deleted':'') + '"><td class="id-cell" title="' + d.id + '">' + d.id.substring(0,6) + '..</td><td>' + esc(d.title) + vb + '</td><td>' + esc(d.agent_name||d.agent_id?.substring(0,6)||'N/A') + '</td><td><span class="status-badge ' + d.status + '">' + d.status + '</span></td><td>' + HumanAds.formatCurrency(d.reward_amount) + '</td><td>' + (d.current_participants||0) + '/' + d.max_participants + '</td><td>' + HumanAds.formatDate(d.created_at) + '</td><td><div class="action-btns">' + btns + '</div></td></tr>';
+  }
+
+  async function dealVis(dealId, action, reason) {
+    var body = { action: action };
+    if (reason) body.reason = reason;
+    var res = await HumanAds.fetchApi('/admin/deals/' + dealId + '/visibility', { method: 'PUT', body: JSON.stringify(body) });
+    if (res.success) {
+      var updated = res.data.deal;
+      if (updated) { var idx = state.dealsCache.findIndex(function(d){return d.id===dealId;}); if(idx!==-1) Object.assign(state.dealsCache[idx], updated); }
+      renderDeals(null, null);
+    } else alert('Error: ' + (res.error?.message||'Failed'));
+  }
+
+  // Delete modal
+  document.getElementById('deleteConfirmInput').addEventListener('input', function() { document.getElementById('deleteConfirmBtn').disabled = this.value !== 'DELETE'; });
+  function openDeleteModal(id, title) { state.pendingDeleteDealId=id; document.getElementById('deleteModalInfo').textContent=title; document.getElementById('deleteConfirmInput').value=''; document.getElementById('deleteReasonInput').value=''; document.getElementById('deleteConfirmBtn').disabled=true; document.getElementById('deleteModal').classList.add('show'); }
+  function closeDeleteModal() { state.pendingDeleteDealId=null; document.getElementById('deleteModal').classList.remove('show'); }
+  function confirmDelete() { if(!state.pendingDeleteDealId)return; var reason=document.getElementById('deleteReasonInput').value.trim(); closeDeleteModal(); dealVis(state.pendingDeleteDealId,'delete',reason||undefined); }
+  document.getElementById('deleteModal').addEventListener('click', function(e) { if(e.target.id==='deleteModal') closeDeleteModal(); });
+
+  // ════════════════════════════════════════════════
+  // OPERATORS
+  // ════════════════════════════════════════════════
+  async function loadOperators(filter) {
+    filter = filter || {};
+    var panel = document.getElementById('panel-operators');
+    panel.innerHTML = '<div class="loading">Loading operators...</div>';
+    try {
+      var params = new URLSearchParams();
+      if (filter.status) params.set('status', filter.status);
+      if (filter.role) params.set('role', filter.role);
+      var qs = params.toString();
+      var res = await HumanAds.fetchApi('/admin/operators' + (qs ? '?' + qs : ''));
+      if (!res.success) throw new Error(res.error?.message || 'Failed');
+      var ops = res.data.operators || [];
+      panel.innerHTML =
+        '<div class="section-header"><h2>Operators (' + ops.length + ')</h2></div>' +
+        '<div class="filters">' +
+          fc(!filter.status&&!filter.role, 'loadOperators()', 'All') +
+          fc(filter.status==='verified', "loadOperators({status:'verified'})", 'Verified') +
+          fc(filter.role==='admin', "loadOperators({role:'admin'})", 'Admins') +
+        '</div>' +
+        (ops.length===0 ? '<div class="empty">No operators found</div>' :
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th></th><th>Handle</th><th>Name</th><th>Status</th><th>Role</th><th>Followers</th><th>Actions</th></tr></thead><tbody>' +
+        ops.map(function(o) { return '<tr><td>' + (o.x_profile_image_url ? '<img src="' + o.x_profile_image_url + '" class="avatar">' : '<div class="avatar"></div>') + '</td><td>@' + esc(o.x_handle||'unknown') + '</td><td>' + esc(o.display_name||'-') + '</td><td><span class="status-badge ' + o.status + '">' + o.status + '</span></td><td><span class="status-badge ' + (o.role||'user') + '">' + (o.role||'user') + '</span></td><td>' + (o.x_followers_count||0).toLocaleString() + '</td><td><button class="btn-sm" onclick="toggleAdmin(\'' + o.id + '\',\'' + o.role + '\')">' + (o.role==='admin'?'Remove Admin':'Make Admin') + '</button></td></tr>'; }).join('') +
+        '</tbody></table></div>');
+    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+  }
+
+  async function toggleAdmin(id, currentRole) {
+    var newRole = currentRole === 'admin' ? 'user' : 'admin';
+    if (!confirm('Change role to ' + newRole + '?')) return;
+    var res = await HumanAds.fetchApi('/admin/operators/' + id + '/role', { method: 'PUT', body: JSON.stringify({ role: newRole }) });
+    if (res.success) { HumanAds.showAlert('Role updated!'); loadOperators(); } else HumanAds.showAlert(res.error?.message||'Failed','error');
+  }
+
+  // ════════════════════════════════════════════════
+  // MISSIONS (sub-tabs: Missions | Applications)
+  // ════════════════════════════════════════════════
+  function loadMissionsPanel() {
+    var panel = document.getElementById('panel-missions');
+    panel.innerHTML =
+      '<div class="sub-tabs">' +
+        '<button class="sub-tab active" onclick="showSub(\'missions\',\'sub-missions\',this)">Missions</button>' +
+        '<button class="sub-tab" onclick="showSub(\'missions\',\'sub-applications\',this)">Applications</button>' +
+      '</div>' +
+      '<div class="sub-panel active" id="sub-missions"><div class="loading">Loading...</div></div>' +
+      '<div class="sub-panel" id="sub-applications"><div class="loading">Loading...</div></div>';
+    loadMissions();
+  }
+
+  function showSub(group, subId, btn) {
+    var parent = document.getElementById('panel-' + group);
+    parent.querySelectorAll('.sub-tab').forEach(function(t){t.classList.remove('active');});
+    parent.querySelectorAll('.sub-panel').forEach(function(p){p.classList.remove('active');});
+    btn.classList.add('active');
+    document.getElementById(subId).classList.add('active');
+    if (subId === 'sub-applications' && document.getElementById(subId).innerHTML.indexOf('Loading') !== -1) loadApplications();
+  }
+
+  async function loadMissions(status) {
+    var panel = document.getElementById('sub-missions');
+    if (!panel) return;
+    panel.innerHTML = '<div class="loading">Loading missions...</div>';
+    try {
+      var url = status ? '/admin/missions?status=' + status : '/admin/missions';
+      var res = await HumanAds.fetchApi(url);
+      if (!res.success) throw new Error(res.error?.message || 'Failed');
+      var missions = res.data.missions || [];
+      panel.innerHTML =
+        '<div class="filters">' +
+          fc(!status, 'loadMissions()', 'All') + fc(status==='submitted', "loadMissions('submitted')", 'Pending Review') +
+          fc(status==='verified', "loadMissions('verified')", 'Verified') + fc(status==='approved', "loadMissions('approved')", 'Approved') +
+          fc(status==='rejected', "loadMissions('rejected')", 'Rejected') + fc(status==='paid', "loadMissions('paid')", 'Paid') +
+        '</div>' +
+        (missions.length===0?'<div class="empty">No missions found</div>':
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>' +
+        missions.map(function(m){ return '<tr><td class="id-cell">' + m.id.substring(0,8) + '..</td><td>' + esc(m.deal_title||m.deal_id?.substring(0,8)||'N/A') + '</td><td>@' + esc(m.x_handle||'unknown') + '</td><td><span class="status-badge ' + m.status + '">' + m.status + '</span></td><td>' + HumanAds.formatCurrency(m.reward_amount||0) + '</td><td>' + (m.submitted_at?HumanAds.formatDate(m.submitted_at):'-') + '</td><td class="action-btns">' + (m.status==='submitted'?'<button class="btn-sm success" onclick="reviewMission(\'' + m.id + '\',\'verify\')">Verify</button><button class="btn-sm danger" onclick="reviewMission(\'' + m.id + '\',\'reject\')">Reject</button>':'<span class="id-cell">' + m.status + '</span>') + '</td></tr>'; }).join('') +
+        '</tbody></table></div>');
+    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+  }
+
+  async function reviewMission(id, action) {
+    var reason = action === 'reject' ? prompt('Rejection reason:') : 'Approved by admin';
+    if (action === 'reject' && !reason) return;
+    var res = await HumanAds.fetchApi('/admin/missions/' + id + '/review', { method: 'POST', body: JSON.stringify({ action: action, verification_result: reason }) });
+    if (res.success) { HumanAds.showAlert('Mission ' + (action==='verify'?'verified':'rejected') + '!'); loadMissions(); } else HumanAds.showAlert(res.error?.message||'Failed','error');
+  }
+
+  async function loadApplications(status) {
+    var panel = document.getElementById('sub-applications');
+    if (!panel) return;
+    panel.innerHTML = '<div class="loading">Loading applications...</div>';
+    try {
+      var url = status ? '/admin/applications?status=' + status : '/admin/applications';
+      var res = await HumanAds.fetchApi(url);
+      if (!res.success) throw new Error(res.error?.message || 'Failed');
+      var apps = res.data.applications || [];
+      panel.innerHTML =
+        '<div class="filters">' +
+          fc(!status, 'loadApplications()', 'All') + fc(status==='applied', "loadApplications('applied')", 'Applied') +
+          fc(status==='shortlisted', "loadApplications('shortlisted')", 'Shortlisted') + fc(status==='selected', "loadApplications('selected')", 'Selected') +
+          fc(status==='rejected', "loadApplications('rejected')", 'Rejected') +
+        '</div>' +
+        (apps.length===0?'<div class="empty">No applications found</div>':
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Applied</th><th>Actions</th></tr></thead><tbody>' +
+        apps.map(function(a){ return '<tr><td class="id-cell">' + a.id.substring(0,8) + '..</td><td>' + esc(a.deal_title||a.deal_id?.substring(0,8)||'N/A') + '</td><td>@' + esc(a.x_handle||'unknown') + '</td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td>' + HumanAds.formatDate(a.created_at) + '</td><td class="action-btns">' + (a.status==='applied'?'<button class="btn-sm success" onclick="updateApp(\'' + a.id + '\',\'shortlisted\')">Shortlist</button><button class="btn-sm danger" onclick="updateApp(\'' + a.id + '\',\'rejected\')">Reject</button>':a.status==='shortlisted'?'<button class="btn-sm success" onclick="updateApp(\'' + a.id + '\',\'selected\')">Select</button><button class="btn-sm danger" onclick="updateApp(\'' + a.id + '\',\'rejected\')">Reject</button>':'<span class="id-cell">-</span>') + '</td></tr>'; }).join('') +
+        '</tbody></table></div>');
+    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+  }
+
+  async function updateApp(id, status) {
+    if (!confirm('Update to ' + status + '?')) return;
+    var res = await HumanAds.fetchApi('/admin/applications/' + id, { method: 'PUT', body: JSON.stringify({ status: status }) });
+    if (res.success) { HumanAds.showAlert('Application ' + status + '!'); loadApplications(); } else HumanAds.showAlert(res.error?.message||'Failed','error');
+  }
+
+  // ════════════════════════════════════════════════
+  // FINANCE
+  // ════════════════════════════════════════════════
+  async function loadFinancePanel() {
+    var panel = document.getElementById('panel-finance');
+    panel.innerHTML = '<div class="loading">Loading finance...</div>';
+    try {
+      var results = await Promise.all([
+        HumanAds.fetchApi('/admin/token-ops/balances', {}, 15000),
+        HumanAds.fetchApi('/admin/env-check'),
+        HumanAds.fetchApi('/admin/token-ops'),
+        HumanAds.fetchApi('/admin/payments'),
+      ]);
+      var bal = results[0].success ? results[0].data : {};
+      var env = results[1].success ? results[1].data : {};
+      var ops = results[2].success ? (results[2].data.token_ops || []) : [];
+      var payments = results[3].success ? (results[3].data.payments || []) : [];
+
+      panel.innerHTML =
+        '<div class="card-grid">' +
+          '<div class="card"><div class="card-title">Treasury hUSD</div><div class="card-value">' + (bal.treasury_husd!=null?HumanAds.formatCurrency(bal.treasury_husd):'-') + '</div><div class="card-sub">' + (bal.treasury_address?bal.treasury_address.substring(0,10)+'...':'Not configured') + '</div></div>' +
+          '<div class="card"><div class="card-title">Treasury ETH (Gas)</div><div class="card-value">' + (bal.treasury_eth||'-') + '</div><div class="card-sub">Sepolia</div></div>' +
+          '<div class="card faucet"><div class="card-title">Faucet</div><div id="faucet-form"><div class="form-group"><label class="form-label">Recipient Address</label><input class="form-input" id="faucet-addr" placeholder="0x..."></div><div class="form-group"><label class="form-label">Amount: ' + HumanAds.formatCurrency(env.faucet_amount||100000) + '</label></div><button class="btn-sm primary" onclick="sendFaucet()" id="faucet-btn" style="width:100%;padding:10px;">Send hUSD</button><div id="faucet-status"></div></div></div>' +
+        '</div>' +
+
+        '<div class="config-info" style="margin-bottom:24px;">' +
+          '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + (env.payout_mode||'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Treasury Key</span><span class="config-val ' + (env.has_treasury_key?'ok':'err') + '">' + (env.has_treasury_key?'Available':'Missing') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">hUSD Contract</span><span class="config-val">' + (env.husd_contract?env.husd_contract.substring(0,12)+'...':'-') + '</span></div>' +
+        '</div>' +
+
+        '<div class="section-header"><h2>Payout Test</h2></div>' +
+        '<div class="card" style="margin-bottom:24px;"><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">' +
+          '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Mission ID</label><input class="form-input" id="payout-mission-id" placeholder="Mission ID"></div>' +
+          '<div class="form-group" style="width:140px;"><label class="form-label">Mode</label><select class="form-select" id="payout-mode"><option value="ledger">Ledger (Simulated)</option><option value="testnet">Testnet (Real Tx)</option></select></div>' +
+          '<div class="form-group" style="display:flex;gap:8px;"><button class="btn-sm primary" onclick="testPayout(false)">Preview</button><button class="btn-sm success" onclick="testPayout(true)">Execute</button></div>' +
+        '</div><div id="payout-result"></div></div>' +
+
+        '<div class="sub-tabs">' +
+          '<button class="sub-tab active" onclick="showFinSub(\'fin-payments\',this)">Payments (' + payments.length + ')</button>' +
+          '<button class="sub-tab" onclick="showFinSub(\'fin-token-ops\',this)">Token Ops (' + ops.length + ')</button>' +
+        '</div>' +
+        '<div class="sub-panel active" id="fin-payments">' + renderPayments(payments) + '</div>' +
+        '<div class="sub-panel" id="fin-token-ops">' + renderTokenOps(ops) + '</div>';
+    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+  }
+
+  function showFinSub(subId, btn) {
+    var panel = document.getElementById('panel-finance');
+    panel.querySelectorAll('.sub-tab').forEach(function(t){t.classList.remove('active');});
+    panel.querySelectorAll('.sub-panel').forEach(function(p){p.classList.remove('active');});
+    btn.classList.add('active'); document.getElementById(subId).classList.add('active');
+  }
+
+  function renderPayments(payments) {
+    if (payments.length === 0) return '<div class="empty">No payments found</div>';
+    return '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Mission</th><th>Type</th><th>Amount</th><th>Chain</th><th>Status</th><th>Tx</th><th>Created</th></tr></thead><tbody>' +
+      payments.map(function(p){ return '<tr><td class="id-cell">' + p.id.substring(0,8) + '..</td><td class="id-cell">' + (p.mission_id||'').substring(0,8) + '..</td><td>' + (p.payment_type||'-') + '</td><td>' + HumanAds.formatCurrency(p.amount_cents) + '</td><td>' + (p.chain||'-') + '</td><td><span class="status-badge ' + p.status + '">' + p.status + '</span></td><td>' + txLink(p.tx_hash) + '</td><td>' + HumanAds.formatDate(p.created_at) + '</td></tr>'; }).join('') +
+      '</tbody></table></div>';
+  }
+
+  function renderTokenOps(ops) {
+    if (ops.length === 0) return '<div class="empty">No token operations found</div>';
+    return '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Type</th><th>To</th><th>Amount</th><th>Status</th><th>Tx</th><th>Created</th></tr></thead><tbody>' +
+      ops.map(function(o){ return '<tr><td class="id-cell">' + o.id.substring(0,8) + '..</td><td><span class="type-badge ' + o.op_type + '">' + o.op_type + '</span></td><td class="id-cell" title="' + (o.to_address||'') + '">' + (o.to_address||'').substring(0,10) + '..</td><td>' + HumanAds.formatCurrency(o.amount_cents) + '</td><td><span class="status-badge ' + o.status + '">' + o.status + '</span></td><td>' + txLink(o.tx_hash) + '</td><td>' + HumanAds.formatRelativeTime(o.created_at) + '</td></tr>'; }).join('') +
+      '</tbody></table></div>';
+  }
+
+  async function sendFaucet() {
+    var addr = document.getElementById('faucet-addr').value.trim();
+    var statusEl = document.getElementById('faucet-status');
+    var btn = document.getElementById('faucet-btn');
+    if (!addr || !addr.startsWith('0x')) { statusEl.innerHTML = '<div class="status-msg error">Enter a valid 0x address</div>'; return; }
+    btn.disabled = true; btn.textContent = 'Sending...';
+    statusEl.innerHTML = '<div class="status-msg info">Sending hUSD...</div>';
+    try {
+      var res = await HumanAds.fetchApi('/admin/faucet', { method: 'POST', body: JSON.stringify({ address: addr }) }, 30000);
+      if (res.success) {
+        statusEl.innerHTML = '<div class="status-msg success">Sent! ' + txLink(res.data.tx_hash) + '</div>';
+        state.financeLoaded = false; loadFinancePanel();
+      } else statusEl.innerHTML = '<div class="status-msg error">' + esc(res.error?.message||'Failed') + '</div>';
+    } catch (e) { statusEl.innerHTML = '<div class="status-msg error">' + esc(e.message) + '</div>'; }
+    finally { btn.disabled = false; btn.textContent = 'Send hUSD'; }
+  }
+
+  async function testPayout(execute) {
+    var missionId = document.getElementById('payout-mission-id').value.trim();
+    var mode = document.getElementById('payout-mode').value;
+    var el = document.getElementById('payout-result');
+    if (!missionId) { el.innerHTML = '<div class="status-msg error">Enter a Mission ID</div>'; return; }
+    el.innerHTML = '<div class="status-msg info">Processing...</div>';
+    try {
+      var res = await HumanAds.fetchApi('/admin/payout/test', { method: 'POST', body: JSON.stringify({ mission_id: missionId, mode: mode, execute: execute }) }, 60000);
+      if (res.success) {
+        var d = res.data;
+        var executed = d.execute === true;
+        var html = '<div class="payout-result"><h4>' + d.mode + ' mode ' + (executed ? '(EXECUTED)' : '(preview)') + '</h4>';
+        html += '<div class="row"><span class="label">AUF Amount</span><span class="val">' + HumanAds.formatCurrency(d.auf_amount_cents) + '</span></div>';
+        html += '<div class="row"><span class="label">Payout Amount</span><span class="val">' + HumanAds.formatCurrency(d.payout_amount_cents) + '</span></div>';
+        html += '<div class="row"><span class="label">Operator Wallet</span><span class="val">' + (d.operator_address||'Not set') + '</span></div>';
+        html += '<div class="row"><span class="label">Chain</span><span class="val">' + d.chain + '</span></div>';
+        if (d.transactions) {
+          if (d.transactions.auf_tx) {
+            var aufTx = d.transactions.auf_tx;
+            html += '<div class="row"><span class="label">AUF Tx</span><span class="val">' + (aufTx.success ? txLink(aufTx.txHash) : '<span style="color:#ff3b30">Failed: ' + esc(aufTx.error||'') + '</span>') + '</span></div>';
+          }
+          if (d.transactions.payout_tx) {
+            var payTx = d.transactions.payout_tx;
+            html += '<div class="row"><span class="label">Payout Tx</span><span class="val">' + (payTx.success ? txLink(payTx.txHash) : '<span style="color:#ff3b30">Failed: ' + esc(payTx.error||'') + '</span>') + '</span></div>';
+          }
+        }
+        if (d.simulated_auf_tx) html += '<div class="row"><span class="label">Simulated AUF Tx</span><span class="val" style="font-size:0.7rem;opacity:0.7">' + esc(d.simulated_auf_tx) + '</span></div>';
+        if (d.simulated_payout_tx) html += '<div class="row"><span class="label">Simulated Payout Tx</span><span class="val" style="font-size:0.7rem;opacity:0.7">' + esc(d.simulated_payout_tx) + '</span></div>';
+        if (!d.has_treasury_key && !executed) html += '<div class="status-msg error" style="margin-top:8px;font-size:0.7rem">TREASURY_PRIVATE_KEY not configured</div>';
+        html += '<div class="row"><span class="label">Message</span><span class="val" style="font-size:0.7rem;">' + esc(d.message) + '</span></div></div>';
+        el.innerHTML = html;
+        if (executed) { state.financeLoaded = false; loadFinancePanel(); }
+      } else el.innerHTML = '<div class="status-msg error">' + esc(res.error?.message||'Failed') + '</div>';
+    } catch (e) { el.innerHTML = '<div class="status-msg error">' + esc(e.message) + '</div>'; }
+  }
+
+  // ════════════════════════════════════════════════
+  // SETTINGS (Config + Audit Logs)
+  // ════════════════════════════════════════════════
+  function loadSettingsPanel() {
+    var panel = document.getElementById('panel-settings');
+    panel.innerHTML =
+      '<div class="sub-tabs">' +
+        '<button class="sub-tab active" onclick="showSetSub(\'set-config\',this)">Payment Config</button>' +
+        '<button class="sub-tab" onclick="showSetSub(\'set-logs\',this)">Audit Logs</button>' +
+      '</div>' +
+      '<div class="sub-panel active" id="set-config"><div class="loading">Loading...</div></div>' +
+      '<div class="sub-panel" id="set-logs"><div class="loading">Loading...</div></div>';
+    loadPaymentConfig();
+  }
+
+  function showSetSub(subId, btn) {
+    var panel = document.getElementById('panel-settings');
+    panel.querySelectorAll('.sub-tab').forEach(function(t){t.classList.remove('active');});
+    panel.querySelectorAll('.sub-panel').forEach(function(p){p.classList.remove('active');});
+    btn.classList.add('active'); document.getElementById(subId).classList.add('active');
+    if (subId === 'set-logs' && document.getElementById(subId).innerHTML.indexOf('Loading') !== -1) loadAuditLogs();
+  }
+
+  async function loadPaymentConfig() {
+    var panel = document.getElementById('set-config');
+    try {
+      var res = await HumanAds.fetchApi('/admin/config/payment-profile');
+      if (!res.success) throw new Error(res.error?.message || 'Failed');
+      var p = res.data;
+      panel.innerHTML =
+        '<div class="card" style="margin-bottom:16px;"><div class="card-title">Current Payment Profile</div>' +
+        '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;"><span class="env-badge ' + (p.profile==='test'?'ledger':'onchain') + '" style="font-size:0.9rem;padding:6px 14px;"><span class="dot"></span> ' + (p.profile||'-') + '</span></div>' +
+        '<div class="config-info" style="border-top:none;padding-top:0;">' +
+          '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + (p.payout_mode||'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Chain</span><span class="config-val">' + (p.chain||'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Token</span><span class="config-val">' + (p.token||'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Updated</span><span class="config-val">' + (p.updated_at?HumanAds.formatRelativeTime(p.updated_at):'-') + '</span></div>' +
+        '</div></div>' +
+        '<p style="font-size:0.75rem;color:var(--color-text-muted);">To change profile: update wrangler.jsonc PAYOUT_MODE or use the config API.</p>';
+    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+  }
+
+  async function loadAuditLogs(endpoint) {
+    var panel = document.getElementById('set-logs');
+    panel.innerHTML = '<div class="loading">Loading logs...</div>';
+    try {
+      var url = '/admin/logs?limit=100';
+      if (endpoint) url += '&endpoint=' + encodeURIComponent(endpoint);
+      var res = await HumanAds.fetchApi(url);
+      if (!res.success) throw new Error(res.error?.message || 'Failed');
+      var logs = res.data.logs || [];
+      panel.innerHTML =
+        '<div style="display:flex;gap:8px;margin-bottom:16px;"><input class="form-input" id="log-search" placeholder="Filter by endpoint" value="' + (endpoint||'') + '" style="flex:1;"><button class="btn-sm" onclick="loadAuditLogs(document.getElementById(\'log-search\').value||null)">Search</button><button class="btn-sm" onclick="loadAuditLogs()">Refresh</button></div>' +
+        '<p style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:12px;">' + logs.length + ' entries</p>' +
+        (logs.length===0?'<div class="empty">No logs found</div>':
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th>Request ID</th><th>Endpoint</th><th>Method</th><th>Decision</th><th>Agent</th><th>Time</th></tr></thead><tbody>' +
+        logs.map(function(l){ return '<tr><td class="id-cell">' + (l.request_id||'N/A').substring(0,8) + '..</td><td>' + esc(l.endpoint||'-') + '</td><td>' + (l.method||'-') + '</td><td><span class="status-badge ' + (l.decision||'unknown') + '">' + (l.decision||'-') + '</span></td><td class="id-cell">' + (l.agent_id?l.agent_id.substring(0,8)+'..':'-') + '</td><td>' + (l.created_at?HumanAds.formatRelativeTime(l.created_at):'-') + '</td></tr>'; }).join('') +
+        '</tbody></table></div>');
+    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+  }
+
+  // ════════════════════════════════════════════════
+  // Utilities
+  // ════════════════════════════════════════════════
+  function esc(s) { return HumanAds.escapeHtml(s); }
+  function txLink(hash) {
+    if (!hash) return '-';
+    if (hash.startsWith('SIMULATED_')) return '<span style="color:var(--color-text-muted);">simulated</span>';
+    var safeHash = esc(hash);
+    return '<a class="tx-link" href="https://sepolia.etherscan.io/tx/' + safeHash + '" target="_blank">' + safeHash.substring(0,16) + '...</a>';
+  }
+  function fc(active, onclick, label) {
+    return '<span class="filter-chip' + (active?' active':'') + '" onclick="' + onclick + '">' + label + '</span>';
+  }
+
+  // ════════════════════════════════════════════════
+  // Init
+  // ════════════════════════════════════════════════
+  (async function init() {
+    try {
+      var meRes = await HumanAds.fetchApi('/me');
+      if (!meRes.success || !meRes.data?.xConnected) { window.location.href = '/auth/x/login?redirect=/admin'; return; }
+      if (!meRes.data.user?.is_admin) {
+        document.querySelector('.admin-page').innerHTML = '<div class="empty" style="color:#ff3b30;"><h2>Access Denied</h2><p>You do not have admin access.</p><a href="/" class="btn-sm primary" style="margin-top:16px;">Go to Home</a></div>';
+        SideMenu.init(true); return;
+      }
+      var hash = window.location.hash.replace('#', '');
+      var valid = ['dashboard','agents','deals','operators','missions','finance','settings'];
+      if (hash && valid.indexOf(hash) !== -1) { switchTab(hash); }
+      else { state.dashboardLoaded = true; loadDashboard(); }
+      SideMenu.init(true, true);
+    } catch (e) { document.querySelector('.admin-page').innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(e.message) + '</div>'; }
+  })();
   </script>
   <script src="/js/env-banner.js"></script>
 </body>

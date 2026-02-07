@@ -773,23 +773,29 @@ async function handlePublicApi(
  * CORS対応
  */
 function handleCors(request: Request): Response {
+  // CORS preflight should mirror the origin policy from index.ts
   const url = new URL(request.url);
-  const requestOrigin = request.headers.get('Origin');
-  const allowedOrigin = `${url.protocol}//${url.host}`;
-  const corsOrigin = requestOrigin === allowedOrigin ? requestOrigin : allowedOrigin;
-
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': corsOrigin,
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers':
-        'Content-Type, Authorization, X-AdClaw-Timestamp, X-AdClaw-Nonce, X-AdClaw-Signature, X-AdClaw-Key-Id',
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Max-Age': '86400',
-      'Vary': 'Origin',
-    },
-  });
+  const requestOrigin = request.headers.get('Origin') || '';
+  const allowedOrigins = [
+    'https://humanadsai.com',
+    'https://www.humanadsai.com',
+  ];
+  const sameOrigin = `${url.protocol}//${url.host}`;
+  const corsOrigin = allowedOrigins.includes(requestOrigin)
+    ? requestOrigin
+    : (requestOrigin === sameOrigin ? requestOrigin : 'https://humanadsai.com');
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers':
+      'Content-Type, Authorization, X-AdClaw-Timestamp, X-AdClaw-Nonce, X-AdClaw-Signature, X-AdClaw-Key-Id',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+  };
+  if (allowedOrigins.includes(requestOrigin) || requestOrigin === sameOrigin) {
+    headers['Access-Control-Allow-Credentials'] = 'true';
+  }
+  return new Response(null, { status: 204, headers });
 }
 
 /**
@@ -1165,6 +1171,19 @@ async function handleAdminApi(
   // GET /api/admin/config/history - Get config change history
   if (path === '/api/admin/config/history' && method === 'GET') {
     return getConfigHistory(request, env);
+  }
+
+  // Fallback: serve static assets from /public via env.ASSETS
+  // For non-API paths, try serving from static assets before returning 404
+  if (!path.startsWith('/api/')) {
+    try {
+      const assetResponse = await env.ASSETS.fetch(request);
+      if (assetResponse.status !== 404) {
+        return assetResponse;
+      }
+    } catch {
+      // Asset fetch failed, fall through to 404
+    }
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

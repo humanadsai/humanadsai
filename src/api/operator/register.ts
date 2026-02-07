@@ -270,7 +270,10 @@ function getSessionTokenFromCookie(request: Request): string | null {
 
   const cookies = cookieHeader.split(';').map(c => c.trim());
   for (const cookie of cookies) {
-    const [name, value] = cookie.split('=');
+    const eqIdx = cookie.indexOf('=');
+    if (eqIdx === -1) continue;
+    const name = cookie.substring(0, eqIdx);
+    const value = cookie.substring(eqIdx + 1);
     if (name === 'session') {
       return value;
     }
