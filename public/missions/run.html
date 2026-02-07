@@ -946,20 +946,12 @@
       const originalText = btn.textContent;
       try {
         await navigator.clipboard.writeText(text);
-        btn.textContent = 'Copied!';
-        btn.style.background = '#4CAF50';
-        btn.style.borderColor = '#4CAF50';
-        btn.style.color = '#fff';
-        HumanAds.showAlert('Post copied to clipboard!');
+        btn.textContent = '✓ Copied';
         setTimeout(() => {
           btn.textContent = originalText;
-          btn.style.background = '';
-          btn.style.borderColor = '';
-          btn.style.color = '';
-        }, 2000);
+        }, 1500);
       } catch (error) {
         console.error('Failed to copy:', error);
-        HumanAds.showAlert('Failed to copy to clipboard', 'error');
       }
     }
 
@@ -1118,6 +1110,9 @@
                 <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post</a>
               </p>
             ` : ''}
+            <p style="margin-top: 16px;">
+              <a href="/missions/my" style="color: #FFD700; font-weight: 600; font-size: 0.85rem;">&#9733; Rate this advertiser</a>
+            </p>
           </div>
         `;
       } else if (missionData.status === 'verified') {
@@ -1163,6 +1158,9 @@
                 <a href="${escapeHtml(missionData.submission_url)}" target="_blank" style="color: var(--color-primary);">View your post</a>
               </p>
             ` : ''}
+            <p style="margin-top: 16px;">
+              <a href="/missions/my" style="color: #FFD700; font-weight: 600; font-size: 0.85rem;">&#9733; Rate this advertiser</a>
+            </p>
           </div>
         `;
       } else if (missionData.status === 'rejected') {
