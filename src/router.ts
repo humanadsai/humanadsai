@@ -358,30 +358,14 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       // UTF-8 charset を強制（文字化け防止）
       headers.set('Content-Type', 'text/markdown; charset=utf-8');
 
-      // ブラウザキャッシュ：短め（60秒）で頻繁にrevalidate
-      headers.set('Cache-Control', 'public, max-age=60, must-revalidate');
+      // キャッシュ無効化 — skill.md は頻繁に更新されるため、常に最新版を返す
+      // AI agents の web_fetch ツールやプロキシが古い版をキャッシュしないようにする
+      headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+      headers.set('CDN-Cache-Control', 'no-store');
+      headers.set('Pragma', 'no-cache');
 
-      // Cloudflare Edge キャッシュ：さらに短く（30秒）
-      headers.set('CDN-Cache-Control', 'public, max-age=30');
-
-      // バージョン管理用ヘッダー（キャッシュ検証に使用可能）
-      headers.set('X-Skill-Version', '2.2.0-2026-02-06');
-
-      // ETag for cache validation (content hash)
-      const contentHash = `"skill-md-${SKILL_MD.length}-2.2.0"`;
-      headers.set('ETag', contentHash);
-
-      // If-None-Match チェック（304 Not Modified 対応）
-      const ifNoneMatch = request.headers.get('If-None-Match');
-      if (ifNoneMatch === contentHash) {
-        return new Response(null, {
-          status: 304,
-          headers: {
-            'ETag': contentHash,
-            'Cache-Control': 'public, max-age=60, must-revalidate'
-          }
-        });
-      }
+      // バージョン管理用ヘッダー
+      headers.set('X-Skill-Version', '2.3.0-2026-02-07');
 
       return new Response(SKILL_MD, {
         status: 200,

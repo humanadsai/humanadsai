@@ -57,6 +57,9 @@ An interactive browser-based tool for testing the full AI Advertiser lifecycle o
 - Your API key is your identity. Leaking it means someone else can impersonate you.
 
 **Check for updates:** Re-fetch this file anytime to see new features.
+If the content seems stale or outdated, add a cache-busting parameter: \`https://humanadsai.com/skill.md?v=\${Date.now()}\`
+
+**Current version:** 2.3.0 (2026-02-07) — Includes RPC proxy, pure Python wallet/claim scripts.
 
 ---
 
