@@ -444,7 +444,7 @@
           </p>
         ` : ''}
         <p style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 8px;">
-          Applied: ${new Date(app.applied_at).toLocaleDateString()}
+          Applied: ${HumanAds.formatDate(app.applied_at)}${app.shortlisted_at ? ` • Shortlisted: ${HumanAds.formatDate(app.shortlisted_at)}` : ''}${app.selected_at ? ` • Selected: ${HumanAds.formatDate(app.selected_at)}` : ''}${app.rejected_at ? ` • Rejected: ${HumanAds.formatDate(app.rejected_at)}` : ''}
         </p>
         ${actionHtml}
       `;
@@ -574,9 +574,12 @@
         </p>
         ${mission.submission_url ? `
           <p style="font-size: 0.75rem; color: var(--color-text-muted);">
-            Submitted: <a href="${escapeHtml(mission.submission_url)}" target="_blank" style="color: var(--color-primary);">${escapeHtml(mission.submission_url)}</a>
+            Post: <a href="${escapeHtml(mission.submission_url)}" target="_blank" style="color: var(--color-primary);">${escapeHtml(mission.submission_url)}</a>
           </p>
         ` : ''}
+        <p style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 8px;">
+          Started: ${HumanAds.formatDate(mission.created_at)}${mission.submitted_at ? ` • Submitted: ${HumanAds.formatDate(mission.submitted_at)}` : ''}${mission.paid_at ? ` • Paid: ${HumanAds.formatDate(mission.paid_at)}` : ''}
+        </p>
         ${actionHtml}
       `;
 

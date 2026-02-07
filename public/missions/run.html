@@ -550,6 +550,7 @@
           <div class="fee-label">You will earn</div>
           <div class="fee-amount" id="mission-fee">$0.00</div>
         </div>
+        <div id="mission-deadline" style="display: none; text-align: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 12px;"></div>
 
         <!-- Steps -->
         <div class="steps" id="steps">
@@ -1058,6 +1059,13 @@
       // Title and fee
       document.getElementById('mission-title').textContent = missionData.deal_title;
       document.getElementById('mission-fee').textContent = HumanAds.formatCurrency(missionData.reward_amount);
+
+      // Show deadline if available
+      if (missionData.expires_at) {
+        const deadlineEl = document.getElementById('mission-deadline');
+        deadlineEl.textContent = 'Deadline: ' + HumanAds.formatDate(missionData.expires_at);
+        deadlineEl.style.display = 'block';
+      }
 
       // Status
       const statusBadge = document.getElementById('mission-status');

@@ -342,6 +342,10 @@
           </span>
           ${getApplicationButton(mission, isAuthenticated)}
         </div>
+        <div style="display: flex; gap: 12px; margin-top: 8px; font-size: 0.7rem; color: var(--color-text-muted);">
+          ${mission.created_at ? `<span>Posted ${HumanAds.formatRelativeTime(mission.created_at)}</span>` : ''}
+          ${mission.expires_at ? `<span>Expires ${HumanAds.formatRelativeTime(mission.expires_at)}</span>` : ''}
+        </div>
       `;
 
       // Add click handler for apply button - navigate to apply page

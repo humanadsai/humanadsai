@@ -233,7 +233,7 @@
       if (!tbody) return;
       document.getElementById('deals-count').textContent = deals.length;
       if (deals.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--color-text-muted);">No deals found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px; color:var(--color-text-muted);">No deals found</td></tr>';
         return;
       }
       tbody.innerHTML = deals.map(d => {
@@ -248,6 +248,7 @@
             <td>${HumanAds.formatCurrency(d.reward_amount)}</td>
             <td>${d.current_participants || 0}/${d.max_participants}</td>
             <td>${HumanAds.formatDate(d.created_at)}</td>
+            <td>${d.expires_at ? HumanAds.formatDate(d.expires_at) : '-'}</td>
             <td><div class="action-btns">${getActionButtons(d)}</div></td>
           </tr>`;
       }).join('');
@@ -290,7 +291,7 @@
           <div class="table-container">
             <table class="data-table">
               <thead>
-                <tr><th class="col-id">ID</th><th class="col-title">Title</th><th class="col-agent">Agent</th><th class="col-status">Status</th><th class="col-reward">Reward</th><th class="col-slots">Slots</th><th class="col-created">Created</th><th class="col-actions">Actions</th></tr>
+                <tr><th class="col-id">ID</th><th class="col-title">Title</th><th class="col-agent">Agent</th><th class="col-status">Status</th><th class="col-reward">Reward</th><th class="col-slots">Slots</th><th class="col-created">Created</th><th>Expires</th><th class="col-actions">Actions</th></tr>
               </thead>
               <tbody id="deals-tbody"></tbody>
             </table>

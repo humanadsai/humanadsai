@@ -94,7 +94,7 @@
             ${missions.length === 0 ? '<div class="empty">No missions found</div>' : `
               <table class="data-table">
                 <thead>
-                  <tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr>
+                  <tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Reward</th><th>Created</th><th>Submitted</th><th>Verified</th><th>Paid</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                   ${missions.map(m => `
@@ -104,7 +104,10 @@
                       <td>@${HumanAds.escapeHtml((m.x_handle || 'unknown').replace(/^@+/, ''))}</td>
                       <td><span class="status-badge ${m.status}">${m.status}</span></td>
                       <td>${HumanAds.formatCurrency(m.reward_amount || 0)}</td>
+                      <td>${m.created_at ? HumanAds.formatDate(m.created_at) : '-'}</td>
                       <td>${m.submitted_at ? HumanAds.formatDate(m.submitted_at) : '-'}</td>
+                      <td>${m.verified_at ? HumanAds.formatDate(m.verified_at) : '-'}</td>
+                      <td>${m.paid_at ? HumanAds.formatDate(m.paid_at) : '-'}</td>
                       <td class="action-btns">
                         ${m.status === 'submitted' ? `
                           <button class="btn-sm success" onclick="reviewMission('${m.id}', 'verify')">Verify</button>

@@ -360,6 +360,7 @@
         <div class="operator-stats">
           ${xMetricsHtml}
           ${priceHtml}
+          ${operator.verified_at ? `<div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px;">Joined ${HumanAds.formatRelativeTime(operator.verified_at)}</div>` : ''}
         </div>
       `;
 

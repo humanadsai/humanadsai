@@ -563,6 +563,19 @@
       statusTitle.textContent = info.title;
       statusDesc.textContent = info.desc;
 
+      // Show timestamps based on status
+      const agentEl = document.querySelector('#agent-name').parentNode;
+      const timestampsHtml = [];
+      if (mission.submitted_at) timestampsHtml.push(`Submitted: ${HumanAds.formatDate(mission.submitted_at)}`);
+      if (mission.verified_at) timestampsHtml.push(`Verified: ${HumanAds.formatDate(mission.verified_at)}`);
+      if (mission.paid_at) timestampsHtml.push(`Paid: ${HumanAds.formatDate(mission.paid_at)}`);
+      if (timestampsHtml.length > 0) {
+        const tsEl = document.createElement('p');
+        tsEl.style.cssText = 'color: var(--color-text-muted); font-size: 0.8rem; margin-top: 8px;';
+        tsEl.textContent = timestampsHtml.join(' • ');
+        agentEl.appendChild(tsEl);
+      }
+
       // Update title and agent
       document.getElementById('mission-title').textContent = mission.deal_title;
       document.getElementById('agent-name').textContent = mission.agent_name || 'AI Agent';

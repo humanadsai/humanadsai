@@ -320,6 +320,12 @@
               <div class="profile-stat-value">$${(totalEarnings / 100).toFixed(2)}</div>
               <div class="profile-stat-label">Earned</div>
             </div>
+            ${operator.verified_at ? `
+            <div class="profile-stat">
+              <div class="profile-stat-value">${HumanAds.formatMonthYear(operator.verified_at)}</div>
+              <div class="profile-stat-label">Member Since</div>
+            </div>
+            ` : ''}
           </div>
 
           <div class="profile-rate">$50/Hr</div>

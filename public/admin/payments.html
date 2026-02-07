@@ -88,7 +88,7 @@
             ${payments.length === 0 ? '<div class="empty">No payments found</div>' : `
               <table class="data-table">
                 <thead>
-                  <tr><th>ID</th><th>Mission</th><th>Type</th><th>Amount</th><th>Chain</th><th>Status</th><th>Mode</th><th>Created</th></tr>
+                  <tr><th>ID</th><th>Mission</th><th>Type</th><th>Amount</th><th>Chain</th><th>Status</th><th>Mode</th><th>Created</th><th>Confirmed</th></tr>
                 </thead>
                 <tbody>
                   ${payments.map(p => `
@@ -101,6 +101,7 @@
                       <td><span class="status-badge ${p.status}">${p.status}</span></td>
                       <td><span class="mode-badge ${p.payout_mode || 'onchain'}">${p.payout_mode || 'onchain'}</span></td>
                       <td>${HumanAds.formatDate(p.created_at)}</td>
+                      <td>${p.confirmed_at ? HumanAds.formatDate(p.confirmed_at) : '-'}</td>
                     </tr>
                   `).join('')}
                 </tbody>
