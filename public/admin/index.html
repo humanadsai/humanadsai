@@ -44,8 +44,6 @@
     .stat-card .value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; }
     .stat-card .sub { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 2px; }
 
-    /* ── Quick Actions ── */
-    .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
     .quick-action {
       display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
       background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px;
@@ -341,15 +339,6 @@
           '<div class="stat-card"><h3>Missions</h3><div class="value">' + stats.total_missions + '</div><div class="sub">' + stats.total_applications + ' applications</div></div>' +
           '<div class="stat-card"><h3>Pending Review</h3><div class="value">' + stats.pending_submissions + '</div><div class="sub">submissions</div></div>' +
           '<div class="stat-card"><h3>Pending Payout</h3><div class="value">' + stats.pending_payouts + '</div><div class="sub">awaiting payout</div></div>' +
-        '</div>' +
-
-        '<h2 style="font-family:var(--font-mono);font-size:0.9rem;margin-bottom:12px;">Quick Actions</h2>' +
-        '<div class="quick-actions">' +
-          '<button class="quick-action" onclick="runScenario(\'quick-setup\')">Quick Setup Check</button>' +
-          '<button class="quick-action" onclick="runScenario(\'full-lifecycle\')">Full Lifecycle Test</button>' +
-          '<button class="quick-action" onclick="runScenario(\'full-lifecycle-onchain\')">Full Lifecycle + Onchain Payout</button>' +
-          '<button class="quick-action" onclick="switchTab(\'finance\')">Token Ops</button>' +
-          '<button class="quick-action" onclick="switchTab(\'missions\')">Review Queue (' + stats.pending_submissions + ')</button>' +
         '</div>' +
 
         '<div class="fee-section"><h3>Fee Recipients</h3>' +
