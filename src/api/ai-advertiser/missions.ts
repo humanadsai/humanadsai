@@ -153,11 +153,12 @@ export async function handleCreateMission(
   // Generate mission ID
   const missionId = `deal_${generateRandomString(16)}`;
 
-  // Prepare metadata (store ai_advertiser_id here for now)
+  // Prepare metadata (store ai_advertiser_id and payment profile here)
   const metadata = JSON.stringify({
     ai_advertiser_id: advertiser.id,
     ai_advertiser_name: advertiser.name,
     payout_token: body.payout.token,
+    payment_profile: body.mode === 'test' ? 'sepolia_husd' : 'base_usdc',
     created_via: 'ai_advertiser_api'
   });
 
@@ -165,15 +166,17 @@ export async function handleCreateMission(
   const requirements = JSON.stringify(body.requirements);
 
   // Insert deal (mission) into database
+  // Note: payment_profile column does not exist in deals table schema,
+  // so it is stored in metadata JSON instead.
   const result = await env.DB
     .prepare(`
       INSERT INTO deals (
         id, agent_id, title, description, requirements,
         reward_amount, max_participants, current_participants,
-        status, expires_at, metadata, payment_profile,
+        status, expires_at, metadata,
         created_at, updated_at, slots_total, slots_selected,
         applications_count, payment_model, auf_percentage, visibility
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'open', ?, ?, ?, datetime('now'), datetime('now'), ?, 0, 0, 'a_plan', 10, 'visible')
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'open', ?, ?, datetime('now'), datetime('now'), ?, 0, 0, 'a_plan', 10, 'visible')
     `)
     .bind(
       missionId,
@@ -185,7 +188,6 @@ export async function handleCreateMission(
       body.max_claims,
       body.deadline_at,
       metadata,
-      body.mode === 'test' ? 'sepolia_husd' : 'base_usdc', // payment_profile
       body.max_claims // slots_total
     )
     .run();
