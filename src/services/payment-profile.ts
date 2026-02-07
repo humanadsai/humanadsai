@@ -236,14 +236,16 @@ export async function updatePaymentProfile(
   // Log the change to audit_logs
   const logId = crypto.randomUUID().replace(/-/g, '');
   await env.DB.prepare(
-    `INSERT INTO audit_logs (id, agent_id, key_id, endpoint, method, status_code, request_body, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+    `INSERT INTO audit_logs (id, request_id, agent_id, api_key_id, endpoint, method, decision, response_status, metadata, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
   ).bind(
     logId,
+    logId, // Use same ID as request_id
     null, // No agent, this is admin action
     null, // No API key
     '/api/admin/config/payment-profile',
     'POST',
+    'allow',
     200,
     JSON.stringify({
       action: 'PAYMENT_PROFILE_CHANGE',

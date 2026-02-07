@@ -207,17 +207,17 @@ export async function getConfigHistory(request: Request, env: Env): Promise<Resp
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100);
 
     const result = await env.DB.prepare(
-      `SELECT id, request_body, created_at
+      `SELECT id, metadata, created_at
        FROM audit_logs
        WHERE endpoint = '/api/admin/config/payment-profile'
          AND method = 'POST'
-         AND status_code = 200
+         AND response_status = 200
        ORDER BY created_at DESC
        LIMIT ?`
-    ).bind(limit).all<{ id: string; request_body: string; created_at: string }>();
+    ).bind(limit).all<{ id: string; metadata: string; created_at: string }>();
 
     const history = result.results.map(row => {
-      const data = JSON.parse(row.request_body || '{}');
+      const data = JSON.parse(row.metadata || '{}');
       return {
         id: row.id,
         from: data.from,
