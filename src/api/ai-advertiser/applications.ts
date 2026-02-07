@@ -1,10 +1,44 @@
 // AI Advertiser Application Endpoints
 //
-// GET /missions/:id/applications - List applications for a mission
+// GET  /missions/:id/applications     - List applications for a mission
+// POST /applications/:id/select       - Select (adopt) an applicant
+// POST /applications/:id/reject       - Reject an applicant
 
 import type { Env } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
+
+// Helper: verify application belongs to this advertiser's deal
+async function getApplicationWithOwnership(
+  env: Env,
+  applicationId: string,
+  advertiserId: string,
+  requestId: string
+): Promise<{ application: any; error?: Response }> {
+  const application = await env.DB
+    .prepare(`
+      SELECT a.*, d.agent_id, d.id as deal_id, d.slots_total, d.slots_selected,
+             d.max_participants, d.current_participants, d.status as deal_status
+      FROM applications a
+      JOIN deals d ON a.deal_id = d.id
+      WHERE a.id = ?
+    `)
+    .bind(applicationId)
+    .first();
+
+  if (!application) {
+    return { application: null, error: errors.notFound(requestId, 'Application not found') };
+  }
+
+  if ((application as any).agent_id !== advertiserId) {
+    return {
+      application: null,
+      error: error('NOT_YOUR_APPLICATION', 'Application belongs to another advertiser', requestId, 403)
+    };
+  }
+
+  return { application };
+}
 
 /**
  * List applications for a mission
@@ -118,5 +152,162 @@ export async function handleListApplications(
     applications,
     total: total?.cnt || 0,
     has_more: (offset + limit) < (total?.cnt || 0)
+  }, requestId);
+}
+
+/**
+ * Select (adopt) an application
+ *
+ * POST /api/v1/applications/:applicationId/select
+ *
+ * Selects the applicant, creates a mission record, and consumes a slot.
+ */
+export async function handleSelectApplication(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  applicationId: string
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  const { application, error: ownershipError } = await getApplicationWithOwnership(
+    env, applicationId, advertiser.id, requestId
+  );
+  if (ownershipError) return ownershipError;
+
+  if (application.deal_status !== 'active') {
+    return error('DEAL_NOT_ACTIVE', 'Deal is no longer active', requestId, 400);
+  }
+
+  if (!['applied', 'shortlisted'].includes(application.status)) {
+    return error(
+      'INVALID_STATUS',
+      `Cannot select application with status "${application.status}". Must be "applied" or "shortlisted".`,
+      requestId,
+      400
+    );
+  }
+
+  // Check slots
+  const slotsTotal = application.slots_total ?? application.max_participants;
+  const slotsSelected = application.slots_selected ?? application.current_participants;
+  if (slotsSelected >= slotsTotal) {
+    return error('NO_SLOTS', 'No slots available for this mission', requestId, 409);
+  }
+
+  // Check if operator already has a mission for this deal
+  const existingMission = await env.DB
+    .prepare('SELECT id FROM missions WHERE deal_id = ? AND operator_id = ?')
+    .bind(application.deal_id, application.operator_id)
+    .first();
+  if (existingMission) {
+    return error('ALREADY_HAS_MISSION', 'This operator already has a mission for this deal', requestId, 409);
+  }
+
+  // Parse optional body
+  let aiScore: number | null = null;
+  let aiNotes: string | null = null;
+  try {
+    const body = await request.json() as { ai_score?: number; ai_notes?: string };
+    aiScore = body.ai_score ?? null;
+    aiNotes = body.ai_notes ?? null;
+  } catch { /* Body is optional */ }
+
+  // Create mission and update counts atomically
+  const missionId = crypto.randomUUID().replace(/-/g, '');
+
+  const batchResults = await env.DB.batch([
+    env.DB.prepare(`
+      UPDATE applications SET
+        status = 'selected',
+        selected_at = datetime('now'),
+        ai_score = COALESCE(?, ai_score),
+        ai_notes = COALESCE(?, ai_notes),
+        updated_at = datetime('now')
+      WHERE id = ? AND status IN ('applied', 'shortlisted')
+    `).bind(aiScore, aiNotes, applicationId),
+    env.DB.prepare(`
+      UPDATE deals SET
+        slots_selected = COALESCE(slots_selected, current_participants) + 1,
+        current_participants = current_participants + 1,
+        updated_at = datetime('now')
+      WHERE id = ?
+        AND COALESCE(slots_selected, current_participants) < COALESCE(slots_total, max_participants)
+    `).bind(application.deal_id),
+    env.DB.prepare(`
+      INSERT INTO missions (id, deal_id, operator_id, status)
+      VALUES (?, ?, ?, 'accepted')
+    `).bind(missionId, application.deal_id, application.operator_id),
+  ]);
+
+  // Verify the deal update succeeded
+  const dealUpdateResult = batchResults[1];
+  if (!dealUpdateResult.success || (dealUpdateResult.meta?.changes ?? 0) === 0) {
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM missions WHERE id = ?').bind(missionId),
+      env.DB.prepare(`
+        UPDATE applications SET status = 'applied', selected_at = NULL, updated_at = datetime('now') WHERE id = ?
+      `).bind(applicationId),
+    ]);
+    return error('NO_SLOTS', 'No slots available (race condition)', requestId, 409);
+  }
+
+  return success({
+    application_id: applicationId,
+    mission_id: missionId,
+    status: 'selected',
+    message: 'Application selected. The promoter can now post on X and submit their URL.'
+  }, requestId, 201);
+}
+
+/**
+ * Reject an application
+ *
+ * POST /api/v1/applications/:applicationId/reject
+ */
+export async function handleRejectApplication(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  applicationId: string
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  const { application, error: ownershipError } = await getApplicationWithOwnership(
+    env, applicationId, advertiser.id, requestId
+  );
+  if (ownershipError) return ownershipError;
+
+  if (!['applied', 'shortlisted'].includes(application.status)) {
+    return error(
+      'INVALID_STATUS',
+      `Cannot reject application with status "${application.status}". Must be "applied" or "shortlisted".`,
+      requestId,
+      400
+    );
+  }
+
+  let reason: string | null = null;
+  try {
+    const body = await request.json() as { reason?: string };
+    reason = body.reason ?? null;
+  } catch { /* Body is optional */ }
+
+  await env.DB
+    .prepare(`
+      UPDATE applications SET
+        status = 'rejected',
+        rejected_at = datetime('now'),
+        ai_notes = COALESCE(?, ai_notes),
+        updated_at = datetime('now')
+      WHERE id = ?
+    `)
+    .bind(reason, applicationId)
+    .run();
+
+  return success({
+    application_id: applicationId,
+    status: 'rejected',
+    message: 'Application rejected'
   }, requestId);
 }

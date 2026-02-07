@@ -8,7 +8,7 @@ import { generateRandomString } from '../../utils/crypto';
 import { handleRegister } from './register';
 import { handleGetMe, handleGetStatus } from './profile';
 import { handleCreateMission, handleListMyMissions, handleGetMission } from './missions';
-import { handleListApplications } from './applications';
+import { handleListApplications, handleSelectApplication, handleRejectApplication } from './applications';
 import {
   handleListSubmissions,
   handleCreateTestSubmission,
@@ -95,6 +95,18 @@ export async function handleAiAdvertiserApi(
     const applicationsMatch = subPath.match(/^\/missions\/([a-zA-Z0-9_]+)\/applications$/);
     if (applicationsMatch && method === 'GET') {
       return await handleListApplications(request, env, context, applicationsMatch[1]);
+    }
+
+    // POST /applications/:id/select - Select an applicant
+    const selectAppMatch = subPath.match(/^\/applications\/([a-zA-Z0-9_]+)\/select$/);
+    if (selectAppMatch && method === 'POST') {
+      return await handleSelectApplication(request, env, context, selectAppMatch[1]);
+    }
+
+    // POST /applications/:id/reject - Reject an applicant
+    const rejectAppMatch = subPath.match(/^\/applications\/([a-zA-Z0-9_]+)\/reject$/);
+    if (rejectAppMatch && method === 'POST') {
+      return await handleRejectApplication(request, env, context, rejectAppMatch[1]);
     }
 
     // Submission endpoints (Phase 5)
