@@ -3,6 +3,7 @@ import { errors, generateRequestId } from './utils/response';
 import { authenticateAgent } from './middleware/auth';
 import { rateLimitMiddleware, checkRateLimit } from './middleware/rate-limit';
 import { SKILL_MD } from './content/skill-md';
+import { transferHusd, hasTreasuryKey } from './services/onchain';
 
 // Agent API
 import { createDeal, fundDeal, cancelDeal, listDeals, getDeal } from './api/agent/deals';
@@ -204,6 +205,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     }
     if (path === '/api/v1/faucet/balance' && method === 'GET') {
       return handleFaucetBalance(request, env);
+    }
+    // Server-side claim — AI just provides address, server does everything
+    if (path === '/api/v1/faucet/claim' && method === 'GET') {
+      return handleFaucetClaim(request, env);
     }
 
     // ============================================
@@ -1547,6 +1552,85 @@ async function handleFaucetReceipt(request: Request, env: Env): Promise<Response
 // Faucet Balance — check hUSD and ETH balance via GET
 // GET /api/v1/faucet/balance?address=0xADDRESS
 // ============================================
+
+// ============================================
+// Faucet Claim — server-side hUSD transfer via GET
+// AI just calls GET /api/v1/faucet/claim?address=0x...
+// Server transfers 1000 hUSD from treasury wallet. No signing needed from AI.
+// ============================================
+
+async function handleFaucetClaim(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const address = url.searchParams.get('address');
+
+  if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Missing or invalid address parameter. Use ?address=0x...',
+    }, 400);
+  }
+
+  // Check if treasury key is configured
+  if (!hasTreasuryKey(env)) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Faucet not configured. Treasury private key not set.',
+    }, 503);
+  }
+
+  // Cooldown check: max 1 claim per address per 24 hours
+  try {
+    const lastClaim = await env.DB.prepare(
+      'SELECT created_at FROM faucet_claims WHERE address = ? ORDER BY created_at DESC LIMIT 1'
+    ).bind(address.toLowerCase()).first<{ created_at: string }>();
+
+    if (lastClaim) {
+      const elapsed = Date.now() - new Date(lastClaim.created_at + 'Z').getTime();
+      const cooldownMs = 24 * 60 * 60 * 1000;
+      if (elapsed < cooldownMs) {
+        const remainingHours = ((cooldownMs - elapsed) / (60 * 60 * 1000)).toFixed(1);
+        return faucetJsonResponse({
+          success: false,
+          error: `Already claimed in the last 24 hours. Try again in ${remainingHours} hours.`,
+        }, 429);
+      }
+    }
+  } catch (e: any) {
+    // faucet_claims table might not exist yet — continue anyway
+    console.error('Cooldown check failed (table may not exist):', e.message);
+  }
+
+  // Transfer 1000 hUSD ($1000) from treasury to the address
+  // 1000 hUSD = 100000 cents (since $1 = 100 cents)
+  const amountCents = 100_000;
+  const result = await transferHusd(env, address, amountCents, { forceOnchain: true });
+
+  if (!result.success) {
+    return faucetJsonResponse({
+      success: false,
+      error: 'Transfer failed: ' + (result.error || 'unknown'),
+    }, 502);
+  }
+
+  // Record the claim
+  try {
+    await env.DB.prepare(
+      'INSERT INTO faucet_claims (address, tx_hash, amount_cents) VALUES (?, ?, ?)'
+    ).bind(address.toLowerCase(), result.txHash || '', amountCents).run();
+  } catch (e: any) {
+    // Non-fatal: claim succeeded even if recording fails
+    console.error('Failed to record faucet claim:', e.message);
+  }
+
+  return faucetJsonResponse({
+    success: true,
+    txHash: result.txHash,
+    amount: '1000 hUSD',
+    explorer: result.explorerUrl,
+    message: 'hUSD sent! Check your balance in ~15 seconds.',
+    checkBalance: `https://humanadsai.com/api/v1/faucet/balance?address=${address}`,
+  });
+}
 
 async function handleFaucetBalance(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
