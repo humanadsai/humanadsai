@@ -240,16 +240,19 @@ export async function handleListMyMissions(
 ): Promise<Response> {
   const { advertiser, requestId } = context;
 
-  // Query deals where agent_id = advertiser.id
+  // Query deals where agent_id = advertiser.id, with submission counts
   const missions = await env.DB
     .prepare(`
       SELECT
-        id, title, description, reward_amount, max_participants,
-        current_participants, status, expires_at, created_at, updated_at,
-        slots_total, slots_selected, applications_count, metadata
-      FROM deals
-      WHERE agent_id = ?
-      ORDER BY created_at DESC
+        d.id, d.title, d.description, d.reward_amount, d.max_participants,
+        d.current_participants, d.status, d.expires_at, d.created_at, d.updated_at,
+        d.slots_total, d.slots_selected, d.applications_count, d.metadata,
+        (SELECT COUNT(*) FROM applications a WHERE a.deal_id = d.id AND a.status = 'applied') as pending_applications_count,
+        (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status = 'submitted') as pending_submissions_count,
+        (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial', 'paid_complete')) as verified_submissions_count
+      FROM deals d
+      WHERE d.agent_id = ?
+      ORDER BY d.created_at DESC
     `)
     .bind(advertiser.id)
     .all();
@@ -278,6 +281,9 @@ export async function handleListMyMissions(
       max_claims: m.max_participants || m.slots_total,
       current_claims: m.current_participants || m.slots_selected,
       applications_count: m.applications_count || 0,
+      pending_applications_count: m.pending_applications_count || 0,
+      pending_submissions_count: m.pending_submissions_count || 0,
+      verified_submissions_count: m.verified_submissions_count || 0,
       reward_amount_cents: m.reward_amount,
       deadline_at: m.expires_at,
       created_at: m.created_at,
@@ -315,16 +321,19 @@ export async function handleGetMission(
 ): Promise<Response> {
   const { advertiser, requestId } = context;
 
-  // Query the mission
+  // Query the mission with submission counts
   const mission = await env.DB
     .prepare(`
       SELECT
-        id, agent_id, title, description, requirements, reward_amount,
-        max_participants, current_participants, status, expires_at,
-        created_at, updated_at, slots_total, slots_selected,
-        applications_count, metadata
-      FROM deals
-      WHERE id = ?
+        d.id, d.agent_id, d.title, d.description, d.requirements, d.reward_amount,
+        d.max_participants, d.current_participants, d.status, d.expires_at,
+        d.created_at, d.updated_at, d.slots_total, d.slots_selected,
+        d.applications_count, d.metadata,
+        (SELECT COUNT(*) FROM applications a WHERE a.deal_id = d.id AND a.status = 'applied') as pending_applications_count,
+        (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status = 'submitted') as pending_submissions_count,
+        (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial', 'paid_complete')) as verified_submissions_count
+      FROM deals d
+      WHERE d.id = ?
     `)
     .bind(missionId)
     .first();
@@ -348,10 +357,10 @@ export async function handleGetMission(
   let requirements = {};
   try {
     if (mission.metadata) {
-      metadata = JSON.parse(mission.metadata);
+      metadata = JSON.parse(mission.metadata as string);
     }
     if (mission.requirements) {
-      requirements = JSON.parse(mission.requirements);
+      requirements = JSON.parse(mission.requirements as string);
     }
   } catch (e) {
     // Ignore parse errors
@@ -366,6 +375,9 @@ export async function handleGetMission(
     max_claims: mission.max_participants || mission.slots_total,
     current_claims: mission.current_participants || mission.slots_selected,
     applications_count: mission.applications_count || 0,
+    pending_applications_count: mission.pending_applications_count || 0,
+    pending_submissions_count: mission.pending_submissions_count || 0,
+    verified_submissions_count: mission.verified_submissions_count || 0,
     reward_amount_cents: mission.reward_amount,
     deadline_at: mission.expires_at,
     created_at: mission.created_at,

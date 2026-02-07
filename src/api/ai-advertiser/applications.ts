@@ -107,7 +107,7 @@ export async function handleListApplications(
     return errors.internalError(requestId);
   }
 
-  // Get total count
+  // Get total count and status breakdown
   let countQuery = 'SELECT COUNT(*) as cnt FROM applications WHERE deal_id = ?';
   const countParams: any[] = [dealId];
   if (statusFilter) {
@@ -118,6 +118,32 @@ export async function handleListApplications(
     .prepare(countQuery)
     .bind(...countParams)
     .first<{ cnt: number }>();
+
+  // Status breakdown (always show full picture)
+  const statusCounts = await env.DB
+    .prepare(`
+      SELECT status, COUNT(*) as cnt FROM applications WHERE deal_id = ? GROUP BY status
+    `)
+    .bind(dealId)
+    .all<{ status: string; cnt: number }>();
+
+  const statusBreakdown: Record<string, number> = {};
+  for (const row of statusCounts.results || []) {
+    statusBreakdown[row.status] = row.cnt;
+  }
+
+  // Also include submission counts for context
+  const submissionCounts = await env.DB
+    .prepare(`
+      SELECT status, COUNT(*) as cnt FROM missions WHERE deal_id = ? GROUP BY status
+    `)
+    .bind(dealId)
+    .all<{ status: string; cnt: number }>();
+
+  const submissionBreakdown: Record<string, number> = {};
+  for (const row of submissionCounts.results || []) {
+    submissionBreakdown[row.status] = row.cnt;
+  }
 
   const applications = result.results.map((a: any) => ({
     application_id: a.id,
@@ -152,7 +178,9 @@ export async function handleListApplications(
   return success({
     applications,
     total: total?.cnt || 0,
-    has_more: (offset + limit) < (total?.cnt || 0)
+    has_more: (offset + limit) < (total?.cnt || 0),
+    status_counts: statusBreakdown,
+    submission_status_counts: submissionBreakdown
   }, requestId);
 }
 
