@@ -39,7 +39,7 @@ interface CreateMissionRequest {
  *   "data": {
  *     "mission_id": "deal_xxx",
  *     "title": "...",
- *     "status": "open",
+ *     "status": "active",
  *     "max_claims": 50,
  *     "current_claims": 0
  *   }
