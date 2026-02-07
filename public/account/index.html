@@ -567,8 +567,11 @@
                   ? '<span class="status-badge connected" style="font-size:0.7rem;">Verified</span>'
                   : '<span class="status-badge user" style="font-size:0.7rem;color:#ff9500;">Unverified</span>'}
               </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              ${!verified ? '<p style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:12px;">Check your inbox for the verification email. Wrong address? Remove and re-add.</p>' : ''}
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                 <a href="/settings/notifications" class="manage-link" style="margin-top:0;">Notification Settings</a>
+                <button class="btn btn-outline" style="font-size:0.7rem;padding:4px 12px;" onclick="changeEmail(${verified})">${verified ? 'Change' : 'Change'}</button>
+                <button class="btn btn-outline" style="font-size:0.7rem;padding:4px 12px;color:#F44336;border-color:rgba(244,67,54,0.3);" onclick="removeEmail()">Remove</button>
               </div>
             `;
           } else {
@@ -612,6 +615,83 @@
         SideMenu.init(true);
       }
     })();
+
+    async function removeEmail() {
+      if (!confirm('Remove your email address? You can add a new one afterwards.')) return;
+      try {
+        var resp = await fetch('/api/operator/email', {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        if (resp.ok) {
+          location.reload();
+        } else {
+          var data = await resp.json();
+          alert(data.error?.message || 'Failed to remove email');
+        }
+      } catch (e) {
+        alert('Failed to remove email');
+      }
+    }
+
+    async function changeEmail(isVerified) {
+      if (isVerified) {
+        // Verified email: use the change API
+        var newEmail = prompt('Enter your new email address:');
+        if (!newEmail) return;
+        newEmail = newEmail.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+          alert('Invalid email format');
+          return;
+        }
+        try {
+          var resp = await fetch('/api/operator/email/change', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ new_email: newEmail }),
+          });
+          var data = await resp.json();
+          if (resp.ok) {
+            var el = document.getElementById('email-card-content');
+            if (el) el.innerHTML = '<p style="color:#4CAF50;">Verification email sent to your new address. Check your inbox.</p>';
+          } else {
+            alert(data.error?.message || 'Failed to change email');
+          }
+        } catch (e) {
+          alert('Failed to change email');
+        }
+      } else {
+        // Unverified email: remove then re-add
+        var newEmail = prompt('Enter the correct email address:');
+        if (!newEmail) return;
+        newEmail = newEmail.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+          alert('Invalid email format');
+          return;
+        }
+        try {
+          // Remove old
+          await fetch('/api/operator/email', { method: 'DELETE', credentials: 'include' });
+          // Add new
+          var resp = await fetch('/api/operator/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email: newEmail }),
+          });
+          var data = await resp.json();
+          if (resp.ok) {
+            var el = document.getElementById('email-card-content');
+            if (el) el.innerHTML = '<p style="color:#4CAF50;">Verification email sent to ' + newEmail + '. Check your inbox.</p>';
+          } else {
+            alert(data.error?.message || 'Failed to add email');
+          }
+        } catch (e) {
+          alert('Failed to change email');
+        }
+      }
+    }
 
     async function addEmailPrompt() {
       var email = prompt('Enter your email address:');
