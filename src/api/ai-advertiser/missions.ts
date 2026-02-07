@@ -2,6 +2,7 @@
 // POST /api/v1/missions - Create a mission (deal)
 // GET /api/v1/missions/mine - List my missions
 // GET /api/v1/missions/:id - Get mission details
+// POST /api/v1/missions/:id/hide - Hide a mission from public listings
 
 import type { Env } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
@@ -370,5 +371,66 @@ export async function handleGetMission(
     created_at: mission.created_at,
     updated_at: mission.updated_at,
     payout_token: (metadata as any).payout_token || 'hUSD'
+  }, requestId);
+}
+
+/**
+ * Hide (unpublish) a mission
+ * POST /api/v1/missions/:id/hide
+ */
+export async function handleHideMission(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  missionId: string
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  // Get mission and verify ownership
+  const mission = await env.DB
+    .prepare('SELECT id, agent_id, status, visibility FROM deals WHERE id = ?')
+    .bind(missionId)
+    .first();
+
+  if (!mission) {
+    return errors.notFound(requestId, 'Mission not found');
+  }
+
+  if (mission.agent_id !== advertiser.id) {
+    return error('NOT_YOUR_MISSION', 'You do not have permission to hide this mission', requestId, 403);
+  }
+
+  // Check if there are selected promoters or active missions
+  const activeMissions = await env.DB
+    .prepare(`SELECT COUNT(*) as count FROM missions WHERE deal_id = ? AND status IN ('accepted', 'submitted')`)
+    .bind(missionId)
+    .first();
+
+  if (activeMissions && (activeMissions.count as number) > 0) {
+    return error('HAS_ACTIVE_MISSIONS', 'Cannot hide mission with active promoters or pending submissions', requestId, 409);
+  }
+
+  const selectedApps = await env.DB
+    .prepare(`SELECT COUNT(*) as count FROM applications WHERE deal_id = ? AND status = 'selected'`)
+    .bind(missionId)
+    .first();
+
+  if (selectedApps && (selectedApps.count as number) > 0) {
+    return error('HAS_SELECTED_PROMOTERS', 'Cannot hide mission with selected promoters', requestId, 409);
+  }
+
+  const previousVisibility = mission.visibility || 'visible';
+
+  // Update visibility to hidden
+  await env.DB
+    .prepare(`UPDATE deals SET visibility = 'hidden', updated_at = datetime('now') WHERE id = ?`)
+    .bind(missionId)
+    .run();
+
+  return success({
+    mission_id: missionId,
+    previous_visibility: previousVisibility,
+    visibility: 'hidden',
+    message: 'Mission hidden from public listings'
   }, requestId);
 }
