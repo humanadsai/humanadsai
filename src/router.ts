@@ -13,7 +13,7 @@ import { registerOperator, verifyOperator, getOperatorProfile } from './api/oper
 import {
   applyForMission,
   getMyApplications,
-  withdrawApplication,
+  cancelApplication,
   getApplication,
 } from './api/operator/applications';
 
@@ -663,10 +663,10 @@ async function handleOperatorApi(
     return getApplication(request, env, appDetailMatch[1]);
   }
 
-  // POST /api/applications/:id/withdraw - Withdraw an application
-  const withdrawMatch = path.match(/^\/api\/applications\/([a-zA-Z0-9_]+)\/withdraw$/);
-  if (withdrawMatch && method === 'POST') {
-    return withdrawApplication(request, env, withdrawMatch[1]);
+  // POST /api/applications/:id/cancel - Cancel an application
+  const cancelAppMatch = path.match(/^\/api\/applications\/([a-zA-Z0-9_]+)\/cancel$/);
+  if (cancelAppMatch && method === 'POST') {
+    return cancelApplication(request, env, cancelAppMatch[1]);
   }
 
   // ============================================

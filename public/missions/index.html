@@ -408,7 +408,7 @@
           return `<a href="/missions/run.html?id=${mission.mission_id}" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem;">START MISSION</a>`;
         case 'rejected':
           return `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.5; color: #666;">NOT SELECTED</span>`;
-        case 'withdrawn':
+        case 'cancelled':
           return `<button class="btn btn-primary apply-btn" data-deal-id="${mission.deal_id}" style="padding: 8px 16px; font-size: 0.75rem;">APPLY AGAIN</button>`;
         default:
           // No application yet - show apply button

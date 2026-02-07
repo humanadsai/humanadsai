@@ -76,7 +76,7 @@
       border: 1px solid rgba(244, 67, 54, 0.4);
       color: #E57373;
     }
-    .status-expired, .status-withdrawn, .status-cancelled {
+    .status-expired, .status-cancelled {
       background: rgba(158, 158, 158, 0.25);
       border: 1px solid rgba(158, 158, 158, 0.4);
       color: #BDBDBD;
@@ -389,8 +389,8 @@
             <p style="color: #2196F3; font-size: 0.85rem; margin-bottom: 8px;">
               Your application is being reviewed by AI.
             </p>
-            <button class="btn btn-outline withdraw-btn" data-app-id="${app.id}" style="font-size: 0.75rem; padding: 6px 12px;">
-              Withdraw Application
+            <button class="btn btn-outline cancel-app-btn" data-app-id="${app.id}" style="font-size: 0.75rem; padding: 6px 12px;">
+              Cancel Application
             </button>
           </div>
         `;
@@ -401,8 +401,8 @@
               You've been shortlisted! Final selection coming soon.
             </p>
             ${app.ai_notes ? `<p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 8px;">Feedback: ${escapeHtml(app.ai_notes)}</p>` : ''}
-            <button class="btn btn-outline withdraw-btn" data-app-id="${app.id}" style="font-size: 0.75rem; padding: 6px 12px; margin-top: 8px;">
-              Withdraw Application
+            <button class="btn btn-outline cancel-app-btn" data-app-id="${app.id}" style="font-size: 0.75rem; padding: 6px 12px; margin-top: 8px;">
+              Cancel Application
             </button>
           </div>
         `;
@@ -449,10 +449,10 @@
         ${actionHtml}
       `;
 
-      // Add withdraw handler
-      const withdrawBtn = el.querySelector('.withdraw-btn');
-      if (withdrawBtn) {
-        withdrawBtn.addEventListener('click', () => handleWithdraw(app.id, withdrawBtn));
+      // Add cancel handler
+      const cancelAppBtn = el.querySelector('.cancel-app-btn');
+      if (cancelAppBtn) {
+        cancelAppBtn.addEventListener('click', () => handleCancelApp(app.id, cancelAppBtn));
       }
 
       return el;
@@ -591,7 +591,7 @@
     async function handleCancelMission(missionId, missionStatus, btn) {
       const isSubmitted = missionStatus === 'submitted';
       const confirmMessage = isSubmitted
-        ? 'Cancel this submission?\n\nThis withdraws your submitted post from review. If the AI has already started reviewing, you may not be able to cancel.'
+        ? 'Cancel this submission?\n\nThis cancels your submitted post from review. If the AI has already started reviewing, you may not be able to cancel.'
         : 'Are you sure you want to cancel this mission? The slot will be released.';
 
       if (!confirm(confirmMessage)) {
@@ -644,19 +644,19 @@
       }
     }
 
-    async function handleWithdraw(appId, btn) {
-      if (!confirm('Are you sure you want to withdraw this application?')) {
+    async function handleCancelApp(appId, btn) {
+      if (!confirm('Are you sure you want to cancel this application?')) {
         return;
       }
 
       HumanAds.setButtonLoading(btn, true);
 
       try {
-        await HumanAds.withdrawApplication(appId);
-        HumanAds.showAlert('Application withdrawn successfully.');
+        await HumanAds.cancelApplication(appId);
+        HumanAds.showAlert('Application cancelled successfully.');
         loadData(currentStatus, currentType);
       } catch (error) {
-        HumanAds.showAlert(error.message || 'Failed to withdraw application', 'error');
+        HumanAds.showAlert(error.message || 'Failed to cancel application', 'error');
       } finally {
         HumanAds.setButtonLoading(btn, false);
       }

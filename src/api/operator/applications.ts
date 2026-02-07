@@ -72,10 +72,10 @@ export async function applyForMission(
       .first<Application>();
 
     if (existing) {
-      // Allow re-application if previously withdrawn or cancelled
-      if (existing.status === 'withdrawn' || existing.status === 'cancelled') {
-        // Check cooldown for cancelled applications
-        if (existing.status === 'cancelled' && existing.metadata) {
+      // Allow re-application if previously cancelled
+      if (existing.status === 'cancelled') {
+        // Check cooldown for cancelled applications (with reason metadata)
+        if (existing.metadata) {
           try {
             const metadata = JSON.parse(existing.metadata as string);
             if (metadata.cooldown_until) {
@@ -107,7 +107,7 @@ export async function applyForMission(
             audience_fit = ?,
             portfolio_links = ?,
             applied_at = datetime('now'),
-            withdrawn_at = NULL,
+            cancelled_at = NULL,
             metadata = NULL,
             updated_at = datetime('now')
            WHERE id = ?`
@@ -285,13 +285,13 @@ export async function getMyApplications(request: Request, env: Env): Promise<Res
 }
 
 /**
- * Withdraw an application
+ * Cancel an application
  *
- * POST /api/applications/:id/withdraw
+ * POST /api/applications/:id/cancel
  *
- * Allows operator to withdraw their application before selection
+ * Allows operator to cancel their application before selection
  */
-export async function withdrawApplication(
+export async function cancelApplication(
   request: Request,
   env: Env,
   applicationId: string
@@ -318,10 +318,10 @@ export async function withdrawApplication(
       return errors.notFound(requestId, 'Application');
     }
 
-    // Can only withdraw applied or shortlisted applications
+    // Can only cancel applied or shortlisted applications
     if (!['applied', 'shortlisted'].includes(application.status)) {
       return errors.invalidRequest(requestId, {
-        message: `Cannot withdraw application with status '${application.status}'`,
+        message: `Cannot cancel application with status '${application.status}'`,
       });
     }
 
@@ -329,8 +329,8 @@ export async function withdrawApplication(
     await env.DB.batch([
       env.DB.prepare(
         `UPDATE applications SET
-          status = 'withdrawn',
-          withdrawn_at = datetime('now'),
+          status = 'cancelled',
+          cancelled_at = datetime('now'),
           updated_at = datetime('now')
          WHERE id = ?`
       ).bind(applicationId),
@@ -343,13 +343,13 @@ export async function withdrawApplication(
     return success(
       {
         application_id: applicationId,
-        status: 'withdrawn',
-        message: 'Application withdrawn successfully',
+        status: 'cancelled',
+        message: 'Application cancelled successfully',
       },
       requestId
     );
   } catch (e) {
-    console.error('Withdraw application error:', e);
+    console.error('Cancel application error:', e);
     return errors.internalError(requestId);
   }
 }

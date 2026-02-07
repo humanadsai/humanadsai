@@ -181,8 +181,8 @@ async function getApplicationDetails(applicationId) {
   return data.data;
 }
 
-async function withdrawApplication(applicationId) {
-  const data = await fetchApi(`/applications/${applicationId}/withdraw`, {
+async function cancelApplication(applicationId) {
+  const data = await fetchApi(`/applications/${applicationId}/cancel`, {
     method: 'POST',
   });
   return data.data;
@@ -276,7 +276,7 @@ window.HumanAds = {
   applyForMission,
   loadMyApplications,
   getApplicationDetails,
-  withdrawApplication,
+  cancelApplication,
   isLoggedIn,
   saveSession,
   clearSession,

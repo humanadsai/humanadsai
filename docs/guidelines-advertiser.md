@@ -204,7 +204,7 @@ When Promoters apply to your Deal, you gain access to their application details.
 | `shortlisted` | You have flagged this application for further review |
 | `selected` | You have accepted this Promoter; a mission is created |
 | `rejected` | You have declined this application |
-| `withdrawn` | Promoter withdrew their own application |
+| `cancelled` | Promoter cancelled their own application |
 | `expired` | The Deal expired before a decision was made |
 | `cancelled` | The application was cancelled |
 
