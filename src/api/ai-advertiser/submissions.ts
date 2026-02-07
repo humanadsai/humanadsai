@@ -142,85 +142,99 @@ export async function handleListSubmissions(
 }
 
 // Test promoter profiles (same as advertiser/test.ts)
-const TEST_PROMOTERS = [
-  {
-    id: 'op_test_alice',
-    x_handle: '@alice_web3',
-    x_user_id: 'test_alice_001',
-    display_name: 'Alice | Web3 Creator',
-    evm_wallet_address: '0x742d35cc6634c0532925a3b844bc9e7595f8fe00',
-    x_followers_count: 12400,
-    x_tweet_count: 3200,
-    x_verified: 1,
-    total_missions_completed: 8,
-    total_earnings: 4200,
-    x_description: 'Web3 creator & DeFi enthusiast. Building the future of decentralized advertising.',
-    submission_url: 'https://x.com/alice_web3/status/1234567890',
-  },
-  {
-    id: 'op_test_bob',
-    x_handle: '@bob_crypto',
-    x_user_id: 'test_bob_002',
-    display_name: 'Bob Crypto Daily',
-    evm_wallet_address: '0x8ba1f109551bd432803012645ac136ddd64dba72',
-    x_followers_count: 45200,
-    x_tweet_count: 8900,
-    x_verified: 1,
-    total_missions_completed: 23,
-    total_earnings: 15800,
-    x_description: 'Daily crypto analysis & insights. 45K+ community. DM for collabs.',
-    submission_url: 'https://x.com/bob_crypto/status/2345678901',
-  },
-  {
-    id: 'op_test_carol',
-    x_handle: '@carol_defi',
-    x_user_id: 'test_carol_003',
-    display_name: 'Carol',
-    evm_wallet_address: '0x2932b7a2355d6fecc4b5c0b6bd44cc31df247a2e',
-    x_followers_count: 2100,
-    x_tweet_count: 1100,
-    x_verified: 0,
-    total_missions_completed: 2,
-    total_earnings: 1000,
-    x_description: 'DeFi researcher. New to promotions but passionate about the space.',
-    submission_url: 'https://x.com/carol_defi/status/3456789012',
-  },
-  {
-    id: 'op_test_dave',
-    x_handle: '@dave_nft_king',
-    x_user_id: 'test_dave_004',
-    display_name: 'Dave NFT King',
-    evm_wallet_address: '0x4b20993bc481177ec7e8f571cecae8a9e22c02db',
-    x_followers_count: 89500,
-    x_tweet_count: 15600,
-    x_verified: 1,
-    total_missions_completed: 47,
-    total_earnings: 38500,
-    x_description: 'NFT & crypto influencer. Top promoter on HumanAds. Always deliver quality.',
-    submission_url: 'https://x.com/dave_nft_king/status/4567890123',
-  },
-  {
-    id: 'op_test_eve',
-    x_handle: '@eve_blockchain',
-    x_user_id: 'test_eve_005',
-    display_name: 'Eve Blockchain Dev',
-    evm_wallet_address: '0x78731d3ca6b7e34ac0f824c42a7cc18a495cabab',
-    x_followers_count: 6800,
-    x_tweet_count: 2400,
-    x_verified: 0,
-    total_missions_completed: 5,
-    total_earnings: 2500,
-    x_description: 'Blockchain developer & technical writer. I explain complex topics simply.',
-    submission_url: 'https://x.com/eve_blockchain/status/5678901234',
-  },
+// ── Random test promoter generator ──
+const FIRST_NAMES = [
+  'Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank', 'Grace', 'Hiro',
+  'Ivy', 'Jake', 'Kira', 'Leo', 'Maya', 'Noah', 'Olivia', 'Pete',
+  'Quinn', 'Ruby', 'Sam', 'Tina', 'Uma', 'Vince', 'Wendy', 'Xander',
+  'Yuki', 'Zara', 'Aiden', 'Bella', 'Chase', 'Diana', 'Ethan', 'Faye',
+  'Gabe', 'Hana', 'Isaac', 'Jade', 'Kai', 'Luna', 'Max', 'Nina',
+  'Oscar', 'Pia', 'Reed', 'Sofia', 'Tyler', 'Uma', 'Vera', 'Wade',
+  'Xena', 'Yara',
 ];
+const TAGS = [
+  'web3', 'crypto', 'defi', 'nft', 'dao', 'ai', 'dev', 'builder',
+  'trader', 'alpha', 'ape', 'degen', 'hodl', 'punk', 'moon',
+  'chain', 'block', 'token', 'eth', 'sol', 'based', 'anon', 'ser',
+  'gm', 'wagmi',
+];
+const TITLES = [
+  'Creator', 'Enthusiast', 'Analyst', 'Builder', 'Influencer',
+  'Researcher', 'Writer', 'Promoter', 'Trader', 'Developer',
+  'Strategist', 'Advocate', 'Educator', 'Curator', 'Pioneer',
+];
+const BIOS = [
+  'Building the future of decentralized advertising.',
+  'Daily crypto analysis & insights.',
+  'DeFi researcher exploring the frontier.',
+  'NFT & crypto influencer. Quality content always.',
+  'Blockchain developer & technical writer.',
+  'Web3 native. Passionate about onchain culture.',
+  'Full-time degen, part-time analyst.',
+  'Community builder & content creator.',
+  'Exploring the intersection of AI and crypto.',
+  'On a mission to make Web3 accessible to everyone.',
+  'Tokenomics nerd. Thread game strong.',
+  'Alpha hunter. NFA. DYOR.',
+  'Bridging TradFi and DeFi one post at a time.',
+  'Shitposting my way through the bear market.',
+  'Building in public. Shipping daily.',
+  'Professional bag holder & part-time educator.',
+  'Making crypto simple for normies.',
+  'DAO contributor & governance enthusiast.',
+  'Smart contract auditor turned content creator.',
+  'Onchain since 2017. Still learning.',
+];
+
+function generateTestPromoters(count: number): typeof FIRST_NAMES extends (infer _)[] ? any[] : never {
+  const promoters: any[] = [];
+  const usedNames = new Set<string>();
+  for (let i = 0; i < count; i++) {
+    let name: string;
+    do {
+      name = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
+    } while (usedNames.has(name) && usedNames.size < FIRST_NAMES.length);
+    usedNames.add(name);
+
+    const tag = TAGS[Math.floor(Math.random() * TAGS.length)];
+    const title = TITLES[Math.floor(Math.random() * TITLES.length)];
+    const bio = BIOS[Math.floor(Math.random() * BIOS.length)];
+    const handle = `${name.toLowerCase()}_${tag}`;
+    const followers = Math.floor(Math.random() * 200000) + 500;
+    const tweets = Math.floor(Math.random() * 20000) + 100;
+    const verified = Math.random() > 0.5 ? 1 : 0;
+    const completed = Math.floor(Math.random() * 60);
+    const earnings = completed * Math.floor(Math.random() * 800 + 200);
+    // Generate random hex address (lowercase, no checksum issues)
+    const addrBytes = Array.from({ length: 20 }, () =>
+      Math.floor(Math.random() * 256).toString(16).padStart(2, '0')
+    ).join('');
+    const statusId = (1800000000000000000n + BigInt(Math.floor(Math.random() * 99999999999))).toString();
+
+    promoters.push({
+      id: `op_test_${handle}_${i}`,
+      x_handle: handle,
+      x_user_id: `test_${handle}_${String(i).padStart(3, '0')}`,
+      display_name: completed > 30 ? `${name} | ${title}` : name,
+      evm_wallet_address: `0x${addrBytes}`,
+      x_followers_count: followers,
+      x_tweet_count: tweets,
+      x_verified: verified,
+      total_missions_completed: completed,
+      total_earnings: earnings,
+      x_description: `${bio} ${followers > 50000 ? followers.toLocaleString() + '+ community.' : ''}`,
+      submission_url: `https://x.com/${handle}/status/${statusId}`,
+    });
+  }
+  return promoters;
+}
 
 /**
  * Seed test promoters & submissions (test mode only)
  *
  * POST /api/v1/missions/:dealId/test-submission
  *
- * Creates 5 simulated promoter submissions so the advertiser can
+ * Creates 50 randomized simulated promoter submissions so the advertiser can
  * select one and test the full approve/reject/payout flow.
  */
 export async function handleCreateTestSubmission(
@@ -257,6 +271,7 @@ export async function handleCreateTestSubmission(
   }
 
   const promoters: any[] = [];
+  const TEST_PROMOTERS = generateTestPromoters(50);
 
   for (const p of TEST_PROMOTERS) {
     // Create or update test operator
