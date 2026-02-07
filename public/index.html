@@ -161,7 +161,29 @@
     }
     .ai-cmd-copy.copied {
       color: #00D4AA;
+      position: relative;
     }
+    .ai-cmd-copy .icon-check { display: none; }
+    .ai-cmd-copy.copied .icon-copy { display: none; }
+    .ai-cmd-copy.copied .icon-check { display: inline; }
+    .ai-cmd-copy .copied-tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00D4AA;
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: copiedFadeIn 0.15s ease;
+    }
+    .ai-cmd-copy.copied .copied-tooltip { display: block; }
+    @keyframes copiedFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
     .ai-steps {
       list-style: none;
       padding: 0;
@@ -295,10 +317,14 @@
           <div class="ai-cmd-block">
             <code class="ai-cmd-text">curl -s https://humanadsai.com/skill.md</code>
             <button class="ai-cmd-copy" id="ai-copy-btn" type="button" title="Copy">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <span class="icon-copy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
+              </svg></span>
+              <span class="icon-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg></span>
+              <span class="copied-tooltip">Copied!</span>
             </button>
           </div>
 
