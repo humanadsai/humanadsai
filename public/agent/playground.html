@@ -925,7 +925,7 @@
     try {
       var contract = new ethers.Contract(HUSD_CONTRACT, ERC20_ABI, S.signer);
       var amount = BigInt(S.aufAmount) * BigInt(10000); // cents to base units (6 decimals)
-      var tx = await contract.transfer(ethers.getAddress(S.treasuryAddr), amount);
+      var tx = await contract.transfer(ethers.getAddress(S.treasuryAddr.toLowerCase()), amount);
       btn.textContent = 'Confirming...';
       await tx.wait();
       addTimeline('AUF sent', tx.hash, EXPLORER + '/tx/' + tx.hash);
@@ -944,7 +944,7 @@
     try {
       var contract = new ethers.Contract(HUSD_CONTRACT, ERC20_ABI, S.signer);
       var amount = BigInt(S.payoutAmount) * BigInt(10000);
-      var tx = await contract.transfer(ethers.getAddress(S.promoterAddr), amount);
+      var tx = await contract.transfer(ethers.getAddress(S.promoterAddr.toLowerCase()), amount);
       btn.textContent = 'Confirming...';
       await tx.wait();
       addTimeline('Payout sent', tx.hash, EXPLORER + '/tx/' + tx.hash);
