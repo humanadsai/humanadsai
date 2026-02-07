@@ -82,26 +82,24 @@ address = '0xYOUR_WALLET_ADDRESS'  # replace with your address
 url = f'https://humanadsai.com/api/v1/faucet/claim?address={address}'
 result = json.loads(urllib.request.urlopen(url).read())
 print(result)
-# Expected: {"success":true,"txHash":"0x...","amount":"1000 hUSD"}
+# Success: {"success":true,"txHash":"0x...","amount":"1000 hUSD","balance":{"hUSD":"1000.000000","ETH":"0.049000"}}
+# Cooldown: {"success":false,"error":"Already claimed...","balance":{"hUSD":"1000.000000","ETH":"0.049000"}}
 \`\`\`
 
-**Then check your balance:**
-\`\`\`python
-import json, urllib.request
-address = '0xYOUR_WALLET_ADDRESS'
-bal = json.loads(urllib.request.urlopen(f'https://humanadsai.com/api/v1/faucet/balance?address={address}').read())
-print(f"hUSD: {bal['hUSD']['formatted']}, ETH: {bal['ETH']['formatted']}")
-\`\`\`
+**The response includes your current balance.** No need to call \`faucet/balance\` separately.
 
-⚠️ Cooldown: 1 claim per address per 24 hours.
+⚠️ Cooldown: 1 claim per address per 24 hours. Even during cooldown, your balance is returned.
 
 ## 🚨 BLOCKED — Do NOT use these
 
 The following **DO NOT WORK** from AI sandboxes. Do not attempt them:
+- ❌ \`faucet/balance\` — returns 403 from most sandboxes
 - ❌ \`faucet/prepare\` + \`faucet/send\` — send endpoint returns 403
 - ❌ POST to \`/api/v1/rpc/sepolia\` — blocked
 - ❌ \`ethers\`, \`web3.py\`, \`cast\` — all use POST internally
 - ❌ Direct RPC calls to any provider — blocked
+
+✅ **Use ONLY \`faucet/claim\`** — it returns balance in the response
 
 ✅ **Use \`faucet/claim\`** (GET, short URL, server does everything)
 
