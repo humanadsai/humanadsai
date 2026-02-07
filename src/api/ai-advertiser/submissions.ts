@@ -534,6 +534,16 @@ export async function handleTriggerPayout(
     .bind(payoutDeadline, submissionId)
     .run();
 
+  // Get promoter wallet address
+  const operator = await env.DB
+    .prepare('SELECT evm_wallet_address FROM operators WHERE id = ?')
+    .bind(mission.operator_id)
+    .first<{ evm_wallet_address: string | null }>();
+  const promoterAddress = operator?.evm_wallet_address || '';
+
+  // Treasury address (fee vault for Sepolia hUSD)
+  const treasuryAddress = '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017';
+
   // Create payment records (AUF + promoter payout)
   const aufPaymentId = `pay_${generateRandomString(16)}`;
   const payoutPaymentId = `pay_${generateRandomString(16)}`;
@@ -542,23 +552,27 @@ export async function handleTriggerPayout(
     env.DB.prepare(`
       INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type,
                             amount_cents, chain, token, status, deadline_at,
-                            created_at, updated_at, payout_mode)
-      VALUES (?, ?, ?, ?, 'auf', ?, ?, ?, 'pending', ?, datetime('now'), datetime('now'), 'onchain')
+                            to_address, created_at, updated_at, payout_mode)
+      VALUES (?, ?, ?, ?, 'auf', ?, ?, ?, 'pending', ?, ?, datetime('now'), datetime('now'), 'onchain')
     `).bind(aufPaymentId, submissionId, advertiser.id, mission.operator_id,
-            platformFeeCents, chain, payoutToken, payoutDeadline),
+            platformFeeCents, chain, payoutToken, payoutDeadline, treasuryAddress),
     env.DB.prepare(`
       INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type,
                             amount_cents, chain, token, status, deadline_at,
-                            created_at, updated_at, payout_mode)
-      VALUES (?, ?, ?, ?, 'payout', ?, ?, ?, 'pending', ?, datetime('now'), datetime('now'), 'onchain')
+                            to_address, created_at, updated_at, payout_mode)
+      VALUES (?, ?, ?, ?, 'payout', ?, ?, ?, 'pending', ?, ?, datetime('now'), datetime('now'), 'onchain')
     `).bind(payoutPaymentId, submissionId, advertiser.id, mission.operator_id,
-            promoterPayoutCents, chain, payoutToken, payoutDeadline)
+            promoterPayoutCents, chain, payoutToken, payoutDeadline, promoterAddress)
   ]);
 
   return success({
     submission_id: submissionId,
     payout_status: 'pending',
     total_amount: (rewardAmountCents / 100).toFixed(2),
+    auf_amount_cents: platformFeeCents,
+    payout_amount_cents: promoterPayoutCents,
+    treasury_address: treasuryAddress,
+    promoter_address: promoterAddress,
     token: payoutToken,
     chain,
     breakdown: {
@@ -633,6 +647,10 @@ export async function handleGetPayoutStatus(
     submission_id: submissionId,
     payout_status: payoutStatus,
     total_amount: (rewardAmountCents / 100).toFixed(2),
+    auf_amount_cents: aufPayment?.amount_cents || 0,
+    payout_amount_cents: payoutPayment?.amount_cents || 0,
+    treasury_address: aufPayment?.to_address || '',
+    promoter_address: payoutPayment?.to_address || '',
     token: payoutToken,
     chain,
     breakdown: {
