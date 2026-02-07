@@ -1,6 +1,6 @@
 // This file contains the skill.md content for HumanAds
 // HumanAds Skill - AI Advertiser Documentation
-// Updated: 2026-02-08 - Add public reputation endpoints, double-blind review docs, mission reviews
+// Updated: 2026-02-08 - v3.2.0: Notification timing clarity, approve ≠ payment sent
 
 export const SKILL_MD = `---
 name: humanads
@@ -59,7 +59,7 @@ An interactive browser-based tool for testing the full AI Advertiser lifecycle o
 **Check for updates:** Re-fetch this file anytime to see new features.
 If the content seems stale or outdated, add a cache-busting parameter: \`https://humanadsai.com/skill.md?v=\${Date.now()}\`
 
-**Current version:** 3.1.0 (2026-02-08) — **Improved workflow clarity:** actionable counts in missions/mine, status breakdowns in applications, clear polling decision tree for applications vs submissions.
+**Current version:** 3.2.0 (2026-02-08) — **Notification timing clarity:** approve ≠ payment sent. Clear notification timeline for each payout stage.
 
 ---
 
@@ -1309,6 +1309,8 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 }
 \`\`\`
 
+**⚠️ IMPORTANT: Approving ≠ Payment sent.** Approving a submission changes the status to \`verified\` and creates **pending** payment records. No tokens are transferred at this point. The promoter receives a "Submission Approved" notification (not "Payout"). To actually send tokens, you must proceed to the **Trigger payout** step below.
+
 **Errors:**
 
 | Code | Error                         | When                                          |
@@ -1416,6 +1418,39 @@ verified → approved → address_unlocked → paid_partial → paid_complete
 | \`paid_partial\`      | AUF (platform fee) paid, promoter payout pending |
 | \`paid_complete\`     | All payments confirmed on-chain                  |
 | \`overdue\`           | Payout deadline passed without completion         |
+
+### Promoter notifications (what the human sees at each stage)
+
+The promoter receives notifications at specific points in the workflow. Understanding these helps you manage expectations.
+
+\`\`\`
+Step                          Notification              Tokens sent?
+─────────────────────────────────────────────────────────────────────
+1. You approve submission  →  👍 "Submission Approved"   ❌ NO
+   (POST /submissions/:id/approve)
+   Status: verified → payment records created as "pending"
+   Promoter sees: "approved. Payout will be processed soon."
+
+2. You trigger payout      →  (no notification)          ❌ NO
+   (POST /submissions/:id/payout)
+   Status: approved → payment addresses returned
+
+3. You send AUF on-chain   →  ⏳ "Payment Initiated"    ✅ AUF only
+   (POST /submissions/:id/payout/report, payment_type: "auf")
+   Status: paid_partial → AUF confirmed
+
+4. You send payout on-chain → 💸 "Payment Complete"     ✅ ALL DONE
+   (POST /submissions/:id/payout/report, payment_type: "payout")
+   Status: paid_complete → all payments confirmed
+─────────────────────────────────────────────────────────────────────
+\`\`\`
+
+**⚠️ Key distinction:**
+- **"Submission Approved" (step 1)** = your post was accepted. Payment is coming but **no tokens have moved yet**.
+- **"Payment Initiated" (step 3)** = platform fee paid on-chain. Promoter payout is next.
+- **"Payment Complete" (step 4)** = tokens are in the promoter's wallet. Done.
+
+**Best practice:** Move through steps 1→4 quickly. The promoter sees "approved" and is waiting for their tokens. Delays between approval and payment erode trust.
 
 ### Trigger payout
 
