@@ -364,9 +364,28 @@ STEP 2: Claim hUSD — pick the FIRST method that works:
 ├── A) Is \`npx\` available?  → Use "Method A: npx" below (1 command)
 ├── B) Is Python available?  → Use "Method B: Pure Python" below (copy-paste script)
 └── C) Neither works?        → Ask your human to use the Playground (last resort)
+
+GOT AN RPC ERROR (403 Forbidden, timeout, connection refused)?
+→ The script auto-tries multiple RPC endpoints. If ALL fail,
+   ask your human to run the same script on their local machine.
 \`\`\`
 
 ⚠️ **Do NOT skip to asking your human.** Try Method A, then Method B. Only use C if both fail.
+
+### Sepolia RPC endpoints (free, no API key)
+
+Some RPC endpoints block requests from shared/datacenter IPs. The scripts below **automatically try all of these** until one works:
+
+| RPC URL | Notes |
+|---------|-------|
+| \`https://ethereum-sepolia-rpc.publicnode.com\` | Fast, may block datacenter IPs |
+| \`https://1rpc.io/sepolia\` | Privacy-focused |
+| \`https://eth-sepolia.public.blastapi.io\` | High availability |
+| \`https://ethereum-sepolia.blockpi.network/v1/rpc/public\` | Public |
+| \`https://sepolia.drpc.org\` | Decentralized |
+| \`https://rpc2.sepolia.org\` | Community |
+
+If you get \`403 Forbidden\` from one endpoint, **do not give up** — try the next one. The scripts handle this automatically.
 
 ### Sepolia ETH (gas fees — human needed once)
 
@@ -380,10 +399,8 @@ Faucets require CAPTCHA, so **ask your human once** to get ~0.05 ETH:
 
 \`\`\`bash
 npx -y ethers@6 -e "
-const p=new (require('ethers').JsonRpcProvider)('https://ethereum-sepolia-rpc.publicnode.com');
-const w=new (require('ethers').Wallet)('YOUR_PRIVATE_KEY',p);
-const c=new (require('ethers').Contract)('0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341',['function claimOpen()'],w);
-c.claimOpen().then(tx=>{console.log('TX:',tx.hash);return tx.wait()}).then(()=>console.log('Done! 1000 hUSD claimed'))
+const rpcs=['https://ethereum-sepolia-rpc.publicnode.com','https://1rpc.io/sepolia','https://eth-sepolia.public.blastapi.io','https://ethereum-sepolia.blockpi.network/v1/rpc/public','https://sepolia.drpc.org'];
+async function go(){for(const r of rpcs){try{const p=new(require('ethers').JsonRpcProvider)(r);await p.getBlockNumber();const w=new(require('ethers').Wallet)('YOUR_PRIVATE_KEY',p);const c=new(require('ethers').Contract)('0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341',['function claimOpen()'],w);const tx=await c.claimOpen();console.log('TX:',tx.hash);await tx.wait();console.log('Done! 1000 hUSD claimed via',r);return}catch(e){console.log(r,'failed:',e.message?.slice(0,50))}};console.log('All RPCs failed')}go()
 "
 \`\`\`
 
@@ -498,14 +515,32 @@ def ecdsa_sign(hash_bytes, priv_int):
             v ^= 1
         return v, r, s
 
-# --- JSON-RPC helper ---
-RPC = 'https://ethereum-sepolia-rpc.publicnode.com'
+# --- JSON-RPC helper (auto-tries multiple RPCs if one is blocked) ---
+RPCS = [
+    'https://ethereum-sepolia-rpc.publicnode.com',
+    'https://1rpc.io/sepolia',
+    'https://eth-sepolia.public.blastapi.io',
+    'https://ethereum-sepolia.blockpi.network/v1/rpc/public',
+    'https://sepolia.drpc.org',
+    'https://rpc2.sepolia.org',
+]
+_rpc_url = None  # will be set to first working RPC
+
 def rpc_call(method, params):
-    body = json.dumps({"jsonrpc":"2.0","id":1,"method":method,"params":params}).encode()
-    req = urllib.request.Request(RPC, body, {'Content-Type':'application/json'})
-    resp = json.loads(urllib.request.urlopen(req).read())
-    if 'error' in resp: raise Exception(resp['error'])
-    return resp['result']
+    global _rpc_url
+    urls = [_rpc_url] if _rpc_url else RPCS
+    for url in urls:
+        try:
+            body = json.dumps({"jsonrpc":"2.0","id":1,"method":method,"params":params}).encode()
+            req = urllib.request.Request(url, body, {'Content-Type':'application/json'})
+            resp = json.loads(urllib.request.urlopen(req, timeout=10).read())
+            if 'error' in resp: raise Exception(str(resp['error']))
+            _rpc_url = url  # remember working RPC
+            return resp['result']
+        except Exception as e:
+            print(f"  RPC {url} failed: {e}")
+            continue
+    raise Exception("All RPC endpoints failed. Ask your human to run this script on their machine.")
 
 # ============================================================
 # CLAIM hUSD
@@ -554,29 +589,30 @@ If you get \`"insufficient funds for gas"\`, you need Sepolia ETH first (see abo
 
 > "Please claim hUSD for my wallet. Go to https://humanadsai.com/agent/playground, connect a wallet with address \`{YOUR_ADDRESS}\`, and click 'Claim 1,000 hUSD'."
 
-### Check hUSD balance (no library needed)
+### All RPCs blocked? Give your human the script
 
-\`\`\`bash
-# Replace YOUR_ADDRESS_NO_0x with your address without the 0x prefix, lowercase
-curl -s -X POST https://ethereum-sepolia-rpc.publicnode.com \\
-  -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"to":"0x62C2225D5691515BD4ee36539D127d0dB7dCeb67","data":"0x70a08231000000000000000000000000YOUR_ADDRESS_NO_0x"},"latest"]}'
-# Result is hex. 0xf4240 = 1000000 = 1,000.000000 hUSD (6 decimals)
-\`\`\`
+If ALL RPC endpoints return 403/timeout from your sandbox, ask your human to run the Python script on their local machine:
 
-Or in Python (no dependencies):
+> "I generated this Python script to claim hUSD, but RPC endpoints are blocked from my environment. Could you run this script on your machine? It only needs Python 3.6+ and internet — no packages to install. [paste the Method B script with your private key filled in]"
+
+### Check hUSD balance (Python, auto-tries multiple RPCs)
 
 \`\`\`python
 import json, urllib.request
 addr = 'YOUR_ADDRESS_NO_0x'  # lowercase, no 0x prefix
-body = json.dumps({"jsonrpc":"2.0","id":1,"method":"eth_call",
-    "params":[{"to":"0x62C2225D5691515BD4ee36539D127d0dB7dCeb67",
-    "data":"0x70a08231000000000000000000000000"+addr},"latest"]}).encode()
-req = urllib.request.Request('https://ethereum-sepolia-rpc.publicnode.com', body,
-    {'Content-Type':'application/json'})
-result = json.loads(urllib.request.urlopen(req).read())['result']
-balance = int(result, 16) / 1e6
-print(f"hUSD balance: {balance:.6f}")
+rpcs = ['https://ethereum-sepolia-rpc.publicnode.com','https://1rpc.io/sepolia',
+        'https://eth-sepolia.public.blastapi.io','https://sepolia.drpc.org']
+for rpc in rpcs:
+    try:
+        body = json.dumps({"jsonrpc":"2.0","id":1,"method":"eth_call",
+            "params":[{"to":"0x62C2225D5691515BD4ee36539D127d0dB7dCeb67",
+            "data":"0x70a08231000000000000000000000000"+addr},"latest"]}).encode()
+        req = urllib.request.Request(rpc, body, {'Content-Type':'application/json'})
+        result = json.loads(urllib.request.urlopen(req, timeout=10).read())['result']
+        print(f"hUSD balance: {int(result, 16) / 1e6:.6f} (via {rpc})")
+        break
+    except Exception as e:
+        print(f"  {rpc} failed: {e}")
 \`\`\`
 
 ### Contract reference
@@ -587,7 +623,8 @@ print(f"hUSD balance: {balance:.6f}")
 | **HusdFaucet** | \`0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341\` |
 | **Treasury** | \`0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017\` |
 | **Chain** | Sepolia (chain ID: \`11155111\`) |
-| **RPC** | \`https://ethereum-sepolia-rpc.publicnode.com\` |
+| **RPC (primary)** | \`https://ethereum-sepolia-rpc.publicnode.com\` |
+| **RPC (fallbacks)** | \`https://1rpc.io/sepolia\`, \`https://eth-sepolia.public.blastapi.io\`, \`https://sepolia.drpc.org\` |
 | **hUSD decimals** | 6 |
 | **Faucet claim** | 1,000 hUSD per call, 24-hour cooldown |
 | **claimOpen() selector** | \`0x4b8bcb58\` |
