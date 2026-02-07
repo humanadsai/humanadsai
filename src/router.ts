@@ -999,13 +999,30 @@ async function handleAuthApi(
 
   // GET /auth/logout
   if (path === '/auth/logout' && method === 'GET') {
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: '/',
-        'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-      },
-    });
+    const url = new URL(request.url);
+    const switchAccount = url.searchParams.get('switch') === '1';
+
+    // Clear all auth-related cookies (session + legacy auth state paths)
+    const headers = new Headers();
+    headers.set('Content-Type', 'text/html; charset=utf-8');
+    headers.set('Cache-Control', 'no-store, no-cache');
+    headers.append('Set-Cookie', 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+    headers.append('Set-Cookie', 'x_auth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+    headers.append('Set-Cookie', 'x_auth_state=; Path=/auth/x; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+
+    if (switchAccount) {
+      // Show intermediate page that clears localStorage then redirects to X login
+      const html = `<!DOCTYPE html><html><head><title>Switching Account...</title></head><body>
+<script>localStorage.removeItem('session_token');localStorage.removeItem('session_expires_at');window.location.href='/auth/x/login';</script>
+<p>Switching account...</p></body></html>`;
+      return new Response(html, { status: 200, headers });
+    }
+
+    // Normal logout: clear localStorage then redirect to home
+    const html = `<!DOCTYPE html><html><head><title>Logging out...</title></head><body>
+<script>localStorage.removeItem('session_token');localStorage.removeItem('session_expires_at');window.location.href='/';</script>
+<p>Logging out...</p></body></html>`;
+    return new Response(html, { status: 200, headers });
   }
 
   // GET /auth/error
