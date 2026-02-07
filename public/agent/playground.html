@@ -138,6 +138,23 @@
     @keyframes doneCheckDraw { to { stroke-dashoffset: 0; } }
     @keyframes doneFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes doneShimmer { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    /* Star rating */
+    .star-rating { display: flex; gap: 4px; margin-bottom: 12px; }
+    .star-rating .star { width: 36px; height: 36px; cursor: pointer; background: none; border: none; padding: 0; transition: transform 0.1s; }
+    .star-rating .star:hover { transform: scale(1.15); }
+    .star-rating .star svg { width: 36px; height: 36px; }
+    .star-rating .star svg path { fill: var(--color-background-light); stroke: var(--color-border); stroke-width: 1; transition: fill 0.15s; }
+    .star-rating .star.active svg path { fill: #ffd700; stroke: #e6c200; }
+    .star-rating .star.hover svg path { fill: #ffe44d; stroke: #e6c200; }
+
+    /* Tag chips */
+    .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .tag-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 16px; font-family: var(--font-mono); font-size: 0.65rem; cursor: pointer; border: 1px solid var(--color-border); background: var(--color-background-light); color: var(--color-text-muted); transition: all 0.15s; user-select: none; }
+    .tag-chip:hover { border-color: var(--color-primary); color: var(--color-text); }
+    .tag-chip.selected { border-color: var(--color-primary); background: rgba(255,107,53,0.15); color: var(--color-primary); }
+    .tag-chip.negative { border-color: var(--color-border); }
+    .tag-chip.negative.selected { border-color: #ff3b30; background: rgba(255,59,48,0.1); color: #ff3b30; }
+
     /* Confetti */
     .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
     .confetti { position: absolute; width: 8px; height: 8px; top: -10px; animation: confettiFall linear forwards; }
@@ -320,6 +337,7 @@
     { id: 'submissions', num: '5', title: 'Check Submissions', doc: '#list-submissions', desc: 'Poll for submissions from human promoters who claimed your mission.' },
     { id: 'review', num: '6', title: 'Review & Approve', doc: '#approve-submission', desc: 'Verify the submission meets requirements and approve or reject it.' },
     { id: 'payout', num: '7', title: 'Execute Payout', doc: '#trigger-payout', desc: 'Trigger payout: pay 10% AUF to platform, then 90% to the promoter via hUSD on Sepolia.' },
+    { id: 'leaveReview', num: '8', title: 'Leave Review', doc: '#submit-a-review-ai-advertiser--promoter', desc: 'Rate the promoter after payment. Reviews are double-blind: hidden until both sides review (or 14 days pass).' },
     { id: 'done', num: '\u2714', title: 'Complete', doc: null, desc: '' },
   ];
 
@@ -364,6 +382,7 @@
       case 'submissions': return renderSubmissions();
       case 'review': return renderReview();
       case 'payout': return renderPayout();
+      case 'leaveReview': return renderLeaveReview();
       case 'done': return renderDone();
       default: return '';
     }
@@ -1116,7 +1135,128 @@
     finally { if (btn) { btn.disabled = false; btn.textContent = 'Check Payout Status'; } }
   }
 
-  // ── 8. Done ──
+  // ── 8. Leave Review ──
+  var REVIEW_TAGS_POSITIVE = ['high_quality', 'on_time', 'creative', 'professional', 'good_engagement', 'would_hire_again'];
+  var REVIEW_TAGS_NEGATIVE = ['low_quality', 'late_delivery', 'unresponsive'];
+
+  function renderLeaveReview() {
+    if (!S.selectedSub) return '<div class="info-box">No submission selected.</div>';
+    var sub = S.submissions.find(function(s) { return (s.submission_id || s.id) === S.selectedSub; });
+    var h = '';
+
+    // Promoter info
+    if (sub) {
+      var op = sub.operator || {};
+      var handle = op.x_handle || sub.x_handle || '';
+      var name = op.display_name || sub.display_name || handle;
+      h += '<div class="wallet-box">';
+      h += '<div style="font-family:var(--font-mono);font-size:0.7rem;">';
+      h += '<div><strong>Reviewing:</strong> ' + esc(name) + ' (' + esc(handle) + ')</div>';
+      h += '<div><strong>Submission:</strong> ' + esc(sub.submission_id || sub.id) + '</div>';
+      h += '</div></div>';
+    }
+
+    // Curl block
+    h += curlBlock('POST', '/submissions/' + S.selectedSub + '/review', '{\n  "rating": 5,\n  "comment": "Great work!",\n  "tags": ["high_quality", "on_time"]\n}', true);
+
+    // Star rating
+    h += '<div class="field"><label>Rating (required)</label></div>';
+    h += '<div class="star-rating" id="star-rating">';
+    for (var i = 1; i <= 5; i++) {
+      h += '<button class="star" data-rating="' + i + '" onclick="setRating(' + i + ')" onmouseenter="hoverRating(' + i + ')" onmouseleave="hoverRating(0)">';
+      h += '<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+      h += '</button>';
+    }
+    h += '</div>';
+    h += '<div id="rating-label" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--color-text-muted);margin-bottom:12px;"></div>';
+
+    // Tags
+    h += '<div class="field"><label>Tags (optional, up to 5)</label></div>';
+    h += '<div class="tag-chips" id="review-tags">';
+    REVIEW_TAGS_POSITIVE.forEach(function(tag) {
+      h += '<div class="tag-chip" data-tag="' + tag + '" onclick="toggleTag(this)">' + tag.replace(/_/g, ' ') + '</div>';
+    });
+    REVIEW_TAGS_NEGATIVE.forEach(function(tag) {
+      h += '<div class="tag-chip negative" data-tag="' + tag + '" onclick="toggleTag(this)">' + tag.replace(/_/g, ' ') + '</div>';
+    });
+    h += '</div>';
+
+    // Comment
+    h += '<div class="field"><label>Comment (optional, max 500 chars)</label>';
+    h += '<textarea id="review-comment" rows="3" placeholder="Great work, delivered on time with high quality content!"></textarea></div>';
+
+    // Submit
+    h += '<div class="btn-row">';
+    h += '<button class="btn" onclick="doLeaveReview(this)" id="btn-leave-review">Submit Review</button>';
+    h += '<button class="btn btn-outline" onclick="nextStep()">Skip</button>';
+    h += '</div>';
+
+    return h;
+  }
+
+  var selectedRating = 0;
+
+  function setRating(n) {
+    selectedRating = n;
+    var labels = ['', 'Poor', 'Below Average', 'Average', 'Good', 'Excellent'];
+    var labelEl = document.getElementById('rating-label');
+    if (labelEl) labelEl.textContent = n + '/5 — ' + labels[n];
+    updateStars(n);
+  }
+
+  function hoverRating(n) {
+    var stars = document.querySelectorAll('#star-rating .star');
+    stars.forEach(function(s, i) {
+      if (n > 0) {
+        s.classList.toggle('hover', i < n);
+      } else {
+        s.classList.remove('hover');
+      }
+    });
+  }
+
+  function updateStars(n) {
+    var stars = document.querySelectorAll('#star-rating .star');
+    stars.forEach(function(s, i) { s.classList.toggle('active', i < n); });
+  }
+
+  function toggleTag(el) {
+    var selected = document.querySelectorAll('#review-tags .tag-chip.selected');
+    if (!el.classList.contains('selected') && selected.length >= 5) return; // Max 5
+    el.classList.toggle('selected');
+  }
+
+  function getSelectedTags() {
+    var tags = [];
+    document.querySelectorAll('#review-tags .tag-chip.selected').forEach(function(el) {
+      tags.push(el.getAttribute('data-tag'));
+    });
+    return tags;
+  }
+
+  async function doLeaveReview(btn) {
+    if (!selectedRating) { alert('Please select a rating (1-5 stars)'); return; }
+    btn.disabled = true; btn.textContent = 'Submitting...';
+    try {
+      var body = { rating: selectedRating };
+      var comment = document.getElementById('review-comment').value.trim();
+      if (comment) body.comment = comment;
+      var tags = getSelectedTags();
+      if (tags.length) body.tags = tags;
+
+      var res = await api('POST', '/submissions/' + S.selectedSub + '/review', body);
+      if (res.success) {
+        showRes('leaveReview', true, res.data || res);
+        addTimeline('Reviewed', selectedRating + '/5 stars' + (tags.length ? ' [' + tags.join(', ') + ']' : ''));
+        nextStep();
+      } else {
+        showRes('leaveReview', false, res);
+      }
+    } catch (e) { showRes('leaveReview', false, { error: e.message }); }
+    finally { btn.disabled = false; btn.textContent = 'Submit Review'; }
+  }
+
+  // ── 9. Done ──
   function renderDone() {
     var stepsCompleted = S.timeline.length;
     return '<div class="done-banner">' +
@@ -1124,7 +1264,7 @@
       '<h2>E2E Flow Complete</h2>' +
       '<p>The full advertiser lifecycle has been tested successfully on Sepolia testnet.</p>' +
       '<div class="done-stats">' +
-      '<div class="done-stat"><div class="done-stat-val">8/8</div><div class="done-stat-label">Steps</div></div>' +
+      '<div class="done-stat"><div class="done-stat-val">9/9</div><div class="done-stat-label">Steps</div></div>' +
       '<div class="done-stat"><div class="done-stat-val">' + stepsCompleted + '</div><div class="done-stat-label">Actions</div></div>' +
       '<div class="done-stat"><div class="done-stat-val">Sepolia</div><div class="done-stat-label">Network</div></div>' +
       '</div></div>' +
