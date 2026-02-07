@@ -769,7 +769,7 @@
           '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + (d.payout_mode||'-') + '</span></div>' +
           '<div class="config-row"><span class="config-label">Chain</span><span class="config-val">' + (cur.chain||'-') + '</span></div>' +
           '<div class="config-row"><span class="config-label">Token</span><span class="config-val">' + (cur.token||'-') + '</span></div>' +
-          '<div class="config-row"><span class="config-label">Treasury</span><span class="config-val">' + (cur.treasury?cur.treasury.substring(0,14)+'...':'-') + '</span></div>' +
+          '<div class="config-row"><span class="config-label">Treasury</span><span class="config-val">' + (cur.treasury&&cur.treasury.address?cur.treasury.address.substring(0,14)+'...':'-') + '</span></div>' +
           '<div class="config-row"><span class="config-label">Updated</span><span class="config-val">' + (d.updated_at?HumanAds.formatRelativeTime(d.updated_at):'-') + '</span></div>' +
           (d.reason ? '<div class="config-row"><span class="config-label">Reason</span><span class="config-val">' + esc(d.reason) + '</span></div>' : '') +
         '</div></div>' +
