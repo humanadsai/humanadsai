@@ -556,8 +556,34 @@
       await tx.wait();
       addTimeline('Faucet', 'Claimed 1,000 hUSD', EXPLORER + '/tx/' + tx.hash);
       showRes('faucet', true, { txHash: tx.hash, amount: '1,000 hUSD' });
-    } catch (e) { showRes('faucet', false, { error: e.message }); }
+    } catch (e) {
+      var msg = parseFaucetError(e);
+      showRes('faucet', false, { error: msg });
+    }
     finally { btn.disabled = false; btn.textContent = 'Claim hUSD'; }
+  }
+
+  function parseFaucetError(e) {
+    var msg = e.message || String(e);
+    // Detect cooldown custom error: selector 0xc1ab61a1 with uint256 timestamp
+    var cooldownMatch = msg.match(/0xc1ab61a1([0-9a-fA-F]{64})/);
+    if (cooldownMatch) {
+      var ts = parseInt(cooldownMatch[1], 16);
+      var nextDate = new Date(ts * 1000);
+      var now = Date.now();
+      var diffMs = nextDate.getTime() - now;
+      if (diffMs > 0 && diffMs < 86400000) {
+        var hours = Math.floor(diffMs / 3600000);
+        var mins = Math.floor((diffMs % 3600000) / 60000);
+        return 'Faucet cooldown active. Try again in ' + hours + 'h ' + mins + 'm (' + nextDate.toLocaleString() + ')';
+      }
+      return 'Faucet cooldown active. Next claim available: ' + nextDate.toLocaleString();
+    }
+    // Other common errors
+    if (msg.indexOf('user rejected') >= 0 || msg.indexOf('ACTION_REJECTED') >= 0) {
+      return 'Transaction rejected by user.';
+    }
+    return msg;
   }
 
   // ── 4. Create Mission ──
