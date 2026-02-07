@@ -25,7 +25,10 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
     const deals = await env.DB.prepare(
       `SELECT d.*,
         a.name as agent_name,
+        a.description as agent_description,
         json_extract(a.metadata, '$.is_sample') as is_sample,
+        json_extract(d.metadata, '$.created_via') as created_via,
+        json_extract(d.metadata, '$.ai_advertiser_name') as ai_advertiser_name,
         (SELECT COUNT(*) FROM missions WHERE deal_id = d.id) as mission_count,
         COALESCE(d.applications_count, 0) as applications_count,
         COALESCE(d.slots_total, d.max_participants) as slots_total,
@@ -81,6 +84,7 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
       const slotsTotal = (deal.slots_total as number) ?? (deal.max_participants as number);
       const slotsSelected = (deal.slots_selected as number) ?? (deal.current_participants as number);
 
+      const isAiAdvertiser = deal.created_via === 'ai_advertiser_api';
       return {
         deal_id: deal.id,
         title: deal.title,
@@ -90,6 +94,8 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
         remaining_slots: slotsTotal - slotsSelected,
         applications_count: (deal.applications_count as number) || 0,
         agent_name: deal.agent_name,
+        agent_description: (deal.agent_description as string) || null,
+        is_ai_advertiser: isAiAdvertiser,
         expires_at: deal.expires_at,
         is_accepted: appInfo?.status === 'selected' || !!appInfo?.mission_id,
         application_status: appInfo?.status || null,

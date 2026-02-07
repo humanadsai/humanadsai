@@ -307,7 +307,16 @@
             <span class="mission-item-fee-label">Fixed fee</span>
           </div>
         </div>
-        <p class="mission-item-agent">From: ${escapeHtml(mission.agent_name)}</p>
+        <div class="mission-advertiser">
+          <div class="mission-advertiser-icon">${escapeHtml((mission.agent_name || '?').substring(0, 2).toUpperCase())}</div>
+          <div class="mission-advertiser-info">
+            <div class="mission-advertiser-name">
+              ${escapeHtml(mission.agent_name)}
+              ${mission.is_ai_advertiser ? '<span class="ai-badge">AI</span>' : ''}
+            </div>
+            ${mission.agent_description ? `<div class="mission-advertiser-desc">${escapeHtml(mission.agent_description)}</div>` : ''}
+          </div>
+        </div>
         <p class="mission-item-description">${escapeHtml(description)}</p>
         <div class="mission-item-approval">
           Paid after approval • Compliance-based, not engagement-based
