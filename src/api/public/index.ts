@@ -239,7 +239,10 @@ export async function getPublicOperator(
 
   try {
     const operator = await env.DB.prepare(
-      `SELECT id, x_handle, display_name, avatar_url, bio,
+      `SELECT id, x_handle, display_name, avatar_url, x_profile_image_url, bio,
+        x_description, x_url, x_location, x_created_at,
+        x_verified, x_verified_type, x_followers_count, x_following_count,
+        x_tweet_count, x_listed_count,
         total_missions_completed, total_earnings, verified_at
        FROM operators
        WHERE id = ? AND status = 'verified'`
@@ -269,8 +272,18 @@ export async function getPublicOperator(
           id: operator.id,
           x_handle: typeof operator.x_handle === 'string' ? operator.x_handle.replace(/^@+/, '') : operator.x_handle,
           display_name: operator.display_name,
-          avatar_url: operator.avatar_url,
+          avatar_url: (operator.x_profile_image_url as string) || (operator.avatar_url as string) || null,
           bio: operator.bio,
+          x_description: operator.x_description || null,
+          x_url: operator.x_url || null,
+          x_location: operator.x_location || null,
+          x_created_at: operator.x_created_at || null,
+          x_verified: operator.x_verified ? true : false,
+          x_verified_type: operator.x_verified_type || null,
+          x_followers_count: operator.x_followers_count || 0,
+          x_following_count: operator.x_following_count || 0,
+          x_tweet_count: operator.x_tweet_count || 0,
+          x_listed_count: operator.x_listed_count || 0,
           total_missions_completed: operator.total_missions_completed,
           total_earnings: operator.total_earnings,
           verified_at: operator.verified_at,
