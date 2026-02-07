@@ -894,8 +894,12 @@
         S.promoterAddr = res.data.promoter_address || res.data.payout_recipient || '';
         showRes('payout', true, res.data);
         addTimeline('Payout triggered', S.selectedSub);
-        updatePayoutUI();
         document.getElementById('payout-progress').style.display = 'block';
+        // Auto-prompt wallet connection if not connected
+        if (!S.walletAddr) {
+          await connectWallet(document.getElementById('btn-trigger'));
+        }
+        updatePayoutUI();
       } else { showRes('payout', false, res); }
     } catch (e) { showRes('payout', false, { error: e.message }); }
     finally { btn.disabled = false; btn.textContent = 'Trigger Payout'; }
