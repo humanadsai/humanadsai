@@ -414,6 +414,23 @@
         return '';
       }
 
+      // For selected applications, check the actual mission status
+      if (status === 'selected' && mission.mission_status) {
+        const ms = mission.mission_status;
+        if (ms === 'submitted') {
+          return `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.7; color: #FF9800;">SUBMITTED</span>`;
+        }
+        if (ms === 'verified') {
+          return `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.7; color: #4CAF50;">VERIFIED</span>`;
+        }
+        if (ms === 'approved' || ms === 'address_unlocked' || ms === 'paid_partial') {
+          return `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.7; color: #4CAF50;">PAYMENT PENDING</span>`;
+        }
+        if (ms === 'paid' || ms === 'paid_complete') {
+          return `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.7; color: #4CAF50;">COMPLETED</span>`;
+        }
+      }
+
       switch (status) {
         case 'applied':
           return `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.6;">APPLIED (Pending)</span>`;
