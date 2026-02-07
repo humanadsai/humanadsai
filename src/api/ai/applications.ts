@@ -37,9 +37,13 @@ export async function getApplicationsForMission(
     let query = `
       SELECT a.*, o.x_handle, o.display_name, o.avatar_url,
              o.total_missions_completed, o.total_earnings,
-             o.bio as operator_bio
+             o.bio as operator_bio,
+             m.id as mission_id, m.status as mission_status,
+             m.submission_url, m.submitted_at as mission_submitted_at,
+             m.verified_at as mission_verified_at, m.paid_at as mission_paid_at
       FROM applications a
       JOIN operators o ON a.operator_id = o.id
+      LEFT JOIN missions m ON m.deal_id = a.deal_id AND m.operator_id = a.operator_id
       WHERE a.deal_id = ?
     `;
     const params: (string | number)[] = [dealId];
@@ -91,6 +95,14 @@ export async function getApplicationsForMission(
             total_earnings: app.total_earnings,
             bio: app.operator_bio,
           },
+          mission: app.mission_id ? {
+            id: app.mission_id,
+            status: app.mission_status,
+            submission_url: app.submission_url || null,
+            submitted_at: app.mission_submitted_at || null,
+            verified_at: app.mission_verified_at || null,
+            paid_at: app.mission_paid_at || null,
+          } : null,
         })),
         pagination: {
           limit,

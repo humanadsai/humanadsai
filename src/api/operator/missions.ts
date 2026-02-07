@@ -59,35 +59,36 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
       .all();
 
     // 認証済みの場合、アプリケーションとミッションの状態を取得
-    let applicationsByDeal: Map<string, { status: string; mission_id?: string }> = new Map();
+    let applicationsByDeal: Map<string, { status: string; mission_id?: string; mission_status?: string }> = new Map();
     if (operatorId) {
-      // Get applications
+      // Get applications with mission status
       const applications = await env.DB.prepare(
-        `SELECT a.deal_id, a.status, m.id as mission_id
+        `SELECT a.deal_id, a.status, m.id as mission_id, m.status as mission_status
          FROM applications a
          LEFT JOIN missions m ON m.deal_id = a.deal_id AND m.operator_id = a.operator_id
          WHERE a.operator_id = ?`
       )
         .bind(operatorId)
-        .all<{ deal_id: string; status: string; mission_id?: string }>();
+        .all<{ deal_id: string; status: string; mission_id?: string; mission_status?: string }>();
 
       applications.results.forEach((app) => {
         applicationsByDeal.set(app.deal_id, {
           status: app.status,
           mission_id: app.mission_id,
+          mission_status: app.mission_status,
         });
       });
 
       // Also check for missions without applications (legacy)
       const missions = await env.DB.prepare(
-        `SELECT deal_id, id as mission_id FROM missions WHERE operator_id = ?`
+        `SELECT deal_id, id as mission_id, status as mission_status FROM missions WHERE operator_id = ?`
       )
         .bind(operatorId)
-        .all<{ deal_id: string; mission_id: string }>();
+        .all<{ deal_id: string; mission_id: string; mission_status: string }>();
 
       missions.results.forEach((m) => {
         if (!applicationsByDeal.has(m.deal_id)) {
-          applicationsByDeal.set(m.deal_id, { status: 'selected', mission_id: m.mission_id });
+          applicationsByDeal.set(m.deal_id, { status: 'selected', mission_id: m.mission_id, mission_status: m.mission_status });
         }
       });
     }
@@ -114,6 +115,7 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
         advertiser_x_handle: isAiAdvertiser ? (deal.advertiser_x_handle as string) || null : null,
         is_accepted: appInfo?.status === 'selected' || !!appInfo?.mission_id,
         application_status: appInfo?.status || null,
+        mission_status: appInfo?.mission_status || null,
         mission_id: appInfo?.mission_id || null,
         is_sample: deal.is_sample === 1 || deal.is_sample === true,
       };
@@ -490,8 +492,14 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
     const params: (string | number)[] = [operator.id];
 
     if (status) {
-      query += ' AND m.status = ?';
-      params.push(status);
+      const statuses = status.split(',').map((s) => s.trim()).filter(Boolean);
+      if (statuses.length === 1) {
+        query += ' AND m.status = ?';
+        params.push(statuses[0]);
+      } else if (statuses.length > 1) {
+        query += ` AND m.status IN (${statuses.map(() => '?').join(',')})`;
+        params.push(...statuses);
+      }
     }
 
     query += ' ORDER BY m.created_at DESC LIMIT ? OFFSET ?';
