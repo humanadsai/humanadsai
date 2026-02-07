@@ -193,9 +193,98 @@ async function createTestDeal(request: Request, env: Env): Promise<Response> {
   }
 }
 
+// Test promoter profiles for seed data
+const TEST_PROMOTERS = [
+  {
+    id: 'op_test_alice',
+    x_handle: '@alice_web3',
+    x_user_id: 'test_alice_001',
+    display_name: 'Alice | Web3 Creator',
+    evm_wallet_address: '0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00',
+    x_followers_count: 12400,
+    x_following_count: 890,
+    x_tweet_count: 3200,
+    x_verified: 1,
+    x_verified_type: 'blue',
+    total_missions_completed: 8,
+    total_earnings: 4200, // cents = $42
+    x_description: 'Web3 creator & DeFi enthusiast. Building the future of decentralized advertising.',
+    proposed_angle: 'Will create a thread explaining HumanAds with real use case examples',
+    submission_url: 'https://x.com/alice_web3/status/1234567890',
+  },
+  {
+    id: 'op_test_bob',
+    x_handle: '@bob_crypto',
+    x_user_id: 'test_bob_002',
+    display_name: 'Bob Crypto Daily',
+    evm_wallet_address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    x_followers_count: 45200,
+    x_following_count: 1200,
+    x_tweet_count: 8900,
+    x_verified: 1,
+    x_verified_type: 'blue',
+    total_missions_completed: 23,
+    total_earnings: 15800, // cents = $158
+    x_description: 'Daily crypto analysis & insights. 45K+ community. DM for collabs.',
+    proposed_angle: 'Short-form video + tweet explaining the AI advertiser flow',
+    submission_url: 'https://x.com/bob_crypto/status/2345678901',
+  },
+  {
+    id: 'op_test_carol',
+    x_handle: '@carol_defi',
+    x_user_id: 'test_carol_003',
+    display_name: 'Carol',
+    evm_wallet_address: '0x2932b7A2355D6fecc4b5c0B6BD44cC31df247a2e',
+    x_followers_count: 2100,
+    x_following_count: 450,
+    x_tweet_count: 1100,
+    x_verified: 0,
+    x_verified_type: null,
+    total_missions_completed: 2,
+    total_earnings: 1000, // cents = $10
+    x_description: 'DeFi researcher. New to promotions but passionate about the space.',
+    proposed_angle: 'Personal experience post about using HumanAds as a promoter',
+    submission_url: 'https://x.com/carol_defi/status/3456789012',
+  },
+  {
+    id: 'op_test_dave',
+    x_handle: '@dave_nft_king',
+    x_user_id: 'test_dave_004',
+    display_name: 'Dave NFT King',
+    evm_wallet_address: '0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db',
+    x_followers_count: 89500,
+    x_following_count: 3100,
+    x_tweet_count: 15600,
+    x_verified: 1,
+    x_verified_type: 'blue',
+    total_missions_completed: 47,
+    total_earnings: 38500, // cents = $385
+    x_description: 'NFT & crypto influencer. Top promoter on HumanAds. Always deliver quality.',
+    proposed_angle: 'Infographic tweet + quote tweet from my NFT community account',
+    submission_url: 'https://x.com/dave_nft_king/status/4567890123',
+  },
+  {
+    id: 'op_test_eve',
+    x_handle: '@eve_blockchain',
+    x_user_id: 'test_eve_005',
+    display_name: 'Eve Blockchain Dev',
+    evm_wallet_address: '0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB',
+    x_followers_count: 6800,
+    x_following_count: 720,
+    x_tweet_count: 2400,
+    x_verified: 0,
+    x_verified_type: null,
+    total_missions_completed: 5,
+    total_earnings: 2500, // cents = $25
+    x_description: 'Blockchain developer & technical writer. I explain complex topics simply.',
+    proposed_angle: 'Technical breakdown of HumanAds architecture for dev audience',
+    submission_url: 'https://x.com/eve_blockchain/status/5678901234',
+  },
+];
+
 /**
  * POST /api/advertiser/test/seed
- * Seeds test data: operator, application, and mission
+ * Seeds test data: 5 promoters with applications and missions
  */
 async function seedTestData(request: Request, env: Env): Promise<Response> {
   const authResult = await requireAdmin(request, env);
@@ -218,43 +307,99 @@ async function seedTestData(request: Request, env: Env): Promise<Response> {
       return errors.notFound(requestId, 'Deal');
     }
 
-    // 1. Create or get test operator
-    const testOperatorId = 'op_test_promoter';
-    let operator = await env.DB.prepare('SELECT * FROM operators WHERE id = ?')
-      .bind(testOperatorId)
-      .first<Operator>();
+    const applicants: Array<{
+      operator_id: string;
+      application_id: string;
+      mission_id: string;
+      x_handle: string;
+      display_name: string;
+      evm_wallet_address: string;
+      x_followers_count: number;
+      x_following_count: number;
+      x_tweet_count: number;
+      x_verified: number;
+      x_verified_type: string | null;
+      total_missions_completed: number;
+      total_earnings: number;
+      x_description: string;
+      proposed_angle: string;
+      submission_url: string;
+    }> = [];
 
-    if (!operator) {
+    for (const p of TEST_PROMOTERS) {
+      // 1. Create or update test operator
+      const existing = await env.DB.prepare('SELECT id FROM operators WHERE id = ?')
+        .bind(p.id)
+        .first<{ id: string }>();
+
+      if (!existing) {
+        await env.DB.prepare(
+          `INSERT INTO operators (id, x_handle, x_user_id, display_name, status, role, evm_wallet_address, verified_at,
+            x_followers_count, x_following_count, x_tweet_count, x_verified, x_verified_type,
+            total_missions_completed, total_earnings, x_description)
+           VALUES (?, ?, ?, ?, 'verified', 'user', ?, datetime('now'),
+            ?, ?, ?, ?, ?,
+            ?, ?, ?)`
+        ).bind(
+          p.id, p.x_handle, p.x_user_id, p.display_name, p.evm_wallet_address,
+          p.x_followers_count, p.x_following_count, p.x_tweet_count, p.x_verified, p.x_verified_type,
+          p.total_missions_completed, p.total_earnings, p.x_description
+        ).run();
+      } else {
+        await env.DB.prepare(
+          `UPDATE operators SET
+            x_followers_count = ?, x_following_count = ?, x_tweet_count = ?,
+            x_verified = ?, x_verified_type = ?,
+            total_missions_completed = ?, total_earnings = ?,
+            x_description = ?, display_name = ?
+           WHERE id = ?`
+        ).bind(
+          p.x_followers_count, p.x_following_count, p.x_tweet_count,
+          p.x_verified, p.x_verified_type,
+          p.total_missions_completed, p.total_earnings,
+          p.x_description, p.display_name,
+          p.id
+        ).run();
+      }
+
+      // 2. Create application
+      const applicationId = crypto.randomUUID().replace(/-/g, '');
       await env.DB.prepare(
-        `INSERT INTO operators (id, x_handle, x_user_id, display_name, status, role, evm_wallet_address, verified_at)
-         VALUES (?, '@test_promoter', 'test_user_123', 'Test Promoter', 'verified', 'user', '0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00', datetime('now'))`
-      ).bind(testOperatorId).run();
+        `INSERT INTO applications (id, deal_id, operator_id, status, proposed_angle, accept_disclosure, accept_no_engagement_buying, applied_at)
+         VALUES (?, ?, ?, 'applied', ?, 1, 1, datetime('now'))`
+      ).bind(applicationId, body.deal_id, p.id, p.proposed_angle).run();
 
-      operator = await env.DB.prepare('SELECT * FROM operators WHERE id = ?')
-        .bind(testOperatorId)
-        .first<Operator>();
+      // 3. Create mission with status=verified (ready for approval)
+      const missionId = crypto.randomUUID().replace(/-/g, '');
+      await env.DB.prepare(
+        `INSERT INTO missions (id, deal_id, operator_id, status, submission_url, submitted_at, verified_at)
+         VALUES (?, ?, ?, 'verified', ?, datetime('now'), datetime('now'))`
+      ).bind(missionId, body.deal_id, p.id, p.submission_url).run();
+
+      applicants.push({
+        operator_id: p.id,
+        application_id: applicationId,
+        mission_id: missionId,
+        x_handle: p.x_handle,
+        display_name: p.display_name,
+        evm_wallet_address: p.evm_wallet_address,
+        x_followers_count: p.x_followers_count,
+        x_following_count: p.x_following_count,
+        x_tweet_count: p.x_tweet_count,
+        x_verified: p.x_verified,
+        x_verified_type: p.x_verified_type,
+        total_missions_completed: p.total_missions_completed,
+        total_earnings: p.total_earnings,
+        x_description: p.x_description,
+        proposed_angle: p.proposed_angle,
+        submission_url: p.submission_url,
+      });
     }
 
-    // 2. Create application
-    const applicationId = crypto.randomUUID().replace(/-/g, '');
-    await env.DB.prepare(
-      `INSERT INTO applications (id, deal_id, operator_id, status, proposed_angle, accept_disclosure, accept_no_engagement_buying, applied_at, selected_at)
-       VALUES (?, ?, ?, 'selected', 'Test application for E2E payment flow', 1, 1, datetime('now'), datetime('now'))`
-    ).bind(applicationId, body.deal_id, testOperatorId).run();
-
-    // 3. Create mission with status=verified (ready for approval)
-    const missionId = crypto.randomUUID().replace(/-/g, '');
-    await env.DB.prepare(
-      `INSERT INTO missions (id, deal_id, operator_id, status, submission_url, submitted_at, verified_at)
-       VALUES (?, ?, ?, 'verified', 'https://x.com/test_promoter/status/test_123', datetime('now'), datetime('now'))`
-    ).bind(missionId, body.deal_id, testOperatorId).run();
-
     return success({
-      operator_id: testOperatorId,
-      application_id: applicationId,
-      mission_id: missionId,
-      operator_wallet: '0x742d35Cc6634C0532925a3b844Bc9e7595f8fE00',
-      message: 'Test data seeded. Mission is ready for approval.',
+      applicants,
+      count: applicants.length,
+      message: `${applicants.length} test promoters seeded with applications.`,
     }, requestId);
   } catch (e) {
     console.error('Seed test data error:', e);
