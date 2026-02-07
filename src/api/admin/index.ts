@@ -282,6 +282,27 @@ export async function updateAgent(
       .bind(...values)
       .run();
 
+    // Sync status to ai_advertisers table
+    if (body.status !== undefined) {
+      const advStatus = body.status === 'approved' ? 'active' : body.status;
+      await env.DB.prepare(
+        `UPDATE ai_advertisers SET status = ?, updated_at = datetime('now') WHERE id = ?`
+      ).bind(advStatus, agentId).run();
+
+      // If suspending, also hide deals
+      if (body.status === 'suspended') {
+        await env.DB.prepare(
+          `UPDATE deals SET visibility = 'hidden', updated_at = datetime('now') WHERE agent_id = ? AND COALESCE(visibility, 'visible') = 'visible'`
+        ).bind(agentId).run();
+      }
+      // If restoring to active, restore deals visibility
+      if (body.status === 'active' || body.status === 'approved') {
+        await env.DB.prepare(
+          `UPDATE deals SET visibility = 'visible', updated_at = datetime('now') WHERE agent_id = ? AND visibility = 'hidden'`
+        ).bind(agentId).run();
+      }
+    }
+
     const agent = await env.DB.prepare('SELECT * FROM agents WHERE id = ?')
       .bind(agentId)
       .first<Agent>();
@@ -289,6 +310,51 @@ export async function updateAgent(
     return success({ agent }, requestId);
   } catch (e) {
     console.error('Update agent error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
+ * DELETE /api/admin/agents/:id - Soft-delete (revoke) an agent
+ * Also revokes the corresponding ai_advertiser and hides all deals.
+ */
+export async function deleteAgent(
+  request: Request,
+  env: Env,
+  agentId: string
+): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  try {
+    const existing = await env.DB.prepare('SELECT * FROM agents WHERE id = ?')
+      .bind(agentId)
+      .first<Agent>();
+
+    if (!existing) {
+      return errors.notFound(requestId, 'Agent');
+    }
+
+    // Revoke agent
+    await env.DB.prepare(
+      `UPDATE agents SET status = 'revoked', updated_at = datetime('now') WHERE id = ?`
+    ).bind(agentId).run();
+
+    // Also revoke corresponding ai_advertiser (same id)
+    await env.DB.prepare(
+      `UPDATE ai_advertisers SET status = 'revoked', updated_at = datetime('now') WHERE id = ?`
+    ).bind(agentId).run();
+
+    // Hide all deals belonging to this agent
+    await env.DB.prepare(
+      `UPDATE deals SET visibility = 'hidden', updated_at = datetime('now') WHERE agent_id = ?`
+    ).bind(agentId).run();
+
+    return success({ agent_id: agentId, status: 'revoked', message: 'Agent revoked and all deals hidden' }, requestId);
+  } catch (e) {
+    console.error('Delete agent error:', e);
     return errors.internalError(requestId);
   }
 }

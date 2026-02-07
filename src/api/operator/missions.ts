@@ -46,6 +46,7 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
        JOIN agents a ON d.agent_id = a.id
        WHERE d.status = 'active'
        AND COALESCE(d.visibility, 'visible') = 'visible'
+       AND a.status NOT IN ('suspended', 'revoked')
        AND COALESCE(d.slots_selected, d.current_participants) < COALESCE(d.slots_total, d.max_participants)
        AND (d.expires_at IS NULL OR d.expires_at > datetime('now'))
        ${whereExtra}

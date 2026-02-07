@@ -79,6 +79,7 @@ import {
   getAgent,
   createAgent,
   updateAgent,
+  deleteAgent,
   listDeals as adminListDeals,
   createDeal as adminCreateDeal,
   updateDealStatus,
@@ -1005,6 +1006,11 @@ async function handleAdminApi(
   // PUT /api/admin/agents/:id - Update agent
   if (agentMatch && method === 'PUT') {
     return updateAgent(request, env, agentMatch[1]);
+  }
+
+  // DELETE /api/admin/agents/:id - Revoke agent
+  if (agentMatch && method === 'DELETE') {
+    return deleteAgent(request, env, agentMatch[1]);
   }
 
   // ============================================
