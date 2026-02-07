@@ -1,4 +1,3 @@
-import { Webhook } from 'svix';
 import type { Env } from '../../types';
 import { errors, generateRequestId } from '../../utils/response';
 import {
@@ -6,6 +5,63 @@ import {
   incrementSoftBounce,
   markEventProcessed,
 } from '../../services/email';
+
+const TIMESTAMP_TOLERANCE_SECONDS = 5 * 60; // 5 minutes
+
+/**
+ * Verify Svix webhook signature using Web Crypto API.
+ * Avoids the `svix` npm package which requires Node.js built-ins
+ * not available in Cloudflare Workers.
+ *
+ * Algorithm:
+ * 1. Strip `whsec_` prefix from secret and base64-decode to get HMAC key
+ * 2. Signed content = `${svix-id}.${svix-timestamp}.${body}`
+ * 3. HMAC-SHA256 → base64-encode
+ * 4. Compare against signatures in svix-signature header (comma-separated `v1,<base64>`)
+ * 5. Reject if timestamp is outside tolerance window
+ */
+async function verifySvixSignature(
+  secret: string,
+  rawBody: string,
+  svixId: string,
+  svixTimestamp: string,
+  svixSignature: string
+): Promise<boolean> {
+  // Timestamp check
+  const ts = parseInt(svixTimestamp, 10);
+  if (isNaN(ts)) return false;
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - ts) > TIMESTAMP_TOLERANCE_SECONDS) return false;
+
+  // Decode secret (strip "whsec_" prefix)
+  const secretStr = secret.startsWith('whsec_') ? secret.slice(6) : secret;
+  const secretBytes = Uint8Array.from(atob(secretStr), (c) => c.charCodeAt(0));
+
+  // Import key
+  const key = await crypto.subtle.importKey(
+    'raw',
+    secretBytes,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  // Sign: "${svix-id}.${svix-timestamp}.${body}"
+  const signedContent = `${svixId}.${svixTimestamp}.${rawBody}`;
+  const encoder = new TextEncoder();
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(signedContent));
+  const expectedSig = btoa(String.fromCharCode(...new Uint8Array(signature)));
+
+  // Compare against provided signatures (format: "v1,<base64>,v1,<base64>,...")
+  const providedSigs = svixSignature.split(' ');
+  for (const sig of providedSigs) {
+    const [version, value] = sig.split(',', 2);
+    if (version === 'v1' && value === expectedSig) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
  * Handle Resend webhook events with Svix signature verification.
@@ -18,7 +74,7 @@ export async function handleResendWebhook(
 ): Promise<Response> {
   const requestId = generateRequestId();
 
-  // 1. Get raw body (must use text(), not json(), for Svix verification)
+  // 1. Get raw body (must use text(), not json(), for signature verification)
   const rawBody = await request.text();
 
   // 2. Check secret configured
@@ -36,29 +92,43 @@ export async function handleResendWebhook(
     return errors.badRequest(requestId, 'Missing webhook signature headers');
   }
 
-  // 4. Verify signature
-  const wh = new Webhook(env.RESEND_WEBHOOK_SECRET);
-  let payload: Record<string, unknown>;
+  // 4. Verify signature (using Web Crypto API)
+  let verified: boolean;
   try {
-    payload = wh.verify(rawBody, {
-      'svix-id': svixId,
-      'svix-timestamp': svixTimestamp,
-      'svix-signature': svixSignature,
-    }) as Record<string, unknown>;
+    verified = await verifySvixSignature(
+      env.RESEND_WEBHOOK_SECRET,
+      rawBody,
+      svixId,
+      svixTimestamp,
+      svixSignature
+    );
   } catch (e) {
-    console.error('[webhook:resend] Signature verification failed:', e);
+    console.error('[webhook:resend] Signature verification error:', e);
     return errors.signatureInvalid(requestId);
   }
 
-  // 5. Extract event data
+  if (!verified) {
+    console.error('[webhook:resend] Signature verification failed');
+    return errors.signatureInvalid(requestId);
+  }
+
+  // 5. Parse payload
+  let payload: Record<string, unknown>;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    return errors.badRequest(requestId, 'Invalid JSON payload');
+  }
+
+  // 6. Extract event data
   const eventId = svixId;
   const eventType = payload.type as string;
   const data = payload.data as Record<string, unknown>;
 
-  // 6. INSERT OR IGNORE (idempotent via event_id PK)
+  // 7. INSERT OR IGNORE (idempotent via event_id PK)
   const recipient = extractRecipient(data);
-  const bounceData = data.bounce as Record<string, unknown> | undefined;
-  const errorData = data.error as Record<string, unknown> | undefined;
+  const bounceData = data?.bounce as Record<string, unknown> | undefined;
+  const errorData = data?.error as Record<string, unknown> | undefined;
 
   try {
     await env.DB.prepare(
@@ -71,9 +141,9 @@ export async function handleResendWebhook(
         eventId,
         eventType,
         recipient,
-        (data.from as string) || null,
-        (data.subject as string) || null,
-        (data.email_id as string) || null,
+        (data?.from as string) || null,
+        (data?.subject as string) || null,
+        (data?.email_id as string) || null,
         (bounceData?.type as string) || null,
         (bounceData?.message as string) || (errorData?.message as string) || null,
         rawBody
@@ -84,12 +154,12 @@ export async function handleResendWebhook(
     return errors.internalError(requestId);
   }
 
-  // 7. Process event (fire-and-forget)
+  // 8. Process event (fire-and-forget)
   processEvent(env.DB, eventId, eventType, data).catch((e) =>
     console.error('[webhook:resend] Event processing error:', e)
   );
 
-  // 8. Return 200 immediately
+  // 9. Return 200 immediately
   return new Response(JSON.stringify({ received: true }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
@@ -139,6 +209,7 @@ async function processEvent(
  * `data.to` can be a string, an array of strings, or undefined.
  */
 function extractRecipient(data: Record<string, unknown>): string | null {
+  if (!data) return null;
   const to = data.to;
   if (typeof to === 'string') return to;
   if (Array.isArray(to) && to.length > 0 && typeof to[0] === 'string') return to[0];
