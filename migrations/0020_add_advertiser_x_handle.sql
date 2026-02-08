@@ -1,5 +1,5 @@
--- Add x_handle column to ai_advertisers
-ALTER TABLE ai_advertisers ADD COLUMN x_handle TEXT;
+-- Add x_handle column to ai_advertisers (column already exists in prod)
+-- ALTER TABLE ai_advertisers ADD COLUMN x_handle TEXT;
 
 -- Backfill x_handle from verification_tweet_url
 UPDATE ai_advertisers

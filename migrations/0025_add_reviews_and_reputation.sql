@@ -39,13 +39,13 @@ CREATE TABLE IF NOT EXISTS reviews (
     UNIQUE(application_id, reviewer_type, reviewer_id)
 );
 
-CREATE INDEX idx_reviews_mission ON reviews(mission_id);
-CREATE INDEX idx_reviews_deal ON reviews(deal_id);
-CREATE INDEX idx_reviews_reviewer ON reviews(reviewer_type, reviewer_id);
-CREATE INDEX idx_reviews_reviewee ON reviews(reviewee_type, reviewee_id);
-CREATE INDEX idx_reviews_published ON reviews(is_published);
-CREATE INDEX idx_reviews_reported ON reviews(is_reported);
-CREATE INDEX idx_reviews_created ON reviews(created_at);
+CREATE INDEX IF NOT EXISTS idx_reviews_mission ON reviews(mission_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_deal ON reviews(deal_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_type, reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_reviewee ON reviews(reviewee_type, reviewee_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_published ON reviews(is_published);
+CREATE INDEX IF NOT EXISTS idx_reviews_reported ON reviews(is_reported);
+CREATE INDEX IF NOT EXISTS idx_reviews_created ON reviews(created_at);
 
 -- ============================================
 -- Reputation Snapshots (Aggregated scores)
@@ -70,5 +70,5 @@ CREATE TABLE IF NOT EXISTS reputation_snapshots (
     UNIQUE(entity_type, entity_id)
 );
 
-CREATE INDEX idx_reputation_entity ON reputation_snapshots(entity_type, entity_id);
-CREATE INDEX idx_reputation_avg ON reputation_snapshots(avg_rating);
+CREATE INDEX IF NOT EXISTS idx_reputation_entity ON reputation_snapshots(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_reputation_avg ON reputation_snapshots(avg_rating);
