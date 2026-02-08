@@ -383,7 +383,7 @@
       var res = await HumanAds.fetchApi('/admin/scenarios/run', {
         method: 'POST',
         body: JSON.stringify({ scenario: 'api-smoke-test' }),
-      });
+      }, 120000);
       if (res.success && res.data.steps) {
         var steps = res.data.steps;
         var html = '<table class="data-table" style="margin-top:12px;"><thead><tr><th style="width:30%">Step</th><th style="width:15%">Result</th><th style="width:55%">Detail</th></tr></thead><tbody>';
@@ -612,6 +612,12 @@
     if (subId === 'sub-applications' && document.getElementById(subId).innerHTML.indexOf('Loading') !== -1) loadApplications();
   }
 
+  function fmtDt(val) {
+    if (!val) return '-';
+    var d = new Date(val);
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' <span style="color:var(--color-text-muted)">' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}) + '</span>';
+  }
+
   async function loadMissions(status) {
     var panel = document.getElementById('sub-missions');
     if (!panel) return;
@@ -628,8 +634,15 @@
           fc(status==='rejected', "loadMissions('rejected')", 'Rejected') + fc(status==='paid', "loadMissions('paid')", 'Paid') +
         '</div>' +
         (missions.length===0?'<div class="empty">No missions found</div>':
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:22%">Deal</th><th style="width:15%">Operator</th><th style="width:12%">Status</th><th style="width:11%">Reward</th><th style="width:12%">Submitted</th><th style="width:18%">Actions</th></tr></thead><tbody>' +
-        missions.map(function(m){ return '<tr><td class="id-cell">' + m.id.substring(0,8) + '..</td><td>' + esc(m.deal_title||m.deal_id?.substring(0,8)||'N/A') + '</td><td>@' + esc(m.x_handle||'unknown') + '</td><td><span class="status-badge ' + m.status + '">' + m.status + '</span></td><td>' + HumanAds.formatCurrency(m.reward_amount||0) + '</td><td>' + (m.submitted_at?HumanAds.formatDate(m.submitted_at):'-') + '</td><td class="action-btns">' + (m.status==='submitted'?'<button class="btn-sm success" onclick="reviewMission(\'' + m.id + '\',\'verify\')">Verify</button><button class="btn-sm danger" onclick="reviewMission(\'' + m.id + '\',\'reject\')">Reject</button>':'<span class="id-cell">' + m.status + '</span>') + '</td></tr>'; }).join('') +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:8%">ID</th><th style="width:18%">Deal</th><th style="width:12%">Operator</th><th style="width:9%">Status</th><th style="width:8%">Reward</th><th style="width:5%">Post</th><th style="width:11%">Created</th><th style="width:11%">Submitted</th><th style="width:18%">Actions</th></tr></thead><tbody>' +
+        missions.map(function(m){
+          var handle = (m.x_handle||'unknown').replace(/^@+/,'');
+          var dealLabel = esc(m.deal_title||m.deal_id?.substring(0,8)||'N/A');
+          var dealCell = m.deal_agent_id ? '<a href="/advertiser/' + encodeURIComponent(m.deal_agent_id) + '" target="_blank" style="color:var(--color-primary);text-decoration:none" title="' + esc(m.agent_name||'') + '">' + dealLabel + '</a>' : dealLabel;
+          var postCell = m.submission_url ? '<a href="' + esc(m.submission_url) + '" target="_blank" rel="noopener" style="color:var(--color-primary);text-decoration:none" title="' + esc(m.submission_url) + '">View</a>' : '-';
+          var actions = m.status==='submitted' ? '<button class="btn-sm success" onclick="reviewMission(\'' + m.id + '\',\'verify\')">Verify</button><button class="btn-sm danger" onclick="reviewMission(\'' + m.id + '\',\'reject\')">Reject</button>' : '<button class="btn-sm" onclick="window.open(\'/missions/detail?id=' + m.id + '\',\'_blank\')">View</button>';
+          return '<tr><td class="id-cell"><a href="/missions/detail?id=' + m.id + '" target="_blank" style="color:var(--color-text-muted);text-decoration:none" title="' + m.id + '">' + m.id.substring(0,8) + '..</a></td><td>' + dealCell + '</td><td><a href="https://x.com/' + encodeURIComponent(handle) + '" target="_blank" rel="noopener" style="color:var(--color-primary);text-decoration:none">@' + esc(handle) + '</a></td><td><span class="status-badge ' + m.status + '">' + m.status + '</span></td><td>' + HumanAds.formatCurrency(m.reward_amount||0) + '</td><td>' + postCell + '</td><td style="font-size:0.75rem;white-space:nowrap">' + fmtDt(m.created_at) + '</td><td style="font-size:0.75rem;white-space:nowrap">' + fmtDt(m.submitted_at) + '</td><td class="action-btns">' + actions + '</td></tr>';
+        }).join('') +
         '</tbody></table></div>');
     } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
   }
@@ -657,8 +670,13 @@
           fc(status==='rejected', "loadApplications('rejected')", 'Rejected') +
         '</div>' +
         (apps.length===0?'<div class="empty">No applications found</div>':
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:25%">Deal</th><th style="width:15%">Operator</th><th style="width:12%">Status</th><th style="width:14%">Applied</th><th style="width:24%">Actions</th></tr></thead><tbody>' +
-        apps.map(function(a){ return '<tr><td class="id-cell">' + a.id.substring(0,8) + '..</td><td>' + esc(a.deal_title||a.deal_id?.substring(0,8)||'N/A') + '</td><td>@' + esc(a.x_handle||'unknown') + '</td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td>' + HumanAds.formatDate(a.created_at) + '</td><td class="action-btns">' + (a.status==='applied'?'<button class="btn-sm success" onclick="updateApp(\'' + a.id + '\',\'shortlisted\')">Shortlist</button><button class="btn-sm danger" onclick="updateApp(\'' + a.id + '\',\'rejected\')">Reject</button>':a.status==='shortlisted'?'<button class="btn-sm success" onclick="updateApp(\'' + a.id + '\',\'selected\')">Select</button><button class="btn-sm danger" onclick="updateApp(\'' + a.id + '\',\'rejected\')">Reject</button>':'<span class="id-cell">-</span>') + '</td></tr>'; }).join('') +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:22%">Deal</th><th style="width:14%">Operator</th><th style="width:12%">Status</th><th style="width:14%">Applied</th><th style="width:28%">Actions</th></tr></thead><tbody>' +
+        apps.map(function(a){
+          var handle = (a.x_handle||'unknown').replace(/^@+/,'');
+          var dealLabel = esc(a.deal_title||a.deal_id?.substring(0,8)||'N/A');
+          var actions = a.status==='applied'?'<button class="btn-sm success" onclick="updateApp(\'' + a.id + '\',\'shortlisted\')">Shortlist</button><button class="btn-sm danger" onclick="updateApp(\'' + a.id + '\',\'rejected\')">Reject</button>':a.status==='shortlisted'?'<button class="btn-sm success" onclick="updateApp(\'' + a.id + '\',\'selected\')">Select</button><button class="btn-sm danger" onclick="updateApp(\'' + a.id + '\',\'rejected\')">Reject</button>':'<span class="id-cell">-</span>';
+          return '<tr><td class="id-cell" title="' + a.id + '">' + a.id.substring(0,8) + '..</td><td>' + dealLabel + '</td><td><a href="https://x.com/' + encodeURIComponent(handle) + '" target="_blank" rel="noopener" style="color:var(--color-primary);text-decoration:none">@' + esc(handle) + '</a></td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td style="font-size:0.75rem;white-space:nowrap">' + fmtDt(a.created_at) + '</td><td class="action-btns">' + actions + '</td></tr>';
+        }).join('') +
         '</tbody></table></div>');
     } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
   }
