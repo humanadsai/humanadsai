@@ -16,6 +16,7 @@ import { createNotificationWithEmail } from '../../services/email-notifications'
 import { verifyTransaction, isTxHashUsed } from '../../services/blockchain';
 import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
 import { transferHusd } from '../../services/onchain';
+import { getSubmissionNextActions, getPayoutNextActions } from '../../utils/next-actions';
 
 // ============================================
 // Helper: verify mission belongs to this advertiser
@@ -138,6 +139,7 @@ export async function handleGetSubmission(
         confirmed_at: payoutPayment.confirmed_at || null,
       } : null,
     } : null,
+    next_actions: getSubmissionNextActions(mission.status, mission.id),
   }, requestId);
 }
 
@@ -234,7 +236,8 @@ export async function handleListSubmissions(
     verified_at: m.verified_at || null,
     rejected_at: m.status === 'rejected' ? m.updated_at : null,
     rejection_reason: m.status === 'rejected' ? m.verification_result : null,
-    payout_status: derivePayoutStatus(m.status)
+    payout_status: derivePayoutStatus(m.status),
+    next_actions: getSubmissionNextActions(m.status, m.id),
   }));
 
   return success({
@@ -536,7 +539,8 @@ export async function handleApproveSubmission(
         platform_fee: (platformFeeCents / 100).toFixed(2),
         promoter_payout: (promoterPayoutCents / 100).toFixed(2)
       }
-    }
+    },
+    next_actions: getSubmissionNextActions('verified', submissionId),
   }, requestId);
 }
 
@@ -614,7 +618,15 @@ export async function handleRejectSubmission(
     submission_id: submissionId,
     status: 'rejected',
     rejected_at: new Date().toISOString(),
-    reason: body.reason.trim()
+    reason: body.reason.trim(),
+    next_actions: [
+      {
+        action: 'review_other_submissions',
+        method: 'GET',
+        endpoint: `/api/v1/missions/${mission.deal_id}/submissions?status=submitted`,
+        description: 'Review other pending submissions for this mission',
+      },
+    ],
   }, requestId);
 }
 
@@ -744,7 +756,21 @@ export async function handleTriggerPayout(
         tx_hash: null
       }
     },
-    payout_deadline_at: payoutDeadline
+    payout_deadline_at: payoutDeadline,
+    next_actions: [
+      {
+        action: 'execute_payout',
+        method: 'POST',
+        endpoint: `/api/v1/submissions/${submissionId}/payout/execute`,
+        description: 'Execute payout server-side (recommended for sandboxed agents)',
+      },
+      {
+        action: 'manual_payout',
+        method: 'POST',
+        endpoint: `/api/v1/submissions/${submissionId}/payout/report`,
+        description: 'Report on-chain tx_hash after sending manually',
+      },
+    ],
   }, requestId);
 }
 
@@ -825,7 +851,8 @@ export async function handleGetPayoutStatus(
       }
     },
     paid_complete_at: (payoutStatus === 'paid_complete' && payoutPayment?.confirmed_at)
-      ? payoutPayment.confirmed_at : null
+      ? payoutPayment.confirmed_at : null,
+    next_actions: getPayoutNextActions(payoutStatus, submissionId),
   }, requestId);
 }
 
@@ -979,7 +1006,10 @@ export async function handleReportPayment(
     payment_type: body.payment_type,
     tx_hash: body.tx_hash,
     status: 'confirmed',
-    all_complete: allConfirmed
+    all_complete: allConfirmed,
+    next_actions: allConfirmed
+      ? [{ action: 'submit_review', method: 'POST', endpoint: `/api/v1/submissions/${submissionId}/review`, description: 'Rate this promoter (1-5 stars, double-blind)' }]
+      : [{ action: 'report_next_payment', method: 'POST', endpoint: `/api/v1/submissions/${submissionId}/payout/report`, description: 'Report the remaining payment tx_hash' }],
   }, requestId);
 }
 
@@ -1253,6 +1283,14 @@ export async function handleExecutePayout(
         tx_hash: payoutTxHash
       }
     },
-    message: 'Payout executed server-side. Promoter has been paid.'
+    message: 'Payout executed server-side. Promoter has been paid.',
+    next_actions: [
+      {
+        action: 'submit_review',
+        method: 'POST',
+        endpoint: `/api/v1/submissions/${submissionId}/review`,
+        description: 'Rate this promoter (1-5 stars, double-blind)',
+      },
+    ],
   }, requestId);
 }

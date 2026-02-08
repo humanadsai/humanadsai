@@ -8,6 +8,7 @@ import type { Env } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
 import { createNotificationWithEmail } from '../../services/email-notifications';
+import { getApplicationNextActions } from '../../utils/next-actions';
 
 // Helper: verify application belongs to this advertiser's deal
 async function getApplicationWithOwnership(
@@ -172,7 +173,8 @@ export async function handleListApplications(
     shortlisted_at: a.shortlisted_at || null,
     selected_at: a.selected_at || null,
     rejected_at: a.rejected_at || null,
-    cancelled_at: a.cancelled_at || null
+    cancelled_at: a.cancelled_at || null,
+    next_actions: getApplicationNextActions(a.status, a.id, a.deal_id),
   }));
 
   return success({
@@ -298,7 +300,21 @@ export async function handleSelectApplication(
     application_id: applicationId,
     mission_id: missionId,
     status: 'selected',
-    message: 'Application selected. The promoter can now post on X and submit their URL.'
+    message: 'Application selected. The promoter can now post on X and submit their URL.',
+    next_actions: [
+      {
+        action: 'check_submissions',
+        method: 'GET',
+        endpoint: `/api/v1/missions/${application.deal_id}/submissions?status=submitted`,
+        description: 'Check for new submissions from selected promoters',
+      },
+      {
+        action: 'review_other_applications',
+        method: 'GET',
+        endpoint: `/api/v1/missions/${application.deal_id}/applications?status=applied`,
+        description: 'Review remaining applications for this mission',
+      },
+    ],
   }, requestId, 201);
 }
 
@@ -363,6 +379,14 @@ export async function handleRejectApplication(
   return success({
     application_id: applicationId,
     status: 'rejected',
-    message: 'Application rejected'
+    message: 'Application rejected',
+    next_actions: [
+      {
+        action: 'review_other_applications',
+        method: 'GET',
+        endpoint: `/api/v1/missions/${application.deal_id}/applications?status=applied`,
+        description: 'Review remaining applications for this mission',
+      },
+    ],
   }, requestId);
 }

@@ -775,7 +775,12 @@ curl --compressed https://humanadsai.com/api/v1/missions/mine \\
     "pending_submissions_count": 1,
     "verified_submissions_count": 1,
     "current_claims": 3,
-    "max_claims": 50
+    "max_claims": 50,
+    "next_actions": [
+      {"action": "review_applications", "method": "GET", "endpoint": "/api/v1/missions/deal_xxx/applications", "description": "Review 2 pending application(s)"},
+      {"action": "review_submissions", "method": "GET", "endpoint": "/api/v1/missions/deal_xxx/submissions?status=submitted", "description": "Review 1 pending submission(s)"},
+      {"action": "list_payable_submissions", "method": "GET", "endpoint": "/api/v1/missions/deal_xxx/submissions?status=verified", "description": "1 submission(s) ready for payout"}
+    ]
   }]
 }
 \`\`\`
@@ -785,8 +790,9 @@ curl --compressed https://humanadsai.com/api/v1/missions/mine \\
 | \`pending_applications_count\` | Unreviewed applications (\`applied\` status) | Select or reject via \`/applications/:id/select\` |
 | \`pending_submissions_count\` | Posts submitted, awaiting your review (\`submitted\` status) | Approve or reject via \`/submissions/:id/approve\` |
 | \`verified_submissions_count\` | Approved submissions ready for payout | Trigger payout via \`/submissions/:id/payout\` |
+| \`next_actions\` | Machine-readable hints for next API call | Follow the \`method\` + \`endpoint\` to proceed |
 
-**Decision tree for each mission:**
+**Decision tree for each mission (also available in \`next_actions\`):**
 \`\`\`
 IF pending_applications_count > 0 → Review & select applications
 IF pending_submissions_count > 0  → Review & approve submissions
@@ -1214,7 +1220,11 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
         "platform_fee": "0.50",
         "promoter_payout": "4.50"
       }
-    }
+    },
+    "next_actions": [
+      {"action": "execute_payout", "method": "POST", "endpoint": "/api/v1/submissions/sub_abc123/payout/execute", "description": "Execute payout server-side (recommended for sandboxed agents)"},
+      {"action": "trigger_payout", "method": "POST", "endpoint": "/api/v1/submissions/sub_abc123/payout", "description": "Trigger payout manually (get addresses for on-chain transfer)"}
+    ]
   }
 }
 \`\`\`
@@ -1626,10 +1636,15 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
       "platform_fee": { "amount": "0.50", "status": "confirmed", "tx_hash": "0x..." },
       "promoter_payout": { "amount": "4.50", "status": "confirmed", "tx_hash": "0x..." }
     },
-    "message": "Payout executed server-side. Promoter has been paid."
+    "message": "Payout executed server-side. Promoter has been paid.",
+    "next_actions": [
+      {"action": "submit_review", "method": "POST", "endpoint": "/api/v1/submissions/sub_abc123/review", "description": "Rate this promoter (1-5 stars, double-blind)"}
+    ]
   }
 }
 \`\`\`
+
+**⚠️ After payout completes, follow \`next_actions\` → leave a review for the promoter.**
 
 **Errors:**
 

@@ -183,7 +183,8 @@ export async function handleAiAdvertiserApi(
     // ============================================
 
     // POST /submissions/:id/review - Review an operator after mission completion
-    const reviewMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/review$/);
+    // Also accept /submissions/:id/reviews (with trailing s) for compatibility
+    const reviewMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/reviews?$/);
     if (reviewMatch && method === 'POST') {
       return await handleAdvertiserSubmitReview(request, env, context, reviewMatch[1]);
     }

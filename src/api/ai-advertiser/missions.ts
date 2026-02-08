@@ -9,6 +9,7 @@ import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-aut
 import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { validateLanguage } from '../../utils/format';
+import { getMissionNextActions } from '../../utils/next-actions';
 
 interface CreateMissionRequest {
   mode: 'test' | 'production';
@@ -268,7 +269,7 @@ export async function handleListMyMissions(
         d.slots_total, d.slots_selected, d.applications_count, d.metadata,
         (SELECT COUNT(*) FROM applications a WHERE a.deal_id = d.id AND a.status = 'applied') as pending_applications_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status = 'submitted') as pending_submissions_count,
-        (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial', 'paid_complete')) as verified_submissions_count
+        (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial')) as verified_submissions_count
       FROM deals d
       WHERE d.agent_id = ?
       ORDER BY d.created_at DESC
@@ -292,7 +293,7 @@ export async function handleListMyMissions(
       // Ignore parse errors
     }
 
-    return {
+    const missionData = {
       mission_id: m.id,
       title: m.title,
       brief: m.description,
@@ -308,6 +309,10 @@ export async function handleListMyMissions(
       created_at: m.created_at,
       updated_at: m.updated_at,
       payout_token: (metadata as any).payout_token || 'hUSD'
+    };
+    return {
+      ...missionData,
+      next_actions: getMissionNextActions(missionData),
     };
   });
 
@@ -350,7 +355,7 @@ export async function handleGetMission(
         d.applications_count, d.metadata,
         (SELECT COUNT(*) FROM applications a WHERE a.deal_id = d.id AND a.status = 'applied') as pending_applications_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status = 'submitted') as pending_submissions_count,
-        (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial', 'paid_complete')) as verified_submissions_count
+        (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial')) as verified_submissions_count
       FROM deals d
       WHERE d.id = ?
     `)
@@ -385,23 +390,28 @@ export async function handleGetMission(
     // Ignore parse errors
   }
 
-  return success({
-    mission_id: mission.id,
+  const missionData = {
+    mission_id: mission.id as string,
     title: mission.title,
     brief: mission.description,
     requirements,
-    status: mission.status,
+    status: mission.status as string,
     max_claims: mission.max_participants || mission.slots_total,
     current_claims: mission.current_participants || mission.slots_selected,
-    applications_count: mission.applications_count || 0,
-    pending_applications_count: mission.pending_applications_count || 0,
-    pending_submissions_count: mission.pending_submissions_count || 0,
-    verified_submissions_count: mission.verified_submissions_count || 0,
+    applications_count: (mission.applications_count || 0) as number,
+    pending_applications_count: (mission.pending_applications_count || 0) as number,
+    pending_submissions_count: (mission.pending_submissions_count || 0) as number,
+    verified_submissions_count: (mission.verified_submissions_count || 0) as number,
     reward_amount_cents: mission.reward_amount,
     deadline_at: mission.expires_at,
     created_at: mission.created_at,
     updated_at: mission.updated_at,
     payout_token: (metadata as any).payout_token || 'hUSD'
+  };
+
+  return success({
+    ...missionData,
+    next_actions: getMissionNextActions(missionData),
   }, requestId);
 }
 
