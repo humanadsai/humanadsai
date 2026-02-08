@@ -34,8 +34,14 @@
     .btn-sm.danger { background: #ff3b30; border-color: #ff3b30; color: white; }
     .loading, .empty { text-align: center; padding: 40px; color: var(--color-text-muted); }
     .id-cell { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
+    .id-cell a { color: var(--color-text-muted); text-decoration: none; }
+    .id-cell a:hover { color: var(--color-primary); }
     .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .action-btns { display: flex; gap: 4px; }
+    .link-cell a { color: var(--color-primary); text-decoration: none; }
+    .link-cell a:hover { text-decoration: underline; }
+    .date-cell { font-size: 0.75rem; white-space: nowrap; }
+    .date-cell .time { color: var(--color-text-muted); }
   </style>
   <script src="/js/analytics.js"></script>
 </head>
@@ -62,6 +68,14 @@
   <script src="/js/humanads.js"></script>
   <script>
     let currentStatus = null;
+
+    function fmtDt(val) {
+      if (!val) return '-';
+      const d = new Date(val);
+      const date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      return `${date} <span class="time">${time}</span>`;
+    }
 
     async function loadMissions(status = null) {
       currentStatus = status;
@@ -94,20 +108,31 @@
             ${missions.length === 0 ? '<div class="empty">No missions found</div>' : `
               <table class="data-table">
                 <thead>
-                  <tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Reward</th><th>Created</th><th>Submitted</th><th>Verified</th><th>Paid</th><th>Actions</th></tr>
+                  <tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Reward</th><th>Post</th><th>Created</th><th>Submitted</th><th>Verified</th><th>Paid</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
-                  ${missions.map(m => `
+                  ${missions.map(m => {
+                    const handle = (m.x_handle || 'unknown').replace(/^@+/, '');
+                    const dealLabel = HumanAds.escapeHtml(m.deal_title || m.deal_id?.substring(0,8) || 'N/A');
+                    const agentLabel = m.agent_name ? HumanAds.escapeHtml(m.agent_name) : '';
+                    const dealLink = m.deal_agent_id
+                      ? `<a href="/advertiser/${encodeURIComponent(m.deal_agent_id)}" title="${agentLabel}">${dealLabel}</a>`
+                      : dealLabel;
+                    const postLink = m.submission_url
+                      ? `<a href="${HumanAds.escapeHtml(m.submission_url)}" target="_blank" rel="noopener" title="${HumanAds.escapeHtml(m.submission_url)}">View</a>`
+                      : '-';
+                    return `
                     <tr>
-                      <td class="id-cell">${m.id.substring(0,8)}...</td>
-                      <td>${HumanAds.escapeHtml(m.deal_title || m.deal_id?.substring(0,8) || 'N/A')}</td>
-                      <td>@${HumanAds.escapeHtml((m.x_handle || 'unknown').replace(/^@+/, ''))}</td>
+                      <td class="id-cell"><a href="/missions/detail?id=${m.id}" target="_blank" title="${m.id}">${m.id.substring(0,8)}..</a></td>
+                      <td class="link-cell">${dealLink}</td>
+                      <td class="link-cell"><a href="https://x.com/${encodeURIComponent(handle)}" target="_blank" rel="noopener">@${HumanAds.escapeHtml(handle)}</a></td>
                       <td><span class="status-badge ${m.status}">${m.status}</span></td>
                       <td>${HumanAds.formatCurrency(m.reward_amount || 0)}</td>
-                      <td>${m.created_at ? HumanAds.formatDate(m.created_at) : '-'}</td>
-                      <td>${m.submitted_at ? HumanAds.formatDate(m.submitted_at) : '-'}</td>
-                      <td>${m.verified_at ? HumanAds.formatDate(m.verified_at) : '-'}</td>
-                      <td>${m.paid_at ? HumanAds.formatDate(m.paid_at) : '-'}</td>
+                      <td class="link-cell">${postLink}</td>
+                      <td class="date-cell">${fmtDt(m.created_at)}</td>
+                      <td class="date-cell">${fmtDt(m.submitted_at)}</td>
+                      <td class="date-cell">${fmtDt(m.verified_at)}</td>
+                      <td class="date-cell">${fmtDt(m.paid_at)}</td>
                       <td class="action-btns">
                         ${m.status === 'submitted' ? `
                           <button class="btn-sm success" onclick="reviewMission('${m.id}', 'verify')">Verify</button>
@@ -116,8 +141,8 @@
                           <button class="btn-sm" onclick="viewMission('${m.id}')">View</button>
                         `}
                       </td>
-                    </tr>
-                  `).join('')}
+                    </tr>`;
+                  }).join('')}
                 </tbody>
               </table>
             `}
@@ -149,7 +174,7 @@
     }
 
     function viewMission(id) {
-      alert('Mission ID: ' + id + '\n\nFull details view coming soon.');
+      window.open('/missions/detail?id=' + id, '_blank');
     }
 
     (async function() {

@@ -1000,10 +1000,11 @@ export async function listMissions(request: Request, env: Env): Promise<Response
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100);
     const offset = parseInt(url.searchParams.get('offset') || '0');
 
-    let query = `SELECT m.*, o.x_handle, o.display_name, d.title as deal_title, d.reward_amount
+    let query = `SELECT m.*, o.x_handle, o.display_name, d.title as deal_title, d.reward_amount, d.agent_id as deal_agent_id, a.name as agent_name
                  FROM missions m
                  LEFT JOIN operators o ON m.operator_id = o.id
-                 LEFT JOIN deals d ON m.deal_id = d.id`;
+                 LEFT JOIN deals d ON m.deal_id = d.id
+                 LEFT JOIN agents a ON d.agent_id = a.id`;
     const conditions: string[] = [];
     const params: (string | number)[] = [];
 
