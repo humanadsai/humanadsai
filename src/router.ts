@@ -110,6 +110,8 @@ import {
   logTokenOp,
   getEnvStatus,
   getEnvCheck,
+  smokeTestInit,
+  smokeTestCleanupEndpoint,
 } from './api/admin/index';
 import { getAdvertiserDashboard } from './api/admin/dashboard-stats';
 
@@ -1320,6 +1322,20 @@ async function handleAdminApi(
   // GET /api/admin/payout/fee-recipients - Get fee recipients
   if (path === '/api/admin/payout/fee-recipients' && method === 'GET') {
     return getFeeRecipients(request, env);
+  }
+
+  // ============================================
+  // Smoke Test
+  // ============================================
+
+  // POST /api/admin/smoke-test/init - Register + activate smoke test advertiser
+  if (path === '/api/admin/smoke-test/init' && method === 'POST') {
+    return smokeTestInit(request, env);
+  }
+
+  // POST /api/admin/smoke-test/cleanup - Clean up smoke test data
+  if (path === '/api/admin/smoke-test/cleanup' && method === 'POST') {
+    return smokeTestCleanupEndpoint(request, env);
   }
 
   // ============================================

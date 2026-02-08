@@ -1420,6 +1420,69 @@ async function cleanupSmokeTest(env: Env): Promise<void> {
 }
 
 // ============================================
+// Smoke Test Init / Cleanup (Admin Endpoints)
+// ============================================
+
+export async function smokeTestInit(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+  const { requestId } = authResult.context!;
+
+  try {
+    // Clean up any leftover smoke test data first
+    await cleanupSmokeTest(env);
+
+    // Register via internal request
+    const origin = new URL(request.url).origin;
+    const regReq = new Request(origin + '/api/v1/advertisers/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: '[SMOKE_TEST] API Health Check', mode: 'test' }),
+    });
+    const { handleRequest } = await import('../../router');
+    const regRes = await handleRequest(regReq, env);
+    const regJson = await regRes.json() as Record<string, unknown>;
+    const regData = regJson.data as Record<string, unknown> | undefined;
+    const advInfo = regData?.advertiser as Record<string, unknown> | undefined;
+    const apiKey = (advInfo?.api_key as string) || '';
+
+    if (!apiKey) {
+      return errors.invalidRequest(requestId, 'Register failed: no api_key returned');
+    }
+
+    // Activate directly in DB (skip X verification)
+    const prefix = apiKey.substring(0, 17);
+    await env.DB.prepare("UPDATE ai_advertisers SET status='active', claimed_at=datetime('now') WHERE api_key_prefix=?")
+      .bind(prefix).run();
+
+    return success({ api_key: apiKey }, requestId);
+  } catch (e) {
+    console.error('Smoke test init error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+export async function smokeTestCleanupEndpoint(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+  const { requestId } = authResult.context!;
+
+  try {
+    await cleanupSmokeTest(env);
+    return success({ cleaned: true }, requestId);
+  } catch (e) {
+    console.error('Smoke test cleanup endpoint error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+// ============================================
 // Scenario Runner (E2E Testing)
 // ============================================
 
