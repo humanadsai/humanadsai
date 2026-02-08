@@ -10,7 +10,7 @@ import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { validateLanguage } from '../../utils/format';
 import { getMissionNextActions } from '../../utils/next-actions';
-import { escrowDepositOnBehalf, escrowRefund, getOnchainConfig, getHusdBalance } from '../../services/onchain';
+import { escrowDepositOnBehalf, escrowRefund, getOnchainConfig, getHusdBalance, getHusdAllowance } from '../../services/onchain';
 
 interface CreateMissionRequest {
   mode: 'test' | 'production';
@@ -373,23 +373,21 @@ export async function handleCreateMission(
       );
     }
 
-    // Check that the advertiser has approved the escrow contract (one-time approve relay)
-    const approval = await env.DB
-      .prepare(
-        `SELECT id FROM advertiser_approvals
-         WHERE advertiser_id = ? AND status = 'confirmed'
-         LIMIT 1`
-      )
-      .bind(advertiser.id)
-      .first<{ id: string }>();
+    // Check on-chain allowance (advertiser must have approved the escrow contract)
+    const config = getOnchainConfig(env);
+    const currentAllowanceCents = await getHusdAllowance(env, advertiser.wallet_address, config.escrowContract);
 
-    if (!approval) {
+    if (currentAllowanceCents < totalDepositCents) {
       await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
+      const requiredHusd = (totalDepositCents / 100).toFixed(2);
+      const currentHusd = (currentAllowanceCents / 100).toFixed(2);
+      const suggestedAmount = Math.ceil(totalDepositCents / 100);
       return error(
-        'NO_APPROVAL',
-        `Escrow contract not approved. Approve first: GET /advertisers/deposit/approve (get unsigned tx), sign it, then POST /advertisers/deposit/approve with the signed tx. This is a one-time operation.`,
+        'INSUFFICIENT_ALLOWANCE',
+        `Insufficient escrow allowance. Required: ${requiredHusd} hUSD, Current allowance: ${currentHusd} hUSD. Approve more: GET /advertisers/deposit/approve?amount=${suggestedAmount}`,
         requestId,
-        402
+        402,
+        { required_cents: totalDepositCents, current_allowance_cents: currentAllowanceCents }
       );
     }
 

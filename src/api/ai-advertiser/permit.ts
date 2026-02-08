@@ -5,18 +5,17 @@
 import type { Env } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
-import { getOnchainConfig, rpcCall, normalizeAddress } from '../../services/onchain';
+import { getOnchainConfig, rpcCall, normalizeAddress, getHusdAllowance } from '../../services/onchain';
 
 // approve(address,uint256) selector
 const APPROVE_SELECTOR = '0x095ea7b3';
-const MAX_UINT256_HEX = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
 /**
  * Get an unsigned approve transaction for the AI to sign.
- * Approves the escrow contract to spend the advertiser's hUSD (maxUint256).
- * One-time operation — after approval, all future missions can deposit without signing.
+ * Approves the escrow contract to spend a specified amount of the advertiser's hUSD.
  *
- * GET /api/v1/advertisers/deposit/approve
+ * GET /api/v1/advertisers/deposit/approve?amount=1000
+ *   amount: hUSD units (e.g. 1000 = 1000 hUSD). Required.
  */
 export async function handleGetApproveData(
   request: Request,
@@ -31,22 +30,39 @@ export async function handleGetApproveData(
 
   const config = getOnchainConfig(env);
 
-  // Check if already approved
-  const existing = await env.DB
-    .prepare(`SELECT id FROM advertiser_approvals WHERE advertiser_id = ? AND status = 'confirmed'`)
-    .bind(advertiser.id)
-    .first();
+  // Parse amount query parameter
+  const url = new URL(request.url);
+  const amountParam = url.searchParams.get('amount');
 
-  if (existing) {
+  if (!amountParam) {
+    return error('MISSING_AMOUNT', 'Query parameter "amount" is required (hUSD units, e.g. ?amount=1000)', requestId, 400);
+  }
+
+  const amountHusd = parseFloat(amountParam);
+  if (isNaN(amountHusd) || amountHusd <= 0) {
+    return error('INVALID_AMOUNT', 'amount must be a positive number (hUSD units)', requestId, 400);
+  }
+
+  // Convert hUSD to base units (6 decimals): 1 hUSD = 1_000_000 base units
+  const amountBaseUnits = BigInt(Math.round(amountHusd * 1_000_000));
+
+  // Check on-chain allowance
+  const currentAllowanceCents = await getHusdAllowance(env, advertiser.wallet_address, config.escrowContract);
+  const requiredCents = Math.round(amountHusd * 100);
+
+  if (currentAllowanceCents >= requiredCents) {
     return success({
-      already_approved: true,
-      message: 'Escrow contract is already approved. You can create missions directly.',
+      already_sufficient: true,
+      current_allowance_husd: (currentAllowanceCents / 100).toFixed(2),
+      requested_husd: amountHusd.toFixed(2),
+      message: `Current allowance (${(currentAllowanceCents / 100).toFixed(2)} hUSD) is already sufficient for ${amountHusd.toFixed(2)} hUSD. You can create missions directly.`,
     }, requestId);
   }
 
-  // Build approve calldata: approve(escrowContract, maxUint256)
+  // Build approve calldata: approve(escrowContract, amountBaseUnits)
   const paddedSpender = config.escrowContract.toLowerCase().replace('0x', '').padStart(64, '0');
-  const calldata = APPROVE_SELECTOR + paddedSpender + MAX_UINT256_HEX;
+  const paddedAmount = amountBaseUnits.toString(16).padStart(64, '0');
+  const calldata = APPROVE_SELECTOR + paddedSpender + paddedAmount;
 
   // Fetch nonce and gas price from RPC
   let nonce: string;
@@ -71,8 +87,10 @@ export async function handleGetApproveData(
       nonce,
       gasPrice,
     },
+    approve_amount_husd: amountHusd.toFixed(2),
+    current_allowance_husd: (currentAllowanceCents / 100).toFixed(2),
     spender: config.escrowContract,
-    message: 'Sign this approve transaction with your private key, then POST to /advertisers/deposit/approve. This is a one-time operation.',
+    message: `Sign this approve transaction to allow ${amountHusd.toFixed(2)} hUSD spending, then POST to /advertisers/deposit/approve.`,
   }, requestId);
 }
 
