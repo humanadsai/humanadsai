@@ -12,7 +12,12 @@
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <style>
     /* ── Layout ── */
-    .admin-page { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; }
+    .admin-page { max-width: 1200px; margin: 0 auto; padding: 24px 16px 40px; }
+
+    /* ── Dashboard Header ── */
+    .dashboard-header { margin-bottom: 24px; }
+    .dashboard-header h1 { font-family: var(--font-mono); font-size: 1.5rem; margin-bottom: 8px; }
+    .dashboard-header p { color: var(--color-text-muted); font-size: 0.875rem; }
 
     /* ── Tab Bar ── */
     .tab-bar {
@@ -35,14 +40,23 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
-    /* ── Stats Grid ── */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .stat-card {
-      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 10px; padding: 16px;
+    /* ── Summary Grid (agent dashboard style) ── */
+    .summary-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;
     }
-    .stat-card h3 { font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px; }
-    .stat-card .value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; }
-    .stat-card .sub { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 2px; }
+    @media (min-width: 768px) { .summary-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 1024px) { .summary-grid { grid-template-columns: repeat(6, 1fr); } }
+    .summary-card {
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px;
+      padding: 16px; text-align: center;
+    }
+    .summary-card .value {
+      font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700;
+      color: var(--color-primary); margin-bottom: 4px;
+    }
+    .summary-card .label {
+      font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    }
 
     .quick-action {
       display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
@@ -61,27 +75,43 @@
     .env-badge.onchain { background: rgba(52,199,89,0.15); color: #34c759; }
     .env-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    /* ── Data Table ── */
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
-    .section-header h2 { font-family: var(--font-mono); font-size: 1.1rem; }
-    .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+    /* ── Section Card (agent dashboard style) ── */
+    .section-card {
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px;
+      margin-bottom: 24px; overflow: hidden;
+    }
+    .section-header {
+      padding: 12px 16px; border-bottom: 1px solid var(--color-border);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    }
+    .section-header h2 { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; }
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ── Filters ── */
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 16px; align-items: center; border-bottom: 1px solid var(--color-border); }
     .filter-chip {
-      padding: 5px 10px; border-radius: 16px; font-size: 0.7rem; font-family: var(--font-mono);
-      background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; color: var(--color-text); transition: all 0.15s;
+      padding: 6px 12px; border-radius: 16px; font-size: 0.75rem; font-family: var(--font-mono);
+      background: var(--color-bg); border: 1px solid var(--color-border); cursor: pointer; color: var(--color-text); transition: all 0.15s;
     }
     .filter-chip:hover, .filter-chip.active { border-color: var(--color-primary); color: var(--color-primary); }
     .filter-sep { width: 1px; height: 18px; background: var(--color-border); margin: 0 2px; }
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ── Data Table ── */
     .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .data-table th, .data-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .data-table th { font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-text-muted); text-transform: uppercase; }
-    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .data-table th { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; }
+    .data-table tr:hover { background: rgba(255,255,255,0.05); }
     .data-table tr.row-deleted { opacity: 0.5; }
-    .id-cell { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); }
+    .data-table tr:last-child td { border-bottom: none; }
+    .id-cell { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
+
+    /* ── Empty State ── */
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--color-text-muted); }
+    .empty-state h3 { font-family: var(--font-mono); font-size: 1rem; margin-bottom: 8px; color: var(--color-text); }
 
     /* ── Badges ── */
     .status-badge {
-      display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem;
+      display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;
       font-family: var(--font-mono); font-weight: 600;
     }
     .status-badge.active, .status-badge.approved, .status-badge.verified, .status-badge.confirmed, .status-badge.paid, .status-badge.paid_complete { background: rgba(52,199,89,0.2); color: #34c759; }
@@ -91,10 +121,10 @@
     .status-badge.draft, .status-badge.user { background: rgba(255,255,255,0.1); color: var(--color-text-muted); }
     .status-badge.admin { background: rgba(255,107,53,0.2); color: #ff6b35; }
     .status-badge.address_unlocked { background: rgba(88,86,214,0.2); color: #5856d6; }
-    .visibility-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-family: var(--font-mono); font-weight: 600; margin-left: 4px; }
+    .visibility-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-family: var(--font-mono); font-weight: 600; margin-left: 4px; }
     .visibility-badge.hidden { background: rgba(255,204,0,0.2); color: #ffcc00; }
     .visibility-badge.deleted { background: rgba(255,59,48,0.2); color: #ff3b30; }
-    .type-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.6rem; font-family: var(--font-mono); }
+    .type-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.65rem; font-family: var(--font-mono); }
     .type-badge.faucet { background: rgba(255,107,53,0.2); color: #ff6b35; }
     .type-badge.mint, .type-badge.owner_mint { background: rgba(52,199,89,0.2); color: #34c759; }
     .type-badge.transfer, .type-badge.owner_transfer { background: rgba(0,122,255,0.2); color: #007aff; }
@@ -122,9 +152,9 @@
     .card {
       background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px;
     }
-    .card-title { font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 12px; }
-    .card-value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; }
-    .card-sub { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px; }
+    .card-title { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+    .card-value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--color-primary); }
+    .card-sub { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; }
     .card.faucet { background: linear-gradient(135deg, rgba(255,107,53,0.08) 0%, rgba(255,149,0,0.03) 100%); border-color: rgba(255,107,53,0.25); }
 
     /* ── Forms ── */
@@ -170,7 +200,7 @@
     .sub-panel.active { display: block; }
 
     /* ── Tx Link ── */
-    .tx-link { color: var(--color-primary); text-decoration: none; font-family: var(--font-mono); font-size: 0.65rem; }
+    .tx-link { color: var(--color-primary); text-decoration: none; font-family: var(--font-mono); font-size: 0.7rem; }
     .tx-link:hover { text-decoration: underline; }
 
     /* ── Modal ── */
@@ -182,8 +212,8 @@
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
     .modal-actions .btn-sm { padding: 8px 16px; }
 
-    .loading { text-align: center; padding: 40px; color: var(--color-text-muted); font-size: 0.8rem; }
-    .empty { text-align: center; padding: 40px; color: var(--color-text-muted); font-size: 0.8rem; }
+    .loading { text-align: center; padding: 48px; color: var(--color-text-muted); font-size: 0.875rem; }
+    .empty { text-align: center; padding: 48px 24px; color: var(--color-text-muted); font-size: 0.875rem; }
     .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface); }
 
     /* ── Payout Test ── */
@@ -194,9 +224,8 @@
     .payout-result .row .val { font-family: var(--font-mono); }
 
     @media (max-width: 768px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .card-grid { grid-template-columns: 1fr; }
-      .tab-btn { padding: 10px 10px; font-size: 0.65rem; }
+      .tab-btn { padding: 10px 10px; font-size: 0.7rem; }
     }
   </style>
   <script src="/js/analytics.js"></script>
@@ -325,36 +354,44 @@
         missionsBtn.innerHTML = 'Missions <span class="badge">' + stats.pending_submissions + '</span>';
 
       panel.innerHTML =
-        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">' +
-          '<h1 style="font-family:var(--font-mono);font-size:1.3rem;margin:0;">Admin Console</h1>' +
-          '<span class="env-badge ' + (env.payout_mode === 'onchain' ? 'onchain' : 'ledger') + '"><span class="dot"></span> ' + env.payout_mode + ' mode</span>' +
-          (env.has_treasury_key
-            ? '<span class="env-badge onchain"><span class="dot"></span> Treasury Key</span>'
-            : '<span class="env-badge ledger"><span class="dot"></span> No Treasury Key</span>') +
+        '<div class="dashboard-header">' +
+          '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
+            '<h1>Admin Console</h1>' +
+            '<span class="env-badge ' + (env.payout_mode === 'onchain' ? 'onchain' : 'ledger') + '"><span class="dot"></span> ' + env.payout_mode + ' mode</span>' +
+            (env.has_treasury_key
+              ? '<span class="env-badge onchain"><span class="dot"></span> Treasury Key</span>'
+              : '<span class="env-badge ledger"><span class="dot"></span> No Treasury Key</span>') +
+          '</div>' +
+          '<p>Platform overview and health monitoring</p>' +
         '</div>' +
 
-        '<div class="stats-grid">' +
-          '<div class="stat-card"><h3>Agents</h3><div class="value">' + stats.total_agents + '</div><div class="sub">' + stats.active_agents + ' active</div></div>' +
-          '<div class="stat-card"><h3>Operators</h3><div class="value">' + stats.total_operators + '</div><div class="sub">' + stats.verified_operators + ' verified</div></div>' +
-          '<div class="stat-card"><h3>Deals</h3><div class="value">' + stats.total_deals + '</div><div class="sub">' + stats.active_deals + ' active</div></div>' +
-          '<div class="stat-card"><h3>Missions</h3><div class="value">' + stats.total_missions + '</div><div class="sub">' + stats.total_applications + ' applications</div></div>' +
-          '<div class="stat-card"><h3>Pending Review</h3><div class="value">' + stats.pending_submissions + '</div><div class="sub">submissions</div></div>' +
-          '<div class="stat-card"><h3>Pending Payout</h3><div class="value">' + stats.pending_payouts + '</div><div class="sub">awaiting payout</div></div>' +
+        '<div class="summary-grid">' +
+          '<div class="summary-card"><div class="value">' + stats.total_agents + '</div><div class="label">Agents</div></div>' +
+          '<div class="summary-card"><div class="value">' + stats.total_operators + '</div><div class="label">Operators</div></div>' +
+          '<div class="summary-card"><div class="value">' + stats.total_deals + '</div><div class="label">Deals</div></div>' +
+          '<div class="summary-card"><div class="value">' + stats.total_missions + '</div><div class="label">Missions</div></div>' +
+          '<div class="summary-card"><div class="value">' + stats.pending_submissions + '</div><div class="label">Pending Review</div></div>' +
+          '<div class="summary-card"><div class="value">' + stats.pending_payouts + '</div><div class="label">Pending Payout</div></div>' +
         '</div>' +
 
-        '<div class="fee-section"><h3>Fee Recipients</h3>' +
-          '<div class="fee-addr"><span class="chain">Solana</span><span class="addr">' + (fee_recipients?.solana || '-') + '</span></div>' +
-          '<div class="fee-addr"><span class="chain">EVM</span><span class="addr">' + (fee_recipients?.evm || '-') + '</span></div>' +
+        '<div class="section-card">' +
+          '<div class="section-header"><h2>Fee Recipients</h2></div>' +
+          '<div style="padding:16px;">' +
+            '<div class="fee-addr"><span class="chain">Solana</span><span class="addr">' + (fee_recipients?.solana || '-') + '</span></div>' +
+            '<div class="fee-addr"><span class="chain">EVM</span><span class="addr">' + (fee_recipients?.evm || '-') + '</span></div>' +
+          '</div>' +
         '</div>' +
 
-        '<div class="fee-section" style="margin-top:24px;">' +
-          '<h3>API Health Check</h3>' +
-          '<p style="color:var(--muted);font-size:0.85rem;margin:4px 0 12px;">Run a full smoke test against all AI Advertiser API endpoints.</p>' +
-          '<button class="btn-sm primary" onclick="runApiSmokeTest(this)">Run API Smoke Test</button>' +
-          '<div id="smoke-test-results"></div>' +
+        '<div class="section-card">' +
+          '<div class="section-header"><h2>API Health Check</h2></div>' +
+          '<div style="padding:16px;">' +
+            '<p style="color:var(--color-text-muted);font-size:0.875rem;margin:0 0 12px;">Run a full smoke test against all AI Advertiser API endpoints.</p>' +
+            '<button class="btn-sm primary" onclick="runApiSmokeTest(this)">Run API Smoke Test</button>' +
+            '<div id="smoke-test-results"></div>' +
+          '</div>' +
         '</div>';
     } catch (e) {
-      panel.innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(e.message) + '<br><button class="btn-sm" onclick="state.dashboardLoaded=false;loadDashboard()" style="margin-top:12px;">Retry</button></div>';
+      panel.innerHTML = '<div class="section-card"><div class="empty-state"><h3 style="color:#ff3b30;">Error</h3><p>' + esc(e.message) + '</p><p style="margin-top:12px;"><button class="btn-sm" onclick="state.dashboardLoaded=false;loadDashboard()">Retry</button></p></div></div>';
     }
   }
 
@@ -378,35 +415,250 @@
   async function runApiSmokeTest(btn) {
     btn.disabled = true; btn.textContent = 'Running...';
     var resultsDiv = document.getElementById('smoke-test-results');
-    resultsDiv.innerHTML = '<div class="loading">Running smoke test across all API endpoints...</div>';
-    try {
-      var res = await HumanAds.fetchApi('/admin/scenarios/run', {
-        method: 'POST',
-        body: JSON.stringify({ scenario: 'api-smoke-test' }),
-      }, 120000);
-      if (res.success && res.data.steps) {
-        var steps = res.data.steps;
-        var html = '<table class="data-table" style="margin-top:12px;"><thead><tr><th style="width:30%">Step</th><th style="width:15%">Result</th><th style="width:55%">Detail</th></tr></thead><tbody>';
-        steps.forEach(function(s) {
-          var icon = s.status === 'pass' ? '✅' : (s.status === 'warn' ? '⚠️' : '❌');
-          var rowStyle = s.status === 'fail' ? ' style="background:rgba(255,59,48,0.08);"' : (s.status === 'warn' ? ' style="background:rgba(255,149,0,0.08);"' : '');
-          html += '<tr' + rowStyle + '><td>' + esc(s.step) + '</td><td>' + icon + ' ' + s.status.toUpperCase() + '</td><td style="font-size:0.85rem;color:var(--muted);white-space:normal;word-break:break-word;">' + esc(s.detail || '') + '</td></tr>';
-        });
-        html += '</tbody></table>';
-        var passed = res.data.passed || 0;
-        var warned = res.data.warned || 0;
-        var total = res.data.total || steps.length;
-        var summary = passed + '/' + total + ' passed';
-        if (warned > 0) summary += ', ' + warned + ' warnings';
-        var color = passed === total ? '#34c759' : (passed + warned >= total ? '#ff9500' : '#ff3b30');
-        html += '<div style="margin-top:8px;font-weight:600;color:' + color + ';">' + summary + '</div>';
-        resultsDiv.innerHTML = html;
-      } else {
-        resultsDiv.innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(res.error?.message || res.data?.error || 'Unknown error') + '</div>';
+
+    // Step definitions
+    var stepDefs = [
+      { name: '1. Init (Register + Activate)', critical: true },
+      { name: '2. GET /me' },
+      { name: '3. Create Mission', critical: true },
+      { name: '4. List Missions' },
+      { name: '5. Get Mission' },
+      { name: '6. Test Submission', critical: true },
+      { name: '7. Approve Submission' },
+      { name: '8. Execute Payout' },
+      { name: '9. Submit Review' },
+      { name: '10. Cleanup' },
+    ];
+
+    // Render initial table with all pending
+    var steps = stepDefs.map(function(d) { return { step: d.name, status: 'pending', detail: '' }; });
+
+    function renderTable() {
+      var html = '<table class="data-table" style="margin-top:12px;"><thead><tr><th style="width:30%">Step</th><th style="width:15%">Result</th><th style="width:55%">Detail</th></tr></thead><tbody>';
+      steps.forEach(function(s) {
+        var icon = s.status === 'pass' ? '✅' : s.status === 'fail' ? '❌' : s.status === 'warn' ? '⚠️' : s.status === 'running' ? '🔄' : s.status === 'skipped' ? '⏭️' : '⏳';
+        var label = s.status === 'running' ? 'RUNNING...' : s.status === 'skipped' ? 'SKIPPED' : s.status === 'pending' ? 'PENDING' : s.status.toUpperCase();
+        var rowStyle = s.status === 'fail' ? ' style="background:rgba(255,59,48,0.08);"' : s.status === 'warn' ? ' style="background:rgba(255,149,0,0.08);"' : s.status === 'running' ? ' style="background:rgba(0,122,255,0.06);"' : '';
+        html += '<tr' + rowStyle + '><td>' + esc(s.step) + '</td><td>' + icon + ' ' + label + '</td><td style="font-size:0.85rem;color:var(--muted);white-space:normal;word-break:break-word;">' + esc(s.detail || '') + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      resultsDiv.innerHTML = html + (summaryHtml || '');
+    }
+
+    var summaryHtml = '';
+    renderTable();
+
+    // Helper: call AI Advertiser API with Bearer token
+    async function apiFetch(method, path, body, apiKey) {
+      var opts = { method: method, headers: {} };
+      if (apiKey) opts.headers['Authorization'] = 'Bearer ' + apiKey;
+      if (body) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(body);
       }
-    } catch (e) {
-      resultsDiv.innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(e.message) + '</div>';
+      var res = await fetch('/api' + path, opts);
+      var data = await res.json();
+      return { status: res.status, data: data };
+    }
+
+    // Helper: call admin API (cookie auth)
+    async function adminFetch(path, body) {
+      return HumanAds.fetchApi('/admin' + path, {
+        method: 'POST',
+        body: JSON.stringify(body || {}),
+      });
+    }
+
+    function setStep(i, status, detail) {
+      steps[i].status = status;
+      steps[i].detail = detail || '';
+      renderTable();
+    }
+
+    var apiKey = '';
+    var missionId = '';
+    var submissionId = '';
+    var aborted = false;
+
+    try {
+      // Step 1: Init (Register + Activate)
+      setStep(0, 'running');
+      try {
+        var initRes = await adminFetch('/smoke-test/init');
+        if (initRes.success && initRes.data.api_key) {
+          apiKey = initRes.data.api_key;
+          setStep(0, 'pass', 'API key obtained, advertiser activated');
+        } else {
+          setStep(0, 'fail', JSON.stringify(initRes.error?.message || initRes.data?.error || 'Failed'));
+          aborted = true;
+        }
+      } catch (e) {
+        setStep(0, 'fail', e.message);
+        aborted = true;
+      }
+
+      if (aborted) { for (var s = 1; s < 9; s++) setStep(s, 'skipped'); }
+
+      // Step 2: GET /me
+      if (!aborted) {
+        setStep(1, 'running');
+        try {
+          var me = await apiFetch('GET', '/v1/advertisers/me', null, apiKey);
+          var meData = me.data?.data;
+          if (me.data?.success && meData?.status === 'active') {
+            setStep(1, 'pass', 'status=active');
+          } else {
+            setStep(1, 'fail', 'status=' + (meData?.status || 'unknown'));
+          }
+        } catch (e) { setStep(1, 'fail', e.message); }
+      }
+
+      // Step 3: Create Mission
+      if (!aborted) {
+        setStep(2, 'running');
+        try {
+          var mission = await apiFetch('POST', '/v1/advertisers/missions', {
+            mode: 'test',
+            title: '[SMOKE_TEST] Health Check Mission',
+            brief: 'Automated API smoke test — will be cleaned up',
+            requirements: {},
+            deadline_at: new Date(Date.now() + 86400000).toISOString(),
+            payout: { token: 'hUSD', amount: '1.00' },
+            max_claims: 1,
+          }, apiKey);
+          var mData = mission.data?.data;
+          missionId = mData?.mission_id || '';
+          if (mission.data?.success && missionId) {
+            setStep(2, 'pass', 'mission_id=' + missionId.substring(0, 8) + '...');
+          } else {
+            setStep(2, 'fail', JSON.stringify(mission.data?.error || 'No mission_id'));
+            aborted = true;
+          }
+        } catch (e) {
+          setStep(2, 'fail', e.message);
+          aborted = true;
+        }
+        if (aborted) { for (var s = 3; s < 9; s++) setStep(s, 'skipped'); }
+      }
+
+      // Step 4: List Missions
+      if (!aborted) {
+        setStep(3, 'running');
+        try {
+          var list = await apiFetch('GET', '/v1/advertisers/missions/mine', null, apiKey);
+          var listData = list.data?.data;
+          var missions = listData?.missions;
+          if (list.data?.success && missions && missions.length >= 1) {
+            setStep(3, 'pass', 'count=' + missions.length);
+          } else {
+            setStep(3, 'fail', 'No missions returned');
+          }
+        } catch (e) { setStep(3, 'fail', e.message); }
+      }
+
+      // Step 5: Get Mission by ID
+      if (!aborted) {
+        setStep(4, 'running');
+        try {
+          var get = await apiFetch('GET', '/v1/advertisers/missions/' + missionId, null, apiKey);
+          var gData = get.data?.data;
+          if (get.data?.success && (gData?.title || '').indexOf('[SMOKE_TEST]') >= 0) {
+            setStep(4, 'pass', 'title matches');
+          } else {
+            setStep(4, 'fail', 'title=' + (gData?.title || 'unknown'));
+          }
+        } catch (e) { setStep(4, 'fail', e.message); }
+      }
+
+      // Step 6: Create Test Submission
+      if (!aborted) {
+        setStep(5, 'running');
+        try {
+          var sub = await apiFetch('POST', '/v1/advertisers/missions/' + missionId + '/test-submission', {}, apiKey);
+          var subData = sub.data?.data;
+          var promoters = subData?.promoters;
+          if (sub.data?.success && promoters && promoters.length > 0) {
+            submissionId = promoters[0].submission_id || '';
+            setStep(5, 'pass', promoters.length + ' promoters seeded');
+          } else {
+            setStep(5, 'fail', JSON.stringify(sub.data?.error || 'No promoters'));
+            aborted = true;
+          }
+        } catch (e) {
+          setStep(5, 'fail', e.message);
+          aborted = true;
+        }
+        if (aborted) { for (var s = 6; s < 9; s++) setStep(s, 'skipped'); }
+      }
+
+      // Step 7: Approve Submission
+      if (!aborted) {
+        setStep(6, 'running');
+        try {
+          var approve = await apiFetch('POST', '/v1/submissions/' + submissionId + '/approve', {
+            verification_result: 'Smoke test auto-approval',
+          }, apiKey);
+          if (approve.data?.success) {
+            setStep(6, 'pass', 'approved');
+          } else {
+            setStep(6, 'fail', JSON.stringify(approve.data?.error || 'Failed'));
+          }
+        } catch (e) { setStep(6, 'fail', e.message); }
+      }
+
+      // Step 8: Execute Payout
+      if (!aborted) {
+        setStep(7, 'running');
+        try {
+          var payout = await apiFetch('POST', '/v1/submissions/' + submissionId + '/payout/execute', {}, apiKey);
+          if (payout.data?.success) {
+            setStep(7, 'pass', 'payout executed');
+          } else {
+            var errMsg = payout.data?.error?.message || 'Failed';
+            if (errMsg.indexOf('treasury') >= 0 || errMsg.indexOf('TREASURY') >= 0 || errMsg.indexOf('not configured') >= 0) {
+              setStep(7, 'warn', errMsg);
+            } else {
+              setStep(7, 'fail', errMsg);
+            }
+          }
+        } catch (e) { setStep(7, 'warn', e.message); }
+      }
+
+      // Step 9: Submit Review
+      if (!aborted) {
+        setStep(8, 'running');
+        try {
+          var review = await apiFetch('POST', '/v1/submissions/' + submissionId + '/review', {
+            rating: 5,
+            comment: '[SMOKE_TEST] Automated health check review',
+            tags: ['high_quality', 'on_time'],
+          }, apiKey);
+          if (review.data?.success) {
+            setStep(8, 'pass', 'review submitted');
+          } else {
+            setStep(8, 'fail', JSON.stringify(review.data?.error || 'Failed'));
+          }
+        } catch (e) { setStep(8, 'fail', e.message); }
+      }
     } finally {
+      // Step 10: Cleanup (always runs)
+      setStep(9, 'running');
+      try {
+        await adminFetch('/smoke-test/cleanup');
+        setStep(9, 'pass', 'cleaned up');
+      } catch (e) { setStep(9, 'fail', e.message); }
+
+      // Summary
+      var passed = steps.filter(function(s) { return s.status === 'pass'; }).length;
+      var warned = steps.filter(function(s) { return s.status === 'warn'; }).length;
+      var failed = steps.filter(function(s) { return s.status === 'fail'; }).length;
+      var total = steps.filter(function(s) { return s.status !== 'skipped'; }).length;
+      var summary = passed + '/' + total + ' passed';
+      if (warned > 0) summary += ', ' + warned + ' warnings';
+      if (failed > 0) summary += ', ' + failed + ' failed';
+      var color = failed === 0 && warned === 0 ? '#34c759' : failed === 0 ? '#ff9500' : '#ff3b30';
+      summaryHtml = '<div style="margin-top:8px;font-weight:600;color:' + color + ';">' + summary + '</div>';
+      renderTable();
       btn.disabled = false; btn.textContent = 'Run API Smoke Test';
     }
   }
@@ -423,6 +675,7 @@
       if (!res.success) throw new Error(res.error?.message || 'Failed');
       var agents = res.data.agents || [];
       panel.innerHTML =
+        '<div class="section-card">' +
         '<div class="section-header"><h2>Agents (' + agents.length + ')</h2>' +
         '<button class="btn-sm primary" onclick="createAgent()">+ New Agent</button></div>' +
         '<div class="filters">' +
@@ -430,8 +683,8 @@
           fc(status==='pending_review', "loadAgents('pending_review')", 'Pending') + fc(status==='suspended', "loadAgents('suspended')", 'Suspended') +
           fc(status==='revoked', "loadAgents('revoked')", 'Revoked') +
         '</div>' +
-        (agents.length === 0 ? '<div class="empty">No agents found</div>' :
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:22%">Name</th><th style="width:22%">Email</th><th style="width:12%">Status</th><th style="width:14%">Created</th><th style="width:20%">Actions</th></tr></thead><tbody>' +
+        (agents.length === 0 ? '<div class="empty-state"><h3>No agents found</h3><p>Create an agent to get started.</p></div>' :
+        '<div class="table-container"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:22%">Name</th><th style="width:22%">Email</th><th style="width:12%">Status</th><th style="width:14%">Created</th><th style="width:20%">Actions</th></tr></thead><tbody>' +
         agents.map(function(a) {
           var actions = '';
           if (a.status === 'active' || a.status === 'approved') {
@@ -448,8 +701,9 @@
           }
           return '<tr><td class="id-cell">' + a.id.substring(0,8) + '..</td><td>' + esc(a.name) + '</td><td>' + esc(a.email||'') + '</td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td>' + HumanAds.formatDate(a.created_at) + '</td><td style="white-space:nowrap">' + actions + '</td></tr>';
         }).join('') +
-        '</tbody></table></div>');
-    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+        '</tbody></table></div>') +
+        '</div>';
+    } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
   function createAgent() {
@@ -501,13 +755,14 @@
       if (!res.success) throw new Error(res.error?.message || 'Failed');
       state.dealsCache = res.data.deals || [];
       renderDeals(status, visibility);
-    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+    } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
   function renderDeals(status, visibility) {
     var deals = state.dealsCache;
     var panel = document.getElementById('panel-deals');
     panel.innerHTML =
+      '<div class="section-card">' +
       '<div class="section-header"><h2>Deals (' + deals.length + ')</h2></div>' +
       '<div class="filters">' +
         fc(!status&&!visibility, 'loadDeals()', 'All') +
@@ -518,9 +773,10 @@
         '<span class="filter-chip' + (visibility==='hidden'?' active':'') + '" onclick="loadDeals(null,\'hidden\')" style="' + (visibility==='hidden'?'color:#ffcc00;border-color:#ffcc00;':'') + '">Hidden</span>' +
         '<span class="filter-chip' + (visibility==='deleted'?' active':'') + '" onclick="loadDeals(null,\'deleted\')" style="' + (visibility==='deleted'?'color:#ff3b30;border-color:#ff3b30;':'') + '">Deleted</span>' +
       '</div>' +
-      (deals.length===0 ? '<div class="empty">No deals found</div>' :
-      '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:8%">ID</th><th style="width:22%">Title</th><th style="width:12%">Agent</th><th style="width:10%">Status</th><th style="width:10%">Reward</th><th style="width:8%">Slots</th><th style="width:12%">Created</th><th style="width:18%">Actions</th></tr></thead><tbody>' +
-      deals.map(dealRow).join('') + '</tbody></table></div>');
+      (deals.length===0 ? '<div class="empty-state"><h3>No deals found</h3></div>' :
+      '<div class="table-container"><table class="data-table"><thead><tr><th style="width:8%">ID</th><th style="width:22%">Title</th><th style="width:12%">Agent</th><th style="width:10%">Status</th><th style="width:10%">Reward</th><th style="width:8%">Slots</th><th style="width:12%">Created</th><th style="width:18%">Actions</th></tr></thead><tbody>' +
+      deals.map(dealRow).join('') + '</tbody></table></div>') +
+      '</div>';
   }
 
   function dealRow(d) {
@@ -568,17 +824,19 @@
       if (!res.success) throw new Error(res.error?.message || 'Failed');
       var ops = res.data.operators || [];
       panel.innerHTML =
+        '<div class="section-card">' +
         '<div class="section-header"><h2>Operators (' + ops.length + ')</h2></div>' +
         '<div class="filters">' +
           fc(!filter.status&&!filter.role, 'loadOperators()', 'All') +
           fc(filter.status==='verified', "loadOperators({status:'verified'})", 'Verified') +
           fc(filter.role==='admin', "loadOperators({role:'admin'})", 'Admins') +
         '</div>' +
-        (ops.length===0 ? '<div class="empty">No operators found</div>' :
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:5%"></th><th style="width:18%">Handle</th><th style="width:20%">Name</th><th style="width:12%">Status</th><th style="width:10%">Role</th><th style="width:12%">Followers</th><th style="width:23%">Actions</th></tr></thead><tbody>' +
+        (ops.length===0 ? '<div class="empty-state"><h3>No operators found</h3></div>' :
+        '<div class="table-container"><table class="data-table"><thead><tr><th style="width:5%"></th><th style="width:18%">Handle</th><th style="width:20%">Name</th><th style="width:12%">Status</th><th style="width:10%">Role</th><th style="width:12%">Followers</th><th style="width:23%">Actions</th></tr></thead><tbody>' +
         ops.map(function(o) { return '<tr><td>' + (o.x_profile_image_url ? '<img src="' + o.x_profile_image_url + '" class="avatar">' : '<div class="avatar"></div>') + '</td><td>@' + esc(o.x_handle||'unknown') + '</td><td>' + esc(o.display_name||'-') + '</td><td><span class="status-badge ' + o.status + '">' + o.status + '</span></td><td><span class="status-badge ' + (o.role||'user') + '">' + (o.role||'user') + '</span></td><td>' + (o.x_followers_count||0).toLocaleString() + '</td><td><button class="btn-sm" onclick="toggleAdmin(\'' + o.id + '\',\'' + o.role + '\')">' + (o.role==='admin'?'Remove Admin':'Make Admin') + '</button></td></tr>'; }).join('') +
-        '</tbody></table></div>');
-    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+        '</tbody></table></div>') +
+        '</div>';
+    } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
   async function toggleAdmin(id, currentRole) {
@@ -594,12 +852,14 @@
   function loadMissionsPanel() {
     var panel = document.getElementById('panel-missions');
     panel.innerHTML =
-      '<div class="sub-tabs">' +
+      '<div class="section-card">' +
+      '<div class="sub-tabs" style="border-bottom:none;padding:0 16px;">' +
         '<button class="sub-tab active" onclick="showSub(\'missions\',\'sub-missions\',this)">Missions</button>' +
         '<button class="sub-tab" onclick="showSub(\'missions\',\'sub-applications\',this)">Applications</button>' +
       '</div>' +
       '<div class="sub-panel active" id="sub-missions"><div class="loading">Loading...</div></div>' +
-      '<div class="sub-panel" id="sub-applications"><div class="loading">Loading...</div></div>';
+      '<div class="sub-panel" id="sub-applications"><div class="loading">Loading...</div></div>' +
+      '</div>';
     loadMissions();
   }
 
@@ -614,7 +874,9 @@
 
   function fmtDt(val) {
     if (!val) return '-';
-    var d = new Date(val);
+    var s = String(val);
+    if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) s = s + 'Z';
+    var d = new Date(s);
     return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' <span style="color:var(--color-text-muted)">' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}) + '</span>';
   }
 
@@ -633,8 +895,8 @@
           fc(status==='verified', "loadMissions('verified')", 'Verified') + fc(status==='approved', "loadMissions('approved')", 'Approved') +
           fc(status==='rejected', "loadMissions('rejected')", 'Rejected') + fc(status==='paid', "loadMissions('paid')", 'Paid') +
         '</div>' +
-        (missions.length===0?'<div class="empty">No missions found</div>':
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:8%">ID</th><th style="width:18%">Deal</th><th style="width:12%">Operator</th><th style="width:9%">Status</th><th style="width:8%">Reward</th><th style="width:5%">Post</th><th style="width:11%">Created</th><th style="width:11%">Submitted</th><th style="width:18%">Actions</th></tr></thead><tbody>' +
+        (missions.length===0?'<div class="empty-state"><h3>No missions found</h3></div>':
+        '<div class="table-container"><table class="data-table"><thead><tr><th style="width:8%">ID</th><th style="width:18%">Deal</th><th style="width:12%">Operator</th><th style="width:9%">Status</th><th style="width:8%">Reward</th><th style="width:5%">Post</th><th style="width:11%">Created</th><th style="width:11%">Submitted</th><th style="width:18%">Actions</th></tr></thead><tbody>' +
         missions.map(function(m){
           var handle = (m.x_handle||'unknown').replace(/^@+/,'');
           var dealLabel = esc(m.deal_title||m.deal_id?.substring(0,8)||'N/A');
@@ -644,7 +906,7 @@
           return '<tr><td class="id-cell"><a href="/missions/detail?id=' + m.id + '" target="_blank" style="color:var(--color-text-muted);text-decoration:none" title="' + m.id + '">' + m.id.substring(0,8) + '..</a></td><td>' + dealCell + '</td><td><a href="https://x.com/' + encodeURIComponent(handle) + '" target="_blank" rel="noopener" style="color:var(--color-primary);text-decoration:none">@' + esc(handle) + '</a></td><td><span class="status-badge ' + m.status + '">' + m.status + '</span></td><td>' + HumanAds.formatCurrency(m.reward_amount||0) + '</td><td>' + postCell + '</td><td style="font-size:0.75rem;white-space:nowrap">' + fmtDt(m.created_at) + '</td><td style="font-size:0.75rem;white-space:nowrap">' + fmtDt(m.submitted_at) + '</td><td class="action-btns">' + actions + '</td></tr>';
         }).join('') +
         '</tbody></table></div>');
-    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+    } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
   async function reviewMission(id, action) {
@@ -669,8 +931,8 @@
           fc(status==='shortlisted', "loadApplications('shortlisted')", 'Shortlisted') + fc(status==='selected', "loadApplications('selected')", 'Selected') +
           fc(status==='rejected', "loadApplications('rejected')", 'Rejected') +
         '</div>' +
-        (apps.length===0?'<div class="empty">No applications found</div>':
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:22%">Deal</th><th style="width:14%">Operator</th><th style="width:12%">Status</th><th style="width:14%">Applied</th><th style="width:28%">Actions</th></tr></thead><tbody>' +
+        (apps.length===0?'<div class="empty-state"><h3>No applications found</h3></div>':
+        '<div class="table-container"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:22%">Deal</th><th style="width:14%">Operator</th><th style="width:12%">Status</th><th style="width:14%">Applied</th><th style="width:28%">Actions</th></tr></thead><tbody>' +
         apps.map(function(a){
           var handle = (a.x_handle||'unknown').replace(/^@+/,'');
           var dealLabel = esc(a.deal_title||a.deal_id?.substring(0,8)||'N/A');
@@ -678,7 +940,7 @@
           return '<tr><td class="id-cell" title="' + a.id + '">' + a.id.substring(0,8) + '..</td><td>' + dealLabel + '</td><td><a href="https://x.com/' + encodeURIComponent(handle) + '" target="_blank" rel="noopener" style="color:var(--color-primary);text-decoration:none">@' + esc(handle) + '</a></td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td style="font-size:0.75rem;white-space:nowrap">' + fmtDt(a.created_at) + '</td><td class="action-btns">' + actions + '</td></tr>';
         }).join('') +
         '</tbody></table></div>');
-    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+    } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
   async function updateApp(id, status) {
@@ -721,32 +983,50 @@
       };
 
       panel.innerHTML =
-        '<div class="card-grid">' +
-          '<div class="card"><div class="card-title">Treasury hUSD</div><div class="card-value">' + (bal.treasury_husd!=null?HumanAds.formatCurrency(bal.treasury_husd):'-') + '</div><div class="card-sub">' + (bal.treasury_address?bal.treasury_address.substring(0,10)+'...':'Not configured') + '</div></div>' +
-          '<div class="card"><div class="card-title">Treasury ETH (Gas)</div><div class="card-value">' + (bal.treasury_eth||'-') + '</div><div class="card-sub">Sepolia</div></div>' +
-          '<div class="card faucet"><div class="card-title">Faucet</div><div id="faucet-form"><div class="form-group"><label class="form-label">Recipient Address</label><input class="form-input" id="faucet-addr" placeholder="0x..."></div><div class="form-group"><label class="form-label">Amount: ' + HumanAds.formatCurrency(env.faucet_amount) + '</label></div><button class="btn-sm primary" onclick="sendFaucet()" id="faucet-btn" style="width:100%;padding:10px;">Send hUSD</button><div id="faucet-status"></div></div></div>' +
+        '<div class="summary-grid" style="grid-template-columns: repeat(2, 1fr);">' +
+          '<div class="summary-card"><div class="value">' + (bal.treasury_husd!=null?HumanAds.formatCurrency(bal.treasury_husd):'-') + '</div><div class="label">Treasury hUSD</div><div style="font-size:0.7rem;color:var(--color-text-muted);margin-top:4px;">' + (bal.treasury_address?bal.treasury_address.substring(0,10)+'...':'Not configured') + '</div></div>' +
+          '<div class="summary-card"><div class="value">' + (bal.treasury_eth||'-') + '</div><div class="label">Treasury ETH (Gas)</div><div style="font-size:0.7rem;color:var(--color-text-muted);margin-top:4px;">Sepolia</div></div>' +
         '</div>' +
 
-        '<div class="config-info" style="margin-bottom:24px;">' +
-          '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + env.payout_mode + '</span></div>' +
-          '<div class="config-row"><span class="config-label">Treasury Key</span><span class="config-val ' + (env.has_treasury_key?'ok':'err') + '">' + (env.has_treasury_key?'Available':'Missing') + '</span></div>' +
-          '<div class="config-row"><span class="config-label">hUSD Contract</span><span class="config-val">' + (env.husd_contract?env.husd_contract.substring(0,12)+'...':'-') + '</span></div>' +
+        '<div class="section-card">' +
+          '<div class="section-header"><h2>Faucet</h2></div>' +
+          '<div style="padding:16px;">' +
+            '<div class="form-group"><label class="form-label">Recipient Address</label><input class="form-input" id="faucet-addr" placeholder="0x..."></div>' +
+            '<div class="form-group"><label class="form-label">Amount: ' + HumanAds.formatCurrency(env.faucet_amount) + '</label></div>' +
+            '<button class="btn-sm primary" onclick="sendFaucet()" id="faucet-btn" style="width:100%;padding:10px;">Send hUSD</button>' +
+            '<div id="faucet-status"></div>' +
+          '</div>' +
         '</div>' +
 
-        '<div class="section-header"><h2>Payout Test</h2></div>' +
-        '<div class="card" style="margin-bottom:24px;"><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">' +
-          '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Mission ID</label><input class="form-input" id="payout-mission-id" placeholder="Mission ID"></div>' +
-          '<div class="form-group" style="width:140px;"><label class="form-label">Mode</label><select class="form-select" id="payout-mode"><option value="ledger">Ledger (Simulated)</option><option value="testnet">Testnet (Real Tx)</option></select></div>' +
-          '<div class="form-group" style="display:flex;gap:8px;"><button class="btn-sm primary" onclick="testPayout(false)">Preview</button><button class="btn-sm success" onclick="testPayout(true)">Execute</button></div>' +
-        '</div><div id="payout-result"></div></div>' +
-
-        '<div class="sub-tabs">' +
-          '<button class="sub-tab active" onclick="showFinSub(\'fin-payments\',this)">Payments (' + payments.length + ')</button>' +
-          '<button class="sub-tab" onclick="showFinSub(\'fin-token-ops\',this)">Token Ops (' + ops.length + ')</button>' +
+        '<div class="section-card" style="margin-bottom:24px;">' +
+          '<div class="section-header"><h2>Config</h2></div>' +
+          '<div style="padding:16px;">' +
+            '<div class="config-info" style="border-top:none;padding-top:0;margin-top:0;">' +
+              '<div class="config-row"><span class="config-label">Payout Mode</span><span class="config-val">' + env.payout_mode + '</span></div>' +
+              '<div class="config-row"><span class="config-label">Treasury Key</span><span class="config-val ' + (env.has_treasury_key?'ok':'err') + '">' + (env.has_treasury_key?'Available':'Missing') + '</span></div>' +
+              '<div class="config-row"><span class="config-label">hUSD Contract</span><span class="config-val">' + (env.husd_contract?env.husd_contract.substring(0,12)+'...':'-') + '</span></div>' +
+            '</div>' +
+          '</div>' +
         '</div>' +
-        '<div class="sub-panel active" id="fin-payments">' + renderPayments(payments) + '</div>' +
-        '<div class="sub-panel" id="fin-token-ops">' + renderTokenOps(ops) + '</div>';
-    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+
+        '<div class="section-card" style="margin-bottom:24px;">' +
+          '<div class="section-header"><h2>Payout Test</h2></div>' +
+          '<div style="padding:16px;"><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">' +
+            '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Mission ID</label><input class="form-input" id="payout-mission-id" placeholder="Mission ID"></div>' +
+            '<div class="form-group" style="width:140px;"><label class="form-label">Mode</label><select class="form-select" id="payout-mode"><option value="ledger">Ledger (Simulated)</option><option value="testnet">Testnet (Real Tx)</option></select></div>' +
+            '<div class="form-group" style="display:flex;gap:8px;"><button class="btn-sm primary" onclick="testPayout(false)">Preview</button><button class="btn-sm success" onclick="testPayout(true)">Execute</button></div>' +
+          '</div><div id="payout-result"></div></div>' +
+        '</div>' +
+
+        '<div class="section-card">' +
+          '<div class="sub-tabs" style="border-bottom:none;padding:0 16px;">' +
+            '<button class="sub-tab active" onclick="showFinSub(\'fin-payments\',this)">Payments (' + payments.length + ')</button>' +
+            '<button class="sub-tab" onclick="showFinSub(\'fin-token-ops\',this)">Token Ops (' + ops.length + ')</button>' +
+          '</div>' +
+          '<div class="sub-panel active" id="fin-payments">' + renderPayments(payments) + '</div>' +
+          '<div class="sub-panel" id="fin-token-ops">' + renderTokenOps(ops) + '</div>' +
+        '</div>';
+    } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
   function showFinSub(subId, btn) {
@@ -757,15 +1037,15 @@
   }
 
   function renderPayments(payments) {
-    if (payments.length === 0) return '<div class="empty">No payments found</div>';
-    return '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:10%">Mission</th><th style="width:10%">Type</th><th style="width:12%">Amount</th><th style="width:10%">Chain</th><th style="width:12%">Status</th><th style="width:20%">Tx</th><th style="width:16%">Created</th></tr></thead><tbody>' +
+    if (payments.length === 0) return '<div class="empty-state"><h3>No payments found</h3></div>';
+    return '<div class="table-container"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:10%">Mission</th><th style="width:10%">Type</th><th style="width:12%">Amount</th><th style="width:10%">Chain</th><th style="width:12%">Status</th><th style="width:20%">Tx</th><th style="width:16%">Created</th></tr></thead><tbody>' +
       payments.map(function(p){ return '<tr><td class="id-cell">' + p.id.substring(0,8) + '..</td><td class="id-cell">' + (p.mission_id||'').substring(0,8) + '..</td><td>' + (p.payment_type||'-') + '</td><td>' + HumanAds.formatCurrency(p.amount_cents) + '</td><td>' + (p.chain||'-') + '</td><td><span class="status-badge ' + p.status + '">' + p.status + '</span></td><td>' + txLink(p.tx_hash) + '</td><td>' + HumanAds.formatDate(p.created_at) + '</td></tr>'; }).join('') +
       '</tbody></table></div>';
   }
 
   function renderTokenOps(ops) {
-    if (ops.length === 0) return '<div class="empty">No token operations found</div>';
-    return '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:12%">Type</th><th style="width:16%">To</th><th style="width:12%">Amount</th><th style="width:12%">Status</th><th style="width:20%">Tx</th><th style="width:18%">Created</th></tr></thead><tbody>' +
+    if (ops.length === 0) return '<div class="empty-state"><h3>No token operations found</h3></div>';
+    return '<div class="table-container"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:12%">Type</th><th style="width:16%">To</th><th style="width:12%">Amount</th><th style="width:12%">Status</th><th style="width:20%">Tx</th><th style="width:18%">Created</th></tr></thead><tbody>' +
       ops.map(function(o){ return '<tr><td class="id-cell">' + o.id.substring(0,8) + '..</td><td><span class="type-badge ' + o.op_type + '">' + o.op_type + '</span></td><td class="id-cell" title="' + (o.to_address||'') + '">' + (o.to_address||'').substring(0,10) + '..</td><td>' + HumanAds.formatCurrency(o.amount_cents) + '</td><td><span class="status-badge ' + o.status + '">' + o.status + '</span></td><td>' + txLink(o.tx_hash) + '</td><td>' + HumanAds.formatRelativeTime(o.created_at) + '</td></tr>'; }).join('') +
       '</tbody></table></div>';
   }
@@ -829,12 +1109,14 @@
   function loadSettingsPanel() {
     var panel = document.getElementById('panel-settings');
     panel.innerHTML =
-      '<div class="sub-tabs">' +
+      '<div class="section-card">' +
+      '<div class="sub-tabs" style="border-bottom:none;padding:0 16px;">' +
         '<button class="sub-tab active" onclick="showSetSub(\'set-config\',this)">Payment Config</button>' +
         '<button class="sub-tab" onclick="showSetSub(\'set-logs\',this)">Audit Logs</button>' +
       '</div>' +
       '<div class="sub-panel active" id="set-config"><div class="loading">Loading...</div></div>' +
-      '<div class="sub-panel" id="set-logs"><div class="loading">Loading...</div></div>';
+      '<div class="sub-panel" id="set-logs"><div class="loading">Loading...</div></div>' +
+      '</div>';
     loadPaymentConfig();
   }
 
@@ -856,7 +1138,7 @@
       var profileName = cur.id || cur.name || '-';
       var isTest = cur.is_testnet !== false;
       panel.innerHTML =
-        '<div class="card" style="margin-bottom:16px;"><div class="card-title">Current Payment Profile</div>' +
+        '<div style="padding:16px;"><div class="card" style="margin-bottom:16px;"><div class="card-title">Current Payment Profile</div>' +
         '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;"><span class="env-badge ' + (isTest?'ledger':'onchain') + '" style="font-size:0.9rem;padding:6px 14px;"><span class="dot"></span> ' + esc(profileName) + '</span>' +
         (cur.is_ready ? '<span class="env-badge onchain" style="font-size:0.7rem;"><span class="dot"></span> Ready</span>' : '') + '</div>' +
         '<div class="config-info" style="border-top:none;padding-top:0;">' +
@@ -869,11 +1151,11 @@
         '</div></div>' +
         (d.available_profiles && d.available_profiles.length > 0 ?
           '<div class="card" style="margin-bottom:16px;"><div class="card-title">Available Profiles</div>' +
-          '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:30%">Profile</th><th style="width:20%">Chain</th><th style="width:20%">Token</th><th style="width:15%">Testnet</th><th style="width:15%">Ready</th></tr></thead><tbody>' +
+          '<div class="table-container"><table class="data-table"><thead><tr><th style="width:30%">Profile</th><th style="width:20%">Chain</th><th style="width:20%">Token</th><th style="width:15%">Testnet</th><th style="width:15%">Ready</th></tr></thead><tbody>' +
           d.available_profiles.map(function(ap) { return '<tr' + (ap.id===cur.id?' style="background:rgba(76,175,80,0.08);"':'') + '><td><strong>' + esc(ap.id) + '</strong></td><td>' + (ap.chain||'-') + '</td><td>' + (ap.token||'-') + '</td><td>' + (ap.is_testnet?'Yes':'No') + '</td><td><span class="status-badge ' + (ap.is_ready?'confirmed':'pending') + '">' + (ap.is_ready?'Ready':'Not Ready') + '</span></td></tr>'; }).join('') +
           '</tbody></table></div></div>' : '') +
-        '<p style="font-size:0.75rem;color:var(--color-text-muted);">To change profile: update wrangler.jsonc PAYOUT_MODE or use the config API.</p>';
-    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+        '<p style="font-size:0.75rem;color:var(--color-text-muted);">To change profile: update wrangler.jsonc PAYOUT_MODE or use the config API.</p></div>';
+    } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
   async function loadAuditLogs(endpoint) {
@@ -886,13 +1168,15 @@
       if (!res.success) throw new Error(res.error?.message || 'Failed');
       var logs = res.data.logs || [];
       panel.innerHTML =
+        '<div style="padding:16px;">' +
         '<div style="display:flex;gap:8px;margin-bottom:16px;"><input class="form-input" id="log-search" placeholder="Filter by endpoint" value="' + (endpoint||'') + '" style="flex:1;"><button class="btn-sm" onclick="loadAuditLogs(document.getElementById(\'log-search\').value||null)">Search</button><button class="btn-sm" onclick="loadAuditLogs()">Refresh</button></div>' +
-        '<p style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:12px;">' + logs.length + ' entries</p>' +
-        (logs.length===0?'<div class="empty">No logs found</div>':
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:12%">Request ID</th><th style="width:28%">Endpoint</th><th style="width:10%">Method</th><th style="width:14%">Decision</th><th style="width:12%">Agent</th><th style="width:24%">Time</th></tr></thead><tbody>' +
+        '<p style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:12px;">' + logs.length + ' entries</p>' +
+        '</div>' +
+        (logs.length===0?'<div class="empty-state"><h3>No logs found</h3></div>':
+        '<div class="table-container"><table class="data-table"><thead><tr><th style="width:12%">Request ID</th><th style="width:28%">Endpoint</th><th style="width:10%">Method</th><th style="width:14%">Decision</th><th style="width:12%">Agent</th><th style="width:24%">Time</th></tr></thead><tbody>' +
         logs.map(function(l){ return '<tr><td class="id-cell">' + (l.request_id||'N/A').substring(0,8) + '..</td><td>' + esc(l.endpoint||'-') + '</td><td>' + (l.method||'-') + '</td><td><span class="status-badge ' + (l.decision||'unknown') + '">' + (l.decision||'-') + '</span></td><td class="id-cell">' + (l.agent_id?l.agent_id.substring(0,8)+'..':'-') + '</td><td>' + (l.created_at?HumanAds.formatRelativeTime(l.created_at):'-') + '</td></tr>'; }).join('') +
         '</tbody></table></div>');
-    } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+    } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
   // ════════════════════════════════════════════════
@@ -917,7 +1201,7 @@
       var meRes = await HumanAds.fetchApi('/me');
       if (!meRes.success || !meRes.data?.xConnected) { window.location.href = '/auth/x/login?redirect=/admin'; return; }
       if (!meRes.data.user?.is_admin) {
-        document.querySelector('.admin-page').innerHTML = '<div class="empty" style="color:#ff3b30;"><h2>Access Denied</h2><p>You do not have admin access.</p><a href="/" class="btn-sm primary" style="margin-top:16px;">Go to Home</a></div>';
+        document.querySelector('.admin-page').innerHTML = '<div class="section-card"><div class="empty-state"><h3 style="color:#ff3b30;">Access Denied</h3><p>You do not have admin access.</p><p style="margin-top:16px;"><a href="/" class="btn-sm primary">Go to Home</a></p></div></div>';
         SideMenu.init(true); return;
       }
       var hash = window.location.hash.replace('#', '');
@@ -925,7 +1209,7 @@
       if (hash && valid.indexOf(hash) !== -1) { switchTab(hash); }
       else { state.dashboardLoaded = true; loadDashboard(); }
       SideMenu.init(true, true);
-    } catch (e) { document.querySelector('.admin-page').innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(e.message) + '</div>'; }
+    } catch (e) { document.querySelector('.admin-page').innerHTML = '<div class="section-card"><div class="empty-state"><h3 style="color:#ff3b30;">Error</h3><p>' + esc(e.message) + '</p></div></div>'; }
   })();
   </script>
   <script src="/js/env-banner.js"></script>
