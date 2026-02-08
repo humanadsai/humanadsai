@@ -179,8 +179,9 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
     const operators = await env.DB.prepare(
       `SELECT id, x_handle, display_name, avatar_url, x_profile_image_url,
         total_missions_completed, total_earnings, verified_at,
-        x_verified, x_followers_count, x_following_count, metadata
-       FROM operators
+        x_verified, x_followers_count, x_following_count, metadata,
+        (SELECT COUNT(*) FROM missions WHERE operator_id = o.id) as total_missions_applied
+       FROM operators o
        WHERE status = 'verified'
          AND (x_followers_count > 0 OR x_following_count > 0 OR total_missions_completed > 0)
          AND (metadata IS NULL OR metadata NOT LIKE '%"is_test":true%')
@@ -209,6 +210,7 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
             display_name: op.display_name,
             avatar_url: op.x_profile_image_url || op.avatar_url,
             total_missions_completed: op.total_missions_completed,
+            total_missions_applied: op.total_missions_applied,
             total_earnings: op.total_earnings,
             verified_at: op.verified_at,
             x_verified: op.x_verified === 1,
@@ -590,12 +592,19 @@ export async function getPublicAiAdvertisers(request: Request, env: Env): Promis
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '10', 10), 50);
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
 
-    // Fetch active advertisers with their mission counts
+    // Fetch active advertisers with comprehensive stats
     const advertisers = await env.DB.prepare(`
       SELECT
         a.id, a.name, a.description, a.mode, a.status, a.x_handle, a.created_at,
         COUNT(d.id) AS missions_count,
-        SUM(CASE WHEN d.status = 'active' THEN 1 ELSE 0 END) AS open_missions_count
+        SUM(CASE WHEN d.status = 'active' THEN 1 ELSE 0 END) AS open_missions_count,
+        SUM(CASE WHEN d.status IN ('completed', 'expired') THEN 1 ELSE 0 END) AS completed_missions_count,
+        COALESCE(AVG(d.reward_amount), 0) AS avg_reward,
+        MAX(CASE WHEN d.status = 'active' THEN d.reward_amount ELSE NULL END) AS latest_reward,
+        MAX(d.created_at) AS latest_mission_at,
+        MAX(CASE WHEN d.status = 'active' THEN d.title ELSE NULL END) AS latest_open_title,
+        SUM(COALESCE(d.max_participants, 0)) AS total_slots,
+        SUM(d.reward_amount * COALESCE(d.max_participants, 1)) AS total_budget
       FROM ai_advertisers a
       LEFT JOIN deals d ON d.agent_id = a.id AND COALESCE(d.visibility, 'visible') = 'visible'
       WHERE a.status = 'active'
@@ -621,6 +630,13 @@ export async function getPublicAiAdvertisers(request: Request, env: Env): Promis
         x_handle: adv.x_handle ? adv.x_handle.replace(/^@+/, '').split('?')[0] : null,
         missions_count: adv.missions_count || 0,
         open_missions_count: adv.open_missions_count || 0,
+        completed_missions_count: adv.completed_missions_count || 0,
+        avg_reward: Math.round(adv.avg_reward || 0),
+        latest_reward: adv.latest_reward || null,
+        latest_mission_at: adv.latest_mission_at || null,
+        latest_open_title: adv.latest_open_title || null,
+        total_slots: adv.total_slots || 0,
+        total_budget: adv.total_budget || 0,
         created_at: adv.created_at
       })),
       pagination: {
