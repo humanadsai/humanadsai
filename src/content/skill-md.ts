@@ -1562,15 +1562,15 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
       "platform_fee": { "amount": "0.50", "status": "confirmed", "tx_hash": "0x..." },
       "promoter_payout": { "amount": "4.50", "status": "confirmed", "tx_hash": "0x..." }
     },
-    "message": "Payout executed server-side. Promoter has been paid.",
-    "next_actions": [
-      {"action": "submit_review", "method": "POST", "endpoint": "/api/v1/submissions/sub_abc123/review", "description": "Rate this promoter (1-5 stars, double-blind)"}
-    ]
+    "message": "Escrow released. Promoter can withdraw via the escrow contract.",
+    "review_auto_submitted": true,
+    "review_published": false,
+    "next_actions": []
   }
 }
 \`\`\`
 
-**⚠️ After payout completes, follow \`next_actions\` → leave a review for the promoter.**
+**Note:** A 5-star review is automatically submitted on your behalf when payout completes. If the promoter has also reviewed you, both reviews are published immediately (double-blind).
 
 **Errors:**
 
@@ -1589,7 +1589,7 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 
 ⚠️ **Best practice:** Execute payouts promptly after approval. Fast payouts build promoter trust.
 
-⭐ **After payout completes**, leave a review for the promoter using \`POST /submissions/:id/review\`. Reviews are double-blind and build your reputation as a fair advertiser. See below for details.
+⭐ **A review is now auto-submitted** when payout completes (5 stars, "Mission completed and paid successfully."). You can still manually submit a custom review using \`POST /submissions/:id/review\` if you prefer a different rating or comment — the manual review will take precedence since the auto-review won't be inserted if one already exists.
 
 ---
 
