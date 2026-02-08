@@ -264,7 +264,7 @@ const FIRST_NAMES = [
   'Quinn', 'Ruby', 'Sam', 'Tina', 'Uma', 'Vince', 'Wendy', 'Xander',
   'Yuki', 'Zara', 'Aiden', 'Bella', 'Chase', 'Diana', 'Ethan', 'Faye',
   'Gabe', 'Hana', 'Isaac', 'Jade', 'Kai', 'Luna', 'Max', 'Nina',
-  'Oscar', 'Pia', 'Reed', 'Sofia', 'Tyler', 'Uma', 'Vera', 'Wade',
+  'Oscar', 'Pia', 'Reed', 'Sofia', 'Tyler', 'Uriel', 'Vera', 'Wade',
   'Xena', 'Yara',
 ];
 const TAGS = [
@@ -314,7 +314,7 @@ function generateTestPromoters(count: number): typeof FIRST_NAMES extends (infer
     const tag = TAGS[Math.floor(Math.random() * TAGS.length)];
     const title = TITLES[Math.floor(Math.random() * TITLES.length)];
     const bio = BIOS[Math.floor(Math.random() * BIOS.length)];
-    const handle = `${name.toLowerCase()}_${tag}`;
+    const handle = `${name.toLowerCase()}_${tag}_${i}`;
     const followers = Math.floor(Math.random() * 200000) + 500;
     const tweets = Math.floor(Math.random() * 20000) + 100;
     const verified = Math.random() > 0.5 ? 1 : 0;
@@ -389,10 +389,10 @@ export async function handleCreateTestSubmission(
   const TEST_PROMOTERS = generateTestPromoters(50);
 
   for (const p of TEST_PROMOTERS) {
-    // Create or update test operator
+    // Create or update test operator (use INSERT OR REPLACE to handle both id and x_handle UNIQUE constraints)
     await env.DB
       .prepare(`
-        INSERT INTO operators (id, x_handle, x_user_id, display_name, status, evm_wallet_address,
+        INSERT OR REPLACE INTO operators (id, x_handle, x_user_id, display_name, status, evm_wallet_address,
           x_followers_count, x_tweet_count, x_verified,
           total_missions_completed, total_earnings, x_description,
           created_at, updated_at)
@@ -400,11 +400,6 @@ export async function handleCreateTestSubmission(
           ?, ?, ?,
           ?, ?, ?,
           datetime('now'), datetime('now'))
-        ON CONFLICT(id) DO UPDATE SET
-          x_followers_count = excluded.x_followers_count,
-          x_tweet_count = excluded.x_tweet_count,
-          total_missions_completed = excluded.total_missions_completed,
-          total_earnings = excluded.total_earnings
       `)
       .bind(
         p.id, p.x_handle, p.x_user_id, p.display_name, p.evm_wallet_address,

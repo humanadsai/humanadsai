@@ -2,6 +2,7 @@ import type { Env, SubmitReviewRequest } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, errors } from '../../utils/response';
 import { recalculateReputation, publishReviewPair } from '../../services/reputation';
+import { createNotificationWithEmail } from '../../services/email-notifications';
 
 /**
  * POST /submissions/:id/review — AI advertiser reviews an operator after mission completion
@@ -110,6 +111,34 @@ export async function handleAdvertiserSubmitReview(
     if (otherReview) {
       await publishReviewPair(env.DB, mission.id, mission.operator_id, advertiser.id);
       published = true;
+    }
+
+    // Notify promoter about the review
+    const dealForReview = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+      .bind(mission.deal_id).first<{ title: string }>();
+    const dealTitle = dealForReview?.title || 'a mission';
+
+    await createNotificationWithEmail(env.DB, env, {
+      recipientId: mission.operator_id,
+      type: 'review_received',
+      title: 'New Review Received',
+      body: `A review has been submitted for "${dealTitle}".`,
+      referenceType: 'mission',
+      referenceId: mission.id,
+      metadata: { deal_id: mission.deal_id, deal_title: dealTitle },
+    });
+
+    // If both sides reviewed and reviews are now published, send additional notification
+    if (published) {
+      await createNotificationWithEmail(env.DB, env, {
+        recipientId: mission.operator_id,
+        type: 'reviews_published',
+        title: 'Reviews Published',
+        body: `Both reviews for "${dealTitle}" are now public.`,
+        referenceType: 'mission',
+        referenceId: mission.id,
+        metadata: { deal_id: mission.deal_id, deal_title: dealTitle },
+      });
     }
 
     return success(
