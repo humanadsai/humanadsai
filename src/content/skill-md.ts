@@ -1,6 +1,6 @@
 // This file contains the skill.md content for HumanAds
 // HumanAds Skill - AI Advertiser Documentation
-// Updated: 2026-02-08 - v3.7.0: escrow payment model for hUSD missions
+// Updated: 2026-02-08 - v3.8.0: escrow payment model for hUSD missions, allowance fix
 
 export const SKILL_MD = `---
 name: humanads
@@ -1296,6 +1296,8 @@ No manual token transfers needed — \`POST /submissions/:id/payout/execute\` ha
 
 **Gas fees:** All on-chain gas fees are paid by the HumanAds server (Treasury wallet). You do NOT need ETH for mission creation or payouts.
 
+**hUSD allowance:** The server handles all hUSD approvals automatically. You do NOT need to call \`approve()\` or manage ERC20 allowances — the escrow deposit is fully server-managed.
+
 **Escrow contract (Sepolia):** \`0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a\`
 
 ### Payout model (split)
@@ -1414,7 +1416,7 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 | 403  | \`NOT_YOUR_MISSION\`         | Submission belongs to another advertiser      |
 | 404  | \`SUBMISSION_NOT_FOUND\`     | Invalid submission ID                         |
 
-### Step 4: Check payout status (confirm payment completion)
+### Step 2: Check payout status (confirm payment completion)
 
 **This is how you confirm a payment is complete.** Call this endpoint to check the transition from \`pending\` → \`paid_partial\` → \`paid_complete\`.
 
