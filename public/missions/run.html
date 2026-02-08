@@ -680,7 +680,7 @@
 
             <!-- Actions -->
             <div class="composer-actions">
-              <button class="btn btn-outline" id="generate-draft-btn">Generate Draft</button>
+              <button class="btn btn-outline" id="generate-draft-btn" title="Generate a starting point — edit to make it yours">Generate Draft</button>
               <button class="btn btn-primary" id="copy-post-btn" disabled>Copy Post</button>
             </div>
           </div>
@@ -905,6 +905,183 @@
       submitBtn.disabled = !isValidXUrl(submissionUrl);
     }
 
+    // Draft template pools — randomized for variety
+    const DRAFT_TEMPLATES = {
+      en: {
+        casual: {
+          intros: [
+            'Just found something cool —',
+            'Okay so I stumbled on this and had to share:',
+            'Been trying this out and honestly impressed.',
+            'Not gonna lie, this is pretty interesting:',
+            'So I came across this today...',
+            'This caught my eye and I think you\'ll like it too:',
+          ],
+          bridges: [
+            'Here\'s what stood out to me:',
+            'What I like about it:',
+            'The thing is:',
+            'Why I think it\'s worth checking out:',
+            'My take:',
+          ],
+          ctas: [
+            'Worth a look if you\'re curious',
+            'Check it out',
+            'See for yourself',
+            'Give it a look',
+            'Take a peek',
+          ],
+        },
+        professional: {
+          intros: [
+            'Worth sharing:',
+            'An interesting development in the space —',
+            'This is worth your attention:',
+            'Something I\'ve been evaluating recently:',
+            'A noteworthy find:',
+          ],
+          bridges: [
+            'Key highlights:',
+            'What makes this stand out:',
+            'Notable aspects:',
+            'Here\'s why it matters:',
+          ],
+          ctas: [
+            'Learn more here',
+            'Details below',
+            'More information',
+            'Worth exploring further',
+          ],
+        },
+        enthusiastic: {
+          intros: [
+            'You NEED to see this!',
+            'Seriously excited about this one!',
+            'This is a game changer:',
+            'Can\'t stop thinking about this:',
+            'This blew my mind:',
+            'I\'m genuinely hyped about this —',
+          ],
+          bridges: [
+            'Here\'s why I love it:',
+            'What makes it so good:',
+            'The best part:',
+            'Why I\'m so into this:',
+          ],
+          ctas: [
+            'You\'ve gotta try this!',
+            'Don\'t sleep on this!',
+            'Go check it out NOW',
+            'Trust me, click the link',
+          ],
+        },
+        informative: {
+          intros: [
+            'Here\'s something interesting I discovered:',
+            'Sharing some useful info:',
+            'Quick breakdown of something I found:',
+            'FYI — this might be useful:',
+            'For those interested:',
+          ],
+          bridges: [
+            'Key points:',
+            'What you should know:',
+            'Summary:',
+            'The important bits:',
+          ],
+          ctas: [
+            'Full details here',
+            'More info at the link',
+            'Read more below',
+            'Link for reference',
+          ],
+        },
+      },
+      ja: {
+        casual: {
+          intros: [
+            'これ見つけたんだけど、かなり良い',
+            'ちょっと気になって試してみた',
+            '最近ハマってるやつ紹介します',
+            'これ、シェアしたくなった',
+            'ふと見つけたけど結構面白い',
+            'これ知ってる？なかなかいいよ',
+          ],
+          bridges: [
+            'ポイントは:',
+            '良かったところ:',
+            '気に入った理由:',
+            '個人的に刺さったのは:',
+          ],
+          ctas: [
+            '気になったら見てみて',
+            'よかったらチェックしてね',
+            'リンク置いておきます',
+            '興味あれば覗いてみて',
+          ],
+        },
+        professional: {
+          intros: [
+            '注目すべきサービスを共有します',
+            'ご紹介したいものがあります',
+            '興味深い取り組みを見つけました',
+            '業界で注目されている件について',
+          ],
+          bridges: [
+            '注目ポイント:',
+            '特徴:',
+            '重要な点:',
+          ],
+          ctas: [
+            '詳細はこちら',
+            'ぜひご覧ください',
+            '参考までにリンクを共有します',
+          ],
+        },
+        enthusiastic: {
+          intros: [
+            'これマジですごい！',
+            '見て！これめっちゃ良くない？',
+            'テンション上がるやつ見つけた！',
+            'これは激アツ！',
+            '正直かなり感動した',
+          ],
+          bridges: [
+            '何がいいかって:',
+            'ここが最高:',
+            '推しポイント:',
+          ],
+          ctas: [
+            '絶対見てほしい！',
+            'これは試す価値あり！',
+            'リンク貼るから見て！',
+          ],
+        },
+        informative: {
+          intros: [
+            '参考情報としてシェアします',
+            '役立ちそうな情報を見つけました',
+            '知っておくと便利かもしれません',
+            'こんなサービスがありました',
+          ],
+          bridges: [
+            'ポイントをまとめると:',
+            '概要:',
+            '押さえておきたい点:',
+          ],
+          ctas: [
+            '詳しくはリンク先で',
+            '参考リンク',
+            '詳細はこちらをどうぞ',
+          ],
+        },
+      },
+    };
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
     // Generate draft based on requirements
     async function generateDraft() {
       const btn = document.getElementById('generate-draft-btn');
@@ -917,25 +1094,36 @@
         const requirements = missionData.requirements || {};
         const link = getRequiredLink();
 
-        // Build draft based on selected options and requirements
-        let draft = '';
-
         // Get checked key points
         const keyPoints = document.querySelectorAll('.key-point-item input:checked');
         const checkedPoints = Array.from(keyPoints).map(cb => cb.dataset.point);
 
-        // Build content based on language and tone
-        if (language === 'ja') {
-          if (checkedPoints.length > 0) {
-            draft = checkedPoints.join('\n') + '\n\n';
+        // Get template pool (fallback to en/casual)
+        const langPool = DRAFT_TEMPLATES[language] || DRAFT_TEMPLATES['en'];
+        const tonePool = langPool[tone] || langPool['casual'];
+
+        const intro = pickRandom(tonePool.intros);
+        const cta = pickRandom(tonePool.ctas);
+
+        let draft = '';
+
+        if (checkedPoints.length > 0) {
+          // Randomly choose structure: with or without bridge
+          const useBridge = Math.random() > 0.4 && tonePool.bridges;
+          if (useBridge) {
+            const bridge = pickRandom(tonePool.bridges);
+            draft = `${intro}\n\n${bridge}\n${checkedPoints.map(p => `- ${p}`).join('\n')}\n\n${cta}\n${link}`;
+          } else {
+            // Inline key points
+            const sep = language === 'ja' ? '。' : '. ';
+            draft = `${intro} ${checkedPoints.join(sep)}${language === 'ja' ? '。' : '.'}\n\n${cta}\n${link}`;
           }
-          draft += `${link}\n\n[PR] by HumanAds`;
         } else {
-          if (checkedPoints.length > 0) {
-            draft = checkedPoints.join('. ') + '.\n\n';
-          }
-          draft += `Check it out: ${link}\n\n[PR] by HumanAds`;
+          draft = `${intro}\n\n${cta}\n${link}`;
         }
+
+        // Add disclosure
+        draft += language === 'ja' ? '\n\n#ad #PR' : '\n\n#ad';
 
         // Add any required hashtags
         if (requirements.hashtags && requirements.hashtags.length > 0) {
@@ -944,12 +1132,13 @@
 
         document.getElementById('post-content').value = draft;
         updatePostPreview();
+        HumanAds.showAlert('Draft generated — edit it to make it yours!', 'success');
       } catch (error) {
         console.error('Failed to generate draft:', error);
         HumanAds.showAlert('Failed to generate draft', 'error');
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Generate Draft';
+        btn.textContent = 'Regenerate Draft';
       }
     }
 
