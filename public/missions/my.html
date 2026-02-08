@@ -112,12 +112,14 @@
     /* Review button */
     .btn-review {
       display: inline-flex; align-items: center; gap: 6px;
-      margin-top: 8px; padding: 6px 14px;
-      background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3);
-      color: #FF6B35; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s;
+      margin-top: 10px; padding: 10px 20px;
+      background: linear-gradient(135deg, #FF6B35, #FF8F60);
+      border: none; color: #fff; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 700; font-family: var(--font-mono);
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+      letter-spacing: 0.02em;
     }
-    .btn-review:hover { background: rgba(255, 107, 53, 0.25); }
+    .btn-review:hover { background: linear-gradient(135deg, #FF8F60, #FF6B35); box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4); transform: translateY(-1px); }
     .btn-review.reviewed {
       background: rgba(76, 175, 80, 0.1); border-color: rgba(76, 175, 80, 0.3);
       color: #81C784; cursor: default;

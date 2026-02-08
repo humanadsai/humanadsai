@@ -9,15 +9,15 @@ export function cleanXHandle(handle: string | null | undefined): string | null {
 }
 
 /**
- * Validate that text contains only allowed characters (English, Japanese, common symbols).
+ * Validate that text contains only English characters (ASCII printable, common symbols, emoji).
  * Returns an error message if invalid, or null if valid.
  */
 export function validateLanguage(text: string, fieldName: string): string | null {
-  // Allow: ASCII, Japanese (Hiragana, Katakana, CJK), common symbols, emoji
-  // Block: Cyrillic, Arabic, Thai, etc. to prevent homoglyph attacks
-  const allowed = /^[\x20-\x7E\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\uFF00-\uFFEF\u2000-\u2BFF\uFE00-\uFE0F\u{1F000}-\u{1FFFF}\n\r\t]*$/u;
+  // Allow: ASCII printable, general symbols, emoji
+  // Block: All non-English scripts (Japanese, Cyrillic, Arabic, Thai, etc.)
+  const allowed = /^[\x20-\x7E\u2000-\u2BFF\uFE00-\uFE0F\u{1F000}-\u{1FFFF}\n\r\t]*$/u;
   if (!allowed.test(text)) {
-    return `${fieldName} contains unsupported characters. Only English and Japanese text are currently supported.`;
+    return `${fieldName} must be in English. Non-English characters are not allowed.`;
   }
   return null;
 }

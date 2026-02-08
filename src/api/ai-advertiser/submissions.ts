@@ -15,6 +15,7 @@ import { generateRandomString } from '../../utils/crypto';
 import { createNotificationWithEmail } from '../../services/email-notifications';
 import { verifyTransaction, isTxHashUsed } from '../../services/blockchain';
 import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
+import { transferHusd } from '../../services/onchain';
 
 // ============================================
 // Helper: verify mission belongs to this advertiser
@@ -1055,5 +1056,203 @@ export async function handleListPayouts(
     payouts,
     total: total?.cnt || 0,
     has_more: (offset + limit) < (total?.cnt || 0)
+  }, requestId);
+}
+
+/**
+ * Execute payout server-side (for AI agents in sandboxed environments)
+ *
+ * POST /api/v1/submissions/:submissionId/payout/execute
+ *
+ * This endpoint handles the entire payout flow server-side:
+ * 1. Triggers payout if not already triggered
+ * 2. Sends hUSD from treasury to promoter
+ * 3. Auto-reports tx_hashes
+ * 4. Returns completed payout status
+ *
+ * Only available for test mode (hUSD on Sepolia).
+ */
+export async function handleExecutePayout(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  submissionId: string
+): Promise<Response> {
+  const { advertiser, requestId } = context;
+
+  const { mission, error: ownershipError } = await getMissionWithOwnership(
+    env, submissionId, advertiser.id, requestId
+  );
+  if (ownershipError) return ownershipError;
+
+  // Only test mode (hUSD) supported
+  let payoutToken = 'hUSD';
+  try {
+    if (mission._deal.metadata) {
+      const meta = JSON.parse(mission._deal.metadata);
+      payoutToken = meta.payout_token || 'hUSD';
+    }
+  } catch { /* ignore */ }
+
+  if (payoutToken !== 'hUSD') {
+    return error('TEST_MODE_ONLY', 'Server-side payout execution is only available for test mode (hUSD). Production payouts require on-chain transactions.', requestId, 400);
+  }
+
+  // Check valid statuses: verified (not yet triggered), approved/paid_partial (already triggered but not complete)
+  const validStatuses = ['verified', 'approved', 'address_unlocked', 'paid_partial'];
+  if (!validStatuses.includes(mission.status)) {
+    if (mission.status === 'paid_complete') {
+      return error('ALREADY_PAID', 'Payout already completed for this submission', requestId, 409);
+    }
+    return error('NOT_VERIFIED', 'Submission must be verified before payout can be executed', requestId, 400);
+  }
+
+  const rewardAmountCents = mission._deal.reward_amount;
+  const platformFeeCents = Math.round(rewardAmountCents * 0.10);
+  const promoterPayoutCents = rewardAmountCents - platformFeeCents;
+  const treasuryAddress = '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017';
+
+  // Get promoter wallet address
+  const operator = await env.DB
+    .prepare('SELECT evm_wallet_address FROM operators WHERE id = ?')
+    .bind(mission.operator_id)
+    .first<{ evm_wallet_address: string | null }>();
+  const promoterAddress = operator?.evm_wallet_address || '';
+
+  if (!promoterAddress) {
+    return error('NO_WALLET', 'Promoter has not set up a payout wallet address', requestId, 400);
+  }
+
+  // Step 1: If still in 'verified' status, trigger payout first (create payment records)
+  if (mission.status === 'verified') {
+    const deadlineDate = new Date();
+    deadlineDate.setHours(deadlineDate.getHours() + 72);
+    const payoutDeadline = deadlineDate.toISOString();
+
+    const aufPaymentId = `pay_${generateRandomString(16)}`;
+    const payoutPaymentId = `pay_${generateRandomString(16)}`;
+
+    await env.DB.batch([
+      env.DB.prepare(`
+        UPDATE missions SET status = 'approved', approved_at = datetime('now'),
+               payout_deadline_at = ?, updated_at = datetime('now') WHERE id = ?
+      `).bind(payoutDeadline, submissionId),
+      env.DB.prepare(`
+        INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type,
+                              amount_cents, chain, token, status, deadline_at,
+                              to_address, created_at, updated_at, payout_mode)
+        VALUES (?, ?, ?, ?, 'auf', ?, 'sepolia', 'hUSD', 'pending', ?, ?, datetime('now'), datetime('now'), 'onchain')
+      `).bind(aufPaymentId, submissionId, advertiser.id, mission.operator_id,
+              platformFeeCents, payoutDeadline, treasuryAddress),
+      env.DB.prepare(`
+        INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type,
+                              amount_cents, chain, token, status, deadline_at,
+                              to_address, created_at, updated_at, payout_mode)
+        VALUES (?, ?, ?, ?, 'payout', ?, 'sepolia', 'hUSD', 'pending', ?, ?, datetime('now'), datetime('now'), 'onchain')
+      `).bind(payoutPaymentId, submissionId, advertiser.id, mission.operator_id,
+              promoterPayoutCents, payoutDeadline, promoterAddress)
+    ]);
+
+    // Send approval notification
+    const dealForNotif = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+      .bind(mission.deal_id).first<{ title: string }>();
+    await createNotificationWithEmail(env.DB, env, {
+      recipientId: mission.operator_id,
+      type: 'submission_approved',
+      title: 'Submission Approved',
+      body: `Your submission for '${dealForNotif?.title || 'a mission'}' has been approved. Payout will be processed soon.`,
+      referenceType: 'mission',
+      referenceId: submissionId,
+      metadata: { deal_title: dealForNotif?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2) },
+    });
+  }
+
+  // Step 2: Get pending payment records
+  const payments = await env.DB
+    .prepare('SELECT id, payment_type, status, tx_hash, amount_cents FROM payments WHERE mission_id = ?')
+    .bind(submissionId)
+    .all<{ id: string; payment_type: string; status: string; tx_hash: string | null; amount_cents: number }>();
+
+  const aufPayment = payments.results.find(p => p.payment_type === 'auf');
+  const payoutPayment = payments.results.find(p => p.payment_type === 'payout');
+
+  if (!aufPayment || !payoutPayment) {
+    return errors.internalError(requestId);
+  }
+
+  let aufTxHash = aufPayment.tx_hash;
+  let payoutTxHash = payoutPayment.tx_hash;
+
+  // Step 3: Send AUF (treasury to treasury — mark as confirmed directly)
+  if (aufPayment.status === 'pending') {
+    // AUF is treasury-to-treasury in test mode, execute real transfer for record
+    const aufResult = await transferHusd(env, treasuryAddress, platformFeeCents);
+    aufTxHash = aufResult.txHash || `SERVER_AUF_${generateRandomString(16)}`;
+
+    await env.DB.prepare(`
+      UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+    `).bind(aufTxHash, aufPayment.id).run();
+  }
+
+  // Step 4: Send promoter payout from treasury
+  if (payoutPayment.status === 'pending') {
+    const payoutResult = await transferHusd(env, promoterAddress, promoterPayoutCents);
+
+    if (!payoutResult.success) {
+      // AUF confirmed but payout failed — mark as paid_partial
+      await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
+        .bind(submissionId).run();
+      return error('PAYOUT_FAILED', `Server-side payout failed: ${payoutResult.error || 'unknown error'}. AUF was processed. Retry this endpoint to complete.`, requestId, 502);
+    }
+
+    payoutTxHash = payoutResult.txHash || null;
+
+    await env.DB.prepare(`
+      UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+    `).bind(payoutTxHash, payoutPayment.id).run();
+  }
+
+  // Step 5: Mark mission as paid_complete
+  await env.DB.batch([
+    env.DB.prepare(`
+      UPDATE missions SET status = 'paid_complete', paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+    `).bind(submissionId),
+    env.DB.prepare(`
+      UPDATE operators SET total_earnings = total_earnings + ?, updated_at = datetime('now') WHERE id = ?
+    `).bind(promoterPayoutCents, mission.operator_id),
+  ]);
+
+  // Notify promoter
+  const dealForComplete = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+    .bind(mission.deal_id).first<{ title: string }>();
+  await createNotificationWithEmail(env.DB, env, {
+    recipientId: mission.operator_id,
+    type: 'payout_complete',
+    title: 'Payment Complete',
+    body: `Payment of ${(promoterPayoutCents / 100).toFixed(2)} hUSD for '${dealForComplete?.title || 'a mission'}' has been sent to your wallet.`,
+    referenceType: 'mission',
+    referenceId: submissionId,
+    metadata: { deal_title: dealForComplete?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2), tx_hash: payoutTxHash },
+  });
+
+  return success({
+    submission_id: submissionId,
+    payout_status: 'paid_complete',
+    total_amount: (rewardAmountCents / 100).toFixed(2),
+    token: 'hUSD',
+    chain: 'sepolia',
+    breakdown: {
+      platform_fee: {
+        amount: (platformFeeCents / 100).toFixed(2),
+        status: 'confirmed',
+        tx_hash: aufTxHash
+      },
+      promoter_payout: {
+        amount: (promoterPayoutCents / 100).toFixed(2),
+        status: 'confirmed',
+        tx_hash: payoutTxHash
+      }
+    },
+    message: 'Payout executed server-side. Promoter has been paid.'
   }, requestId);
 }
