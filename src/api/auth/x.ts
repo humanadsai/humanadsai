@@ -77,14 +77,11 @@ export async function handleXLogin(request: Request, env: Env): Promise<Response
     );
     console.log(`[X Login] [${requestId}] Auth state stored in KV`);
 
-    // Use intermediate HTML page to redirect to X
-    const escapedUrl = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapedUrl}"><title>Redirecting to X...</title></head><body><script>window.location.replace(${JSON.stringify(url)});</script><p>Redirecting to X for authentication...</p></body></html>`;
-
-    return new Response(html, {
-      status: 200,
+    // Direct 302 redirect to X OAuth (avoids phishing detection by Safe Browsing)
+    return new Response(null, {
+      status: 302,
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
+        'Location': url,
         'Cache-Control': 'no-store, no-cache',
       },
     });
