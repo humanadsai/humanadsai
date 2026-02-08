@@ -347,6 +347,7 @@ const ESCROW_ABI = parseAbi([
 
 const HUSD_ABI = parseAbi([
   'function approve(address spender, uint256 amount) returns (bool)',
+  'function allowance(address owner, address spender) view returns (uint256)',
 ]);
 
 interface EscrowResult {
@@ -414,29 +415,43 @@ export async function escrowApproveAndDeposit(
   }
 
   try {
-    const { client, config: cfg } = createTreasuryClient(env);
+    const { client, account, config: cfg } = createTreasuryClient(env);
     const dealIdBytes32 = dealIdToBytes32(dealId);
 
     // Convert cents to base units (6 decimals): 1 cent = 10_000 base units
     const totalAmountBaseUnits = BigInt(totalAmountCents) * BigInt(10_000);
     const expiresAtUnix = BigInt(Math.floor(new Date(expiresAtISO).getTime() / 1000));
 
-    // Step 1: Approve hUSD to escrow contract
-    const approveTxHash = await client.writeContract({
-      address: cfg.husdContract as Hex,
-      abi: HUSD_ABI,
-      functionName: 'approve',
-      args: [cfg.escrowContract as Hex, totalAmountBaseUnits],
-    });
-
-    // Wait for approve tx to be mined before deposit (prevents allowance race condition)
     const publicClient = createPublicClient({
       chain: sepolia,
       transport: http(cfg.rpcUrl, { timeout: 30_000 }),
     });
-    await publicClient.waitForTransactionReceipt({ hash: approveTxHash, timeout: 60_000 });
 
-    // Step 2: Deposit into escrow (approve confirmed)
+    // Step 1: Check current allowance — only approve if insufficient
+    // Use maxUint256 approval to avoid race conditions with concurrent deposits
+    const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+    const currentAllowance = await publicClient.readContract({
+      address: cfg.husdContract as Hex,
+      abi: HUSD_ABI,
+      functionName: 'allowance',
+      args: [account.address, cfg.escrowContract as Hex],
+    }) as bigint;
+
+    let approveTxHash: string | undefined;
+    if (currentAllowance < totalAmountBaseUnits) {
+      // Approve maxUint256 so future deposits don't need re-approval
+      approveTxHash = await client.writeContract({
+        address: cfg.husdContract as Hex,
+        abi: HUSD_ABI,
+        functionName: 'approve',
+        args: [cfg.escrowContract as Hex, MAX_UINT256],
+      });
+
+      // Wait for approve tx to be mined before deposit
+      await publicClient.waitForTransactionReceipt({ hash: approveTxHash as Hex, timeout: 60_000 });
+    }
+
+    // Step 2: Deposit into escrow
     const depositTxHash = await client.writeContract({
       address: cfg.escrowContract as Hex,
       abi: ESCROW_ABI,
