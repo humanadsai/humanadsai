@@ -1125,10 +1125,8 @@
 
         document.getElementById('post-content').value = draft;
         updatePostPreview();
-        HumanAds.showAlert('Draft generated — edit it to make it yours!', 'success');
       } catch (error) {
         console.error('Failed to generate draft:', error);
-        HumanAds.showAlert('Failed to generate draft', 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Regenerate Draft';
