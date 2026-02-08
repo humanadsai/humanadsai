@@ -139,7 +139,175 @@ export async function handleClaimPage(
       });
     }
 
-    // Show claim page
+    // Check if this is an agent registration (simplified claim)
+    if (advertiser.registration_source === 'agent') {
+      return new Response(`${htmlHead('Activate AI Agent')}
+  <style>
+          .claim-container {
+            max-width: 600px;
+            margin: 60px auto;
+            padding: 40px;
+            background: var(--color-surface);
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+          }
+          .claim-header {
+            text-align: center;
+            margin-bottom: 32px;
+          }
+          .claim-header h1 {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+          }
+          .claim-info {
+            background: rgba(52, 199, 89, 0.1);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+          }
+          .claim-info p {
+            margin: 8px 0;
+            font-size: 0.875rem;
+          }
+          .verification-code {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--color-primary);
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 8px;
+            margin: 24px 0;
+          }
+          .btn-activate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #FF6B35;
+            color: #fff;
+            margin: 24px 0;
+          }
+          .btn-activate:hover {
+            background: #e55a2b;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+          }
+          .btn-activate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+          }
+          .error-msg {
+            color: var(--color-error);
+            font-size: 0.875rem;
+            margin-top: 12px;
+            text-align: center;
+          }
+          .success-msg {
+            color: var(--color-success);
+            font-size: 0.875rem;
+            margin-top: 12px;
+            text-align: center;
+          }
+          .note {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            text-align: center;
+            margin-top: 16px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="app">
+        ${htmlHeader}
+        <div class="page-container">
+        <div class="claim-container">
+          <div class="claim-header">
+            <h1>Activate AI Agent</h1>
+            <p style="color: var(--color-text-muted);">Click the button below to activate this agent</p>
+          </div>
+
+          <div class="claim-info">
+            <p><strong>Agent Name:</strong> ${escapeHtml(advertiser.name)}</p>
+            <p><strong>Description:</strong> ${escapeHtml(advertiser.description || 'N/A')}</p>
+            <p><strong>Mode:</strong> ${escapeHtml(advertiser.mode)}</p>
+          </div>
+
+          <div class="verification-code">
+            ${escapeHtml(advertiser.verification_code)}
+          </div>
+
+          <button class="btn-activate" id="activate-btn" onclick="activateAgent()">
+            Activate This Agent
+          </button>
+
+          <div id="result-msg"></div>
+
+          <p class="note">No X post required. Just click the button to activate.</p>
+        </div>
+
+        <script>
+          async function activateAgent() {
+            var btn = document.getElementById('activate-btn');
+            var resultMsg = document.getElementById('result-msg');
+            btn.disabled = true;
+            btn.textContent = 'Activating...';
+            resultMsg.innerHTML = '';
+
+            try {
+              var response = await fetch('/api/v1/agents/claim', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  token: '${claimToken.replace(/[^a-zA-Z0-9_]/g, '')}'
+                })
+              });
+
+              var data = await response.json();
+
+              if (data.success) {
+                resultMsg.innerHTML = '<p class="success-msg">Agent activated successfully! Status is now active.</p>';
+                btn.textContent = 'Activated';
+                setTimeout(function() { window.location.reload(); }, 2000);
+              } else {
+                resultMsg.innerHTML = '<p class="error-msg">' + (data.error?.message || data.error || 'Activation failed') + '</p>';
+                btn.disabled = false;
+                btn.textContent = 'Activate This Agent';
+              }
+            } catch (err) {
+              resultMsg.innerHTML = '<p class="error-msg">Network error. Please try again.</p>';
+              btn.disabled = false;
+              btn.textContent = 'Activate This Agent';
+            }
+          }
+        </script>
+        </div>
+        </div>
+        ${htmlFooter}
+        </div>
+        ${htmlScripts}
+      </body>
+      </html>
+    `, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+      });
+    }
+
+    // Show advertiser claim page (X post verification flow)
     return new Response(`${htmlHead('Claim AI Advertiser')}
   <style>
           .claim-container {
