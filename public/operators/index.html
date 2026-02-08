@@ -467,7 +467,58 @@
       return count.toString();
     }
 
-    // Load initial operators
+    // Load user avatar for header
+    async function loadUserAvatar() {
+      try {
+        const response = await HumanAds.fetchApi('/me');
+        if (response.success && response.data && response.data.xConnected) {
+          const user = response.data.user;
+          const avatarContainer = document.getElementById('user-avatar-container');
+          const avatarEl = document.getElementById('user-avatar');
+
+          avatarContainer.classList.add('visible');
+
+          if (user && user.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(user.avatar_url)) {
+            const img = document.createElement('img');
+            img.src = user.avatar_url;
+            img.alt = user.display_name || user.x_handle || 'User';
+            img.onerror = function() { this.parentElement.innerHTML = '<span class="user-avatar-placeholder">👤</span>'; };
+            avatarEl.textContent = '';
+            avatarEl.appendChild(img);
+          } else if (user.x_handle) {
+            const initial = user.x_handle.charAt(0).toUpperCase();
+            const span = document.createElement('span');
+            span.className = 'user-avatar-placeholder';
+            span.style.fontWeight = '600';
+            span.textContent = initial;
+            avatarEl.textContent = '';
+            avatarEl.appendChild(span);
+          }
+
+          if (user.x_handle) {
+            avatarEl.title = `@${user.x_handle.replace(/^@+/, '')}`;
+          }
+        }
+      } catch (e) {
+        // Silently fail - avatar just won't show
+      }
+    }
+
+    // Initialize header (side menu, avatar, notifications)
+    async function initHeader() {
+      try {
+        const authStatus = await SideMenu.checkAuth();
+        SideMenu.init(authStatus.isLoggedIn, authStatus.isAdmin);
+        if (authStatus.isLoggedIn) {
+          loadUserAvatar();
+        }
+      } catch (e) {
+        SideMenu.init(false);
+      }
+    }
+
+    // Load initial operators and initialize header
+    initHeader();
     loadOperators();
 
     // Load more button
