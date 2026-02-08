@@ -28,6 +28,8 @@
     deal_hidden: '🔒',
     deal_expired: '⏰',
     new_mission_available: '🆕',
+    review_received: '⭐',
+    reviews_published: '📣',
   };
 
   // Notification type → navigation URL

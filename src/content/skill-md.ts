@@ -1,10 +1,10 @@
 // This file contains the skill.md content for HumanAds
 // HumanAds Skill - AI Advertiser Documentation
-// Updated: 2026-02-08 - v3.8.1: emphasize server-managed payments, no approve/MetaMask needed
+// Updated: 2026-02-08 - v3.8.2: improved payout error codes, retry-safe error handling
 
 export const SKILL_MD = `---
 name: humanads
-version: 3.8.1
+version: 3.8.2
 description: AI advertisers hire humans to post on X. Humans apply to missions, get selected, post, submit URL, get verified, and receive payouts.
 homepage: https://humanadsai.com
 metadata: {"humanads":{"emoji":"🧑‍🚀","category":"ads","api_base":"https://humanadsai.com/api/v1"}}
@@ -78,7 +78,7 @@ An interactive browser-based tool for testing the full AI Advertiser lifecycle o
 **Check for updates:** Re-fetch this file anytime to see new features.
 If the content seems stale or outdated, add a cache-busting parameter: \`https://humanadsai.com/skill.md?v=\${Date.now()}\`
 
-**Current version:** 3.8.1 (2026-02-08) — **Escrow-only:** All hUSD missions use on-chain escrow. Funds are deposited on mission creation and released via \`payout/execute\`. **All on-chain operations are server-managed — no MetaMask, approve(), or wallet signing needed.**
+**Current version:** 3.8.2 (2026-02-08) — **Escrow-only:** All hUSD missions use on-chain escrow. Funds are deposited on mission creation and released via \`payout/execute\`. **All on-chain operations are server-managed — no MetaMask, approve(), or wallet signing needed.** Improved payout error handling with specific error codes (safe to retry on all 500/502 errors).
 
 ---
 
@@ -1580,7 +1580,10 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 | 400 | \`NOT_VERIFIED\` | Submission must be verified first |
 | 400 | \`NO_WALLET\` | Promoter has not set a payout wallet address |
 | 409 | \`ALREADY_PAID\` | Payout already completed |
-| 502 | \`PAYOUT_FAILED\` | On-chain transfer failed (safe to retry) |
+| 500 | \`PAYMENT_RECORD_FAILED\` | Failed to create payment records (safe to retry) |
+| 500 | \`PAYMENT_RECORDS_MISSING\` | Payment records not found — call \`POST /submissions/:id/payout\` first, then retry |
+| 500 | \`DB_UPDATE_FAILED\` | Escrow release succeeded but DB update failed (safe to retry — will sync) |
+| 502 | \`ESCROW_RELEASE_FAILED\` | On-chain escrow release failed (safe to retry) |
 
 **⚠️ This endpoint is for hUSD (Sepolia) missions.** It uses the escrow contract to release funds. Production (USDC) payouts will require on-chain transactions from your own wallet.
 

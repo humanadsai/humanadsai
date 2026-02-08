@@ -39,6 +39,8 @@ const CATEGORY_MAP: Record<string, EmailCategory> = {
   campaign_ended: 'campaign',
   account_warning: 'security',
   account_suspended: 'security',
+  review_received: 'mission',
+  reviews_published: 'mission',
 };
 
 /**
