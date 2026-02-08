@@ -36,6 +36,60 @@
     }
     /* Hamburger Menu styles are in /styles.css */
 
+    /* Deadline badges */
+    .deadline-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+    .deadline-badge.normal {
+      background: rgba(158, 158, 158, 0.15);
+      color: #BDBDBD;
+    }
+    .deadline-badge.warning {
+      background: rgba(255, 152, 0, 0.15);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      color: #FFB74D;
+    }
+    .deadline-badge.urgent {
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #E57373;
+      animation: pulse 2s infinite;
+    }
+    .deadline-badge.expired {
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      color: #E57373;
+    }
+    .slots-highlight {
+      color: #FFB74D !important;
+      font-weight: 700;
+    }
+    .slots-critical {
+      color: #E57373 !important;
+      font-weight: 700;
+    }
+    .popular-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      background: rgba(255, 107, 53, 0.15);
+      border: 1px solid rgba(255, 107, 53, 0.3);
+      color: #FF6B35;
+      margin-left: 8px;
+    }
+
     /* User Avatar in Header */
     .header-right {
       display: flex;
@@ -273,6 +327,9 @@
           missions.length === limit ? 'block' : 'none';
 
         offset += missions.length;
+
+        // Load advertiser reputation badges (async, non-blocking)
+        HumanAds.loadReputationBadges();
       } catch (error) {
         if (!append) {
           listEl.innerHTML = `
@@ -308,10 +365,26 @@
           : 'Create an original sponsored post';
       }
 
+      // Deadline badge
+      let deadlineBadgeHtml = '';
+      if (mission.expires_at) {
+        const urgency = HumanAds.getDeadlineUrgency(mission.expires_at);
+        const deadlineText = HumanAds.formatDeadline(mission.expires_at);
+        const icon = urgency === 'urgent' ? '⏰' : urgency === 'warning' ? '⏳' : urgency === 'expired' ? '✕' : '🕐';
+        deadlineBadgeHtml = `<span class="deadline-badge ${urgency}">${icon} ${deadlineText}</span>`;
+      }
+
+      // Slots styling
+      const slotsClass = mission.remaining_slots <= 1 ? 'slots-critical' : mission.remaining_slots <= 3 ? 'slots-highlight' : '';
+
+      // Popular badge
+      const popularHtml = mission.applications_count >= 5 ? `<span class="popular-badge">🔥 Popular</span>` : '';
+
       el.innerHTML = `
         <div class="mission-item-badges">
           <span class="badge badge--disclosure">Disclosure required</span>
           <span class="badge badge--type">${postType}</span>
+          ${deadlineBadgeHtml}
         </div>
         <div class="mission-item-header">
           <h3 class="mission-item-title">${escapeHtml(mission.title)}</h3>
@@ -326,6 +399,7 @@
             <div class="mission-advertiser-name">
               ${escapeHtml(mission.agent_name)}
               ${mission.is_ai_advertiser ? '<span class="ai-badge">AI</span>' : ''}
+              ${mission.agent_id ? `<span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span>` : ''}
             </div>
             ${mission.agent_description ? `<div class="mission-advertiser-desc">${escapeHtml(mission.agent_description)}</div>` : ''}
             ${mission.advertiser_x_handle ? `<div class="mission-advertiser-backed" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px;">backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a></div>` : ''}
@@ -337,14 +411,13 @@
         </div>
         <div class="mission-item-footer">
           <span class="mission-item-slots">
-            <strong>${mission.remaining_slots}</strong> slots remaining
+            <strong class="${slotsClass}">${mission.remaining_slots}</strong> slots remaining${popularHtml}
             ${mission.applications_count > 0 ? `<span style="color: var(--color-text-muted); margin-left: 8px;">${mission.applications_count} applied</span>` : ''}
           </span>
           ${getApplicationButton(mission, isAuthenticated)}
         </div>
-        <div style="display: flex; gap: 12px; margin-top: 8px; font-size: 0.7rem; color: var(--color-text-muted);">
+        <div style="display: flex; gap: 12px; margin-top: 8px; font-size: 0.75rem; color: var(--color-text-muted);">
           ${mission.created_at ? `<span>Posted ${HumanAds.formatRelativeTime(mission.created_at)}</span>` : ''}
-          ${mission.expires_at ? `<span>Expires ${HumanAds.formatRelativeTime(mission.expires_at)}</span>` : ''}
         </div>
       `;
 

@@ -17,7 +17,6 @@ import {
   handleRejectSubmission,
   handleTriggerPayout,
   handleGetPayoutStatus,
-  handleReportPayment,
   handleListPayouts,
   handleExecutePayout
 } from './submissions';
@@ -161,13 +160,7 @@ export async function handleAiAdvertiserApi(
       return await handleGetPayoutStatus(request, env, context, payoutStatusMatch[1]);
     }
 
-    // POST /submissions/:id/payout/report - Report payment tx_hash
-    const payoutReportMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/payout\/report$/);
-    if (payoutReportMatch && method === 'POST') {
-      return await handleReportPayment(request, env, context, payoutReportMatch[1]);
-    }
-
-    // POST /submissions/:id/payout/execute - Execute payout server-side (test mode only)
+    // POST /submissions/:id/payout/execute - Execute payout server-side
     const payoutExecuteMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/payout\/execute$/);
     if (payoutExecuteMatch && method === 'POST') {
       return await handleExecutePayout(request, env, context, payoutExecuteMatch[1]);

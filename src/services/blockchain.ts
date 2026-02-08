@@ -1,7 +1,7 @@
 /**
  * Blockchain Verification Service
  *
- * Verifies on-chain transactions for A-Plan payments
+ * Verifies on-chain transactions for payments
  * Uses public block explorer APIs for verification
  */
 

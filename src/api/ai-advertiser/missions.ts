@@ -10,6 +10,7 @@ import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { validateLanguage } from '../../utils/format';
 import { getMissionNextActions } from '../../utils/next-actions';
+import { escrowApproveAndDeposit, escrowRefund, getOnchainConfig } from '../../services/onchain';
 
 interface CreateMissionRequest {
   mode: 'test' | 'production';
@@ -165,6 +166,9 @@ export async function handleCreateMission(
     return errors.badRequest(requestId, 'Invalid payout.amount format');
   }
 
+  // All missions use escrow payment model
+  const paymentModel = 'escrow';
+
   // Validate deadline is in the future
   const deadlineDate = new Date(body.deadline_at);
   if (isNaN(deadlineDate.getTime()) || deadlineDate <= new Date()) {
@@ -208,7 +212,7 @@ export async function handleCreateMission(
         status, expires_at, metadata,
         created_at, updated_at, slots_total, slots_selected,
         applications_count, payment_model, auf_percentage, visibility
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', ?, ?, datetime('now'), datetime('now'), ?, 0, 0, 'a_plan', 10, 'visible')
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', ?, ?, datetime('now'), datetime('now'), ?, 0, 0, ?, 10, 'visible')
     `)
     .bind(
       missionId,
@@ -220,7 +224,8 @@ export async function handleCreateMission(
       body.max_claims,
       body.deadline_at,
       metadata,
-      body.max_claims // slots_total
+      body.max_claims, // slots_total
+      paymentModel
     )
     .run();
 
@@ -229,14 +234,39 @@ export async function handleCreateMission(
     return errors.internalError(requestId);
   }
 
+  // Deposit into Escrow contract (hUSD onchain mode only)
+  let escrowDepositTx: string | undefined;
+  if (body.payout.token === 'hUSD' && env.PAYOUT_MODE === 'onchain') {
+    const totalDepositCents = payoutAmountCents * body.max_claims;
+    const depositResult = await escrowApproveAndDeposit(
+      env, missionId, totalDepositCents, body.max_claims, body.deadline_at
+    );
+    if (!depositResult.success) {
+      // Rollback: delete the deal from DB
+      await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
+      return error('ESCROW_DEPOSIT_FAILED', depositResult.error || 'Failed to deposit into escrow contract', requestId, 502);
+    }
+    escrowDepositTx = depositResult.depositTxHash;
+  } else if (body.payout.token === 'hUSD' && env.PAYOUT_MODE !== 'onchain') {
+    // Ledger mode: simulate deposit
+    const totalDepositCents = payoutAmountCents * body.max_claims;
+    const depositResult = await escrowApproveAndDeposit(
+      env, missionId, totalDepositCents, body.max_claims, body.deadline_at
+    );
+    escrowDepositTx = depositResult.depositTxHash;
+  }
+
   return success({
     mission_id: missionId,
     title: body.title,
     status: 'active',
+    payment_model: paymentModel,
     max_claims: body.max_claims,
     current_claims: 0,
     deadline_at: body.deadline_at,
-    payout: body.payout
+    payout: body.payout,
+    escrow_deposit_tx: escrowDepositTx || null,
+    escrow_contract: paymentModel === 'escrow' ? (getOnchainConfig(env).escrowContract) : null,
   }, requestId, 201);
 }
 
@@ -266,7 +296,7 @@ export async function handleListMyMissions(
       SELECT
         d.id, d.title, d.description, d.reward_amount, d.max_participants,
         d.current_participants, d.status, d.expires_at, d.created_at, d.updated_at,
-        d.slots_total, d.slots_selected, d.applications_count, d.metadata,
+        d.slots_total, d.slots_selected, d.applications_count, d.metadata, d.payment_model,
         (SELECT COUNT(*) FROM applications a WHERE a.deal_id = d.id AND a.status = 'applied') as pending_applications_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status = 'submitted') as pending_submissions_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial')) as verified_submissions_count
@@ -298,6 +328,7 @@ export async function handleListMyMissions(
       title: m.title,
       brief: m.description,
       status: m.status,
+      payment_model: m.payment_model || 'escrow',
       max_claims: m.max_participants || m.slots_total,
       current_claims: m.current_participants || m.slots_selected,
       applications_count: m.applications_count || 0,
@@ -352,7 +383,7 @@ export async function handleGetMission(
         d.id, d.agent_id, d.title, d.description, d.requirements, d.reward_amount,
         d.max_participants, d.current_participants, d.status, d.expires_at,
         d.created_at, d.updated_at, d.slots_total, d.slots_selected,
-        d.applications_count, d.metadata,
+        d.applications_count, d.metadata, d.payment_model,
         (SELECT COUNT(*) FROM applications a WHERE a.deal_id = d.id AND a.status = 'applied') as pending_applications_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status = 'submitted') as pending_submissions_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial')) as verified_submissions_count
@@ -390,12 +421,14 @@ export async function handleGetMission(
     // Ignore parse errors
   }
 
+  const pmModel = (mission.payment_model as string) || 'escrow';
   const missionData = {
     mission_id: mission.id as string,
     title: mission.title,
     brief: mission.description,
     requirements,
     status: mission.status as string,
+    payment_model: pmModel,
     max_claims: mission.max_participants || mission.slots_total,
     current_claims: mission.current_participants || mission.slots_selected,
     applications_count: (mission.applications_count || 0) as number,
@@ -411,6 +444,7 @@ export async function handleGetMission(
 
   return success({
     ...missionData,
+    escrow_contract: pmModel === 'escrow' ? getOnchainConfig(env).escrowContract : null,
     next_actions: getMissionNextActions(missionData),
   }, requestId);
 }
@@ -429,7 +463,7 @@ export async function handleHideMission(
 
   // Get mission and verify ownership
   const mission = await env.DB
-    .prepare('SELECT id, agent_id, status, visibility FROM deals WHERE id = ?')
+    .prepare('SELECT id, agent_id, status, visibility, payment_model FROM deals WHERE id = ?')
     .bind(missionId)
     .first();
 
@@ -462,6 +496,18 @@ export async function handleHideMission(
 
   const previousVisibility = mission.visibility || 'visible';
 
+  // If escrow deal, refund remaining escrowed funds
+  let escrowRefundTx: string | null = null;
+  if (mission.payment_model === 'escrow') {
+    const refundResult = await escrowRefund(env, missionId);
+    if (refundResult.success) {
+      escrowRefundTx = refundResult.txHash || null;
+    } else {
+      console.error(`[HideMission] Escrow refund failed for ${missionId}: ${refundResult.error}`);
+      // Non-blocking: still hide the mission even if refund fails
+    }
+  }
+
   // Update visibility to hidden
   await env.DB
     .prepare(`UPDATE deals SET visibility = 'hidden', updated_at = datetime('now') WHERE id = ?`)
@@ -472,6 +518,10 @@ export async function handleHideMission(
     mission_id: missionId,
     previous_visibility: previousVisibility,
     visibility: 'hidden',
-    message: 'Mission hidden from public listings'
+    payment_model: mission.payment_model || 'escrow',
+    escrow_refund_tx: escrowRefundTx,
+    message: escrowRefundTx
+      ? 'Mission hidden. Remaining escrow funds refunded.'
+      : 'Mission hidden from public listings'
   }, requestId);
 }

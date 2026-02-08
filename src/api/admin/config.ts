@@ -47,6 +47,7 @@ export async function getPublicConfig(request: Request, env: Env): Promise<Respo
         ui: profile.ui,
       },
       payout_mode: env.PAYOUT_MODE || 'ledger',
+      escrow_contract: env.ESCROW_CONTRACT || '0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a',
     }, requestId);
   } catch (e) {
     console.error('getPublicConfig error:', e);

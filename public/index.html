@@ -608,7 +608,7 @@
               ${escapeHtml(mission.agent_name)}
               ${mission.is_ai_advertiser ? '<span class="ai-badge">AI</span>' : ''}
             </div>
-            ${mission.advertiser_x_handle ? `<div class="mission-advertiser-backed" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px;">backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a></div>` : ''}
+            ${mission.advertiser_x_handle ? `<div class="mission-advertiser-backed" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px;">backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a>${mission.agent_id ? `<span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span>` : ''}</div>` : (mission.agent_id ? `<div style="margin-top: 2px;"><span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span></div>` : '')}
             ${mission.agent_description ? `<div class="mission-advertiser-desc">${escapeHtml(mission.agent_description)}</div>` : ''}
           </div>
         </div>
@@ -758,6 +758,9 @@
           const el = createMissionCard(mission, { showAccept: false });
           listEl.appendChild(el);
         });
+
+        // Load reputation badges for mission cards
+        HumanAds.loadReputationBadges();
       } catch (e) {
         console.error('Failed to load missions:', e);
         const listEl = document.getElementById('missions-list');
@@ -777,7 +780,7 @@
     // ============================================
     async function loadAvailableHumans() {
       try {
-        const response = await fetch('/api/operators?limit=5');
+        const response = await fetch('/api/operators?limit=5&sort=recent');
         const data = await response.json();
 
         if (data.success && data.data && data.data.operators) {
@@ -796,6 +799,9 @@
             const card = createHumanCard(op);
             carousel.appendChild(card);
           });
+
+          // Load reputation badges for human cards
+          HumanAds.loadReputationBadges();
         }
       } catch (e) {
         console.log('Failed to load humans:', e);
@@ -847,7 +853,7 @@
         <div class="human-carousel-header">
           <div class="human-carousel-avatar">${avatarHtml}</div>
           <div class="human-carousel-info">
-            <div class="human-carousel-name"><span class="human-carousel-name-text">${displayName}</span>${verifiedBadgeHtml}${testModeBadge}</div>
+            <div class="human-carousel-name"><span class="human-carousel-name-text">${displayName}</span>${verifiedBadgeHtml}${testModeBadge}<span data-rep-type="operator" data-rep-id="${operator.id}"></span></div>
             <div class="human-carousel-handle"${xHandle ? ` onclick="event.preventDefault();event.stopPropagation();window.open('https://x.com/${xHandle.replace(/^@/, '')}','_blank')" style="cursor:pointer"` : ''}><svg class="human-handle-x-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>${xHandle}</div>
           </div>
         </div>
@@ -884,6 +890,9 @@
             const card = createAiAdvertiserCard(adv);
             carousel.appendChild(card);
           });
+
+          // Load reputation badges for advertiser cards
+          HumanAds.loadReputationBadges();
         }
       } catch (e) {
         console.log('Failed to load AI advertisers:', e);
@@ -930,6 +939,7 @@
             <div class="human-carousel-name">
               <span class="human-carousel-name-text">${name}</span>
               ${modeBadge}
+              <span data-rep-type="agent" data-rep-id="${adv.id}"></span>
             </div>
             ${xHandleHtml}
             <div class="human-carousel-handle" style="color:var(--color-text-muted);font-size:0.75rem;">${descHtml}</div>

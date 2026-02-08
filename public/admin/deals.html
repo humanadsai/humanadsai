@@ -51,6 +51,12 @@
     .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
     .action-btns { display: flex; gap: 4px; flex-wrap: nowrap; }
     .loading, .empty { text-align: center; padding: 40px; color: var(--color-text-muted); }
+    /* Deadline badges */
+    .deadline-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; font-family: var(--font-mono); white-space: nowrap; }
+    .deadline-badge.normal { background: rgba(158,158,158,0.15); color: #BDBDBD; }
+    .deadline-badge.warning { background: rgba(255,152,0,0.15); border: 1px solid rgba(255,152,0,0.3); color: #FFB74D; }
+    .deadline-badge.urgent { background: rgba(244,67,54,0.15); border: 1px solid rgba(244,67,54,0.3); color: #E57373; }
+    .deadline-badge.expired { background: rgba(244,67,54,0.2); border: 1px solid rgba(244,67,54,0.4); color: #E57373; }
     .id-cell { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
     .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     /* Modal */
@@ -248,7 +254,7 @@
             <td>${HumanAds.formatCurrency(d.reward_amount)}</td>
             <td>${d.current_participants || 0}/${d.max_participants}</td>
             <td>${HumanAds.formatDate(d.created_at)}</td>
-            <td>${d.expires_at ? HumanAds.formatDate(d.expires_at) : '-'}</td>
+            <td>${d.expires_at ? `${HumanAds.formatDate(d.expires_at)}<br><span class="deadline-badge ${HumanAds.getDeadlineUrgency(d.expires_at)}">${HumanAds.formatDeadline(d.expires_at)}</span>` : '-'}</td>
             <td><div class="action-btns">${getActionButtons(d)}</div></td>
           </tr>`;
       }).join('');

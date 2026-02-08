@@ -204,7 +204,7 @@ export async function getAdvertiserDashboard(
         reward_amount: d.reward_amount,
         max_participants: d.max_participants,
         status: d.status,
-        payment_model: d.payment_model || 'a_plan',
+        payment_model: d.payment_model || 'escrow',
         auf_percentage: d.auf_percentage || 10,
         created_at: d.created_at,
         expires_at: d.expires_at,

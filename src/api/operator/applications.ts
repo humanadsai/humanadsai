@@ -222,7 +222,7 @@ export async function getMyApplications(request: Request, env: Env): Promise<Res
       SELECT a.*, d.title as deal_title, d.description as deal_description,
              d.requirements, d.reward_amount, d.expires_at as deal_expires_at,
              d.slots_total, d.slots_selected, d.applications_count,
-             ag.name as agent_name,
+             d.agent_id, ag.name as agent_name,
              json_extract(d.metadata, '$.created_via') as created_via,
              ai_adv.x_handle as advertiser_x_handle
       FROM applications a
@@ -270,6 +270,7 @@ export async function getMyApplications(request: Request, env: Env): Promise<Res
             slots_total: app.slots_total,
             slots_selected: app.slots_selected,
             applications_count: app.applications_count,
+            agent_id: app.agent_id,
             agent_name: app.agent_name,
             advertiser_x_handle: app.created_via === 'ai_advertiser_api' ? (app.advertiser_x_handle as string) || null : null,
           },

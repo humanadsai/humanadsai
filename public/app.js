@@ -113,6 +113,82 @@ function formatMonthYear(date) {
   });
 }
 
+function getDeadlineUrgency(date) {
+  if (!date) return 'normal';
+  const d = new Date(typeof date === 'number' ? date : date);
+  const now = new Date();
+  const diffMs = d - now;
+  if (diffMs <= 0) return 'expired';
+  const diffHours = diffMs / (1000 * 60 * 60);
+  if (diffHours <= 24) return 'urgent';
+  if (diffHours <= 72) return 'warning';
+  return 'normal';
+}
+
+function formatDeadline(date) {
+  if (!date) return '';
+  const d = new Date(typeof date === 'number' ? date : date);
+  const now = new Date();
+  const diffMs = d - now;
+  if (diffMs <= 0) return 'Expired';
+  const totalMin = Math.floor(diffMs / (1000 * 60));
+  const totalHours = Math.floor(totalMin / 60);
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  const mins = totalMin % 60;
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (totalHours > 0) return `${totalHours}h ${mins}m left`;
+  return `${mins}m left`;
+}
+
+// ============================================
+// Reputation Badges (inline, subtle)
+// ============================================
+
+const _repCache = {};
+
+async function loadReputationBadges() {
+  const els = document.querySelectorAll('[data-rep-type][data-rep-id]');
+  if (!els.length) return;
+
+  // Collect unique entity requests
+  const requests = new Map();
+  els.forEach(el => {
+    const type = el.dataset.repType; // 'agent' or 'operator'
+    const id = el.dataset.repId;
+    if (id) requests.set(`${type}:${id}`, { type, id });
+  });
+
+  // Fetch all unique reputations
+  const results = {};
+  await Promise.all([...requests.values()].map(async ({ type, id }) => {
+    const key = `${type}:${id}`;
+    if (_repCache[key] !== undefined) {
+      results[key] = _repCache[key];
+      return;
+    }
+    try {
+      const endpoint = type === 'agent' ? `/ai-advertisers/${id}/reputation` : `/operators/${id}/reputation`;
+      const res = await fetchApi(endpoint);
+      const rep = res.data?.reputation || null;
+      _repCache[key] = rep;
+      results[key] = rep;
+    } catch {
+      _repCache[key] = null;
+      results[key] = null;
+    }
+  }));
+
+  // Populate badges
+  els.forEach(el => {
+    const key = `${el.dataset.repType}:${el.dataset.repId}`;
+    const rep = results[key];
+    if (rep && rep.total_reviews > 0) {
+      el.innerHTML = `<span class="rep-inline" title="${rep.avg_rating.toFixed(1)} avg from ${rep.total_reviews} reviews">★ ${rep.avg_rating.toFixed(1)}<span class="rep-count">(${rep.total_reviews})</span></span>`;
+    }
+  });
+}
+
 // ============================================
 // Stats Loading
 // ============================================
@@ -338,6 +414,62 @@ function renderStars(rating, size = 'sm') {
   return html;
 }
 
+// ============================================
+// Escrow Functions
+// ============================================
+
+async function getEscrowBalance() {
+  return fetchApi('/operator/escrow-balance');
+}
+
+/**
+ * Withdraw from escrow contract via MetaMask.
+ * Operator signs tx from their connected wallet calling escrow.withdraw().
+ */
+async function escrowWithdraw() {
+  if (typeof window.ethereum === 'undefined') {
+    throw new Error('MetaMask not detected. Install MetaMask to withdraw.');
+  }
+
+  // Request account access
+  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  if (!accounts || accounts.length === 0) {
+    throw new Error('No account connected');
+  }
+
+  // Ensure we're on Sepolia (chainId 0xaa36a7 = 11155111)
+  const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+  if (chainId !== '0xaa36a7') {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0xaa36a7' }],
+      });
+    } catch (switchError) {
+      throw new Error('Please switch to Sepolia network in MetaMask');
+    }
+  }
+
+  // Get escrow contract address from config
+  const configRes = await fetchApi('/config');
+  const escrowContract = configRes.data?.escrow_contract || '0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a';
+
+  // withdraw() function selector: keccak256("withdraw()") = 0x3ccfd60b
+  const txHash = await window.ethereum.request({
+    method: 'eth_sendTransaction',
+    params: [{
+      from: accounts[0],
+      to: escrowContract,
+      data: '0x3ccfd60b',
+    }],
+  });
+
+  return {
+    txHash,
+    explorerUrl: `https://sepolia.etherscan.io/tx/${txHash}`,
+  };
+}
+
 // Export for use in other pages
 window.HumanAds = {
   fetchApi,
@@ -347,6 +479,9 @@ window.HumanAds = {
   formatDate,
   formatRelativeTime,
   formatMonthYear,
+  formatDeadline,
+  getDeadlineUrgency,
+  loadReputationBadges,
   loadAvailableMissions,
   loadMyMissions,
   acceptMission,
@@ -365,4 +500,6 @@ window.HumanAds = {
   getReputation,
   reportReview,
   renderStars,
+  getEscrowBalance,
+  escrowWithdraw,
 };

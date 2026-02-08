@@ -30,6 +30,8 @@ export interface Env {
   TREASURY_ADDRESS?: string;
   TREASURY_PRIVATE_KEY?: string;
   ADMIN_ADDRESS?: string;
+  // Escrow contract
+  ESCROW_CONTRACT?: string;
   // Faucet configuration
   FAUCET_CONTRACT?: string;
   FAUCET_PER_ADVERTISER?: string;
@@ -54,12 +56,6 @@ export interface Agent {
   max_deal_amount: number;
   daily_volume_limit: number;
   open_deals_limit: number;
-  // A-Plan trust score fields
-  paid_count: number;
-  overdue_count: number;
-  avg_pay_time_seconds: number;
-  is_suspended_for_overdue: boolean;
-  last_overdue_at?: string;
   metadata?: string;
   created_at: string;
   updated_at: string;
@@ -122,8 +118,6 @@ export interface OperatorVerification {
   created_at: string;
 }
 
-export type PaymentModel = 'escrow' | 'a_plan';
-
 export type DealVisibility = 'visible' | 'hidden' | 'deleted';
 
 export interface Deal {
@@ -139,8 +133,7 @@ export interface Deal {
   starts_at?: string;
   expires_at?: string;
   idempotency_key?: string;
-  // A-Plan payment model
-  payment_model: PaymentModel;
+  payment_model: string;
   auf_percentage: number;
   // Visibility (admin soft-delete)
   visibility?: DealVisibility;
@@ -152,7 +145,6 @@ export interface Deal {
   updated_at: string;
 }
 
-// Mission status including A-Plan states
 export type MissionStatus =
   | 'accepted'
   | 'submitted'
@@ -160,12 +152,9 @@ export type MissionStatus =
   | 'rejected'
   | 'expired'
   | 'paid'
-  // A-Plan additional statuses
-  | 'approved'          // AI approved (payment intent expressed)
-  | 'address_unlocked'  // AUF paid, address disclosed
-  | 'paid_partial'      // AUF confirmed, awaiting 90%
-  | 'paid_complete'     // Full payment completed
-  | 'overdue';          // Payment deadline exceeded
+  | 'approved'
+  | 'paid_partial'
+  | 'paid_complete';
 
 export interface Mission {
   id: string;
@@ -178,14 +167,10 @@ export interface Mission {
   verified_at?: string;
   verification_result?: string;
   paid_at?: string;
-  // A-Plan timestamps
   approved_at?: string;
-  auf_tx_hash?: string;
-  auf_confirmed_at?: string;
   payout_deadline_at?: string;
   payout_tx_hash?: string;
   payout_confirmed_at?: string;
-  overdue_at?: string;
   metadata?: string;
   created_at: string;
   updated_at: string;
@@ -404,12 +389,11 @@ export interface ApplyMissionRequest {
 }
 
 // ============================================
-// A-Plan Types (Address Unlock Fee Model)
+// Payment Types
 // ============================================
 
 export type PaymentType = 'auf' | 'payout';
 export type PaymentStatus = 'pending' | 'submitted' | 'confirmed' | 'failed';
-export type PayoutLinkStatus = 'pending_auf' | 'unlocked' | 'paid' | 'expired';
 export type PayoutMode = 'ledger' | 'onchain';
 
 export interface Payment {
@@ -424,101 +408,11 @@ export interface Payment {
   tx_hash?: string;
   to_address?: string;
   status: PaymentStatus;
-  // Payout mode: 'ledger' (simulated) or 'onchain' (real blockchain transaction)
   payout_mode: PayoutMode;
   confirmed_at?: string;
   deadline_at?: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface PayoutLink {
-  id: string;
-  mission_id: string;
-  token_hash: string;
-  chain: string;
-  wallet_address: string;
-  amount_cents: number;
-  status: PayoutLinkStatus;
-  unlocked_at?: string;
-  expires_at: string;
-  created_at: string;
-}
-
-export interface AgentTrustScore {
-  agent_id: string;
-  paid_count: number;
-  overdue_count: number;
-  avg_pay_time_seconds: number;
-  is_suspended_for_overdue: boolean;
-  last_overdue_at?: string;
-  // Computed fields
-  on_time_rate: number;
-  trust_level: 'new' | 'good' | 'excellent' | 'warning' | 'suspended';
-}
-
-// A-Plan API Request/Response Types
-
-export interface ApproveMissionRequest {
-  payout_deadline_hours?: number; // Default 72 hours
-}
-
-export interface ApproveMissionResponse {
-  mission_id: string;
-  status: MissionStatus;
-  approved_at: string;
-  payout_deadline_at: string;
-  auf_amount_cents: number;
-  auf_percentage: number;
-  // Fee vault addresses for AUF payment
-  fee_vault_addresses: {
-    evm: string;
-    solana: string;
-  };
-  supported_chains: string[];
-  supported_tokens?: Record<string, string[]>;
-  // Payout mode info
-  payout_mode?: PayoutMode;
-  ledger_mode_info?: string;
-}
-
-export interface UnlockAddressRequest {
-  auf_tx_hash: string;
-  chain: string;
-  token: string;
-}
-
-export interface UnlockAddressResponse {
-  mission_id: string;
-  status: MissionStatus;
-  wallet_address: string;
-  payout_amount_cents: number;
-  payout_deadline_at: string;
-  chain: string;
-  token?: string;
-  // Transaction verification info
-  auf_tx_verified?: boolean;
-  auf_explorer_url?: string;
-  // Payout mode info
-  payout_mode?: PayoutMode;
-  is_simulated?: boolean;
-  ledger_mode_info?: string;
-}
-
-export interface ConfirmPayoutRequest {
-  payout_tx_hash: string;
-  chain: string;
-  token: string;
-}
-
-export interface ConfirmPayoutResponse {
-  mission_id: string;
-  status: MissionStatus;
-  paid_complete_at: string;
-  total_amount_cents: number;
-  // Payout mode info
-  payout_mode?: PayoutMode;
-  is_simulated?: boolean;
 }
 
 // ============================================
@@ -556,7 +450,7 @@ export interface AdminCreateDealRequest {
   requirements: DealRequirements;
   reward_amount: number;
   max_participants: number;
-  payment_model?: PaymentModel;
+  payment_model?: string;
   auf_percentage?: number;
   starts_at?: string;
   expires_at?: string;

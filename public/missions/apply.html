@@ -142,6 +142,42 @@
     .back-link:hover {
       color: #fff;
     }
+    /* Deadline badges */
+    .deadline-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+    .deadline-badge.normal {
+      background: rgba(158, 158, 158, 0.15);
+      color: #BDBDBD;
+    }
+    .deadline-badge.warning {
+      background: rgba(255, 152, 0, 0.15);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      color: #FFB74D;
+    }
+    .deadline-badge.urgent {
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #E57373;
+      animation: deadlinePulse 2s infinite;
+    }
+    .deadline-badge.expired {
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      color: #E57373;
+    }
+    @keyframes deadlinePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
   </style>
   <script src="/js/analytics.js"></script>
 </head>
@@ -192,7 +228,7 @@
             <span class="apply-fee-label">Fixed fee upon approval</span>
             <span class="apply-fee-amount" id="mission-fee">$0.00</span>
           </div>
-          <div id="mission-deadline" style="display: none; text-align: center; font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 16px;"></div>
+          <div id="mission-deadline" style="display: none; text-align: center; margin-bottom: 16px;"></div>
 
           <div class="requirements-box">
             <h4>Requirements</h4>
@@ -318,7 +354,10 @@
         document.getElementById('mission-fee').textContent = HumanAds.formatCurrency(missionData.reward_amount);
         if (missionData.expires_at) {
           const deadlineEl = document.getElementById('mission-deadline');
-          deadlineEl.textContent = 'Deadline: ' + HumanAds.formatDate(missionData.expires_at);
+          const urgency = HumanAds.getDeadlineUrgency(missionData.expires_at);
+          const deadlineText = HumanAds.formatDeadline(missionData.expires_at);
+          const icon = urgency === 'urgent' ? '⏰' : urgency === 'warning' ? '⏳' : urgency === 'expired' ? '✕' : '🕐';
+          deadlineEl.innerHTML = `<span class="deadline-badge ${urgency}">${icon} ${deadlineText}</span> <span style="font-size: 0.75rem; color: var(--color-text-muted); margin-left: 6px;">${HumanAds.formatDate(missionData.expires_at)}</span>`;
           deadlineEl.style.display = 'block';
         }
         if (missionData.advertiser_x_handle) {
@@ -327,6 +366,17 @@
             backedByEl.innerHTML = `backed by <a href="https://x.com/${missionData.advertiser_x_handle}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${missionData.advertiser_x_handle}</a>`;
             backedByEl.style.display = 'block';
           }
+        }
+        // Add reputation badge for the advertiser
+        if (missionData.agent_id) {
+          const backedByEl = document.getElementById('mission-backed-by');
+          if (backedByEl) {
+            const repSpan = document.createElement('span');
+            repSpan.setAttribute('data-rep-type', 'agent');
+            repSpan.setAttribute('data-rep-id', missionData.agent_id);
+            backedByEl.appendChild(repSpan);
+          }
+          HumanAds.loadReputationBadges();
         }
 
         // Build requirements
