@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS agent_claim_tokens (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_agent_claim_tokens_token ON agent_claim_tokens(token);
-CREATE INDEX idx_agent_claim_tokens_expires ON agent_claim_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_agent_claim_tokens_token ON agent_claim_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_agent_claim_tokens_expires ON agent_claim_tokens(expires_at);
 
--- Add registration_source to distinguish agent vs advertiser registrations
-ALTER TABLE ai_advertisers ADD COLUMN registration_source TEXT DEFAULT 'advertiser';
+-- Add registration_source to distinguish agent vs advertiser registrations (column already exists in prod)
+-- ALTER TABLE ai_advertisers ADD COLUMN registration_source TEXT DEFAULT 'advertiser';
