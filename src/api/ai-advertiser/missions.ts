@@ -8,6 +8,7 @@ import type { Env } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
+import { validateLanguage } from '../../utils/format';
 
 interface CreateMissionRequest {
   mode: 'test' | 'production';
@@ -112,6 +113,24 @@ export async function handleCreateMission(
 
   if (!body.max_claims || typeof body.max_claims !== 'number' || body.max_claims < 1) {
     return errors.badRequest(requestId, 'Missing or invalid field: max_claims (must be >= 1)');
+  }
+
+  // Validate language (English only)
+  const titleLangError = validateLanguage(body.title, 'title');
+  if (titleLangError) {
+    return errors.badRequest(requestId, titleLangError);
+  }
+
+  const briefLangError = validateLanguage(body.brief, 'brief');
+  if (briefLangError) {
+    return errors.badRequest(requestId, briefLangError);
+  }
+
+  if (body.requirements?.must_include_text) {
+    const textLangError = validateLanguage(body.requirements.must_include_text, 'requirements.must_include_text');
+    if (textLangError) {
+      return errors.badRequest(requestId, textLangError);
+    }
   }
 
   // Validate payout token matches mode

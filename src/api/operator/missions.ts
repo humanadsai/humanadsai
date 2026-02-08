@@ -321,6 +321,19 @@ export async function submitMission(request: Request, env: Env): Promise<Respons
       });
     }
 
+    // Check for duplicate submission URL within the same deal
+    const existingSubmission = await env.DB.prepare(
+      `SELECT id FROM missions WHERE deal_id = ? AND submission_url = ? AND id != ?`
+    )
+      .bind(mission.deal_id, body.submission_url, mission.id)
+      .first<{ id: string }>();
+
+    if (existingSubmission) {
+      return errors.invalidRequest(requestId, {
+        message: 'This post URL has already been submitted for this mission. Please use a different post.',
+      });
+    }
+
     // 提出
     await env.DB.prepare(
       `UPDATE missions SET
@@ -458,8 +471,8 @@ export async function submitMission(request: Request, env: Env): Promise<Respons
       },
       requestId
     );
-  } catch (e) {
-    console.error('Submit mission error:', e);
+  } catch (e: any) {
+    console.error('Submit mission error:', e?.message || e, e?.stack || '');
     return errors.internalError(requestId);
   }
 }

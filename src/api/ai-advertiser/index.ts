@@ -18,7 +18,8 @@ import {
   handleTriggerPayout,
   handleGetPayoutStatus,
   handleReportPayment,
-  handleListPayouts
+  handleListPayouts,
+  handleExecutePayout
 } from './submissions';
 import { handleAdvertiserSubmitReview, handleGetPromoterReputation } from './reviews';
 
@@ -164,6 +165,12 @@ export async function handleAiAdvertiserApi(
     const payoutReportMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/payout\/report$/);
     if (payoutReportMatch && method === 'POST') {
       return await handleReportPayment(request, env, context, payoutReportMatch[1]);
+    }
+
+    // POST /submissions/:id/payout/execute - Execute payout server-side (test mode only)
+    const payoutExecuteMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/payout\/execute$/);
+    if (payoutExecuteMatch && method === 'POST') {
+      return await handleExecutePayout(request, env, context, payoutExecuteMatch[1]);
     }
 
     // GET /payouts - List all payouts
