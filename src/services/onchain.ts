@@ -482,26 +482,19 @@ export async function escrowApproveAndDeposit(
 }
 
 /**
- * Deposit into escrow on behalf of an advertiser using a stored EIP-2612 permit.
- * Treasury (ARBITER) calls depositOnBehalfWithPermit — advertiser's hUSD decreases.
- *
- * @param advertiserAddress - The real advertiser's wallet address
- * @param deadline - Permit deadline (unix timestamp)
- * @param v - Permit signature v
- * @param r - Permit signature r (hex)
- * @param s - Permit signature s (hex)
+ * Deposit into escrow on behalf of an advertiser.
+ * Requires the advertiser to have already approved the escrow contract (via approve tx).
+ * Treasury (ARBITER) calls depositOnBehalfWithPermit with dummy permit values —
+ * the permit silently fails (try/catch), and safeTransferFrom succeeds via existing allowance.
+ * Advertiser's hUSD decreases on-chain.
  */
-export async function escrowDepositOnBehalfWithPermit(
+export async function escrowDepositOnBehalf(
   env: Env,
   dealId: string,
   advertiserAddress: string,
   totalAmountCents: number,
   maxParticipants: number,
-  expiresAtISO: string,
-  deadline: number,
-  v: number,
-  r: string,
-  s: string
+  expiresAtISO: string
 ): Promise<EscrowResult> {
   if (!env.TREASURY_PRIVATE_KEY) {
     return { success: false, error: 'Treasury private key not configured' };
@@ -509,7 +502,7 @@ export async function escrowDepositOnBehalfWithPermit(
 
   // Ledger mode — simulate
   if (env.PAYOUT_MODE !== 'onchain') {
-    const simulatedHash = 'SIMULATED_PERMIT_DEPOSIT_' + crypto.randomUUID().replace(/-/g, '');
+    const simulatedHash = 'SIMULATED_DEPOSIT_' + crypto.randomUUID().replace(/-/g, '');
     return { success: true, depositTxHash: simulatedHash };
   }
 
@@ -522,6 +515,10 @@ export async function escrowDepositOnBehalfWithPermit(
     const expiresAtUnix = BigInt(Math.floor(new Date(expiresAtISO).getTime() / 1000));
     const normalizedAdvertiser = normalizeAddress(advertiserAddress) as Hex;
 
+    // Dummy permit values — permit() will silently fail via try/catch in the contract,
+    // then safeTransferFrom succeeds because the advertiser already approved the escrow.
+    const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+
     const depositTxHash = await client.writeContract({
       address: cfg.escrowContract as Hex,
       abi: ESCROW_ABI,
@@ -532,10 +529,10 @@ export async function escrowDepositOnBehalfWithPermit(
         totalAmountBaseUnits as unknown as bigint,
         maxParticipants,
         expiresAtUnix as unknown as bigint,
-        BigInt(deadline),
-        v,
-        r as Hex,
-        s as Hex,
+        BigInt(0),  // deadline (dummy)
+        0,          // v (dummy)
+        ZERO_BYTES32, // r (dummy)
+        ZERO_BYTES32, // s (dummy)
       ],
     });
 
@@ -546,10 +543,10 @@ export async function escrowDepositOnBehalfWithPermit(
   } catch (e) {
     const rawError = e instanceof Error ? e.message : 'Unknown error';
     const error = redactSecrets(rawError);
-    console.error('escrowDepositOnBehalfWithPermit error:', error);
+    console.error('escrowDepositOnBehalf error:', error);
     return {
       success: false,
-      error: 'Escrow permit deposit failed (server-side). Detail: ' + error,
+      error: 'Escrow deposit failed (server-side). Detail: ' + error,
     };
   }
 }
