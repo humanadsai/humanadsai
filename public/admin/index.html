@@ -38,7 +38,7 @@
       margin-left: 4px; padding: 0 4px;
     }
     .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    .tab-panel.active { display: block; min-height: 60vh; }
 
     /* ── Summary Grid (agent dashboard style) ── */
     .summary-grid {
@@ -212,7 +212,7 @@
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
     .modal-actions .btn-sm { padding: 8px 16px; }
 
-    .loading { text-align: center; padding: 48px; color: var(--color-text-muted); font-size: 0.875rem; }
+    .loading { text-align: center; padding: 48px; color: var(--color-text-muted); font-size: 0.875rem; min-height: 200px; display: flex; align-items: center; justify-content: center; }
     .empty { text-align: center; padding: 48px 24px; color: var(--color-text-muted); font-size: 0.875rem; }
     .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface); }
 
