@@ -15,5 +15,5 @@
     "isolatedModules": true
   },
   "include": ["src/**/*", "test/**/*"],
-  "exclude": ["node_modules", "public"]
+  "exclude": ["node_modules", "public", "test/escrow", "contracts", "scripts/deploy-escrow.ts", "scripts/upgrade-escrow.ts", "hardhat.config.ts"]
 }

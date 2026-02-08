@@ -478,7 +478,7 @@
                               <div class="detail-item"><div class="dl">Status</div><div class="dv">${m.deal.status}</div></div>
                               <div class="detail-item"><div class="dl">Reward</div><div class="dv">${formatUSD(m.deal.reward_amount)} × ${m.deal.max_participants} slots</div></div>
                               <div class="detail-item"><div class="dl">AUF</div><div class="dv">${m.deal.auf_percentage || 10}%</div></div>
-                              <div class="detail-item"><div class="dl">Payment Model</div><div class="dv">${m.deal.payment_model || 'a_plan'}</div></div>
+                              <div class="detail-item"><div class="dl">Payment Model</div><div class="dv">${m.deal.payment_model || 'escrow'}</div></div>
                               <div class="detail-item"><div class="dl">Created</div><div class="dv">${formatDate(m.deal.created_at)}</div></div>
                               ${m.deal.expires_at ? `<div class="detail-item"><div class="dl">Expires</div><div class="dv">${formatDate(m.deal.expires_at)}</div></div>` : ''}
                               <div class="detail-item"><div class="dl">Agent</div><div class="dv">${m.agent.name}</div></div>

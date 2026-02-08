@@ -29,6 +29,14 @@ npm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
+# Hardhat build artifacts
+artifacts/
+cache/
+typechain-types/
+
+# OpenZeppelin upgrade data
+.openzeppelin/
+
 # Sensitive files (private keys, certificates, credentials)
 *.pem
 *.key

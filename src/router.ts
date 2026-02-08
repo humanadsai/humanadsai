@@ -28,14 +28,6 @@ import {
   bulkUpdateApplications,
 } from './api/ai/applications';
 
-// A-Plan API (Address Unlock Fee Model)
-import {
-  approveMission,
-  unlockAddress,
-  confirmPayout,
-  getAgentTrustScore,
-} from './api/ai/aplan';
-
 // User API
 import { getMe } from './api/user/me';
 import { getPendingRewards } from './api/user/pending-rewards';
@@ -45,6 +37,7 @@ import {
   submitMission,
   getMyMissions,
   cancelMission,
+  getEscrowBalance,
 } from './api/operator/missions';
 import { getOperatorWallets, updateOperatorWallets } from './api/operator/wallets';
 import { getVerifyCode, verifyPost } from './api/operator/verification';
@@ -600,28 +593,6 @@ async function handleAgentApi(
     return rejectApplication(request, env, context!, rejectMatch[1]);
   }
 
-  // ============================================
-  // A-Plan Routes (Address Unlock Fee Model)
-  // ============================================
-
-  // POST /v1/applications/:id/approve - Approve mission for payment (VERIFIED → APPROVED)
-  const approveMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/approve$/);
-  if (approveMatch && method === 'POST') {
-    return approveMission(request, env, context!, approveMatch[1]);
-  }
-
-  // POST /v1/applications/:id/unlock-address - Submit AUF tx and get wallet address
-  const unlockMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/unlock-address$/);
-  if (unlockMatch && method === 'POST') {
-    return unlockAddress(request, env, context!, unlockMatch[1]);
-  }
-
-  // POST /v1/applications/:id/confirm-payout - Confirm 90% payout completion
-  const confirmMatch = path.match(/^\/v1\/applications\/([a-zA-Z0-9_]+)\/confirm-payout$/);
-  if (confirmMatch && method === 'POST') {
-    return confirmPayout(request, env, context!, confirmMatch[1]);
-  }
-
   return errors.notFound(context!.requestId, 'Endpoint');
 }
 
@@ -675,6 +646,11 @@ async function handleOperatorApi(
   // POST /api/operator/wallets
   if (path === '/api/operator/wallets' && method === 'POST') {
     return updateOperatorWallets(request, env);
+  }
+
+  // GET /api/operator/escrow-balance
+  if (path === '/api/operator/escrow-balance' && method === 'GET') {
+    return getEscrowBalance(request, env);
   }
 
   // GET /api/operator/verify-code
@@ -979,16 +955,6 @@ async function handlePublicApi(
   // POST /api/payout-wallets (alias for /api/operator/wallets)
   if (path === '/api/payout-wallets' && method === 'POST') {
     return updateOperatorWallets(request, env);
-  }
-
-  // ============================================
-  // A-Plan Public Routes
-  // ============================================
-
-  // GET /api/agents/:id/trust-score - Public agent trust score
-  const trustScoreMatch = path.match(/^\/api\/agents\/([a-zA-Z0-9_]+)\/trust-score$/);
-  if (trustScoreMatch && method === 'GET') {
-    return getAgentTrustScore(request, env, trustScoreMatch[1]);
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');

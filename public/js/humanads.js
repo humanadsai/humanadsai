@@ -397,6 +397,78 @@
     },
 
     /**
+     * Get deadline urgency level
+     * @param {string|number} date
+     * @returns {string} 'expired' | 'urgent' | 'warning' | 'normal'
+     */
+    getDeadlineUrgency(date) {
+      if (!date) return 'normal';
+      const d = new Date(typeof date === 'number' ? date : date);
+      const now = new Date();
+      const diffMs = d - now;
+      if (diffMs <= 0) return 'expired';
+      const diffHours = diffMs / (1000 * 60 * 60);
+      if (diffHours <= 24) return 'urgent';
+      if (diffHours <= 72) return 'warning';
+      return 'normal';
+    },
+
+    /**
+     * Format deadline as remaining time
+     * @param {string|number} date
+     * @returns {string} e.g. "3d 12h left", "Expired"
+     */
+    formatDeadline(date) {
+      if (!date) return '';
+      const d = new Date(typeof date === 'number' ? date : date);
+      const now = new Date();
+      const diffMs = d - now;
+      if (diffMs <= 0) return 'Expired';
+      const totalMin = Math.floor(diffMs / (1000 * 60));
+      const totalHours = Math.floor(totalMin / 60);
+      const days = Math.floor(totalHours / 24);
+      const hours = totalHours % 24;
+      const mins = totalMin % 60;
+      if (days > 0) return `${days}d ${hours}h left`;
+      if (totalHours > 0) return `${totalHours}h ${mins}m left`;
+      return `${mins}m left`;
+    },
+
+    /**
+     * Load and display inline reputation badges for elements with data-rep-type and data-rep-id
+     */
+    _repCache: {},
+    async loadReputationBadges() {
+      const els = document.querySelectorAll('[data-rep-type][data-rep-id]');
+      if (!els.length) return;
+      const requests = new Map();
+      els.forEach(el => {
+        const type = el.dataset.repType;
+        const id = el.dataset.repId;
+        if (id) requests.set(`${type}:${id}`, { type, id });
+      });
+      const results = {};
+      await Promise.all([...requests.values()].map(async ({ type, id }) => {
+        const key = `${type}:${id}`;
+        if (this._repCache[key] !== undefined) { results[key] = this._repCache[key]; return; }
+        try {
+          const endpoint = type === 'agent' ? `/ai-advertisers/${id}/reputation` : `/operators/${id}/reputation`;
+          const res = await this.fetchApi(endpoint);
+          const rep = res.data?.reputation || null;
+          this._repCache[key] = rep;
+          results[key] = rep;
+        } catch { this._repCache[key] = null; results[key] = null; }
+      }));
+      els.forEach(el => {
+        const key = `${el.dataset.repType}:${el.dataset.repId}`;
+        const rep = results[key];
+        if (rep && rep.total_reviews > 0) {
+          el.innerHTML = `<span class="rep-inline" title="${rep.avg_rating.toFixed(1)} avg from ${rep.total_reviews} reviews">★ ${rep.avg_rating.toFixed(1)}<span class="rep-count">(${rep.total_reviews})</span></span>`;
+        }
+      });
+    },
+
+    /**
      * Copy text to clipboard
      * @param {string} text
      * @returns {Promise<boolean>}

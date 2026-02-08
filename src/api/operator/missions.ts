@@ -1,8 +1,8 @@
 import type { Env, Operator, Deal, Mission, AcceptMissionRequest, SubmitMissionRequest } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { authenticateOperator } from './register';
-import { releaseToOperator } from '../../services/ledger';
 import { isSimulatedTxHash } from '../../config/payout';
+import { escrowGetBalance, getOnchainConfig } from '../../services/onchain';
 
 /**
  * 利用可能なミッション一覧取得
@@ -107,6 +107,7 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
         reward_amount: deal.reward_amount,
         remaining_slots: slotsTotal - slotsSelected,
         applications_count: (deal.applications_count as number) || 0,
+        agent_id: deal.agent_id,
         agent_name: deal.agent_name,
         agent_description: (deal.agent_description as string) || null,
         is_ai_advertiser: isAiAdvertiser,
@@ -347,127 +348,12 @@ export async function submitMission(request: Request, env: Env): Promise<Respons
       .bind(body.submission_url, body.submission_content || null, mission.id)
       .run();
 
-    // A-Plan missions: skip auto-verification, let AI advertiser review
-    if (mission.payment_model === 'a_plan') {
-      return success(
-        {
-          mission_id: mission.id,
-          status: 'submitted',
-          message: 'Post submitted! The AI advertiser will review your submission.',
-        },
-        requestId
-      );
-    }
-
-    // Non A-Plan: Mechanical verification + auto-payment
-    const verificationResult = await verifySubmission(
-      body.submission_url,
-      JSON.parse(mission.requirements),
-      body.submission_content || undefined
-    );
-
-    if (verificationResult.success) {
-      // 検証成功 - 支払い処理
-      try {
-        const paymentResult = await releaseToOperator(
-          env.DB,
-          mission.id,
-          operator.id,
-          mission.reward_amount,
-          `mission-payment-${mission.id}`
-        );
-
-        if (paymentResult.success) {
-          await env.DB.batch([
-            // ミッション更新
-            env.DB.prepare(
-              `UPDATE missions SET
-                status = 'paid',
-                verified_at = datetime('now'),
-                verification_result = ?,
-                paid_at = datetime('now'),
-                updated_at = datetime('now')
-               WHERE id = ?`
-            ).bind(JSON.stringify(verificationResult), mission.id),
-            // Operator統計更新
-            env.DB.prepare(
-              `UPDATE operators SET
-                total_missions_completed = total_missions_completed + 1,
-                total_earnings = total_earnings + ?,
-                updated_at = datetime('now')
-               WHERE id = ?`
-            ).bind(mission.reward_amount, operator.id),
-          ]);
-
-          return success(
-            {
-              mission_id: mission.id,
-              status: 'paid',
-              verification: verificationResult,
-              reward_amount: mission.reward_amount,
-              message: 'Mission verified and paid!',
-            },
-            requestId
-          );
-        }
-
-        // 支払い失敗（releaseToOperator が success: false を返した場合）
-        console.error('Payment failed for mission:', mission.id, paymentResult.error);
-      } catch (paymentError) {
-        // 支払い処理中のエラー（テーブル未存在など）
-        console.error('Payment error for mission:', mission.id, paymentError);
-      }
-
-      // 検証成功だが支払い失敗 → verified 状態で保存
-      await env.DB.prepare(
-        `UPDATE missions SET
-          status = 'verified',
-          verified_at = datetime('now'),
-          verification_result = ?,
-          updated_at = datetime('now')
-         WHERE id = ?`
-      )
-        .bind(JSON.stringify(verificationResult), mission.id)
-        .run();
-
-      // Operator統計更新（完了カウントのみ、earnings は支払い時に加算）
-      await env.DB.prepare(
-        `UPDATE operators SET
-          total_missions_completed = total_missions_completed + 1,
-          updated_at = datetime('now')
-         WHERE id = ?`
-      )
-        .bind(operator.id)
-        .run();
-
-      return success(
-        {
-          mission_id: mission.id,
-          status: 'submitted',
-          verification: verificationResult,
-          message: 'Post verified! Awaiting payment processing.',
-        },
-        requestId
-      );
-    }
-
-    // 検証失敗
-    await env.DB.prepare(
-      `UPDATE missions SET
-        status = 'rejected',
-        verification_result = ?,
-        updated_at = datetime('now')
-       WHERE id = ?`
-    )
-      .bind(JSON.stringify(verificationResult), mission.id)
-      .run();
-
+    // All missions: AI advertiser review flow — stop at submitted
     return success(
       {
         mission_id: mission.id,
-        status: 'rejected',
-        verification: verificationResult,
-        message: 'Verification failed. Please check the requirements and try again.',
+        status: 'submitted',
+        message: 'Post submitted! The AI advertiser will review your submission.',
       },
       requestId
     );
@@ -501,10 +387,11 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
 
     let query = `
       SELECT m.*, d.title as deal_title, d.requirements, d.reward_amount,
-             m.payout_tx_hash,
+             d.agent_id, m.payout_tx_hash, d.expires_at as deal_expires_at,
              ag.name as agent_name,
              json_extract(d.metadata, '$.created_via') as created_via,
-             ai_adv.x_handle as advertiser_x_handle
+             ai_adv.x_handle as advertiser_x_handle,
+             (SELECT tx_hash FROM payments WHERE mission_id = m.id AND payment_type = 'payout' AND status = 'confirmed' LIMIT 1) as confirmed_payout_tx
       FROM missions m
       JOIN deals d ON m.deal_id = d.id
       JOIN agents ag ON d.agent_id = ag.id
@@ -551,6 +438,7 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
             verified_at: m.verified_at,
             paid_at: m.paid_at,
             created_at: m.created_at,
+            agent_id: m.agent_id,
             agent_name: m.agent_name,
             is_ai_advertiser: isAiAdvertiser,
             advertiser_x_handle: isAiAdvertiser ? (m.advertiser_x_handle as string) || null : null,
@@ -568,6 +456,55 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
     );
   } catch (e) {
     console.error('Get my missions error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
+ * Get operator's escrow balance
+ *
+ * GET /api/operator/escrow-balance
+ */
+export async function getEscrowBalance(request: Request, env: Env): Promise<Response> {
+  const requestId = generateRequestId();
+
+  try {
+    const authResult = await authenticateOperator(request, env);
+    if (!authResult.success) {
+      return authResult.error!;
+    }
+
+    const operator = authResult.operator!;
+
+    // Get operator's EVM wallet address
+    const walletRow = await env.DB.prepare(
+      'SELECT evm_wallet_address FROM operators WHERE id = ?'
+    ).bind(operator.id).first<{ evm_wallet_address: string | null }>();
+
+    const evmAddress = walletRow?.evm_wallet_address;
+    if (!evmAddress) {
+      return success({
+        balance_cents: 0,
+        balance_formatted: '0.00',
+        escrow_contract: getOnchainConfig(env).escrowContract,
+        chain: 'sepolia',
+        message: 'No EVM wallet address configured. Set your wallet in account settings.',
+      }, requestId);
+    }
+
+    const balanceCents = await escrowGetBalance(env, evmAddress);
+    const config = getOnchainConfig(env);
+
+    return success({
+      balance_cents: balanceCents,
+      balance_formatted: (balanceCents / 100).toFixed(2),
+      escrow_contract: config.escrowContract,
+      chain: 'sepolia',
+      wallet_address: evmAddress,
+      explorer_url: `${config.explorerUrl}/address/${config.escrowContract}`,
+    }, requestId);
+  } catch (e) {
+    console.error('Get escrow balance error:', e);
     return errors.internalError(requestId);
   }
 }

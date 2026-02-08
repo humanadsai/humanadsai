@@ -253,6 +253,56 @@
       opacity: 0.85;
     }
 
+    /* Deadline badges */
+    .deadline-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+    .deadline-badge.normal {
+      background: rgba(158, 158, 158, 0.15);
+      color: #BDBDBD;
+    }
+    .deadline-badge.warning {
+      background: rgba(255, 152, 0, 0.15);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      color: #FFB74D;
+    }
+    .deadline-badge.urgent {
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #E57373;
+      animation: deadlinePulse 2s infinite;
+    }
+    .deadline-badge.expired {
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      color: #E57373;
+    }
+    @keyframes deadlinePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .deadline-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .deadline-info-label {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+
     .alert {
       padding: 12px 16px;
       border-radius: 8px;
@@ -381,6 +431,10 @@
               <span class="fee-label">Fixed fee (paid after approval)</span>
               <span class="fee-amount" id="fee-amount">$0.00</span>
             </div>
+            <div class="deadline-info" id="deadline-info" style="display: none;">
+              <span class="deadline-info-label">Submission deadline</span>
+              <span id="deadline-badge"></span>
+            </div>
           </div>
 
           <!-- Create Post Button -->
@@ -415,6 +469,13 @@
             <div class="fee-display" style="background: rgba(76, 175, 80, 0.15);">
               <span class="fee-label">You earned</span>
               <span class="fee-amount" id="earned-amount">$0.00</span>
+            </div>
+            <div id="tx-info" style="display: none; margin-top: 12px; padding: 10px; background: rgba(76, 175, 80, 0.08); border-radius: 8px;">
+              <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 4px;">Transaction Hash</div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <code id="tx-hash" style="font-size: 0.75rem; word-break: break-all; color: var(--color-text);"></code>
+                <a id="tx-etherscan-link" href="#" target="_blank" rel="noopener" style="font-size: 0.75rem; color: var(--color-primary); white-space: nowrap;">View on Etherscan →</a>
+              </div>
             </div>
           </div>
         </div>
@@ -515,8 +576,8 @@
       // Map current status to step index
       const statusMap = {
         'accepted': 1, 'submitted': 3,
-        'verified': 3, 'approved': 3, 'address_unlocked': 3, 'paid_partial': 3,
-        'paid': 3, 'paid_complete': 3,
+        'verified': 3, 'approved': 3, 'paid_partial': 3,
+        'paid': 4, 'paid_complete': 4,
         'rejected': -1
       };
       const currentIndex = statusMap[status] ?? 0;
@@ -565,7 +626,6 @@
         'submitted': { title: 'Submitted - Under Review', desc: 'Your post is being verified', class: 'submitted' },
         'verified': { title: 'Verified - Payment Processing', desc: 'Your submission has been approved by the AI advertiser', class: 'paid' },
         'approved': { title: 'Approved - Payment Processing', desc: 'Your post has been approved. Payout is being processed.', class: 'paid' },
-        'address_unlocked': { title: 'Approved - Awaiting Payout', desc: 'Your wallet address has been shared. Payout is in progress.', class: 'paid' },
         'paid_partial': { title: 'Payout In Progress', desc: 'Partial payment has been sent. Awaiting completion.', class: 'paid' },
         'paid_complete': { title: 'Completed', desc: 'Payment has been sent', class: 'paid' },
         'paid': { title: 'Completed', desc: 'Payment has been sent', class: 'paid' },
@@ -577,6 +637,18 @@
       statusTitle.textContent = info.title;
       statusDesc.textContent = info.desc;
 
+      // Show deadline info
+      if (mission.deal_expires_at || mission.expires_at) {
+        const expiresAt = mission.deal_expires_at || mission.expires_at;
+        const urgency = HumanAds.getDeadlineUrgency(expiresAt);
+        const deadlineText = HumanAds.formatDeadline(expiresAt);
+        const icon = urgency === 'urgent' ? '⏰' : urgency === 'warning' ? '⏳' : urgency === 'expired' ? '✕' : '🕐';
+        const deadlineInfo = document.getElementById('deadline-info');
+        const deadlineBadge = document.getElementById('deadline-badge');
+        deadlineBadge.innerHTML = `<span class="deadline-badge ${urgency}">${icon} ${deadlineText}</span>`;
+        deadlineInfo.style.display = 'flex';
+      }
+
       // Show timestamps based on status
       const agentEl = document.querySelector('#agent-name').parentNode;
       const timestampsHtml = [];
@@ -585,14 +657,25 @@
       if (mission.paid_at) timestampsHtml.push(`Paid: ${HumanAds.formatDate(mission.paid_at)}`);
       if (timestampsHtml.length > 0) {
         const tsEl = document.createElement('p');
-        tsEl.style.cssText = 'color: var(--color-text-muted); font-size: 0.8rem; margin-top: 8px;';
+        tsEl.style.cssText = 'color: var(--color-text-muted); font-size: 0.875rem; margin-top: 8px;';
         tsEl.textContent = timestampsHtml.join(' • ');
         agentEl.appendChild(tsEl);
       }
 
       // Update title and agent
       document.getElementById('mission-title').textContent = mission.deal_title;
-      document.getElementById('agent-name').textContent = mission.agent_name || 'AI Agent';
+      const agentNameEl = document.getElementById('agent-name');
+      const agentDisplayName = escapeHtml(mission.agent_name || 'AI Agent');
+      if (mission.agent_id) {
+        agentNameEl.innerHTML = `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${agentDisplayName}</a>`;
+        const repSpan = document.createElement('span');
+        repSpan.dataset.repType = 'agent';
+        repSpan.dataset.repId = mission.agent_id;
+        agentNameEl.appendChild(repSpan);
+        HumanAds.loadReputationBadges();
+      } else {
+        agentNameEl.textContent = mission.agent_name || 'AI Agent';
+      }
       if (mission.advertiser_x_handle) {
         const backedEl = document.createElement('span');
         backedEl.style.cssText = 'font-size: 0.8rem; color: var(--color-text-muted); margin-left: 8px;';
@@ -634,7 +717,7 @@
           document.getElementById('submission-url').href = mission.submission_url;
           document.getElementById('submission-url').textContent = mission.submission_url;
         }
-      } else if (status === 'verified' || status === 'approved' || status === 'address_unlocked' || status === 'paid_partial') {
+      } else if (status === 'verified' || status === 'approved' || status === 'paid_partial') {
         paidSection.style.display = 'block';
         if (mission.submission_url) {
           submittedSection.style.display = 'block';
@@ -647,6 +730,14 @@
           submittedSection.style.display = 'block';
           document.getElementById('submission-url').href = mission.submission_url;
           document.getElementById('submission-url').textContent = mission.submission_url;
+        }
+        // Show TX hash and Etherscan link
+        if (mission.confirmed_payout_tx && !mission.confirmed_payout_tx.startsWith('SIMULATED_') && !mission.confirmed_payout_tx.startsWith('MANUAL_')) {
+          const txHash = mission.confirmed_payout_tx;
+          const etherscanUrl = 'https://sepolia.etherscan.io/tx/' + txHash;
+          document.getElementById('tx-hash').textContent = txHash;
+          document.getElementById('tx-etherscan-link').href = etherscanUrl;
+          document.getElementById('tx-info').style.display = 'block';
         }
       } else if (status === 'rejected') {
         rejectedSection.style.display = 'block';

@@ -543,7 +543,7 @@
           <span class="status-badge ${statusClass}">${app.status}</span>
         </div>
         ${showProgress ? renderProgressBar(app.status) : ''}
-        <p class="mission-item-agent" style="margin-bottom: 8px;">From: ${escapeHtml(deal.agent_name || 'Unknown')}${deal.advertiser_x_handle ? ` <span style="font-size: 0.75rem; color: var(--color-text-muted);">backed by <a href="https://x.com/${escapeHtml(deal.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(deal.advertiser_x_handle)}</a></span>` : ''}${deal.agent_id ? `<span data-rep-type="agent" data-rep-id="${deal.agent_id}"></span>` : ''}</p>
+        <p class="mission-item-agent" style="margin-bottom: 8px;">From: ${deal.agent_id ? `<a href="/advertiser/${encodeURIComponent(deal.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${escapeHtml(deal.agent_name || 'Unknown')}</a>` : escapeHtml(deal.agent_name || 'Unknown')}${deal.advertiser_x_handle ? ` <span style="font-size: 0.75rem; color: var(--color-text-muted);">backed by <a href="https://x.com/${escapeHtml(deal.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(deal.advertiser_x_handle)}</a></span>` : ''}${deal.agent_id ? `<span data-rep-type="agent" data-rep-id="${deal.agent_id}"></span>` : ''}</p>
         <p class="mission-item-description" style="margin-bottom: 8px;">
           Fixed fee: <strong>${HumanAds.formatCurrency(deal.reward_amount || 0)}</strong>
         </p>
@@ -698,7 +698,7 @@
           <span class="status-badge ${statusClass}">${displayStatus}</span>
         </div>
         ${showProgress ? renderProgressBar(mission.status) : ''}
-        ${mission.agent_name ? `<p class="mission-item-agent" style="margin-bottom: 4px; font-size: 0.8rem; color: var(--color-text-muted);">From: ${escapeHtml(mission.agent_name)}${mission.advertiser_x_handle ? ` <span>backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a></span>` : ''}${mission.agent_id ? `<span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span>` : ''}</p>` : ''}
+        ${mission.agent_name ? `<p class="mission-item-agent" style="margin-bottom: 4px; font-size: 0.8rem; color: var(--color-text-muted);">From: ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${escapeHtml(mission.agent_name)}</a>` : escapeHtml(mission.agent_name)}${mission.advertiser_x_handle ? ` <span>backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a></span>` : ''}${mission.agent_id ? `<span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span>` : ''}</p>` : ''}
         <p class="mission-item-description" style="margin-bottom: 8px;">
           Fixed fee: <strong>${HumanAds.formatCurrency(mission.reward_amount)}</strong>
         </p>

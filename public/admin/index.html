@@ -72,8 +72,8 @@
     .filter-chip:hover, .filter-chip.active { border-color: var(--color-primary); color: var(--color-primary); }
     .filter-sep { width: 1px; height: 18px; background: var(--color-border); margin: 0 2px; }
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .data-table { width: 100%; border-collapse: collapse; }
-    .data-table th, .data-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.8rem; }
+    .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .data-table th, .data-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .data-table th { font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-text-muted); text-transform: uppercase; }
     .data-table tr:hover { background: rgba(255,255,255,0.02); }
     .data-table tr.row-deleted { opacity: 0.5; }
@@ -114,7 +114,8 @@
     .btn-sm.restore { border-color: #34c759; color: #34c759; }
     .btn-sm.restore:hover { background: rgba(52,199,89,0.1); }
     .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
-    .action-btns { display: flex; gap: 4px; flex-wrap: nowrap; }
+    .action-btns { display: flex; gap: 4px; flex-wrap: nowrap; overflow: visible; }
+    .data-table td:last-child { overflow: visible; white-space: nowrap; }
 
     /* ── Cards ── */
     .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
@@ -344,6 +345,13 @@
         '<div class="fee-section"><h3>Fee Recipients</h3>' +
           '<div class="fee-addr"><span class="chain">Solana</span><span class="addr">' + (fee_recipients?.solana || '-') + '</span></div>' +
           '<div class="fee-addr"><span class="chain">EVM</span><span class="addr">' + (fee_recipients?.evm || '-') + '</span></div>' +
+        '</div>' +
+
+        '<div class="fee-section" style="margin-top:24px;">' +
+          '<h3>API Health Check</h3>' +
+          '<p style="color:var(--muted);font-size:0.85rem;margin:4px 0 12px;">Run a full smoke test against all AI Advertiser API endpoints.</p>' +
+          '<button class="btn-sm primary" onclick="runApiSmokeTest(this)">Run API Smoke Test</button>' +
+          '<div id="smoke-test-results"></div>' +
         '</div>';
     } catch (e) {
       panel.innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(e.message) + '<br><button class="btn-sm" onclick="state.dashboardLoaded=false;loadDashboard()" style="margin-top:12px;">Retry</button></div>';
@@ -367,6 +375,42 @@
     finally { if (btn) { btn.disabled = false; btn.textContent = name.replace(/-/g, ' '); } }
   }
 
+  async function runApiSmokeTest(btn) {
+    btn.disabled = true; btn.textContent = 'Running...';
+    var resultsDiv = document.getElementById('smoke-test-results');
+    resultsDiv.innerHTML = '<div class="loading">Running smoke test across all API endpoints...</div>';
+    try {
+      var res = await HumanAds.fetchApi('/admin/scenarios/run', {
+        method: 'POST',
+        body: JSON.stringify({ scenario: 'api-smoke-test' }),
+      });
+      if (res.success && res.data.steps) {
+        var steps = res.data.steps;
+        var html = '<table class="data-table" style="margin-top:12px;"><thead><tr><th style="width:30%">Step</th><th style="width:15%">Result</th><th style="width:55%">Detail</th></tr></thead><tbody>';
+        steps.forEach(function(s) {
+          var icon = s.status === 'pass' ? '✅' : (s.status === 'warn' ? '⚠️' : '❌');
+          var rowStyle = s.status === 'fail' ? ' style="background:rgba(255,59,48,0.08);"' : (s.status === 'warn' ? ' style="background:rgba(255,149,0,0.08);"' : '');
+          html += '<tr' + rowStyle + '><td>' + esc(s.step) + '</td><td>' + icon + ' ' + s.status.toUpperCase() + '</td><td style="font-size:0.85rem;color:var(--muted);white-space:normal;word-break:break-word;">' + esc(s.detail || '') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        var passed = res.data.passed || 0;
+        var warned = res.data.warned || 0;
+        var total = res.data.total || steps.length;
+        var summary = passed + '/' + total + ' passed';
+        if (warned > 0) summary += ', ' + warned + ' warnings';
+        var color = passed === total ? '#34c759' : (passed + warned >= total ? '#ff9500' : '#ff3b30');
+        html += '<div style="margin-top:8px;font-weight:600;color:' + color + ';">' + summary + '</div>';
+        resultsDiv.innerHTML = html;
+      } else {
+        resultsDiv.innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(res.error?.message || res.data?.error || 'Unknown error') + '</div>';
+      }
+    } catch (e) {
+      resultsDiv.innerHTML = '<div class="empty" style="color:#ff3b30;">Error: ' + esc(e.message) + '</div>';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Run API Smoke Test';
+    }
+  }
+
   // ════════════════════════════════════════════════
   // AGENTS
   // ════════════════════════════════════════════════
@@ -387,7 +431,7 @@
           fc(status==='revoked', "loadAgents('revoked')", 'Revoked') +
         '</div>' +
         (agents.length === 0 ? '<div class="empty">No agents found</div>' :
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:22%">Name</th><th style="width:22%">Email</th><th style="width:12%">Status</th><th style="width:14%">Created</th><th style="width:20%">Actions</th></tr></thead><tbody>' +
         agents.map(function(a) {
           var actions = '';
           if (a.status === 'active' || a.status === 'approved') {
@@ -475,7 +519,7 @@
         '<span class="filter-chip' + (visibility==='deleted'?' active':'') + '" onclick="loadDeals(null,\'deleted\')" style="' + (visibility==='deleted'?'color:#ff3b30;border-color:#ff3b30;':'') + '">Deleted</span>' +
       '</div>' +
       (deals.length===0 ? '<div class="empty">No deals found</div>' :
-      '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Title</th><th>Agent</th><th>Status</th><th>Reward</th><th>Slots</th><th>Created</th><th>Actions</th></tr></thead><tbody>' +
+      '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:8%">ID</th><th style="width:22%">Title</th><th style="width:12%">Agent</th><th style="width:10%">Status</th><th style="width:10%">Reward</th><th style="width:8%">Slots</th><th style="width:12%">Created</th><th style="width:18%">Actions</th></tr></thead><tbody>' +
       deals.map(dealRow).join('') + '</tbody></table></div>');
   }
 
@@ -487,7 +531,7 @@
     if (v==='visible') btns = '<button class="btn-sm warning" onclick="dealVis(\'' + d.id + '\',\'hide\')">Hide</button><button class="btn-sm danger" onclick="openDeleteModal(\'' + d.id + '\',\'' + t + '\')">Delete</button>';
     else if (v==='hidden') btns = '<button class="btn-sm restore" onclick="dealVis(\'' + d.id + '\',\'unhide\')">Unhide</button><button class="btn-sm danger" onclick="openDeleteModal(\'' + d.id + '\',\'' + t + '\')">Delete</button>';
     else if (v==='deleted') btns = '<button class="btn-sm restore" onclick="dealVis(\'' + d.id + '\',\'restore\')">Restore</button>';
-    return '<tr class="' + (v==='deleted'?'row-deleted':'') + '"><td class="id-cell" title="' + d.id + '">' + d.id.substring(0,6) + '..</td><td>' + esc(d.title) + vb + '</td><td>' + esc(d.agent_name||d.agent_id?.substring(0,6)||'N/A') + '</td><td><span class="status-badge ' + d.status + '">' + d.status + '</span></td><td>' + HumanAds.formatCurrency(d.reward_amount) + '</td><td>' + (d.current_participants||0) + '/' + d.max_participants + '</td><td>' + HumanAds.formatDate(d.created_at) + '</td><td><div class="action-btns">' + btns + '</div></td></tr>';
+    return '<tr class="' + (v==='deleted'?'row-deleted':'') + '"><td class="id-cell" title="' + d.id + '">' + d.id.substring(0,6) + '..</td><td>' + esc(d.title) + vb + '</td><td>' + (d.agent_id ? '<a href="/advertiser/' + encodeURIComponent(d.agent_id) + '" style="color:var(--color-primary);text-decoration:none">🤖 ' + esc(d.agent_name||d.agent_id.substring(0,6)) + '</a>' : esc(d.agent_name||'N/A')) + '</td><td><span class="status-badge ' + d.status + '">' + d.status + '</span></td><td>' + HumanAds.formatCurrency(d.reward_amount) + '</td><td>' + (d.current_participants||0) + '/' + d.max_participants + '</td><td>' + HumanAds.formatDate(d.created_at) + '</td><td><div class="action-btns">' + btns + '</div></td></tr>';
   }
 
   async function dealVis(dealId, action, reason) {
@@ -531,7 +575,7 @@
           fc(filter.role==='admin', "loadOperators({role:'admin'})", 'Admins') +
         '</div>' +
         (ops.length===0 ? '<div class="empty">No operators found</div>' :
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th></th><th>Handle</th><th>Name</th><th>Status</th><th>Role</th><th>Followers</th><th>Actions</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:5%"></th><th style="width:18%">Handle</th><th style="width:20%">Name</th><th style="width:12%">Status</th><th style="width:10%">Role</th><th style="width:12%">Followers</th><th style="width:23%">Actions</th></tr></thead><tbody>' +
         ops.map(function(o) { return '<tr><td>' + (o.x_profile_image_url ? '<img src="' + o.x_profile_image_url + '" class="avatar">' : '<div class="avatar"></div>') + '</td><td>@' + esc(o.x_handle||'unknown') + '</td><td>' + esc(o.display_name||'-') + '</td><td><span class="status-badge ' + o.status + '">' + o.status + '</span></td><td><span class="status-badge ' + (o.role||'user') + '">' + (o.role||'user') + '</span></td><td>' + (o.x_followers_count||0).toLocaleString() + '</td><td><button class="btn-sm" onclick="toggleAdmin(\'' + o.id + '\',\'' + o.role + '\')">' + (o.role==='admin'?'Remove Admin':'Make Admin') + '</button></td></tr>'; }).join('') +
         '</tbody></table></div>');
     } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
@@ -584,7 +628,7 @@
           fc(status==='rejected', "loadMissions('rejected')", 'Rejected') + fc(status==='paid', "loadMissions('paid')", 'Paid') +
         '</div>' +
         (missions.length===0?'<div class="empty">No missions found</div>':
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Reward</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:22%">Deal</th><th style="width:15%">Operator</th><th style="width:12%">Status</th><th style="width:11%">Reward</th><th style="width:12%">Submitted</th><th style="width:18%">Actions</th></tr></thead><tbody>' +
         missions.map(function(m){ return '<tr><td class="id-cell">' + m.id.substring(0,8) + '..</td><td>' + esc(m.deal_title||m.deal_id?.substring(0,8)||'N/A') + '</td><td>@' + esc(m.x_handle||'unknown') + '</td><td><span class="status-badge ' + m.status + '">' + m.status + '</span></td><td>' + HumanAds.formatCurrency(m.reward_amount||0) + '</td><td>' + (m.submitted_at?HumanAds.formatDate(m.submitted_at):'-') + '</td><td class="action-btns">' + (m.status==='submitted'?'<button class="btn-sm success" onclick="reviewMission(\'' + m.id + '\',\'verify\')">Verify</button><button class="btn-sm danger" onclick="reviewMission(\'' + m.id + '\',\'reject\')">Reject</button>':'<span class="id-cell">' + m.status + '</span>') + '</td></tr>'; }).join('') +
         '</tbody></table></div>');
     } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
@@ -613,7 +657,7 @@
           fc(status==='rejected', "loadApplications('rejected')", 'Rejected') +
         '</div>' +
         (apps.length===0?'<div class="empty">No applications found</div>':
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Deal</th><th>Operator</th><th>Status</th><th>Applied</th><th>Actions</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:25%">Deal</th><th style="width:15%">Operator</th><th style="width:12%">Status</th><th style="width:14%">Applied</th><th style="width:24%">Actions</th></tr></thead><tbody>' +
         apps.map(function(a){ return '<tr><td class="id-cell">' + a.id.substring(0,8) + '..</td><td>' + esc(a.deal_title||a.deal_id?.substring(0,8)||'N/A') + '</td><td>@' + esc(a.x_handle||'unknown') + '</td><td><span class="status-badge ' + a.status + '">' + a.status + '</span></td><td>' + HumanAds.formatDate(a.created_at) + '</td><td class="action-btns">' + (a.status==='applied'?'<button class="btn-sm success" onclick="updateApp(\'' + a.id + '\',\'shortlisted\')">Shortlist</button><button class="btn-sm danger" onclick="updateApp(\'' + a.id + '\',\'rejected\')">Reject</button>':a.status==='shortlisted'?'<button class="btn-sm success" onclick="updateApp(\'' + a.id + '\',\'selected\')">Select</button><button class="btn-sm danger" onclick="updateApp(\'' + a.id + '\',\'rejected\')">Reject</button>':'<span class="id-cell">-</span>') + '</td></tr>'; }).join('') +
         '</tbody></table></div>');
     } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
@@ -696,14 +740,14 @@
 
   function renderPayments(payments) {
     if (payments.length === 0) return '<div class="empty">No payments found</div>';
-    return '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Mission</th><th>Type</th><th>Amount</th><th>Chain</th><th>Status</th><th>Tx</th><th>Created</th></tr></thead><tbody>' +
+    return '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:10%">Mission</th><th style="width:10%">Type</th><th style="width:12%">Amount</th><th style="width:10%">Chain</th><th style="width:12%">Status</th><th style="width:20%">Tx</th><th style="width:16%">Created</th></tr></thead><tbody>' +
       payments.map(function(p){ return '<tr><td class="id-cell">' + p.id.substring(0,8) + '..</td><td class="id-cell">' + (p.mission_id||'').substring(0,8) + '..</td><td>' + (p.payment_type||'-') + '</td><td>' + HumanAds.formatCurrency(p.amount_cents) + '</td><td>' + (p.chain||'-') + '</td><td><span class="status-badge ' + p.status + '">' + p.status + '</span></td><td>' + txLink(p.tx_hash) + '</td><td>' + HumanAds.formatDate(p.created_at) + '</td></tr>'; }).join('') +
       '</tbody></table></div>';
   }
 
   function renderTokenOps(ops) {
     if (ops.length === 0) return '<div class="empty">No token operations found</div>';
-    return '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Type</th><th>To</th><th>Amount</th><th>Status</th><th>Tx</th><th>Created</th></tr></thead><tbody>' +
+    return '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:10%">ID</th><th style="width:12%">Type</th><th style="width:16%">To</th><th style="width:12%">Amount</th><th style="width:12%">Status</th><th style="width:20%">Tx</th><th style="width:18%">Created</th></tr></thead><tbody>' +
       ops.map(function(o){ return '<tr><td class="id-cell">' + o.id.substring(0,8) + '..</td><td><span class="type-badge ' + o.op_type + '">' + o.op_type + '</span></td><td class="id-cell" title="' + (o.to_address||'') + '">' + (o.to_address||'').substring(0,10) + '..</td><td>' + HumanAds.formatCurrency(o.amount_cents) + '</td><td><span class="status-badge ' + o.status + '">' + o.status + '</span></td><td>' + txLink(o.tx_hash) + '</td><td>' + HumanAds.formatRelativeTime(o.created_at) + '</td></tr>'; }).join('') +
       '</tbody></table></div>';
   }
@@ -807,7 +851,7 @@
         '</div></div>' +
         (d.available_profiles && d.available_profiles.length > 0 ?
           '<div class="card" style="margin-bottom:16px;"><div class="card-title">Available Profiles</div>' +
-          '<div class="table-wrap"><table class="data-table"><thead><tr><th>Profile</th><th>Chain</th><th>Token</th><th>Testnet</th><th>Ready</th></tr></thead><tbody>' +
+          '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:30%">Profile</th><th style="width:20%">Chain</th><th style="width:20%">Token</th><th style="width:15%">Testnet</th><th style="width:15%">Ready</th></tr></thead><tbody>' +
           d.available_profiles.map(function(ap) { return '<tr' + (ap.id===cur.id?' style="background:rgba(76,175,80,0.08);"':'') + '><td><strong>' + esc(ap.id) + '</strong></td><td>' + (ap.chain||'-') + '</td><td>' + (ap.token||'-') + '</td><td>' + (ap.is_testnet?'Yes':'No') + '</td><td><span class="status-badge ' + (ap.is_ready?'confirmed':'pending') + '">' + (ap.is_ready?'Ready':'Not Ready') + '</span></td></tr>'; }).join('') +
           '</tbody></table></div></div>' : '') +
         '<p style="font-size:0.75rem;color:var(--color-text-muted);">To change profile: update wrangler.jsonc PAYOUT_MODE or use the config API.</p>';
@@ -827,7 +871,7 @@
         '<div style="display:flex;gap:8px;margin-bottom:16px;"><input class="form-input" id="log-search" placeholder="Filter by endpoint" value="' + (endpoint||'') + '" style="flex:1;"><button class="btn-sm" onclick="loadAuditLogs(document.getElementById(\'log-search\').value||null)">Search</button><button class="btn-sm" onclick="loadAuditLogs()">Refresh</button></div>' +
         '<p style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:12px;">' + logs.length + ' entries</p>' +
         (logs.length===0?'<div class="empty">No logs found</div>':
-        '<div class="table-wrap"><table class="data-table"><thead><tr><th>Request ID</th><th>Endpoint</th><th>Method</th><th>Decision</th><th>Agent</th><th>Time</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table class="data-table"><thead><tr><th style="width:12%">Request ID</th><th style="width:28%">Endpoint</th><th style="width:10%">Method</th><th style="width:14%">Decision</th><th style="width:12%">Agent</th><th style="width:24%">Time</th></tr></thead><tbody>' +
         logs.map(function(l){ return '<tr><td class="id-cell">' + (l.request_id||'N/A').substring(0,8) + '..</td><td>' + esc(l.endpoint||'-') + '</td><td>' + (l.method||'-') + '</td><td><span class="status-badge ' + (l.decision||'unknown') + '">' + (l.decision||'-') + '</span></td><td class="id-cell">' + (l.agent_id?l.agent_id.substring(0,8)+'..':'-') + '</td><td>' + (l.created_at?HumanAds.formatRelativeTime(l.created_at):'-') + '</td></tr>'; }).join('') +
         '</tbody></table></div>');
     } catch (e) { panel.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }

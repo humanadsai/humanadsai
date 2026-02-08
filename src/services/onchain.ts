@@ -4,7 +4,7 @@
  */
 
 import type { Env } from '../types';
-import { createWalletClient, http, parseAbi, getAddress, type Hex } from 'viem';
+import { createWalletClient, createPublicClient, http, parseAbi, getAddress, keccak256, toHex, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 
@@ -46,6 +46,7 @@ export function getOnchainConfig(env: Env) {
     husdContract: env.HUSD_CONTRACT || '0x62c2225d5691515bd4ee36539d127d0db7dceb67',
     treasuryAddress: env.TREASURY_ADDRESS || '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017',
     adminAddress: env.ADMIN_ADDRESS || '0x64D6407757218ECbFc173C1efE0Fe7EdAaF67cC3',
+    escrowContract: env.ESCROW_CONTRACT || '0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a',
     faucetContract: env.FAUCET_CONTRACT || '0x5D911fe0E0f3928eF15CA6a2540c625cd85B8341',
     faucetAmount: parseInt(env.FAUCET_PER_ADVERTISER || String(DEFAULT_FAUCET_AMOUNT)),
     faucetCooldown: parseInt(env.FAUCET_COOLDOWN_SECONDS || String(DEFAULT_COOLDOWN)),
@@ -329,4 +330,248 @@ export async function updateTokenOpStatus(
     `UPDATE token_ops SET status = ?, tx_hash = COALESCE(?, tx_hash), error_message = ?, confirmed_at = ?
      WHERE id = ?`
   ).bind(status, txHash || null, errorMessage || null, confirmedAt, id).run();
+}
+
+// ============================================
+// Escrow Contract Functions
+// ============================================
+
+// Escrow contract ABI fragments
+const ESCROW_ABI = parseAbi([
+  'function depositToDeal(bytes32 dealId, uint128 amount, uint32 maxParticipants, uint64 expiresAt) external',
+  'function releaseToDeal(bytes32 dealId, address operator, uint128 rewardAmount) external',
+  'function refundDeal(bytes32 dealId) external',
+  'function getWithdrawableBalance(address account) external view returns (uint256)',
+  'function getDeal(bytes32 dealId) external view returns ((address advertiser, uint128 totalDeposited, uint128 totalReleased, uint128 totalRefunded, uint32 maxParticipants, uint32 currentReleased, uint8 status, uint64 expiresAt))',
+]);
+
+const HUSD_ABI = parseAbi([
+  'function approve(address spender, uint256 amount) returns (bool)',
+]);
+
+interface EscrowResult {
+  success: boolean;
+  txHash?: string;
+  depositTxHash?: string;
+  error?: string;
+}
+
+/**
+ * Convert a deal ID string to a deterministic bytes32 hash
+ */
+export function dealIdToBytes32(dealId: string): Hex {
+  return keccak256(toHex(dealId));
+}
+
+/**
+ * Create a viem wallet client with the treasury private key
+ */
+function createTreasuryClient(env: Env) {
+  const config = getOnchainConfig(env);
+  const rawKey = env.TREASURY_PRIVATE_KEY!.trim();
+  const privateKey: Hex = rawKey.startsWith('0x') ? rawKey as Hex : `0x${rawKey}`;
+  const account = privateKeyToAccount(privateKey);
+
+  if (account.address.toLowerCase() !== config.treasuryAddress.toLowerCase()) {
+    throw new Error('Treasury key/address mismatch');
+  }
+
+  const client = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http(config.rpcUrl, {
+      timeout: 30_000,
+      retryCount: 1,
+    }),
+  });
+
+  return { client, account, config };
+}
+
+/**
+ * Approve hUSD and deposit into escrow contract for a deal.
+ *
+ * Step 1: hUSD.approve(escrowContract, totalAmount)
+ * Step 2: escrow.depositToDeal(dealIdBytes32, totalAmount, maxParticipants, expiresAt)
+ */
+export async function escrowApproveAndDeposit(
+  env: Env,
+  dealId: string,
+  totalAmountCents: number,
+  maxParticipants: number,
+  expiresAtISO: string
+): Promise<EscrowResult> {
+  const config = getOnchainConfig(env);
+
+  if (!env.TREASURY_PRIVATE_KEY) {
+    return { success: false, error: 'Treasury private key not configured' };
+  }
+
+  // Ledger mode — simulate
+  if (env.PAYOUT_MODE !== 'onchain') {
+    const simulatedHash = 'SIMULATED_DEPOSIT_' + crypto.randomUUID().replace(/-/g, '');
+    return { success: true, depositTxHash: simulatedHash };
+  }
+
+  try {
+    const { client, config: cfg } = createTreasuryClient(env);
+    const dealIdBytes32 = dealIdToBytes32(dealId);
+
+    // Convert cents to base units (6 decimals): 1 cent = 10_000 base units
+    const totalAmountBaseUnits = BigInt(totalAmountCents) * BigInt(10_000);
+    const expiresAtUnix = BigInt(Math.floor(new Date(expiresAtISO).getTime() / 1000));
+
+    // Step 1: Approve hUSD to escrow contract
+    const approveTxHash = await client.writeContract({
+      address: cfg.husdContract as Hex,
+      abi: HUSD_ABI,
+      functionName: 'approve',
+      args: [cfg.escrowContract as Hex, totalAmountBaseUnits],
+    });
+
+    // Step 2: Deposit into escrow
+    const depositTxHash = await client.writeContract({
+      address: cfg.escrowContract as Hex,
+      abi: ESCROW_ABI,
+      functionName: 'depositToDeal',
+      args: [
+        dealIdBytes32,
+        totalAmountBaseUnits as unknown as bigint,
+        maxParticipants,
+        expiresAtUnix as unknown as bigint,
+      ],
+    });
+
+    return {
+      success: true,
+      txHash: approveTxHash,
+      depositTxHash,
+    };
+  } catch (e) {
+    const rawError = e instanceof Error ? e.message : 'Unknown error';
+    const error = redactSecrets(rawError);
+    console.error('escrowApproveAndDeposit error:', error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * Release escrow funds for a completed mission.
+ * Treasury (ARBITER) calls releaseToDeal — contract auto-splits 10% fee + 90% operator.
+ *
+ * @param rewardAmountCents - Full reward amount (contract deducts fee internally)
+ */
+export async function escrowRelease(
+  env: Env,
+  dealId: string,
+  operatorAddress: string,
+  rewardAmountCents: number
+): Promise<EscrowResult> {
+  const config = getOnchainConfig(env);
+
+  if (!env.TREASURY_PRIVATE_KEY) {
+    return { success: false, error: 'Treasury private key not configured' };
+  }
+
+  // Ledger mode — simulate
+  if (env.PAYOUT_MODE !== 'onchain') {
+    const simulatedHash = 'SIMULATED_RELEASE_' + crypto.randomUUID().replace(/-/g, '');
+    return { success: true, txHash: simulatedHash };
+  }
+
+  try {
+    const { client, config: cfg } = createTreasuryClient(env);
+    const dealIdBytes32 = dealIdToBytes32(dealId);
+    const rewardBaseUnits = BigInt(rewardAmountCents) * BigInt(10_000);
+    const normalizedOperator = normalizeAddress(operatorAddress) as Hex;
+
+    const txHash = await client.writeContract({
+      address: cfg.escrowContract as Hex,
+      abi: ESCROW_ABI,
+      functionName: 'releaseToDeal',
+      args: [dealIdBytes32, normalizedOperator, rewardBaseUnits as unknown as bigint],
+    });
+
+    return { success: true, txHash };
+  } catch (e) {
+    const rawError = e instanceof Error ? e.message : 'Unknown error';
+    const error = redactSecrets(rawError);
+    console.error('escrowRelease error:', error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * Get an operator's withdrawable balance from the escrow contract.
+ * Returns cents.
+ */
+export async function escrowGetBalance(env: Env, address: string): Promise<number> {
+  const config = getOnchainConfig(env);
+
+  // Use raw RPC call (same pattern as getHusdBalance)
+  // keccak256("getWithdrawableBalance(address)") = 0x843592d3...
+  const selector = '0x843592d3';
+  const paddedAddress = address.toLowerCase().replace('0x', '').padStart(64, '0');
+  const data = selector + paddedAddress;
+
+  try {
+    const response = await fetch(config.rpcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: Date.now(),
+        method: 'eth_call',
+        params: [{ to: config.escrowContract, data }, 'latest'],
+      }),
+    });
+
+    const result = await response.json() as { result?: string; error?: { message: string } };
+    if (result.error) {
+      console.error('escrowGetBalance RPC error:', result.error.message);
+      return 0;
+    }
+
+    const balanceRaw = BigInt(result.result || '0x0');
+    // hUSD has 6 decimals: 1 cent = 10_000 base units
+    const balanceCents = Number(balanceRaw / BigInt(10000));
+    return balanceCents;
+  } catch (e) {
+    console.error('escrowGetBalance error:', e);
+    return 0;
+  }
+}
+
+/**
+ * Refund remaining escrowed funds for a deal back to the advertiser.
+ * ARBITER calls refundDeal.
+ */
+export async function escrowRefund(env: Env, dealId: string): Promise<EscrowResult> {
+  if (!env.TREASURY_PRIVATE_KEY) {
+    return { success: false, error: 'Treasury private key not configured' };
+  }
+
+  if (env.PAYOUT_MODE !== 'onchain') {
+    const simulatedHash = 'SIMULATED_REFUND_' + crypto.randomUUID().replace(/-/g, '');
+    return { success: true, txHash: simulatedHash };
+  }
+
+  try {
+    const { client, config } = createTreasuryClient(env);
+    const dealIdBytes32 = dealIdToBytes32(dealId);
+
+    const txHash = await client.writeContract({
+      address: config.escrowContract as Hex,
+      abi: ESCROW_ABI,
+      functionName: 'refundDeal',
+      args: [dealIdBytes32],
+    });
+
+    return { success: true, txHash };
+  } catch (e) {
+    const rawError = e instanceof Error ? e.message : 'Unknown error';
+    const error = redactSecrets(rawError);
+    console.error('escrowRefund error:', error);
+    return { success: false, error };
+  }
 }

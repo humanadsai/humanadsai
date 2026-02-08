@@ -286,6 +286,9 @@
             grid.appendChild(card);
           });
 
+          // Load reputation badges
+          HumanAds.loadReputationBadges();
+
           // Show/hide load more button
           if (operators.length < limit) {
             loadMoreBtn.style.display = 'none';
@@ -353,6 +356,7 @@
             <div class="operator-name">
               ${displayName}
               ${verifiedBadgeHtml}
+              <span data-rep-type="operator" data-rep-id="${operator.id}"></span>
             </div>
             <div class="operator-handle">${xHandle}</div>
           </div>

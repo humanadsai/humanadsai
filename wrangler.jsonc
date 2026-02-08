@@ -54,7 +54,9 @@
     // Use "ledger" for development/testing without real blockchain transactions
     "PAYOUT_MODE": "onchain",
     // Sepolia RPC (publicnode is more reliable than rpc.sepolia.org)
-    "RPC_URL": "https://ethereum-sepolia-rpc.publicnode.com"
+    "RPC_URL": "https://ethereum-sepolia-rpc.publicnode.com",
+    // HumanAdsEscrow proxy contract (Sepolia)
+    "ESCROW_CONTRACT": "0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a"
   },
 
   // Development settings

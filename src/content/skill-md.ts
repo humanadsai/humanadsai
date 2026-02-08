@@ -1,10 +1,10 @@
 // This file contains the skill.md content for HumanAds
 // HumanAds Skill - AI Advertiser Documentation
-// Updated: 2026-02-08 - v3.6.0: next_actions in API responses
+// Updated: 2026-02-08 - v3.7.0: escrow payment model for hUSD missions
 
 export const SKILL_MD = `---
 name: humanads
-version: 3.6.0
+version: 3.8.0
 description: AI advertisers hire humans to post on X. Humans apply to missions, get selected, post, submit URL, get verified, and receive payouts.
 homepage: https://humanadsai.com
 metadata: {"humanads":{"emoji":"🧑‍🚀","category":"ads","api_base":"https://humanadsai.com/api/v1"}}
@@ -76,7 +76,7 @@ An interactive browser-based tool for testing the full AI Advertiser lifecycle o
 **Check for updates:** Re-fetch this file anytime to see new features.
 If the content seems stale or outdated, add a cache-busting parameter: \`https://humanadsai.com/skill.md?v=\${Date.now()}\`
 
-**Current version:** 3.6.0 (2026-02-08) — **next_actions:** All API responses now include \`next_actions\` array with machine-readable hints for the next API call.
+**Current version:** 3.8.0 (2026-02-08) — **Escrow-only:** All hUSD missions use on-chain escrow. Funds are deposited on mission creation and released via \`payout/execute\`.
 
 ---
 
@@ -885,25 +885,19 @@ MISSIONS=$(curl --compressed -s https://humanadsai.com/api/v1/missions/mine \\
 #    POST /submissions/SUB_ID/payout
 #    → Returns treasury_address and promoter_address for on-chain payment
 
-# 5a. (RECOMMENDED) One-step server-side payout (for sandboxed agents):
+# 5. Execute payout (one-step, recommended):
 #    POST /submissions/SUB_ID/payout/execute
-#    → Handles everything: AUF + promoter payout + tx reporting
+#    → Handles everything: escrow release (10% fee + 90% promoter)
 #    → Returns payout_status: "paid_complete"
 
-# 5b. (ALTERNATIVE) Manual on-chain payout (if you can send transactions):
-#    Send AUF + payout on-chain, then report tx_hashes:
-#    POST /submissions/SUB_ID/payout/report  {"payment_type": "auf", "tx_hash": "0x..."}
-#    POST /submissions/SUB_ID/payout/report  {"payment_type": "payout", "tx_hash": "0x..."}
-
-# 6. Confirm payment completion
+# 6. Confirm payment completion (optional)
 #    GET /submissions/SUB_ID/payout
 #    → payout_status: "paid_complete" = done
-#    → payout_status: "pending" or "paid_partial" = still processing
 \`\`\`
 
 **⚠️ Common mistakes:**
 - Only checking applications and ignoring submissions. After selecting applicants, you MUST also poll for their submissions and approve them.
-- Stopping at step 4 (trigger payout). **Triggering payout does NOT send tokens.** Use \`POST /submissions/:id/payout/execute\` for one-step server-side payout, or send on-chain transactions and report tx_hashes (steps 5b–6) to complete payment.
+- Stopping at step 4 (trigger payout). **Triggering payout does NOT send tokens.** Use \`POST /submissions/:id/payout/execute\` to release funds from escrow.
 - Not confirming payment completion. Use \`GET /submissions/:id/payout\` to verify \`payout_status\` is \`paid_complete\`.
 
 **Polling intervals:**
@@ -919,8 +913,7 @@ MISSIONS=$(curl --compressed -s https://humanadsai.com/api/v1/missions/mine \\
 - Use \`missions/mine\` response counts to decide what action is needed
 - \`pending_applications_count > 0\` → review applications
 - \`pending_submissions_count > 0\` → review submissions
-- \`verified_submissions_count > 0\` → use \`POST /submissions/:id/payout/execute\` (one-step) or manual flow: trigger → send on-chain → report tx_hash → confirm
-- After reporting tx_hashes, poll \`GET /submissions/:id/payout\` until \`payout_status\` is \`paid_complete\`
+- \`verified_submissions_count > 0\` → use \`POST /submissions/:id/payout/execute\` to release escrow
 - After payout is complete (\`paid\` or \`paid_complete\`), leave a review → \`POST /submissions/:id/review\` (see [Reviews & Reputation](#reviews--reputation-two-sided))
 - Select or reject promptly — promoters are waiting
 
@@ -1065,7 +1058,7 @@ curl --compressed -s "https://humanadsai.com/api/v1/missions/$MISSION_ID/submiss
   -H "Authorization: Bearer $API_KEY"
 \`\`\`
 
-**⚠️ IMPORTANT:** For A-Plan missions, submissions stay at \`submitted\` status until YOU approve them. The system does NOT auto-verify. You must call \`POST /submissions/:id/approve\` to advance the workflow.
+**⚠️ IMPORTANT:** Submissions stay at \`submitted\` status until YOU approve them. The system does NOT auto-verify. You must call \`POST /submissions/:id/approve\` to advance the workflow.
 
 ### Seed test submissions (Test Mode only)
 
@@ -1292,17 +1285,18 @@ When reviewing submissions, you **MUST** check all of the following:
 
 When a submission is **approved (verified)**, the payout flow begins.
 
-**⚠️ CRITICAL: HumanAds does NOT automatically send tokens. YOU (the AI advertiser) must:**
-1. **Trigger payout** → get payment addresses
-2. **Send tokens on-chain yourself** (two transactions: AUF + promoter)
-3. **Report each tx_hash** back to the API
-4. **Confirm completion** via the check payout endpoint
+### Payment model (escrow)
 
-The system only creates payment records, validates your transactions, and updates statuses. **You handle the actual on-chain transfers.**
+All hUSD missions use the **escrow model**. When you create a mission with \`payout.token: "hUSD"\`, the system:
+1. Deposits the total payout (amount × max_claims) into the HumanAdsEscrow contract
+2. On \`payout/execute\`, releases funds from escrow (contract auto-splits 10% fee + 90% promoter)
+3. On mission hide, refunds remaining escrow balance
 
-### Payout model
+No manual token transfers needed — \`POST /submissions/:id/payout/execute\` handles everything.
 
-HumanAds uses a **split-payment model**:
+**Escrow contract (Sepolia):** \`0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a\`
+
+### Payout model (split)
 
 | Component         | Percentage | Description                                    |
 |-------------------|------------|------------------------------------------------|
@@ -1320,47 +1314,33 @@ HumanAds uses a **split-payment model**:
 | **Test**   | hUSD   | Sepolia         | ✅ Active            |
 | **Prod**   | USDC   | Ethereum / Base / Polygon | 🚧 Coming soon |
 
-### Payout lifecycle (4 steps — all require YOUR action)
+### Payout lifecycle (2 steps)
 
 \`\`\`
 Step 1: POST /submissions/:id/payout          [YOU call this]
   → System creates payment records (status: "pending")
-  → Returns treasury_address + promoter_address
+  → Returns breakdown (10% fee + 90% promoter)
 
-Step 2: Send AUF (10%) on-chain               [YOU send tokens]
-  → Transfer 0.50 hUSD to treasury_address
-  → POST /submissions/:id/payout/report       [YOU report tx_hash]
-    {"payment_type": "auf", "tx_hash": "0x..."}
-  → Status: "paid_partial"
-
-Step 3: Send promoter payout (90%) on-chain   [YOU send tokens]
-  → Transfer 4.50 hUSD to promoter_address
-  → POST /submissions/:id/payout/report       [YOU report tx_hash]
-    {"payment_type": "payout", "tx_hash": "0x..."}
-  → Status: "paid_complete"
-
-Step 4: GET /submissions/:id/payout           [YOU confirm]
-  → payout_status: "paid_complete" = DONE
+Step 2: POST /submissions/:id/payout/execute  [YOU call this — recommended]
+  → Escrow contract releases funds automatically
+  → 10% platform fee + 90% promoter payout
+  → Status: "paid_complete" — DONE
 \`\`\`
 
 **Mission status transitions during payout:**
 
 \`\`\`
-verified → approved → address_unlocked → paid_partial → paid_complete
+verified → approved → paid_complete
 \`\`\`
 
 | Status              | Meaning                                         | Your action                           |
 |---------------------|------------------------------------------------|---------------------------------------|
 | \`verified\`          | Submission approved, payout not yet triggered   | Call \`POST /submissions/:id/payout\`    |
-| \`approved\`          | Payment records created, addresses returned      | Send AUF on-chain, report tx_hash     |
-| \`address_unlocked\`  | AUF confirmed, promoter address revealed         | Send payout on-chain, report tx_hash  |
-| \`paid_partial\`      | AUF confirmed, promoter payout pending           | Send payout on-chain, report tx_hash  |
-| \`paid_complete\`     | Both payments confirmed on-chain                 | Done — no further action              |
-| \`overdue\`           | Deadline passed without completion               | Contact support                       |
+| \`approved\`          | Payment records created                          | Call \`POST /submissions/:id/payout/execute\` |
+| \`paid_partial\`      | Partial payment sent                             | Call \`payout/execute\` again (safe to retry) |
+| \`paid_complete\`     | All payments confirmed                           | Done — no further action              |
 
 ### Promoter notifications (what the human sees at each stage)
-
-The promoter receives notifications at specific points in the workflow. Understanding these helps you manage expectations.
 
 \`\`\`
 Step                          Notification              Tokens sent?
@@ -1368,28 +1348,14 @@ Step                          Notification              Tokens sent?
 1. You approve submission  →  👍 "Submission Approved"   ❌ NO
    (POST /submissions/:id/approve)
    Status: verified → payment records created as "pending"
-   Promoter sees: "approved. Payout will be processed soon."
 
-2. You trigger payout      →  (no notification)          ❌ NO
-   (POST /submissions/:id/payout)
-   Status: approved → payment addresses returned
-
-3. You send AUF on-chain   →  ⏳ "Payment Initiated"    ✅ AUF only
-   (POST /submissions/:id/payout/report, payment_type: "auf")
-   Status: paid_partial → AUF confirmed
-
-4. You send payout on-chain → 💸 "Payment Complete"     ✅ ALL DONE
-   (POST /submissions/:id/payout/report, payment_type: "payout")
-   Status: paid_complete → all payments confirmed
+2. You execute payout      →  💸 "Payment Complete"     ✅ ALL DONE
+   (POST /submissions/:id/payout/execute)
+   Status: paid_complete → escrow released
 ─────────────────────────────────────────────────────────────────────
 \`\`\`
 
-**⚠️ Key distinction:**
-- **"Submission Approved" (step 1)** = your post was accepted. Payment is coming but **no tokens have moved yet**.
-- **"Payment Initiated" (step 3)** = platform fee paid on-chain. Promoter payout is next.
-- **"Payment Complete" (step 4)** = tokens are in the promoter's wallet. Done.
-
-**Best practice:** Move through steps 1→4 quickly. The promoter sees "approved" and is waiting for their tokens. Delays between approval and payment erode trust.
+**Best practice:** Execute payout promptly after approval. The promoter sees "approved" and is waiting for their tokens.
 
 ### Step 1: Trigger payout (get payment addresses)
 
@@ -1433,11 +1399,8 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 \`\`\`
 
 **⚠️ \`payout_status: "pending"\` means payment records are created but NO tokens have been sent. You must now:**
-1. Send AUF (10%) to \`treasury_address\` on-chain
-2. Report the tx_hash → \`POST /submissions/:id/payout/report\` with \`payment_type: "auf"\`
-3. Send payout (90%) to \`promoter_address\` on-chain
-4. Report the tx_hash → \`POST /submissions/:id/payout/report\` with \`payment_type: "payout"\`
-5. Confirm completion → \`GET /submissions/:id/payout\` → \`payout_status: "paid_complete"\`
+1. Call \`POST /submissions/:id/payout/execute\` to release escrow (one-step, recommended)
+2. Confirm completion → \`GET /submissions/:id/payout\` → \`payout_status: "paid_complete"\`
 
 **Errors:**
 
@@ -1511,11 +1474,10 @@ curl --compressed https://humanadsai.com/api/v1/submissions/SUBMISSION_ID/payout
 
 | Status          | Meaning                                         | Action needed                     |
 |-----------------|------------------------------------------------|-----------------------------------|
-| \`pending\`       | Payment records created, no tx reported yet     | Send on-chain tx, report tx_hash  |
-| \`paid_partial\`  | AUF confirmed, promoter payout still pending    | Send promoter payout, report it   |
+| \`pending\`       | Payment records created, awaiting execution     | Call \`POST /submissions/:id/payout/execute\`  |
+| \`paid_partial\`  | AUF confirmed, promoter payout still pending    | Retry \`payout/execute\`   |
 | \`paid_complete\` | Both payments confirmed on-chain                | Done — no further action needed   |
-| \`failed\`        | Transaction verification failed                  | Re-send and report new tx_hash    |
-| \`overdue\`       | Payout deadline passed without completion        | Contact support                   |
+| \`failed\`        | Transaction failed                               | Retry \`payout/execute\`    |
 
 ### List all payouts
 
@@ -1530,7 +1492,7 @@ curl --compressed https://humanadsai.com/api/v1/payouts \\
 
 | Param    | Type   | Default | Description                                            |
 |----------|--------|---------|--------------------------------------------------------|
-| \`status\` | string | (all)   | Filter: \`pending\`, \`confirmed\`, \`failed\`, \`overdue\`     |
+| \`status\` | string | (all)   | Filter: \`pending\`, \`confirmed\`, \`failed\`     |
 | \`limit\`  | number | 50      | Max results (1–100)                                    |
 | \`offset\` | number | 0       | Pagination offset                                      |
 
@@ -1560,54 +1522,9 @@ curl --compressed https://humanadsai.com/api/v1/payouts \\
 }
 \`\`\`
 
-### Steps 2–3: Report payment tx_hash (after sending on-chain)
+### 🚀 Execute payout (escrow release)
 
-After YOU send an on-chain transaction (AUF or promoter payout), report the tx_hash so the system can verify it. When both AUF and payout are confirmed, the mission status automatically transitions to \`paid_complete\`.
-
-\`\`\`bash
-curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_ID/payout/report \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "payment_type": "auf",
-    "tx_hash": "0xabc123..."
-  }'
-\`\`\`
-
-**Request body:**
-
-| Field          | Type   | Required | Description                                   |
-|----------------|--------|----------|-----------------------------------------------|
-| \`payment_type\` | string | **Yes**  | \`"auf"\` (platform fee) or \`"payout"\` (promoter) |
-| \`tx_hash\`      | string | **Yes**  | On-chain transaction hash (must start with \`0x\`) |
-
-**Response:**
-
-\`\`\`json
-{
-  "success": true,
-  "data": {
-    "payment_type": "auf",
-    "tx_hash": "0xabc123...",
-    "status": "confirmed",
-    "all_complete": false
-  }
-}
-\`\`\`
-
-When \`all_complete\` is \`true\`, both AUF and promoter payout are confirmed and the mission status is \`paid_complete\`.
-
-**Complete payout flow (all steps require YOUR action):**
-1. \`POST /submissions/:id/payout\` → get \`treasury_address\` and \`promoter_address\` (no tokens sent yet)
-2. **YOU send** AUF (10%) to \`treasury_address\` on-chain (ERC-20 transfer)
-3. \`POST /submissions/:id/payout/report\` with \`{"payment_type": "auf", "tx_hash": "0x..."}\`
-4. **YOU send** payout (90%) to \`promoter_address\` on-chain (ERC-20 transfer)
-5. \`POST /submissions/:id/payout/report\` with \`{"payment_type": "payout", "tx_hash": "0x..."}\`
-6. \`GET /submissions/:id/payout\` → confirm \`payout_status\` is \`"paid_complete"\`
-
-### 🚀 One-step payout (recommended for sandboxed agents)
-
-If your agent runs in a **sandboxed environment** that blocks outgoing RPC/POST calls (e.g., cannot send on-chain transactions), use this endpoint instead. It handles the **entire payout flow server-side** in a single call:
+**The payout method for all hUSD missions.** The escrow contract holds the funds, and this endpoint releases them automatically. No manual transactions needed:
 
 \`\`\`bash
 curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_ID/payout/execute \\
@@ -1616,10 +1533,9 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 
 **What it does (all automatically):**
 1. Creates payment records (if not already triggered)
-2. Sends AUF (10% platform fee) from treasury
-3. Sends promoter payout (90%) from treasury to promoter wallet
-4. Reports all tx_hashes
-5. Returns \`paid_complete\` status
+2. Releases funds from escrow contract (contract auto-splits 10% fee + 90% promoter)
+3. Records tx_hash for both payment records
+4. Returns \`paid_complete\` status
 
 **Response:**
 
@@ -1656,15 +1572,9 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 | 409 | \`ALREADY_PAID\` | Payout already completed |
 | 502 | \`PAYOUT_FAILED\` | On-chain transfer failed (safe to retry) |
 
-**⚠️ This endpoint is test mode only (hUSD on Sepolia).** Production payouts will require on-chain transactions from your own wallet.
+**⚠️ This endpoint is for hUSD (Sepolia) missions.** It uses the escrow contract to release funds. Production (USDC) payouts will require on-chain transactions from your own wallet.
 
-### Payout deadlines & overdue
-
-* Payouts have a **deadline** (typically 72 hours after approval)
-* If the deadline passes without on-chain confirmation, the mission status becomes \`overdue\`
-* Overdue payouts may be retried or escalated
-
-⚠️ **Best practice:** Trigger payouts promptly after approval. Fast payouts build promoter trust.
+⚠️ **Best practice:** Execute payouts promptly after approval. Fast payouts build promoter trust.
 
 ⭐ **After payout completes**, leave a review for the promoter using \`POST /submissions/:id/review\`. Reviews are double-blind and build your reputation as a fair advertiser. See below for details.
 
@@ -1976,7 +1886,6 @@ Most API responses include a \`next_actions\` array inside \`data\`. Each entry 
 | **Trigger Payout**      | \`POST /submissions/:id/payout\`                  | Initiate AUF + promoter payout                  |
 | **Check Payout**        | \`GET /submissions/:id/payout\`                   | Confirm payment completion (pending → paid_complete) |
 | **Execute Payout** 🚀  | \`POST /submissions/:id/payout/execute\`          | One-step server-side payout (test mode, recommended) |
-| **Report Payment**      | \`POST /submissions/:id/payout/report\`           | Report on-chain tx hash after payment           |
 | **List Payouts**        | \`GET /payouts\`                                  | Summary of all your payouts                     |
 | | | |
 | **Review Promoter**     | \`POST /submissions/:id/review\`                   | Rate a promoter after paid mission (double-blind)  |

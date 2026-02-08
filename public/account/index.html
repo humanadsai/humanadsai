@@ -260,6 +260,52 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    /* Reputation card */
+    .reputation-summary {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .reputation-rating {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: #FFD700;
+    }
+    .reputation-stars {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 4px;
+    }
+    .reputation-stars .star {
+      font-size: 1.25rem;
+    }
+    .reputation-stars .star.filled { color: #FFD700; }
+    .reputation-stars .star.empty { color: rgba(255,255,255,0.15); }
+    .reputation-count {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+    .reputation-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .reputation-tag {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+    }
+    .reputation-tag .tag-count {
+      color: var(--color-primary);
+      margin-left: 4px;
+    }
     .loading {
       text-align: center;
       padding: 60px 20px;
@@ -518,6 +564,30 @@
             </a>
           </div>
 
+          <!-- Reputation Card -->
+          <div class="account-card" id="reputation-card">
+            <h2>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Reputation
+            </h2>
+            <div id="reputation-card-content" style="color:var(--color-text-muted);font-size:0.875rem;">Loading...</div>
+          </div>
+
+          <!-- Escrow Balance Card -->
+          <div class="account-card" id="escrow-card">
+            <h2>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M3 9h18"/>
+                <path d="M9 21V9"/>
+              </svg>
+              Escrow Balance
+            </h2>
+            <div id="escrow-card-content" style="color:var(--color-text-muted);font-size:0.875rem;">Loading...</div>
+          </div>
+
           <!-- Danger Zone -->
           <div class="account-card danger-zone">
             <h2>
@@ -604,6 +674,120 @@
           console.error('Email card error:', emailErr);
           const emailContent = document.getElementById('email-card-content');
           if (emailContent) emailContent.textContent = 'Failed to load email status';
+        }
+
+        // Load escrow balance
+        try {
+          const escrowRes = await HumanAds.fetchApi('/operator/escrow-balance');
+          const escrowContent = document.getElementById('escrow-card-content');
+          if (escrowRes.success && escrowRes.data) {
+            const bal = escrowRes.data;
+            const hasBalance = bal.balance_cents > 0;
+            escrowContent.innerHTML = `
+              <div class="activity-stats" style="margin-bottom:16px;">
+                <div class="stat-item">
+                  <div class="number">${formatCurrency(bal.balance_cents)}</div>
+                  <div class="label">Withdrawable</div>
+                </div>
+              </div>
+              ${!bal.wallet_address ? `
+                <p style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:12px;">Set your EVM wallet address to receive escrow payouts.</p>
+                <a href="/settings/payout" class="manage-link" style="margin-top:0;">Set Wallet Address</a>
+              ` : `
+                ${hasBalance ? `
+                  <button class="btn btn-primary" style="font-size:0.875rem;padding:10px 20px;margin-bottom:12px;" onclick="withdrawEscrow()">Withdraw to Wallet</button>
+                  <div id="escrow-withdraw-status"></div>
+                ` : '<p style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:8px;">No funds to withdraw. Completed mission payouts will appear here.</p>'}
+                <div style="font-size:0.75rem;color:var(--color-text-muted);display:flex;flex-direction:column;gap:4px;">
+                  <span>Contract: <a href="${bal.explorer_url}" target="_blank" rel="noopener noreferrer" style="color:var(--color-primary);font-family:var(--font-mono);">${bal.escrow_contract.slice(0,8)}...${bal.escrow_contract.slice(-6)}</a></span>
+                  <span>Chain: Sepolia (Testnet)</span>
+                </div>
+              `}
+            `;
+          } else {
+            escrowContent.textContent = 'Unable to load escrow balance';
+          }
+        } catch (escrowErr) {
+          console.error('Escrow card error:', escrowErr);
+          const escrowContent = document.getElementById('escrow-card-content');
+          if (escrowContent) escrowContent.textContent = 'Failed to load escrow balance';
+        }
+
+        // Load reputation
+        try {
+          const repRes = await HumanAds.fetchApi(`/operators/${profile.id}/reputation`);
+          const repContent = document.getElementById('reputation-card-content');
+          if (repRes.success && repRes.data && repRes.data.reputation) {
+            const rep = repRes.data.reputation;
+            const avg = rep.avg_rating;
+            const total = rep.total_reviews;
+
+            // Build stars HTML
+            let starsHtml = '<div class="reputation-stars">';
+            for (let i = 1; i <= 5; i++) {
+              starsHtml += i <= Math.round(avg)
+                ? '<span class="star filled">&#9733;</span>'
+                : '<span class="star empty">&#9734;</span>';
+            }
+            starsHtml += '</div>';
+
+            // Build tags HTML (top 5 by count)
+            let tagsHtml = '';
+            const tagCounts = rep.tag_counts || {};
+            const sortedTags = Object.entries(tagCounts)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5);
+            if (sortedTags.length > 0) {
+              tagsHtml = '<div class="reputation-tags">';
+              const tagLabels = {
+                fast_payment: 'Fast Payment', clear_brief: 'Clear Brief',
+                good_communication: 'Good Communication', fair_requirements: 'Fair Requirements',
+                would_work_again: 'Would Work Again', slow_payment: 'Slow Payment',
+                unclear_brief: 'Unclear Brief', poor_communication: 'Poor Communication',
+                unfair_requirements: 'Unfair Requirements',
+                high_quality: 'High Quality', on_time: 'On Time', creative: 'Creative',
+                professional: 'Professional', good_engagement: 'Good Engagement',
+                would_hire_again: 'Would Hire Again', low_quality: 'Low Quality',
+                late_delivery: 'Late Delivery', unresponsive: 'Unresponsive'
+              };
+              sortedTags.forEach(([tag, count]) => {
+                const label = tagLabels[tag] || tag.replace(/_/g, ' ');
+                tagsHtml += `<span class="reputation-tag">${label}<span class="tag-count">×${count}</span></span>`;
+              });
+              tagsHtml += '</div>';
+            }
+
+            repContent.innerHTML = `
+              <div class="reputation-summary">
+                <span class="reputation-rating">${avg.toFixed(1)}</span>
+                <div>
+                  ${starsHtml}
+                  <span class="reputation-count">${total} review${total !== 1 ? 's' : ''}</span>
+                </div>
+              </div>
+              ${tagsHtml}
+              <a href="/operators/detail?id=${profile.id}" class="manage-link">
+                View Public Profile
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </a>
+            `;
+          } else {
+            repContent.innerHTML = `
+              <p style="color:var(--color-text-muted);margin-bottom:12px;">No reviews yet. Complete missions and receive reviews from advertisers to build your reputation.</p>
+              <a href="/operators/detail?id=${profile.id}" class="manage-link" style="margin-top:0;">
+                View Public Profile
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </a>
+            `;
+          }
+        } catch (repErr) {
+          console.error('Reputation card error:', repErr);
+          const repContent = document.getElementById('reputation-card-content');
+          if (repContent) repContent.textContent = 'Failed to load reputation';
         }
 
         // Check URL params for email verification status
@@ -709,6 +893,27 @@
           }
         } catch (e) {
           alert('Failed to change email');
+        }
+      }
+    }
+
+    async function withdrawEscrow() {
+      var statusEl = document.getElementById('escrow-withdraw-status');
+      if (statusEl) statusEl.innerHTML = '<p style="color:var(--color-text-muted);font-size:0.75rem;">Connecting to MetaMask...</p>';
+      try {
+        var result = await HumanAds.escrowWithdraw();
+        if (statusEl) {
+          statusEl.innerHTML = '<div style="background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);color:#4CAF50;padding:12px 16px;border-radius:8px;font-size:0.875rem;">' +
+            'Withdrawal sent! <a href="' + result.explorerUrl + '" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">View on Etherscan</a>' +
+            '</div>';
+        }
+        // Refresh balance after a delay
+        setTimeout(function() { location.reload(); }, 5000);
+      } catch (e) {
+        if (statusEl) {
+          statusEl.innerHTML = '<div style="background:rgba(255,59,48,0.1);border:1px solid rgba(255,59,48,0.3);color:#ff3b30;padding:12px 16px;border-radius:8px;font-size:0.875rem;">' +
+            (e.message || 'Withdrawal failed') +
+            '</div>';
         }
       }
     }
