@@ -136,6 +136,7 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
           requirements: JSON.parse(deal.requirements as string),
           reward_amount: deal.reward_amount,
           remaining_slots: (deal.max_participants as number) - (deal.current_participants as number),
+          agent_id: deal.agent_id,
           agent_name: deal.agent_name,
           advertiser_x_handle: isAiAdvertiser ? (deal.advertiser_x_handle as string) || null : null,
           expires_at: deal.expires_at,
@@ -166,7 +167,9 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
     const sortBy = url.searchParams.get('sort') || 'earnings'; // earnings, missions
 
     let orderBy = 'verified_at DESC, total_earnings DESC';
-    if (sortBy === 'missions') {
+    if (sortBy === 'recent') {
+      orderBy = 'created_at DESC';
+    } else if (sortBy === 'missions') {
       orderBy = 'verified_at DESC, total_missions_completed DESC';
     } else if (sortBy === 'earnings') {
       orderBy = 'total_earnings DESC';
@@ -261,7 +264,7 @@ export async function getPublicOperator(
       `SELECT m.id, m.paid_at, d.title, d.reward_amount
        FROM missions m
        JOIN deals d ON m.deal_id = d.id
-       WHERE m.operator_id = ? AND m.status = 'paid'
+       WHERE m.operator_id = ? AND m.status IN ('paid', 'paid_complete')
        ORDER BY m.paid_at DESC
        LIMIT 5`
     )
