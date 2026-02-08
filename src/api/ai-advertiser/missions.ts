@@ -10,7 +10,7 @@ import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { validateLanguage } from '../../utils/format';
 import { getMissionNextActions } from '../../utils/next-actions';
-import { escrowDepositOnBehalfWithPermit, escrowRefund, getOnchainConfig, getHusdBalance } from '../../services/onchain';
+import { escrowDepositOnBehalf, escrowRefund, getOnchainConfig, getHusdBalance } from '../../services/onchain';
 
 interface CreateMissionRequest {
   mode: 'test' | 'production';
@@ -28,7 +28,14 @@ interface CreateMissionRequest {
     amount: string; // Decimal string
   };
   max_claims: number;
+  // Image creative (optional)
+  required_media?: 'none' | 'image' | 'image_optional';
+  image_url?: string;
+  media_instructions?: string;
 }
+
+const ALLOWED_IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB (match X limit)
 
 /**
  * Create a new mission (deal)
@@ -115,6 +122,104 @@ export async function handleCreateMission(
 
   if (!body.max_claims || typeof body.max_claims !== 'number' || body.max_claims < 1) {
     return errors.badRequest(requestId, 'Missing or invalid field: max_claims (must be >= 1)');
+  }
+
+  // Validate image creative fields
+  const requiredMedia = body.required_media || 'none';
+  if (!['none', 'image', 'image_optional'].includes(requiredMedia)) {
+    return errors.badRequest(requestId, 'Invalid required_media. Must be "none", "image", or "image_optional"');
+  }
+
+  let imageAssetId: string | null = null;
+  let validatedImageUrl: string | null = null;
+
+  if (requiredMedia === 'image' || requiredMedia === 'image_optional') {
+    if (!body.image_url) {
+      if (requiredMedia === 'image') {
+        return error('MISSING_IMAGE_URL', 'required_media is "image" but no image_url provided', requestId, 400);
+      }
+    }
+
+    if (body.image_url) {
+      // Validate URL format
+      let imageUrlObj: URL;
+      try {
+        imageUrlObj = new URL(body.image_url);
+      } catch {
+        return error('INVALID_IMAGE_URL', 'image_url is not a valid URL', requestId, 400);
+      }
+      if (imageUrlObj.protocol !== 'https:') {
+        return error('INVALID_IMAGE_URL', 'image_url must use HTTPS', requestId, 400);
+      }
+
+      // Check extension
+      const pathname = imageUrlObj.pathname.toLowerCase();
+      const hasValidExt = ALLOWED_IMAGE_EXTENSIONS.some(ext => pathname.endsWith(ext));
+      if (!hasValidExt) {
+        return error('INVALID_IMAGE_URL', `image_url must end with one of: ${ALLOWED_IMAGE_EXTENSIONS.join(', ')}`, requestId, 400);
+      }
+
+      // SSRF protection: block private/reserved IPs
+      const hostname = imageUrlObj.hostname;
+      if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|localhost|::1|\[::1\])/.test(hostname)) {
+        return error('SSRF_BLOCKED', 'image_url resolves to a private/reserved IP', requestId, 400);
+      }
+
+      // HEAD request to validate image (5s timeout)
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const headRes = await fetch(body.image_url, {
+          method: 'HEAD',
+          signal: controller.signal,
+          redirect: 'follow',
+        });
+        clearTimeout(timeout);
+
+        if (!headRes.ok) {
+          return error('INVALID_IMAGE_URL', `Image URL returned HTTP ${headRes.status}`, requestId, 400);
+        }
+
+        const contentType = headRes.headers.get('content-type') || '';
+        if (!contentType.startsWith('image/')) {
+          return error('INVALID_IMAGE_TYPE', `Image URL content-type is "${contentType}", expected image/*`, requestId, 400);
+        }
+
+        const contentLength = parseInt(headRes.headers.get('content-length') || '0', 10);
+        if (contentLength > MAX_IMAGE_BYTES) {
+          return error('IMAGE_TOO_LARGE', `Image is ${(contentLength / 1024 / 1024).toFixed(1)} MB, max is ${MAX_IMAGE_BYTES / 1024 / 1024} MB`, requestId, 400);
+        }
+
+        // Derive MIME type
+        const mimeType = contentType.split(';')[0].trim();
+
+        // Create media_assets record
+        imageAssetId = crypto.randomUUID().replace(/-/g, '');
+        await env.DB.prepare(`
+          INSERT INTO media_assets (id, owner_advertiser_id, type, status, storage_provider,
+            mime_type, file_bytes, source_url, public_url, moderation_status, created_at, updated_at)
+          VALUES (?, ?, 'image', 'active', 'external', ?, ?, ?, ?, 'approved', datetime('now'), datetime('now'))
+        `).bind(imageAssetId, advertiser.id, mimeType, contentLength || null, body.image_url, body.image_url).run();
+
+        validatedImageUrl = body.image_url;
+      } catch (e: any) {
+        if (e.name === 'AbortError') {
+          return error('INVALID_IMAGE_URL', 'Image URL request timed out (5s)', requestId, 400);
+        }
+        return error('INVALID_IMAGE_URL', `Could not reach image URL: ${e.message || 'network error'}`, requestId, 400);
+      }
+    }
+  }
+
+  // Validate media_instructions
+  if (body.media_instructions) {
+    if (typeof body.media_instructions !== 'string' || body.media_instructions.length > 500) {
+      return errors.badRequest(requestId, 'media_instructions must be a string of max 500 characters');
+    }
+    const instrLangError = validateLanguage(body.media_instructions, 'media_instructions');
+    if (instrLangError) {
+      return errors.badRequest(requestId, instrLangError);
+    }
   }
 
   // Validate language (English only)
@@ -211,8 +316,9 @@ export async function handleCreateMission(
         reward_amount, max_participants, current_participants,
         status, expires_at, metadata,
         created_at, updated_at, slots_total, slots_selected,
-        applications_count, payment_model, auf_percentage, visibility
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', ?, ?, datetime('now'), datetime('now'), ?, 0, 0, ?, 10, 'visible')
+        applications_count, payment_model, auf_percentage, visibility,
+        required_media_type, image_asset_id, image_url, media_instructions
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', ?, ?, datetime('now'), datetime('now'), ?, 0, 0, ?, 10, 'visible', ?, ?, ?, ?)
     `)
     .bind(
       missionId,
@@ -225,7 +331,11 @@ export async function handleCreateMission(
       body.deadline_at,
       metadata,
       body.max_claims, // slots_total
-      paymentModel
+      paymentModel,
+      requiredMedia,
+      imageAssetId,
+      validatedImageUrl,
+      body.media_instructions || null
     )
     .run();
 
@@ -263,46 +373,30 @@ export async function handleCreateMission(
       );
     }
 
-    // Find an active permit that covers the required amount
-    const permit = await env.DB
+    // Check that the advertiser has approved the escrow contract (one-time approve relay)
+    const approval = await env.DB
       .prepare(
-        `SELECT id, amount_cents, deadline, v, r, s
-         FROM advertiser_permits
-         WHERE advertiser_id = ? AND status = 'active' AND amount_cents >= ?
-         ORDER BY created_at DESC LIMIT 1`
+        `SELECT id FROM advertiser_approvals
+         WHERE advertiser_id = ? AND status = 'confirmed'
+         LIMIT 1`
       )
-      .bind(advertiser.id, totalDepositCents)
-      .first<{ id: string; amount_cents: number; deadline: number; v: number; r: string; s: string }>();
+      .bind(advertiser.id)
+      .first<{ id: string }>();
 
-    if (!permit) {
+    if (!approval) {
       await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
       return error(
-        'NO_PERMIT',
-        `No active permit found for ${(totalDepositCents / 100).toFixed(2)} hUSD. Sign a permit first: GET /advertisers/deposit/permit?amount=${(totalDepositCents / 100).toFixed(2)}, then POST /advertisers/deposit/permit with the signature.`,
-        requestId,
-        402,
-        { required_cents: totalDepositCents }
-      );
-    }
-
-    // Check permit deadline hasn't passed
-    if (permit.deadline <= Math.floor(Date.now() / 1000)) {
-      // Mark expired permit
-      await env.DB.prepare(`UPDATE advertiser_permits SET status = 'expired' WHERE id = ?`).bind(permit.id).run();
-      await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
-      return error(
-        'PERMIT_EXPIRED',
-        'The stored permit has expired. Sign a new permit: GET /advertisers/deposit/permit',
+        'NO_APPROVAL',
+        `Escrow contract not approved. Approve first: GET /advertisers/deposit/approve (get unsigned tx), sign it, then POST /advertisers/deposit/approve with the signed tx. This is a one-time operation.`,
         requestId,
         402
       );
     }
 
-    // Deposit using permit (advertiser's hUSD decreases on-chain)
-    const depositResult = await escrowDepositOnBehalfWithPermit(
+    // Deposit on behalf of advertiser (advertiser's hUSD decreases on-chain via existing allowance)
+    const depositResult = await escrowDepositOnBehalf(
       env, missionId, advertiser.wallet_address, totalDepositCents,
-      body.max_claims, body.deadline_at,
-      permit.deadline, permit.v, permit.r, permit.s
+      body.max_claims, body.deadline_at
     );
 
     if (!depositResult.success) {
@@ -311,12 +405,6 @@ export async function handleCreateMission(
     }
 
     escrowDepositTx = depositResult.depositTxHash;
-
-    // Mark permit as used
-    await env.DB
-      .prepare(`UPDATE advertiser_permits SET status = 'used', used_deal_id = ? WHERE id = ?`)
-      .bind(missionId, permit.id)
-      .run();
 
     // Record spend in advertiser_deposits for audit trail
     const spendId = crypto.randomUUID().replace(/-/g, '');
@@ -338,6 +426,10 @@ export async function handleCreateMission(
     current_claims: 0,
     deadline_at: body.deadline_at,
     payout: body.payout,
+    required_media: requiredMedia,
+    image_url: validatedImageUrl,
+    image_asset_id: imageAssetId,
+    media_instructions: body.media_instructions || null,
     escrow_deposit_tx: escrowDepositTx || null,
     escrow_contract: paymentModel === 'escrow' ? (getOnchainConfig(env).escrowContract) : null,
   }, requestId, 201);
@@ -370,6 +462,7 @@ export async function handleListMyMissions(
         d.id, d.title, d.description, d.reward_amount, d.max_participants,
         d.current_participants, d.status, d.expires_at, d.created_at, d.updated_at,
         d.slots_total, d.slots_selected, d.applications_count, d.metadata, d.payment_model,
+        d.required_media_type, d.image_url, d.image_asset_id, d.media_instructions,
         (SELECT COUNT(*) FROM applications a WHERE a.deal_id = d.id AND a.status = 'applied') as pending_applications_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status = 'submitted') as pending_submissions_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial')) as verified_submissions_count
@@ -412,7 +505,11 @@ export async function handleListMyMissions(
       deadline_at: m.expires_at,
       created_at: m.created_at,
       updated_at: m.updated_at,
-      payout_token: (metadata as any).payout_token || 'hUSD'
+      payout_token: (metadata as any).payout_token || 'hUSD',
+      required_media: m.required_media_type || 'none',
+      image_url: m.image_url || null,
+      image_asset_id: m.image_asset_id || null,
+      media_instructions: m.media_instructions || null,
     };
     return {
       ...missionData,
@@ -457,6 +554,7 @@ export async function handleGetMission(
         d.max_participants, d.current_participants, d.status, d.expires_at,
         d.created_at, d.updated_at, d.slots_total, d.slots_selected,
         d.applications_count, d.metadata, d.payment_model,
+        d.required_media_type, d.image_url, d.image_asset_id, d.media_instructions, d.media_policy,
         (SELECT COUNT(*) FROM applications a WHERE a.deal_id = d.id AND a.status = 'applied') as pending_applications_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status = 'submitted') as pending_submissions_count,
         (SELECT COUNT(*) FROM missions m WHERE m.deal_id = d.id AND m.status IN ('verified', 'approved', 'paid_partial')) as verified_submissions_count
@@ -512,7 +610,12 @@ export async function handleGetMission(
     deadline_at: mission.expires_at,
     created_at: mission.created_at,
     updated_at: mission.updated_at,
-    payout_token: (metadata as any).payout_token || 'hUSD'
+    payout_token: (metadata as any).payout_token || 'hUSD',
+    required_media: (mission.required_media_type as string) || 'none',
+    image_url: (mission.image_url as string) || null,
+    image_asset_id: (mission.image_asset_id as string) || null,
+    media_instructions: (mission.media_instructions as string) || null,
+    media_policy: (mission.media_policy as string) || null,
   };
 
   return success({
