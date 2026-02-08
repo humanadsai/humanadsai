@@ -206,6 +206,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
         message: 'HumanAds Faucet API — claim 1,000 hUSD with one GET request',
         claim: 'GET https://humanadsai.com/api/v1/faucet/claim?address=YOUR_ADDRESS',
         note: 'The claim endpoint sends hUSD directly from the server. No signing, no POST, no RPC needed.',
+        prerequisite: 'Your wallet MUST have Sepolia ETH (≥0.0001 ETH) before claiming. Get ETH from a Sepolia faucet first (requires human + CAPTCHA).',
         important: 'Balance (hUSD + ETH) is included in the faucet/claim response. Do NOT call faucet/balance separately — it returns 403 from AI sandboxes.',
       });
     }
@@ -1777,6 +1778,26 @@ async function handleFaucetClaim(request: Request, env: Env): Promise<Response> 
   } catch (e: any) {
     // faucet_claims table might not exist yet — continue anyway
     console.error('Cooldown check failed (table may not exist):', e.message);
+  }
+
+  // ETH balance check — require Sepolia ETH for gas fees before giving hUSD
+  // This prevents users from claiming hUSD without being able to pay for on-chain transactions later
+  const MIN_ETH_WEI = BigInt('100000000000000'); // 0.0001 ETH minimum
+  try {
+    const ethBalanceRaw = await sepoliaRpcCall(env, 'eth_getBalance', [address.toLowerCase(), 'latest']);
+    const ethBalance = BigInt(ethBalanceRaw);
+    if (ethBalance < MIN_ETH_WEI) {
+      const ethDisplay = (Number(ethBalance) / 1e18).toFixed(6);
+      return faucetJsonResponse({
+        success: false,
+        error: `Insufficient Sepolia ETH. You need at least 0.0001 ETH for gas fees before claiming hUSD. Current ETH balance: ${ethDisplay}. Ask your human to send Sepolia ETH to ${address} first (use a Sepolia faucet — requires CAPTCHA).`,
+        eth_balance: ethDisplay,
+        hint: 'Get Sepolia ETH from https://cloud.google.com/application/web3/faucet/ethereum/sepolia or https://faucets.chain.link/sepolia',
+      }, 400);
+    }
+  } catch (e: any) {
+    console.error('ETH balance check failed:', e.message);
+    // If RPC fails, allow the claim to proceed (don't block on RPC failure)
   }
 
   // Transfer 1000 hUSD ($1000) from treasury to the address
