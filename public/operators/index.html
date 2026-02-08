@@ -34,8 +34,19 @@
   <style>
     .operators-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
       gap: var(--spacing-md);
+    }
+
+    .operator-bio {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      line-height: 1.4;
+      margin-top: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .operator-card {
@@ -328,11 +339,11 @@
         : '<span class="operator-avatar-placeholder">👤</span>';
 
       const verifiedBadgeHtml = isVerified
-        ? `<span class="human-verified-badge">
-             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-             Verified
-           </span>`
+        ? `<svg class="human-verified-badge" viewBox="0 0 22 22" title="Verified" aria-label="Verified account" role="img"><circle cx="11" cy="11" r="11" fill="#1D9BF0"/><path d="M9.5 14.25L6.75 11.5l-.88.88L9.5 16l7-7-.88-.88z" fill="white"/></svg>`
         : '';
+
+      const bio = operator.x_description || '';
+      const bioHtml = bio ? `<div class="operator-bio">${bio.replace(/</g, '&lt;')}</div>` : '';
 
       // X metrics HTML (always show)
       const xMetricsHtml = `<div class="operator-stat-row">
@@ -347,6 +358,16 @@
         ? `<div class="operator-rate">${preferredPrice}</div>`
         : '';
 
+      // HumanAds activity metrics
+      const applied = operator.total_missions_applied || 0;
+      const completed = operator.total_missions_completed || 0;
+      const earningsCents = operator.total_earnings || 0;
+      const hasActivity = applied > 0 || completed > 0 || earningsCents > 0;
+      const earningsFormatted = '$' + (earningsCents / 100).toFixed(2);
+      const activityHtml = hasActivity ? `<div class="operator-stat-row" style="margin-top:4px;font-size:0.75rem;color:var(--color-text-muted);">
+        📋 ${applied} Applied · ✅ ${completed} Completed · 💰 ${earningsFormatted} Earned
+      </div>` : '';
+
       card.innerHTML = `
         <div class="operator-header">
           <div class="operator-avatar">
@@ -358,11 +379,13 @@
               ${verifiedBadgeHtml}
               <span data-rep-type="operator" data-rep-id="${operator.id}"></span>
             </div>
-            <div class="operator-handle">${xHandle}</div>
+            <div class="operator-handle"${xHandle ? ` onclick="event.preventDefault();event.stopPropagation();window.open('https://x.com/${xHandle.replace(/^@/, '')}','_blank')" style="cursor:pointer"` : ''}><svg style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>${xHandle}</div>
+            ${bioHtml}
           </div>
         </div>
         <div class="operator-stats">
           ${xMetricsHtml}
+          ${activityHtml}
           ${priceHtml}
           ${operator.verified_at ? `<div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px;">Joined ${HumanAds.formatRelativeTime(operator.verified_at)}</div>` : ''}
         </div>
