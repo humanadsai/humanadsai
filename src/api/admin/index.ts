@@ -440,7 +440,7 @@ export async function createDeal(
     }
 
     const dealId = crypto.randomUUID().replace(/-/g, '');
-    const paymentModel = body.payment_model || 'a_plan';
+    const paymentModel = body.payment_model || 'escrow';
     const aufPercentage = body.auf_percentage || 10;
 
     await env.DB.prepare(
@@ -1012,8 +1012,13 @@ export async function listMissions(request: Request, env: Env): Promise<Response
       params.push(dealId);
     }
     if (status) {
-      conditions.push('m.status = ?');
-      params.push(status);
+      // 'paid' filter should include both 'paid' and 'paid_complete'
+      if (status === 'paid') {
+        conditions.push("m.status IN ('paid', 'paid_complete')");
+      } else {
+        conditions.push('m.status = ?');
+        params.push(status);
+      }
     }
 
     if (conditions.length > 0) {
@@ -1343,6 +1348,77 @@ export async function testPayout(
 }
 
 // ============================================
+// Smoke Test Cleanup
+// ============================================
+
+async function cleanupSmokeTest(env: Env): Promise<void> {
+  try {
+    // Get smoke test advertiser IDs (deals use agent_id = advertiser.id)
+    const advRows = await env.DB.prepare(
+      "SELECT id FROM ai_advertisers WHERE name LIKE '[SMOKE_TEST]%'"
+    ).all<{ id: string }>();
+    const advIds = advRows.results?.map(r => r.id) || [];
+
+    for (const advId of advIds) {
+      // Get deal IDs for this advertiser
+      const dealRows = await env.DB.prepare(
+        "SELECT id FROM deals WHERE agent_id = ?"
+      ).bind(advId).all<{ id: string }>();
+      const dealIds = dealRows.results?.map(r => r.id) || [];
+
+      for (const dealId of dealIds) {
+        // Collect operator IDs from missions (test-submission creates operators)
+        const opRows = await env.DB.prepare(
+          "SELECT DISTINCT operator_id FROM missions WHERE deal_id = ?"
+        ).bind(dealId).all<{ operator_id: string }>();
+        const opIds = opRows.results?.map(r => r.operator_id) || [];
+
+        // Delete reviews linked to missions of this deal
+        await env.DB.prepare(
+          "DELETE FROM reviews WHERE mission_id IN (SELECT id FROM missions WHERE deal_id = ?)"
+        ).bind(dealId).run().catch(() => {});
+
+        // Delete token_operations linked to these operators
+        for (const opId of opIds) {
+          await env.DB.prepare(
+            "DELETE FROM token_operations WHERE operator_id = ?"
+          ).bind(opId).run().catch(() => {});
+        }
+
+        // Delete missions
+        await env.DB.prepare(
+          "DELETE FROM missions WHERE deal_id = ?"
+        ).bind(dealId).run().catch(() => {});
+
+        // Delete applications
+        await env.DB.prepare(
+          "DELETE FROM applications WHERE deal_id = ?"
+        ).bind(dealId).run().catch(() => {});
+
+        // Delete test operators created by test-submission
+        for (const opId of opIds) {
+          await env.DB.prepare(
+            "DELETE FROM operators WHERE id = ?"
+          ).bind(opId).run().catch(() => {});
+        }
+      }
+
+      // Delete deals
+      await env.DB.prepare(
+        "DELETE FROM deals WHERE agent_id = ?"
+      ).bind(advId).run().catch(() => {});
+    }
+
+    // Delete smoke test advertisers
+    await env.DB.prepare(
+      "DELETE FROM ai_advertisers WHERE name LIKE '[SMOKE_TEST]%'"
+    ).run().catch(() => {});
+  } catch (e) {
+    console.error('Smoke test cleanup error:', e);
+  }
+}
+
+// ============================================
 // Scenario Runner (E2E Testing)
 // ============================================
 
@@ -1379,7 +1455,7 @@ export async function runScenario(
         const dealId = crypto.randomUUID().replace(/-/g, '');
         await env.DB.prepare(
           `INSERT INTO deals (id, agent_id, title, description, requirements, reward_amount, max_participants, status, payment_model, auf_percentage)
-           VALUES (?, ?, 'Scenario Test Deal', 'Created by admin scenario runner', '{"content_type":"original_post","disclosure":"#ad"}', 1000, 10, 'active', 'a_plan', 10)`
+           VALUES (?, ?, 'Scenario Test Deal', 'Created by admin scenario runner', '{"content_type":"original_post","disclosure":"#ad"}', 1000, 10, 'active', 'escrow', 10)`
         ).bind(dealId, agent!.id).run();
 
         // 3. Get a verified operator
@@ -1536,6 +1612,223 @@ export async function runScenario(
             ? 'Full lifecycle with onchain payout completed successfully on Sepolia!'
             : 'Lifecycle completed but some transactions failed. Check transaction details.',
         };
+      },
+
+      // API Smoke Test — hit all AI Advertiser API endpoints
+      'api-smoke-test': async () => {
+        const steps: { step: string; status: 'pass' | 'fail' | 'warn'; detail?: string }[] = [];
+        const origin = new URL(request.url).origin;
+
+        // Helper: internal fetch with optional Bearer auth
+        async function apiFetch(method: string, path: string, body?: unknown, apiKey?: string) {
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+          const res = await fetch(new Request(origin + path, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : undefined,
+          }));
+          return { status: res.status, data: await res.json() as Record<string, unknown> };
+        }
+
+        let apiKey = '';
+        let advertiserId = '';
+        let missionId = '';
+        let submissionId = '';
+
+        try {
+          // Step 1: Register
+          try {
+            const reg = await apiFetch('POST', '/api/v1/advertisers/register', {
+              name: '[SMOKE_TEST] API Health Check',
+              mode: 'test',
+            });
+            const advData = reg.data?.data as Record<string, unknown> | undefined;
+            const advInfo = advData?.advertiser as Record<string, unknown> | undefined;
+            apiKey = (advInfo?.api_key as string) || '';
+            if (reg.data?.success && apiKey) {
+              steps.push({ step: '1. Register', status: 'pass', detail: 'API key obtained' });
+            } else {
+              steps.push({ step: '1. Register', status: 'fail', detail: JSON.stringify(reg.data?.error || 'No api_key') });
+            }
+          } catch (e) {
+            steps.push({ step: '1. Register', status: 'fail', detail: (e as Error).message });
+          }
+
+          if (!apiKey) {
+            return { steps, passed: steps.filter(s => s.status === 'pass').length, total: steps.length };
+          }
+
+          // Step 2: GET /me (auth check)
+          try {
+            const me = await apiFetch('GET', '/api/v1/advertisers/me', undefined, apiKey);
+            const meData = me.data?.data as Record<string, unknown> | undefined;
+            advertiserId = (meData?.id as string) || '';
+            if (me.data?.success && meData?.status === 'pending_claim') {
+              steps.push({ step: '2. GET /me', status: 'pass', detail: 'status=pending_claim' });
+            } else {
+              steps.push({ step: '2. GET /me', status: 'fail', detail: `status=${meData?.status || 'unknown'}` });
+            }
+          } catch (e) {
+            steps.push({ step: '2. GET /me', status: 'fail', detail: (e as Error).message });
+          }
+
+          // Step 3: Activate advertiser (DB direct — skip X verification for smoke test)
+          try {
+            const prefix = apiKey.substring(0, 12);
+            await env.DB.prepare("UPDATE ai_advertisers SET status='active', claimed_at=datetime('now') WHERE api_key_prefix=?")
+              .bind(prefix).run();
+            const check = await env.DB.prepare("SELECT status FROM ai_advertisers WHERE api_key_prefix=?").bind(prefix).first<{ status: string }>();
+            if (check?.status === 'active') {
+              steps.push({ step: '3. Activate (DB)', status: 'pass', detail: 'status=active' });
+            } else {
+              steps.push({ step: '3. Activate (DB)', status: 'fail', detail: `status=${check?.status || 'not found'}` });
+            }
+          } catch (e) {
+            steps.push({ step: '3. Activate (DB)', status: 'fail', detail: (e as Error).message });
+          }
+
+          // Step 4: Create Mission
+          try {
+            const mission = await apiFetch('POST', '/api/v1/advertisers/missions', {
+              mode: 'test',
+              title: '[SMOKE_TEST] Health Check Mission',
+              brief: 'Automated API smoke test — will be cleaned up',
+              requirements: {},
+              deadline_at: new Date(Date.now() + 86400000).toISOString(),
+              payout: { token: 'hUSD', amount: '1.00' },
+              max_claims: 1,
+            }, apiKey);
+            const mData = mission.data?.data as Record<string, unknown> | undefined;
+            missionId = (mData?.mission_id as string) || '';
+            if (mission.data?.success && missionId) {
+              steps.push({ step: '4. Create Mission', status: 'pass', detail: `mission_id=${missionId.substring(0, 8)}...` });
+            } else {
+              steps.push({ step: '4. Create Mission', status: 'fail', detail: JSON.stringify(mission.data?.error || 'No mission_id') });
+            }
+          } catch (e) {
+            steps.push({ step: '4. Create Mission', status: 'fail', detail: (e as Error).message });
+          }
+
+          if (!missionId) {
+            // Cleanup and return early
+            await cleanupSmokeTest(env);
+            return { steps, passed: steps.filter(s => s.status === 'pass').length, total: steps.length };
+          }
+
+          // Step 5: List Missions
+          try {
+            const list = await apiFetch('GET', '/api/v1/advertisers/missions/mine', undefined, apiKey);
+            const listData = list.data?.data as Record<string, unknown> | undefined;
+            const missions = listData?.missions as unknown[];
+            if (list.data?.success && missions && missions.length >= 1) {
+              steps.push({ step: '5. List Missions', status: 'pass', detail: `count=${missions.length}` });
+            } else {
+              steps.push({ step: '5. List Missions', status: 'fail', detail: 'No missions returned' });
+            }
+          } catch (e) {
+            steps.push({ step: '5. List Missions', status: 'fail', detail: (e as Error).message });
+          }
+
+          // Step 6: Get Mission by ID
+          try {
+            const get = await apiFetch('GET', `/api/v1/advertisers/missions/${missionId}`, undefined, apiKey);
+            const gData = get.data?.data as Record<string, unknown> | undefined;
+            if (get.data?.success && (gData?.title as string)?.includes('[SMOKE_TEST]')) {
+              steps.push({ step: '6. Get Mission', status: 'pass', detail: 'title matches' });
+            } else {
+              steps.push({ step: '6. Get Mission', status: 'fail', detail: `title=${gData?.title || 'unknown'}` });
+            }
+          } catch (e) {
+            steps.push({ step: '6. Get Mission', status: 'fail', detail: (e as Error).message });
+          }
+
+          // Step 7: Create Test Submission
+          try {
+            const sub = await apiFetch('POST', `/api/v1/advertisers/missions/${missionId}/test-submission`, {}, apiKey);
+            const subData = sub.data?.data as Record<string, unknown> | undefined;
+            const promoters = subData?.promoters as Array<Record<string, unknown>> | undefined;
+            if (sub.data?.success && promoters && promoters.length > 0) {
+              submissionId = (promoters[0].submission_id as string) || '';
+              steps.push({ step: '7. Test Submission', status: 'pass', detail: `${promoters.length} promoters seeded` });
+            } else {
+              steps.push({ step: '7. Test Submission', status: 'fail', detail: JSON.stringify(sub.data?.error || 'No promoters') });
+            }
+          } catch (e) {
+            steps.push({ step: '7. Test Submission', status: 'fail', detail: (e as Error).message });
+          }
+
+          if (!submissionId) {
+            await cleanupSmokeTest(env);
+            return { steps, passed: steps.filter(s => s.status === 'pass').length, total: steps.length };
+          }
+
+          // Step 8: Approve Submission
+          try {
+            const approve = await apiFetch('POST', `/api/v1/submissions/${submissionId}/approve`, {
+              verification_result: 'Smoke test auto-approval',
+            }, apiKey);
+            if (approve.data?.success) {
+              steps.push({ step: '8. Approve Submission', status: 'pass', detail: 'approved' });
+            } else {
+              steps.push({ step: '8. Approve Submission', status: 'fail', detail: JSON.stringify(approve.data?.error || 'Failed') });
+            }
+          } catch (e) {
+            steps.push({ step: '8. Approve Submission', status: 'fail', detail: (e as Error).message });
+          }
+
+          // Step 9: Execute Payout (may fail without treasury key — warn, not fail)
+          try {
+            const payout = await apiFetch('POST', `/api/v1/submissions/${submissionId}/payout/execute`, {}, apiKey);
+            if (payout.data?.success) {
+              steps.push({ step: '9. Execute Payout', status: 'pass', detail: 'payout executed' });
+            } else {
+              const errMsg = ((payout.data?.error as Record<string, unknown>)?.message as string) || 'Failed';
+              // No treasury key is expected in some environments — warn instead of fail
+              if (errMsg.includes('treasury') || errMsg.includes('TREASURY') || errMsg.includes('not configured')) {
+                steps.push({ step: '9. Execute Payout', status: 'warn', detail: errMsg });
+              } else {
+                steps.push({ step: '9. Execute Payout', status: 'fail', detail: errMsg });
+              }
+            }
+          } catch (e) {
+            steps.push({ step: '9. Execute Payout', status: 'warn', detail: (e as Error).message });
+          }
+
+          // Step 10: Submit Review
+          try {
+            const review = await apiFetch('POST', `/api/v1/submissions/${submissionId}/review`, {
+              rating: 5,
+              comment: '[SMOKE_TEST] Automated health check review',
+              tags: ['high_quality', 'on_time'],
+            }, apiKey);
+            if (review.data?.success) {
+              steps.push({ step: '10. Submit Review', status: 'pass', detail: 'review submitted' });
+            } else {
+              steps.push({ step: '10. Submit Review', status: 'fail', detail: JSON.stringify(review.data?.error || 'Failed') });
+            }
+          } catch (e) {
+            steps.push({ step: '10. Submit Review', status: 'fail', detail: (e as Error).message });
+          }
+
+          // Cleanup
+          await cleanupSmokeTest(env);
+
+          const passed = steps.filter(s => s.status === 'pass').length;
+          const warned = steps.filter(s => s.status === 'warn').length;
+          return {
+            steps,
+            passed,
+            warned,
+            total: steps.length,
+            message: `API smoke test complete: ${passed}/${steps.length} passed` + (warned ? `, ${warned} warnings` : ''),
+          };
+        } catch (e) {
+          // Cleanup even on unexpected error
+          await cleanupSmokeTest(env);
+          steps.push({ step: 'Unexpected Error', status: 'fail', detail: (e as Error).message });
+          return { steps, passed: steps.filter(s => s.status === 'pass').length, total: steps.length };
+        }
       },
 
       // Quick test setup

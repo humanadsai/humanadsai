@@ -1322,7 +1322,7 @@ function generateDashboardHTML(operator: Operator, stats: Stats): string {
               CREATE POST →
             </a>
           \`;
-        } else if (mission.status === 'paid') {
+        } else if (mission.status === 'paid' || mission.status === 'paid_complete') {
           actionHtml = \`
             <span class="status-paid-label">Earned \${formatCurrency(mission.reward_amount)}</span>
           \`;

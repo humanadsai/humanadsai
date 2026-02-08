@@ -15,7 +15,7 @@ import { generateRandomString } from '../../utils/crypto';
 import { createNotificationWithEmail } from '../../services/email-notifications';
 import { verifyTransaction, isTxHashUsed } from '../../services/blockchain';
 import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
-import { transferHusd } from '../../services/onchain';
+import { escrowRelease } from '../../services/onchain';
 import { getSubmissionNextActions, getPayoutNextActions } from '../../utils/next-actions';
 
 // ============================================
@@ -38,9 +38,9 @@ async function getMissionWithOwnership(
 
   // Check ownership via deal -> agent_id
   const deal = await env.DB
-    .prepare('SELECT agent_id, reward_amount, metadata FROM deals WHERE id = ?')
+    .prepare('SELECT agent_id, reward_amount, metadata, payment_model FROM deals WHERE id = ?')
     .bind(mission.deal_id)
-    .first<{ agent_id: string; reward_amount: number; metadata: string | null }>();
+    .first<{ agent_id: string; reward_amount: number; metadata: string | null; payment_model: string }>();
 
   if (!deal || deal.agent_id !== advertiserId) {
     return {
@@ -171,12 +171,14 @@ export async function handleListSubmissions(
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 100);
   const offset = parseInt(url.searchParams.get('offset') || '0', 10);
 
-  // Build query
+  // Build query — include payment status subqueries for accurate payout_status
   let query = `
     SELECT m.id, m.deal_id, m.operator_id, m.status, m.submission_url,
            m.submission_content, m.submitted_at, m.verified_at,
            m.verification_result, m.created_at, m.updated_at,
-           o.x_handle, o.display_name
+           o.x_handle, o.display_name,
+           (SELECT status FROM payments WHERE mission_id = m.id AND payment_type = 'auf' LIMIT 1) as auf_status,
+           (SELECT status FROM payments WHERE mission_id = m.id AND payment_type = 'payout' LIMIT 1) as payout_pay_status
     FROM missions m
     LEFT JOIN operators o ON m.operator_id = o.id
     WHERE m.deal_id = ?
@@ -212,12 +214,19 @@ export async function handleListSubmissions(
     .bind(...countParams)
     .first<{ cnt: number }>();
 
-  // Derive payout_status from mission status
-  const derivePayoutStatus = (status: string): string | null => {
-    if (status === 'approved') return 'pending';
-    if (status === 'paid_partial') return 'paid_partial';
-    if (status === 'paid_complete') return 'paid_complete';
-    if (status === 'overdue') return 'overdue';
+  // Derive payout_status from payment records (accurate) with mission status fallback
+  const derivePayoutStatus = (missionStatus: string, aufStatus: string | null, payoutPayStatus: string | null): string | null => {
+    // If payment records exist, derive from them (source of truth)
+    if (aufStatus || payoutPayStatus) {
+      if (aufStatus === 'confirmed' && payoutPayStatus === 'confirmed') return 'paid_complete';
+      if (aufStatus === 'confirmed') return 'paid_partial';
+      if (aufStatus === 'failed' || payoutPayStatus === 'failed') return 'failed';
+      return 'pending';
+    }
+    // Fallback: derive from mission status
+    if (missionStatus === 'approved' || missionStatus === 'address_unlocked') return 'pending';
+    if (missionStatus === 'paid' || missionStatus === 'paid_complete') return 'paid_complete';
+    if (missionStatus === 'paid_partial') return 'paid_partial';
     return null;
   };
 
@@ -236,7 +245,7 @@ export async function handleListSubmissions(
     verified_at: m.verified_at || null,
     rejected_at: m.status === 'rejected' ? m.updated_at : null,
     rejection_reason: m.status === 'rejected' ? m.verification_result : null,
-    payout_status: derivePayoutStatus(m.status),
+    payout_status: derivePayoutStatus(m.status, m.auf_status, m.payout_pay_status),
     next_actions: getSubmissionNextActions(m.status, m.id),
   }));
 
@@ -650,7 +659,7 @@ export async function handleTriggerPayout(
 
   // Must be verified
   if (mission.status !== 'verified') {
-    if (mission.status === 'approved' || mission.status === 'address_unlocked' ||
+    if (mission.status === 'approved' ||
         mission.status === 'paid_partial' || mission.status === 'paid_complete') {
       return error('PAYOUT_ALREADY_INITIATED', 'Payout already initiated for this submission', requestId, 400);
     }
@@ -762,13 +771,7 @@ export async function handleTriggerPayout(
         action: 'execute_payout',
         method: 'POST',
         endpoint: `/api/v1/submissions/${submissionId}/payout/execute`,
-        description: 'Execute payout server-side (recommended for sandboxed agents)',
-      },
-      {
-        action: 'manual_payout',
-        method: 'POST',
-        endpoint: `/api/v1/submissions/${submissionId}/payout/report`,
-        description: 'Report on-chain tx_hash after sending manually',
+        description: 'Execute payout server-side (recommended)',
       },
     ],
   }, requestId);
@@ -826,6 +829,13 @@ export async function handleGetPayoutStatus(
     payoutStatus = 'failed';
   }
 
+  // Self-healing: if payments show paid_complete but mission status is stale, fix it
+  if (payoutStatus === 'paid_complete' && mission.status !== 'paid_complete' && mission.status !== 'paid') {
+    await env.DB.prepare(`
+      UPDATE missions SET status = 'paid_complete', paid_at = COALESCE(paid_at, datetime('now')), updated_at = datetime('now') WHERE id = ?
+    `).bind(submissionId).run();
+  }
+
   return success({
     submission_id: submissionId,
     payout_status: payoutStatus,
@@ -853,163 +863,6 @@ export async function handleGetPayoutStatus(
     paid_complete_at: (payoutStatus === 'paid_complete' && payoutPayment?.confirmed_at)
       ? payoutPayment.confirmed_at : null,
     next_actions: getPayoutNextActions(payoutStatus, submissionId),
-  }, requestId);
-}
-
-/**
- * Report a payment tx_hash (after advertiser sends on-chain)
- *
- * POST /api/v1/submissions/:submissionId/payout/report
- *
- * Body: { payment_type: 'auf' | 'payout', tx_hash: '0x...' }
- */
-export async function handleReportPayment(
-  request: Request,
-  env: Env,
-  context: AiAdvertiserAuthContext,
-  submissionId: string
-): Promise<Response> {
-  const { advertiser, requestId } = context;
-
-  const { mission, error: ownershipError } = await getMissionWithOwnership(
-    env, submissionId, advertiser.id, requestId
-  );
-  if (ownershipError) return ownershipError;
-
-  let body: { payment_type: string; tx_hash: string };
-  try {
-    body = await request.json();
-  } catch {
-    return errors.badRequest(requestId, 'Invalid JSON');
-  }
-
-  if (!body.payment_type || (body.payment_type !== 'auf' && body.payment_type !== 'payout')) {
-    return errors.badRequest(requestId, 'payment_type must be "auf" or "payout"');
-  }
-  if (!body.tx_hash || typeof body.tx_hash !== 'string') {
-    return errors.badRequest(requestId, 'tx_hash must be a valid transaction hash');
-  }
-
-  // Determine payout mode
-  const payoutConfig = getPayoutConfig(env);
-  const payoutMode = payoutConfig.mode;
-
-  // Reject simulated hashes in onchain mode
-  if (payoutMode === 'onchain' && isSimulatedTxHash(body.tx_hash)) {
-    return errors.badRequest(requestId, 'Simulated transaction hashes are not allowed in onchain mode');
-  }
-
-  if (payoutMode === 'onchain') {
-    // Validate hash format
-    if (!body.tx_hash.startsWith('0x')) {
-      return errors.badRequest(requestId, 'tx_hash must be a valid transaction hash starting with 0x');
-    }
-
-    // Check for replay (same tx_hash already used)
-    const chain = body.chain || 'sepolia';
-    const txUsed = await isTxHashUsed(env.DB, body.tx_hash, chain);
-    if (txUsed) {
-      return errors.badRequest(requestId, 'This transaction hash has already been used for another payment');
-    }
-
-    // On-chain verification
-    const deal = await env.DB.prepare('SELECT reward_amount, auf_percentage FROM deals WHERE id = ?')
-      .bind(mission.deal_id).first<{ reward_amount: number; auf_percentage: number }>();
-    if (deal) {
-      const aufPct = deal.auf_percentage || 10;
-      const expectedAmount = body.payment_type === 'auf'
-        ? Math.floor((deal.reward_amount * aufPct) / 100)
-        : deal.reward_amount - Math.floor((deal.reward_amount * aufPct) / 100);
-
-      // Look up expected recipient
-      let expectedRecipient: string | null = null;
-      if (body.payment_type === 'payout') {
-        const op = await env.DB.prepare('SELECT evm_wallet_address FROM operators WHERE id = ?')
-          .bind(mission.operator_id).first<{ evm_wallet_address: string | null }>();
-        expectedRecipient = op?.evm_wallet_address || null;
-      }
-      // For AUF, recipient is the platform treasury (skip recipient check if unknown)
-
-      if (expectedRecipient || body.payment_type === 'auf') {
-        const verification = await verifyTransaction(
-          body.tx_hash, chain, expectedRecipient || '', expectedAmount, body.token || 'hUSD'
-        );
-        if (!verification.verified) {
-          return errors.badRequest(requestId, `Transaction verification failed: ${verification.error || 'unknown error'}`);
-        }
-      }
-    }
-  } else {
-    // Ledger mode: accept any hash format for simulated payments
-    console.log(`[Ledger Mode] Simulated payment report: ${body.tx_hash}`);
-  }
-
-  // Update the payment record
-  await env.DB
-    .prepare(`
-      UPDATE payments
-      SET tx_hash = ?, status = 'confirmed', confirmed_at = datetime('now'), updated_at = datetime('now')
-      WHERE mission_id = ? AND payment_type = ?
-    `)
-    .bind(body.tx_hash, submissionId, body.payment_type)
-    .run();
-
-  // Check if both payments are now confirmed
-  const payments = await env.DB
-    .prepare('SELECT payment_type, status FROM payments WHERE mission_id = ?')
-    .bind(submissionId)
-    .all();
-
-  const allConfirmed = payments.results.length > 0 &&
-    payments.results.every((p: any) => p.status === 'confirmed');
-
-  if (allConfirmed) {
-    await env.DB
-      .prepare(`UPDATE missions SET status = 'paid_complete', updated_at = datetime('now') WHERE id = ?`)
-      .bind(submissionId)
-      .run();
-  } else if (body.payment_type === 'auf') {
-    await env.DB
-      .prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
-      .bind(submissionId)
-      .run();
-  }
-
-  // Notify operator about payment
-  if (allConfirmed) {
-    const dealForPayment = await env.DB.prepare('SELECT d.title, d.reward_amount FROM deals d JOIN missions m ON m.deal_id = d.id WHERE m.id = ?')
-      .bind(submissionId).first<{ title: string; reward_amount: number }>();
-    await createNotificationWithEmail(env.DB, env, {
-      recipientId: mission.operator_id,
-      type: 'payout_confirmed',
-      title: 'Payment Complete',
-      body: `Payment of ${dealForPayment ? (dealForPayment.reward_amount / 100).toFixed(2) : '?'} hUSD for '${dealForPayment?.title || 'a mission'}' is complete`,
-      referenceType: 'mission',
-      referenceId: submissionId,
-      metadata: { deal_title: dealForPayment?.title, amount: dealForPayment ? (dealForPayment.reward_amount / 100).toFixed(2) : null },
-    });
-  } else if (body.payment_type === 'auf') {
-    const dealForAuf = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
-      .bind(mission.deal_id).first<{ title: string }>();
-    await createNotificationWithEmail(env.DB, env, {
-      recipientId: mission.operator_id,
-      type: 'payout_auf_paid',
-      title: 'Payment Initiated',
-      body: `Payment initiated for '${dealForAuf?.title || 'a mission'}'`,
-      referenceType: 'mission',
-      referenceId: submissionId,
-      metadata: { deal_title: dealForAuf?.title, deal_id: mission.deal_id },
-    });
-  }
-
-  return success({
-    payment_type: body.payment_type,
-    tx_hash: body.tx_hash,
-    status: 'confirmed',
-    all_complete: allConfirmed,
-    next_actions: allConfirmed
-      ? [{ action: 'submit_review', method: 'POST', endpoint: `/api/v1/submissions/${submissionId}/review`, description: 'Rate this promoter (1-5 stars, double-blind)' }]
-      : [{ action: 'report_next_payment', method: 'POST', endpoint: `/api/v1/submissions/${submissionId}/payout/report`, description: 'Report the remaining payment tx_hash' }],
   }, requestId);
 }
 
@@ -1213,44 +1066,52 @@ export async function handleExecutePayout(
   let aufTxHash = aufPayment.tx_hash;
   let payoutTxHash = payoutPayment.tx_hash;
 
-  // Step 3: Send AUF (treasury to treasury — mark as confirmed directly)
-  if (aufPayment.status === 'pending') {
-    // AUF is treasury-to-treasury in test mode, execute real transfer for record
-    const aufResult = await transferHusd(env, treasuryAddress, platformFeeCents);
-    aufTxHash = aufResult.txHash || `SERVER_AUF_${generateRandomString(16)}`;
+  // Step 3 & 4: Execute payment via escrow release
+  if (aufPayment.status === 'pending' || payoutPayment.status === 'pending') {
+    // All hUSD payouts use escrow: single release — contract handles 10%/90% split
+    const releaseResult = await escrowRelease(env, mission.deal_id, promoterAddress, rewardAmountCents);
 
-    await env.DB.prepare(`
-      UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-    `).bind(aufTxHash, aufPayment.id).run();
-  }
-
-  // Step 4: Send promoter payout from treasury
-  if (payoutPayment.status === 'pending') {
-    const payoutResult = await transferHusd(env, promoterAddress, promoterPayoutCents);
-
-    if (!payoutResult.success) {
-      // AUF confirmed but payout failed — mark as paid_partial
+    if (!releaseResult.success) {
       await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
         .bind(submissionId).run();
-      return error('PAYOUT_FAILED', `Server-side payout failed: ${payoutResult.error || 'unknown error'}. AUF was processed. Retry this endpoint to complete.`, requestId, 502);
+      return error('ESCROW_RELEASE_FAILED', `Escrow release failed: ${releaseResult.error || 'unknown error'}. Retry this endpoint to complete.`, requestId, 502);
     }
 
-    payoutTxHash = payoutResult.txHash || null;
+    const releaseTxHash = releaseResult.txHash || `SERVER_RELEASE_${generateRandomString(16)}`;
+    aufTxHash = releaseTxHash;
+    payoutTxHash = releaseTxHash;
 
-    await env.DB.prepare(`
-      UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-    `).bind(payoutTxHash, payoutPayment.id).run();
+    // Mark both payment records as confirmed with the same tx hash
+    // AND update mission status + operator earnings in a single atomic batch
+    // to prevent status divergence if the worker crashes between batches
+    await env.DB.batch([
+      env.DB.prepare(`
+        UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+      `).bind(releaseTxHash, aufPayment.id),
+      env.DB.prepare(`
+        UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+      `).bind(releaseTxHash, payoutPayment.id),
+      env.DB.prepare(`
+        UPDATE missions SET status = 'paid_complete', paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+      `).bind(submissionId),
+      env.DB.prepare(`
+        UPDATE operators SET total_earnings = total_earnings + ?, updated_at = datetime('now') WHERE id = ?
+      `).bind(promoterPayoutCents, mission.operator_id),
+    ]);
+  } else {
+    // Payments already confirmed (retry scenario) — ensure mission status is synced
+    await env.DB.batch([
+      env.DB.prepare(`
+        UPDATE missions SET status = 'paid_complete', paid_at = COALESCE(paid_at, datetime('now')), updated_at = datetime('now') WHERE id = ?
+      `).bind(submissionId),
+      env.DB.prepare(`
+        UPDATE operators SET total_earnings = CASE
+          WHEN (SELECT status FROM missions WHERE id = ?) != 'paid_complete'
+          THEN total_earnings + ? ELSE total_earnings END,
+          updated_at = datetime('now') WHERE id = ?
+      `).bind(submissionId, promoterPayoutCents, mission.operator_id),
+    ]);
   }
-
-  // Step 5: Mark mission as paid_complete
-  await env.DB.batch([
-    env.DB.prepare(`
-      UPDATE missions SET status = 'paid_complete', paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-    `).bind(submissionId),
-    env.DB.prepare(`
-      UPDATE operators SET total_earnings = total_earnings + ?, updated_at = datetime('now') WHERE id = ?
-    `).bind(promoterPayoutCents, mission.operator_id),
-  ]);
 
   // Notify promoter
   const dealForComplete = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
@@ -1283,7 +1144,8 @@ export async function handleExecutePayout(
         tx_hash: payoutTxHash
       }
     },
-    message: 'Payout executed server-side. Promoter has been paid.',
+    payment_model: 'escrow',
+    message: 'Escrow released. Promoter can withdraw via the escrow contract.',
     next_actions: [
       {
         action: 'submit_review',
