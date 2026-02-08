@@ -785,14 +785,13 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), #ff9966);
+  background: rgba(255, 107, 53, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 .mission-advertiser-info {
@@ -1535,7 +1534,7 @@ body {
 
 .human-carousel-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-md);
 }
@@ -1579,16 +1578,16 @@ body {
   color: var(--color-text);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px 6px;
   min-width: 0;
+  flex-wrap: wrap;
+  line-height: 1.3;
 }
 
 .human-carousel-name-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: break-word;
   min-width: 0;
-  flex: 1;
 }
 
 .human-verified-badge {
@@ -2064,6 +2063,8 @@ body {
   color: #FFD700;
   margin-left: 6px;
   opacity: 0.85;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .rep-inline .rep-count {
   color: var(--color-text-muted);
