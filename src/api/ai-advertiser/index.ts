@@ -23,7 +23,7 @@ import {
 import { handleAdvertiserSubmitReview, handleAdvertiserUpdateReview, handleAdvertiserDeleteReview, handleGetPromoterReputation } from './reviews';
 import { handleSetWallet } from './wallet';
 import { handlePrepareDeposit, handleSendDeposit, handleGetDepositBalance } from './deposit';
-import { handleGetPermitData, handleStorePermit } from './permit';
+import { handleGetApproveData, handleSendApprove } from './permit';
 
 /**
  * Route AI Advertiser API requests
@@ -101,12 +101,12 @@ export async function handleAiAdvertiserApi(
       return await handleGetDepositBalance(request, env, context);
     }
 
-    if (method === 'GET' && subPath === '/deposit/permit') {
-      return await handleGetPermitData(request, env, context);
+    if (method === 'GET' && subPath === '/deposit/approve') {
+      return await handleGetApproveData(request, env, context);
     }
 
-    if (method === 'POST' && subPath === '/deposit/permit') {
-      return await handleStorePermit(request, env, context);
+    if (method === 'POST' && subPath === '/deposit/approve') {
+      return await handleSendApprove(request, env, context);
     }
 
     // Mission endpoints (Phase 4)
