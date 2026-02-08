@@ -259,7 +259,7 @@ function showAlert(message, type = 'success') {
   const alertEl = document.createElement('div');
   alertEl.className = `alert alert-${type}`;
   alertEl.textContent = message;
-  alertEl.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;min-width:300px;max-width:90vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:opacity 0.3s ease;';
+  alertEl.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;min-width:200px;max-width:90vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:opacity 0.3s ease;font-size:0.8rem;padding:10px 20px;border-radius:8px;';
 
   document.body.appendChild(alertEl);
 
@@ -298,6 +298,46 @@ document.addEventListener('DOMContentLoaded', () => {
   checkSessionExpiry();
 });
 
+// ============================================
+// Review & Reputation API
+// ============================================
+
+async function submitReview(missionId, data) {
+  return fetchApi(`/api/missions/${missionId}/reviews`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+async function getMissionReviews(missionId) {
+  return fetchApi(`/api/missions/${missionId}/reviews`);
+}
+
+async function getReputation(type, id) {
+  // type: 'operators' or 'ai-advertisers'
+  return fetchApi(`/api/${type}/${id}/reputation`);
+}
+
+async function reportReview(reviewId, reason) {
+  return fetchApi(`/api/reviews/${reviewId}/report`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+// Star rating HTML helper
+function renderStars(rating, size = 'sm') {
+  const sizeClass = size === 'lg' ? 'star-lg' : '';
+  let html = `<span class="stars ${sizeClass}">`;
+  for (let i = 1; i <= 5; i++) {
+    html += i <= rating
+      ? '<span class="star filled">&#9733;</span>'
+      : '<span class="star empty">&#9734;</span>';
+  }
+  html += '</span>';
+  return html;
+}
+
 // Export for use in other pages
 window.HumanAds = {
   fetchApi,
@@ -320,4 +360,9 @@ window.HumanAds = {
   clearSession,
   showAlert,
   setButtonLoading,
+  submitReview,
+  getMissionReviews,
+  getReputation,
+  reportReview,
+  renderStars,
 };
