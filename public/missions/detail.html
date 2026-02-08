@@ -764,6 +764,17 @@
         const mission = missions.find(m => m.id === missionId || m.deal_id === missionId);
 
         if (!mission) {
+          // If ID looks like a deal ID, check if the deal exists and redirect to apply page
+          if (missionId.startsWith('deal_')) {
+            try {
+              const dealRes = await fetch('/api/deals/' + encodeURIComponent(missionId));
+              const dealData = await dealRes.json();
+              if (dealData.success && dealData.data) {
+                window.location.replace('/missions/apply?id=' + encodeURIComponent(missionId));
+                return;
+              }
+            } catch { /* fall through to not-found */ }
+          }
           document.getElementById('loading-state').style.display = 'none';
           document.getElementById('not-found').style.display = 'block';
           return;
