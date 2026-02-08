@@ -1089,7 +1089,7 @@
       btn.textContent = 'Generating...';
 
       try {
-        const language = document.getElementById('post-language').value;
+        const language = 'en'; // Fixed to English for now (dropdown kept for future use)
         const tone = document.getElementById('post-tone').value;
         const requirements = missionData.requirements || {};
         const link = getRequiredLink();
