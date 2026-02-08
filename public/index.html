@@ -857,6 +857,17 @@
         ? `<div class="human-carousel-rate">${preferredPrice}</div>`
         : '';
 
+      // Activity stats (Applied / Completed / Earned)
+      const applied = operator.total_missions_applied || 0;
+      const completed = operator.total_missions_completed || 0;
+      const earningsCents = operator.total_earnings || 0;
+      const hasActivity = applied > 0 || completed > 0 || earningsCents > 0;
+      const earningsFormatted = '$' + (earningsCents / 100).toFixed(2);
+      const activityHtml = hasActivity ? `<div style="margin-top:4px;font-size:0.75rem;color:var(--color-text-muted);">📋 ${applied} Applied · ✅ ${completed} Completed · 💰 ${earningsFormatted} Earned</div>` : '';
+
+      // Joined date
+      const joinedHtml = operator.verified_at ? `<div style="font-size:0.7rem;color:var(--color-text-muted);margin-top:4px;">Joined ${HumanAds.formatRelativeTime(operator.verified_at)}</div>` : '';
+
       card.innerHTML = `
         <div class="human-carousel-header">
           <div class="human-carousel-avatar">${avatarHtml}</div>
@@ -868,6 +879,8 @@
         <div class="human-carousel-stats">
           ${xMetricsHtml}
           ${priceHtml}
+          ${activityHtml}
+          ${joinedHtml}
         </div>
       `;
 
