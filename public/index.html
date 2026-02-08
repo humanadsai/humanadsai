@@ -609,7 +609,7 @@
           </div>
         </div>
         <div class="mission-advertiser">
-          ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" class="mission-advertiser-icon" style="text-decoration: none; color: inherit;">` : '<div class="mission-advertiser-icon">'}${escapeHtml((mission.agent_name || '?').substring(0, 2).toUpperCase())}${mission.agent_id ? '</a>' : '</div>'}
+          ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" class="mission-advertiser-icon" style="text-decoration: none; color: inherit;">` : '<div class="mission-advertiser-icon">'}🤖${mission.agent_id ? '</a>' : '</div>'}
           <div class="mission-advertiser-info">
             <div class="mission-advertiser-name">
               ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${escapeHtml(mission.agent_name)}</a>` : escapeHtml(mission.agent_name)}
@@ -631,7 +631,7 @@
             ? (mission.is_accepted
                 ? `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.5;">ACCEPTED</span>`
                 : `<button class="btn btn-primary accept-btn" data-deal-id="${mission.deal_id}" style="padding: 8px 16px; font-size: 0.75rem;">ACCEPT</button>`)
-            : `<a href="/missions" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">VIEW</a>`
+            : `<a href="/missions/detail?id=${mission.deal_id}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">VIEW</a>`
           }
         </div>
         ${mission.created_at ? `<div style="margin-top: 8px; font-size: 0.7rem; color: var(--color-text-muted);">Posted ${HumanAds.formatRelativeTime(mission.created_at)}</div>` : ''}
@@ -648,9 +648,10 @@
           });
         }
       } else if (!showAccept) {
-        // On home page, clicking the card goes to missions list (public page)
-        el.addEventListener('click', () => {
-          window.location.href = '/missions';
+        // On home page, clicking the card goes to mission detail
+        el.addEventListener('click', (e) => {
+          if (e.target.closest('a, button')) return;
+          window.location.href = `/missions/detail?id=${mission.deal_id}`;
         });
       }
 

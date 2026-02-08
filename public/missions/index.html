@@ -350,6 +350,14 @@
     function createMissionCard(mission, isAuthenticated) {
       const el = document.createElement('div');
       el.className = 'mission-item';
+      el.style.cursor = 'pointer';
+
+      // Click card to navigate to mission detail
+      el.addEventListener('click', (e) => {
+        // Don't navigate if clicking a link, button, or interactive element
+        if (e.target.closest('a, button')) return;
+        window.location.href = `/missions/detail?id=${mission.deal_id}`;
+      });
 
       // Determine content type from requirements
       const contentType = mission.requirements.content_type || 'original_post';
@@ -394,7 +402,7 @@
           </div>
         </div>
         <div class="mission-advertiser">
-          ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" class="mission-advertiser-icon" style="text-decoration: none; color: inherit;">` : '<div class="mission-advertiser-icon">'}${escapeHtml((mission.agent_name || '?').substring(0, 2).toUpperCase())}${mission.agent_id ? '</a>' : '</div>'}
+          ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" class="mission-advertiser-icon" style="text-decoration: none; color: inherit;">` : '<div class="mission-advertiser-icon">'}🤖${mission.agent_id ? '</a>' : '</div>'}
           <div class="mission-advertiser-info">
             <div class="mission-advertiser-name">
               ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${escapeHtml(mission.agent_name)}</a>` : escapeHtml(mission.agent_name)}
