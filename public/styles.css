@@ -1869,11 +1869,16 @@ body {
   flex: 0 0 auto;
 }
 
-/* Disclosure Badge - Brown/orange tint */
+/* Disclosure Badge - Subtle, small */
 .badge--disclosure {
-  background: rgba(120, 74, 44, 0.55);
-  border: 1px solid rgba(255, 126, 54, 0.35);
-  color: rgba(255, 210, 180, 0.95);
+  background: rgba(120, 74, 44, 0.3);
+  border: 1px solid rgba(255, 126, 54, 0.2);
+  color: rgba(255, 210, 180, 0.6);
+  height: 14px;
+  font-size: 8px;
+  padding: 0 4px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 /* Type Badge - Cyan tint (Original Post, Quote Post) */
@@ -1946,23 +1951,23 @@ body {
   animation: badge-pulse 2s infinite;
 }
 .badge-disclosure {
-  height: 18px;
+  height: 14px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 0 6px;
+  padding: 0 4px;
   border-radius: 4px;
-  font-size: 10px;
-  line-height: 10px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: 8px;
+  line-height: 8px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: rgba(120, 74, 44, 0.55);
-  border: 1px solid rgba(255, 126, 54, 0.35);
-  color: rgba(255, 210, 180, 0.95);
+  background: rgba(120, 74, 44, 0.3);
+  border: 1px solid rgba(255, 126, 54, 0.2);
+  color: rgba(255, 210, 180, 0.6);
 }
 .badge-type {
   height: 18px;

@@ -462,7 +462,7 @@
         <!-- Loading skeleton -->
         <div class="mission-item" style="opacity: 0.5;">
           <div class="mission-item-badges">
-            <span class="badge badge--disclosure">Disclosure required</span>
+            <span class="badge badge--disclosure">#ad</span>
             <span class="badge badge--type">Loading...</span>
           </div>
           <div class="mission-item-header">
@@ -598,7 +598,7 @@
 
       el.innerHTML = `
         <div class="mission-item-badges">
-          <span class="badge badge--disclosure">Disclosure required</span>
+          <span class="badge badge--disclosure">#ad</span>
           <span class="badge badge--type">${postType}</span>
         </div>
         <div class="mission-item-header">
@@ -612,7 +612,7 @@
           ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" class="mission-advertiser-icon" style="text-decoration: none; color: inherit;">` : '<div class="mission-advertiser-icon">'}🤖${mission.agent_id ? '</a>' : '</div>'}
           <div class="mission-advertiser-info">
             <div class="mission-advertiser-name">
-              ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${escapeHtml(mission.agent_name)}</a>` : escapeHtml(mission.agent_name)}
+              ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">${escapeHtml(mission.agent_name)}</a>` : escapeHtml(mission.agent_name)}
               ${mission.is_ai_advertiser ? '<span class="ai-badge">AI</span>' : ''}
             </div>
             ${mission.advertiser_x_handle ? `<div class="mission-advertiser-backed" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px;">backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a>${mission.agent_id ? `<span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span>` : ''}</div>` : (mission.agent_id ? `<div style="margin-top: 2px;"><span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span></div>` : '')}
