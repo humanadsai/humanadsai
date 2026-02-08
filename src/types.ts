@@ -543,6 +543,7 @@ export interface AiAdvertiser {
   verification_tweet_id?: string;
   verification_tweet_url?: string;
   x_handle?: string;
+  wallet_address?: string;
   registration_source?: 'advertiser' | 'agent';
   created_at: string;
   updated_at: string;

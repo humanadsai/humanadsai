@@ -161,6 +161,159 @@ export async function handleAdvertiserSubmitReview(
 }
 
 /**
+ * PUT /submissions/:id/review — AI advertiser updates an existing review
+ */
+export async function handleAdvertiserUpdateReview(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  submissionId: string
+): Promise<Response> {
+  const requestId = context.requestId;
+  const advertiser = context.advertiser;
+
+  // Parse request body
+  let body: SubmitReviewRequest;
+  try {
+    body = await request.json() as SubmitReviewRequest;
+  } catch {
+    return errors.badRequest(requestId, 'Invalid JSON body');
+  }
+
+  // Validate rating
+  if (!body.rating || !Number.isInteger(body.rating) || body.rating < 1 || body.rating > 5) {
+    return errors.badRequest(requestId, 'Rating must be an integer between 1 and 5');
+  }
+
+  // Validate comment length
+  if (body.comment && body.comment.length > 500) {
+    return errors.badRequest(requestId, 'Comment must be 500 characters or less');
+  }
+
+  // Validate tags
+  const allowedTags = [
+    'high_quality', 'on_time', 'creative', 'professional', 'good_engagement',
+    'would_hire_again', 'low_quality', 'late_delivery', 'unresponsive',
+  ];
+  if (body.tags) {
+    if (!Array.isArray(body.tags) || body.tags.length > 5) {
+      return errors.badRequest(requestId, 'Tags must be an array of up to 5 items');
+    }
+    for (const tag of body.tags) {
+      if (!allowedTags.includes(tag)) {
+        return errors.badRequest(requestId, `Invalid tag: ${tag}`);
+      }
+    }
+  }
+
+  try {
+    // Find the mission (submission) and verify ownership
+    const mission = await env.DB.prepare(
+      `SELECT m.id, m.deal_id, m.operator_id, m.status, d.agent_id
+       FROM missions m
+       JOIN deals d ON m.deal_id = d.id
+       JOIN ai_advertisers aa ON d.agent_id = aa.id
+       WHERE m.id = ? AND aa.id = ?`
+    )
+      .bind(submissionId, advertiser.id)
+      .first<{ id: string; deal_id: string; operator_id: string; status: string; agent_id: string }>();
+
+    if (!mission) {
+      return errors.notFound(requestId, 'Submission');
+    }
+
+    // Fetch existing review
+    const existingReview = await env.DB.prepare(
+      `SELECT id, is_published, reviewee_id FROM reviews WHERE mission_id = ? AND reviewer_type = 'agent' AND reviewer_id = ?`
+    )
+      .bind(mission.id, advertiser.id)
+      .first<{ id: string; is_published: number; reviewee_id: string }>();
+
+    if (!existingReview) {
+      return errors.notFound(requestId, 'Review');
+    }
+
+    // Update the review
+    await env.DB.prepare(
+      `UPDATE reviews SET rating = ?, comment = ?, tags = ?, updated_at = datetime('now') WHERE id = ?`
+    )
+      .bind(
+        body.rating,
+        body.comment || null,
+        body.tags ? JSON.stringify(body.tags) : null,
+        existingReview.id
+      )
+      .run();
+
+    // Recalculate reputation if review was published
+    if (existingReview.is_published) {
+      await recalculateReputation(env.DB, 'operator', existingReview.reviewee_id);
+    }
+
+    return success({ message: 'Review updated successfully' }, requestId);
+  } catch (e: any) {
+    console.error('[AiAdvertiser] Update review error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
+ * DELETE /submissions/:id/review — AI advertiser deletes an existing review
+ */
+export async function handleAdvertiserDeleteReview(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  submissionId: string
+): Promise<Response> {
+  const requestId = context.requestId;
+  const advertiser = context.advertiser;
+
+  try {
+    // Find the mission (submission) and verify ownership
+    const mission = await env.DB.prepare(
+      `SELECT m.id, m.deal_id, m.operator_id, m.status, d.agent_id
+       FROM missions m
+       JOIN deals d ON m.deal_id = d.id
+       JOIN ai_advertisers aa ON d.agent_id = aa.id
+       WHERE m.id = ? AND aa.id = ?`
+    )
+      .bind(submissionId, advertiser.id)
+      .first<{ id: string; deal_id: string; operator_id: string; status: string; agent_id: string }>();
+
+    if (!mission) {
+      return errors.notFound(requestId, 'Submission');
+    }
+
+    // Fetch existing review
+    const existingReview = await env.DB.prepare(
+      `SELECT id, is_published, reviewee_id FROM reviews WHERE mission_id = ? AND reviewer_type = 'agent' AND reviewer_id = ?`
+    )
+      .bind(mission.id, advertiser.id)
+      .first<{ id: string; is_published: number; reviewee_id: string }>();
+
+    if (!existingReview) {
+      return errors.notFound(requestId, 'Review');
+    }
+
+    // Delete the review
+    await env.DB.prepare(`DELETE FROM reviews WHERE id = ?`)
+      .bind(existingReview.id)
+      .run();
+
+    // Recalculate reputation if review was published
+    if (existingReview.is_published) {
+      await recalculateReputation(env.DB, 'operator', existingReview.reviewee_id);
+    }
+
+    return success({ message: 'Review deleted successfully' }, requestId);
+  } catch (e: any) {
+    console.error('[AiAdvertiser] Delete review error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
  * GET /promoters/:id/reputation — Get operator reputation (alias for public API)
  */
 export async function handleGetPromoterReputation(

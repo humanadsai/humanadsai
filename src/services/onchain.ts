@@ -64,7 +64,7 @@ export function hasTreasuryKey(env: Env): boolean {
 /**
  * Make an RPC call to the Ethereum node
  */
-async function rpcCall(rpcUrl: string, method: string, params: unknown[]): Promise<unknown> {
+export async function rpcCall(rpcUrl: string, method: string, params: unknown[]): Promise<unknown> {
   const response = await fetch(rpcUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -136,7 +136,7 @@ export async function getEthBalance(env: Env, address: string): Promise<string> 
 /**
  * Encode ERC20 transfer call data
  */
-function encodeTransferData(toAddress: string, amountCents: number): string {
+export function encodeTransferData(toAddress: string, amountCents: number): string {
   // Convert cents to base units (6 decimals)
   // 1 cent = 10_000 base units
   const amountBaseUnits = BigInt(amountCents) * BigInt(10000);
@@ -339,6 +339,7 @@ export async function updateTokenOpStatus(
 // Escrow contract ABI fragments
 const ESCROW_ABI = parseAbi([
   'function depositToDeal(bytes32 dealId, uint128 amount, uint32 maxParticipants, uint64 expiresAt) external',
+  'function depositOnBehalfWithPermit(bytes32 dealId, address advertiser, uint128 amount, uint32 maxParticipants, uint64 expiresAt, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external',
   'function releaseToDeal(bytes32 dealId, address operator, uint128 rewardAmount) external',
   'function refundDeal(bytes32 dealId) external',
   'function getWithdrawableBalance(address account) external view returns (uint256)',
@@ -476,6 +477,79 @@ export async function escrowApproveAndDeposit(
     return {
       success: false,
       error: 'Escrow deposit failed (server-side). This is NOT something you need to fix — please retry mission creation. Detail: ' + error,
+    };
+  }
+}
+
+/**
+ * Deposit into escrow on behalf of an advertiser using a stored EIP-2612 permit.
+ * Treasury (ARBITER) calls depositOnBehalfWithPermit — advertiser's hUSD decreases.
+ *
+ * @param advertiserAddress - The real advertiser's wallet address
+ * @param deadline - Permit deadline (unix timestamp)
+ * @param v - Permit signature v
+ * @param r - Permit signature r (hex)
+ * @param s - Permit signature s (hex)
+ */
+export async function escrowDepositOnBehalfWithPermit(
+  env: Env,
+  dealId: string,
+  advertiserAddress: string,
+  totalAmountCents: number,
+  maxParticipants: number,
+  expiresAtISO: string,
+  deadline: number,
+  v: number,
+  r: string,
+  s: string
+): Promise<EscrowResult> {
+  if (!env.TREASURY_PRIVATE_KEY) {
+    return { success: false, error: 'Treasury private key not configured' };
+  }
+
+  // Ledger mode — simulate
+  if (env.PAYOUT_MODE !== 'onchain') {
+    const simulatedHash = 'SIMULATED_PERMIT_DEPOSIT_' + crypto.randomUUID().replace(/-/g, '');
+    return { success: true, depositTxHash: simulatedHash };
+  }
+
+  try {
+    const { client, config: cfg } = createTreasuryClient(env);
+    const dealIdBytes32 = dealIdToBytes32(dealId);
+
+    // Convert cents to base units (6 decimals): 1 cent = 10_000 base units
+    const totalAmountBaseUnits = BigInt(totalAmountCents) * BigInt(10_000);
+    const expiresAtUnix = BigInt(Math.floor(new Date(expiresAtISO).getTime() / 1000));
+    const normalizedAdvertiser = normalizeAddress(advertiserAddress) as Hex;
+
+    const depositTxHash = await client.writeContract({
+      address: cfg.escrowContract as Hex,
+      abi: ESCROW_ABI,
+      functionName: 'depositOnBehalfWithPermit',
+      args: [
+        dealIdBytes32,
+        normalizedAdvertiser,
+        totalAmountBaseUnits as unknown as bigint,
+        maxParticipants,
+        expiresAtUnix as unknown as bigint,
+        BigInt(deadline),
+        v,
+        r as Hex,
+        s as Hex,
+      ],
+    });
+
+    return {
+      success: true,
+      depositTxHash,
+    };
+  } catch (e) {
+    const rawError = e instanceof Error ? e.message : 'Unknown error';
+    const error = redactSecrets(rawError);
+    console.error('escrowDepositOnBehalfWithPermit error:', error);
+    return {
+      success: false,
+      error: 'Escrow permit deposit failed (server-side). Detail: ' + error,
     };
   }
 }

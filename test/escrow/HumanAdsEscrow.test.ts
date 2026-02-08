@@ -505,6 +505,163 @@ describe("HumanAdsEscrow", function () {
   });
 
   // ============================================
+  // depositOnBehalfWithPermit
+  // ============================================
+
+  describe("depositOnBehalfWithPermit", function () {
+    let expiresAt: bigint;
+
+    // Helper to create EIP-2612 permit signature
+    async function signPermit(
+      signer: SignerWithAddress,
+      spender: string,
+      value: bigint,
+      deadline: bigint
+    ) {
+      const husdAddress = await husd.getAddress();
+      const nonce = await husd.nonces(signer.address);
+
+      const domain = {
+        name: "Mock hUSD",
+        version: "1",
+        chainId: (await ethers.provider.getNetwork()).chainId,
+        verifyingContract: husdAddress,
+      };
+
+      const types = {
+        Permit: [
+          { name: "owner", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ],
+      };
+
+      const message = {
+        owner: signer.address,
+        spender,
+        value,
+        nonce,
+        deadline,
+      };
+
+      const signature = await signer.signTypedData(domain, types, message);
+      const { v, r, s } = ethers.Signature.from(signature);
+      return { v, r, s, deadline };
+    }
+
+    beforeEach(async function () {
+      expiresAt = await getExpiresAt();
+      // Mint hUSD to advertiser (no pre-approval needed — permit handles it)
+      // advertiser already has tokens from top-level beforeEach
+    });
+
+    it("should allow arbiter to deposit on behalf with valid permit", async function () {
+      const escrowAddress = await escrow.getAddress();
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+      const { v, r, s } = await signPermit(advertiser, escrowAddress, AMOUNT, deadline);
+
+      await expect(
+        escrow
+          .connect(arbiter)
+          .depositOnBehalfWithPermit(
+            DEAL_ID, advertiser.address, AMOUNT,
+            MAX_PARTICIPANTS, expiresAt,
+            deadline, v, r, s
+          )
+      )
+        .to.emit(escrow, "DealDeposited")
+        .withArgs(DEAL_ID, advertiser.address, AMOUNT, MAX_PARTICIPANTS, expiresAt);
+
+      // Verify deal records advertiser address (not arbiter/treasury)
+      const deal = await escrow.getDeal(DEAL_ID);
+      expect(deal.advertiser).to.equal(advertiser.address);
+      expect(deal.totalDeposited).to.equal(AMOUNT);
+      expect(deal.status).to.equal(0); // Active
+    });
+
+    it("should decrease advertiser's hUSD and increase escrow balance", async function () {
+      const escrowAddress = await escrow.getAddress();
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+      const { v, r, s } = await signPermit(advertiser, escrowAddress, AMOUNT, deadline);
+
+      const advertiserBalBefore = await husd.balanceOf(advertiser.address);
+      const escrowBalBefore = await husd.balanceOf(escrowAddress);
+
+      await escrow
+        .connect(arbiter)
+        .depositOnBehalfWithPermit(
+          DEAL_ID, advertiser.address, AMOUNT,
+          MAX_PARTICIPANTS, expiresAt,
+          deadline, v, r, s
+        );
+
+      const advertiserBalAfter = await husd.balanceOf(advertiser.address);
+      const escrowBalAfter = await husd.balanceOf(escrowAddress);
+
+      expect(advertiserBalBefore - advertiserBalAfter).to.equal(AMOUNT);
+      expect(escrowBalAfter - escrowBalBefore).to.equal(AMOUNT);
+    });
+
+    it("should revert when called by non-arbiter", async function () {
+      const escrowAddress = await escrow.getAddress();
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+      const { v, r, s } = await signPermit(advertiser, escrowAddress, AMOUNT, deadline);
+
+      await expect(
+        escrow
+          .connect(advertiser)
+          .depositOnBehalfWithPermit(
+            DEAL_ID, advertiser.address, AMOUNT,
+            MAX_PARTICIPANTS, expiresAt,
+            deadline, v, r, s
+          )
+      ).to.be.reverted;
+    });
+
+    it("should revert for zero advertiser address", async function () {
+      const escrowAddress = await escrow.getAddress();
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+      const { v, r, s } = await signPermit(advertiser, escrowAddress, AMOUNT, deadline);
+
+      await expect(
+        escrow
+          .connect(arbiter)
+          .depositOnBehalfWithPermit(
+            DEAL_ID, ethers.ZeroAddress, AMOUNT,
+            MAX_PARTICIPANTS, expiresAt,
+            deadline, v, r, s
+          )
+      ).to.be.revertedWithCustomError(escrow, "ZeroAddress");
+    });
+
+    it("should record advertiser (not treasury) so refund goes back to advertiser", async function () {
+      const escrowAddress = await escrow.getAddress();
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+      const { v, r, s } = await signPermit(advertiser, escrowAddress, AMOUNT, deadline);
+
+      await escrow
+        .connect(arbiter)
+        .depositOnBehalfWithPermit(
+          DEAL_ID, advertiser.address, AMOUNT,
+          MAX_PARTICIPANTS, expiresAt,
+          deadline, v, r, s
+        );
+
+      // Refund should go to advertiser
+      const advertiserBalBefore = await husd.balanceOf(advertiser.address);
+
+      await expect(escrow.connect(arbiter).refundDeal(DEAL_ID))
+        .to.emit(escrow, "DealRefunded")
+        .withArgs(DEAL_ID, advertiser.address, AMOUNT);
+
+      const advertiserBalAfter = await husd.balanceOf(advertiser.address);
+      expect(advertiserBalAfter - advertiserBalBefore).to.equal(AMOUNT);
+    });
+  });
+
+  // ============================================
   // Admin: Fee & Vault
   // ============================================
 

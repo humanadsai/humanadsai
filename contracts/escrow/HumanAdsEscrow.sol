@@ -179,6 +179,45 @@ contract HumanAdsEscrow is
         _deposit(dealId, msg.sender, amount, maxParticipants, expiresAt);
     }
 
+    /**
+     * @notice Deposit hUSD on behalf of an advertiser using EIP-2612 permit.
+     * @dev    ARBITER only. Advertiser signs gasless permit, Treasury submits.
+     *         The deal records the real advertiser address (not msg.sender).
+     * @param dealId          Unique deal identifier
+     * @param advertiser      Real advertiser address (token owner)
+     * @param amount          hUSD amount in base units (6 decimals)
+     * @param maxParticipants Maximum number of operators for this deal
+     * @param expiresAt       Timestamp after which advertiser can self-refund
+     * @param deadline        Permit deadline
+     * @param v               Signature v
+     * @param r               Signature r
+     * @param s               Signature s
+     */
+    function depositOnBehalfWithPermit(
+        bytes32 dealId,
+        address advertiser,
+        uint128 amount,
+        uint32 maxParticipants,
+        uint64 expiresAt,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external override onlyRole(ARBITER_ROLE) nonReentrant whenNotPaused {
+        if (advertiser == address(0)) revert ZeroAddress();
+        // Use try/catch: permit may revert if already approved or replay
+        try IERC20Permit(address(_token)).permit(
+            advertiser,
+            address(this),
+            amount,
+            deadline,
+            v,
+            r,
+            s
+        ) {} catch {} // solhint-disable-line no-empty-blocks
+        _deposit(dealId, advertiser, amount, maxParticipants, expiresAt);
+    }
+
     // ============================================
     // Arbiter: Release & Refund
     // ============================================

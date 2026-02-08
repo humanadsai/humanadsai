@@ -10,7 +10,7 @@ import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { validateLanguage } from '../../utils/format';
 import { getMissionNextActions } from '../../utils/next-actions';
-import { escrowApproveAndDeposit, escrowRefund, getOnchainConfig } from '../../services/onchain';
+import { escrowDepositOnBehalfWithPermit, escrowRefund, getOnchainConfig, getHusdBalance } from '../../services/onchain';
 
 interface CreateMissionRequest {
   mode: 'test' | 'production';
@@ -234,26 +234,99 @@ export async function handleCreateMission(
     return errors.internalError(requestId);
   }
 
-  // Deposit into Escrow contract (hUSD onchain mode only)
+  // Check on-chain hUSD balance and find stored permit
+  const totalDepositCents = payoutAmountCents * body.max_claims;
   let escrowDepositTx: string | undefined;
-  if (body.payout.token === 'hUSD' && env.PAYOUT_MODE === 'onchain') {
-    const totalDepositCents = payoutAmountCents * body.max_claims;
-    const depositResult = await escrowApproveAndDeposit(
-      env, missionId, totalDepositCents, body.max_claims, body.deadline_at
+
+  if (body.payout.token === 'hUSD') {
+    // Require wallet
+    if (!advertiser.wallet_address) {
+      await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
+      return error(
+        'NO_WALLET',
+        'Set your wallet address first: POST /advertisers/wallet',
+        requestId,
+        400
+      );
+    }
+
+    // Check on-chain hUSD balance
+    const onchainBalanceCents = await getHusdBalance(env, advertiser.wallet_address);
+    if (onchainBalanceCents < totalDepositCents) {
+      await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
+      return error(
+        'INSUFFICIENT_BALANCE',
+        `Insufficient on-chain hUSD balance. Required: ${(totalDepositCents / 100).toFixed(2)} hUSD, Available: ${(onchainBalanceCents / 100).toFixed(2)} hUSD. Get hUSD first (faucet or transfer).`,
+        requestId,
+        402,
+        { required_cents: totalDepositCents, available_cents: onchainBalanceCents }
+      );
+    }
+
+    // Find an active permit that covers the required amount
+    const permit = await env.DB
+      .prepare(
+        `SELECT id, amount_cents, deadline, v, r, s
+         FROM advertiser_permits
+         WHERE advertiser_id = ? AND status = 'active' AND amount_cents >= ?
+         ORDER BY created_at DESC LIMIT 1`
+      )
+      .bind(advertiser.id, totalDepositCents)
+      .first<{ id: string; amount_cents: number; deadline: number; v: number; r: string; s: string }>();
+
+    if (!permit) {
+      await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
+      return error(
+        'NO_PERMIT',
+        `No active permit found for ${(totalDepositCents / 100).toFixed(2)} hUSD. Sign a permit first: GET /advertisers/deposit/permit?amount=${(totalDepositCents / 100).toFixed(2)}, then POST /advertisers/deposit/permit with the signature.`,
+        requestId,
+        402,
+        { required_cents: totalDepositCents }
+      );
+    }
+
+    // Check permit deadline hasn't passed
+    if (permit.deadline <= Math.floor(Date.now() / 1000)) {
+      // Mark expired permit
+      await env.DB.prepare(`UPDATE advertiser_permits SET status = 'expired' WHERE id = ?`).bind(permit.id).run();
+      await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
+      return error(
+        'PERMIT_EXPIRED',
+        'The stored permit has expired. Sign a new permit: GET /advertisers/deposit/permit',
+        requestId,
+        402
+      );
+    }
+
+    // Deposit using permit (advertiser's hUSD decreases on-chain)
+    const depositResult = await escrowDepositOnBehalfWithPermit(
+      env, missionId, advertiser.wallet_address, totalDepositCents,
+      body.max_claims, body.deadline_at,
+      permit.deadline, permit.v, permit.r, permit.s
     );
+
     if (!depositResult.success) {
-      // Rollback: delete the deal from DB
       await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
       return error('ESCROW_DEPOSIT_FAILED', depositResult.error || 'Failed to deposit into escrow contract', requestId, 502);
     }
+
     escrowDepositTx = depositResult.depositTxHash;
-  } else if (body.payout.token === 'hUSD' && env.PAYOUT_MODE !== 'onchain') {
-    // Ledger mode: simulate deposit
-    const totalDepositCents = payoutAmountCents * body.max_claims;
-    const depositResult = await escrowApproveAndDeposit(
-      env, missionId, totalDepositCents, body.max_claims, body.deadline_at
-    );
-    escrowDepositTx = depositResult.depositTxHash;
+
+    // Mark permit as used
+    await env.DB
+      .prepare(`UPDATE advertiser_permits SET status = 'used', used_deal_id = ? WHERE id = ?`)
+      .bind(missionId, permit.id)
+      .run();
+
+    // Record spend in advertiser_deposits for audit trail
+    const spendId = crypto.randomUUID().replace(/-/g, '');
+    await env.DB
+      .prepare(
+        `INSERT INTO advertiser_deposits (id, advertiser_id, type, amount_cents, deal_id, tx_hash, memo, created_at)
+         VALUES (?, ?, 'spend', ?, ?, ?, ?, datetime('now'))`
+      )
+      .bind(spendId, advertiser.id, -totalDepositCents, missionId, escrowDepositTx || null, `Mission deposit: ${body.title}`)
+      .run();
   }
 
   return success({
@@ -502,6 +575,53 @@ export async function handleHideMission(
     const refundResult = await escrowRefund(env, missionId);
     if (refundResult.success) {
       escrowRefundTx = refundResult.txHash || null;
+
+      // Credit back the unspent portion to advertiser_deposits
+      // Refund = total deposited (abs of spend) - total released for this deal
+      const spendRow = await env.DB
+        .prepare(
+          `SELECT COALESCE(SUM(ABS(amount_cents)), 0) as total_spent
+           FROM advertiser_deposits WHERE advertiser_id = ? AND deal_id = ? AND type = 'spend'`
+        )
+        .bind(advertiser.id, missionId)
+        .first<{ total_spent: number }>();
+      const alreadyRefundedRow = await env.DB
+        .prepare(
+          `SELECT COALESCE(SUM(amount_cents), 0) as total_refunded
+           FROM advertiser_deposits WHERE advertiser_id = ? AND deal_id = ? AND type = 'refund'`
+        )
+        .bind(advertiser.id, missionId)
+        .first<{ total_refunded: number }>();
+      const totalSpent = spendRow?.total_spent || 0;
+      const alreadyRefunded = alreadyRefundedRow?.total_refunded || 0;
+      // Determine how many payouts were made for this deal
+      const paidCount = await env.DB
+        .prepare(
+          `SELECT COUNT(*) as count FROM missions m
+           WHERE m.deal_id = ? AND m.status IN ('paid', 'paid_partial', 'paid_complete')`
+        )
+        .bind(missionId)
+        .first<{ count: number }>();
+      // Get per-slot payout from deal
+      const dealInfo = await env.DB
+        .prepare('SELECT reward_amount FROM deals WHERE id = ?')
+        .bind(missionId)
+        .first<{ reward_amount: number }>();
+      const perSlotCents = dealInfo?.reward_amount || 0;
+      const paidSlots = paidCount?.count || 0;
+      const releasedCents = perSlotCents * paidSlots;
+      const refundCents = totalSpent - releasedCents - alreadyRefunded;
+
+      if (refundCents > 0) {
+        const refundId = crypto.randomUUID().replace(/-/g, '');
+        await env.DB
+          .prepare(
+            `INSERT INTO advertiser_deposits (id, advertiser_id, type, amount_cents, deal_id, tx_hash, memo, created_at)
+             VALUES (?, ?, 'refund', ?, ?, ?, ?, datetime('now'))`
+          )
+          .bind(refundId, advertiser.id, refundCents, missionId, escrowRefundTx, `Refund for hidden mission`)
+          .run();
+      }
     } else {
       console.error(`[HideMission] Escrow refund failed for ${missionId}: ${refundResult.error}`);
       // Non-blocking: still hide the mission even if refund fails
