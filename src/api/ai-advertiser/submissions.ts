@@ -1062,8 +1062,11 @@ export async function handleExecutePayout(
   let aufTxHash = aufPayment.tx_hash;
   let payoutTxHash = payoutPayment.tx_hash;
 
-  // Step 3 & 4: Execute payment via escrow release
-  if (aufPayment.status === 'pending' || payoutPayment.status === 'pending') {
+  // Step 3: Execute escrow release (skip if tx_hash already saved from prior attempt)
+  const needsRelease = (aufPayment.status === 'pending' || payoutPayment.status === 'pending')
+    && !aufPayment.tx_hash && !payoutPayment.tx_hash;
+
+  if (needsRelease) {
     // All hUSD payouts use escrow: single release — contract handles 10%/90% split
     const releaseResult = await escrowRelease(env, mission.deal_id, promoterAddress, rewardAmountCents);
 
@@ -1077,23 +1080,41 @@ export async function handleExecutePayout(
     aufTxHash = releaseTxHash;
     payoutTxHash = releaseTxHash;
 
-    // Mark both payment records as confirmed with the same tx hash
-    // AND update mission status + operator earnings in a single atomic batch
-    // to prevent status divergence if the worker crashes between batches
+    // Save tx_hash immediately to prevent double-release on retry
+    // This is a minimal write that should succeed even if the full batch below fails
     await env.DB.batch([
-      env.DB.prepare(`
-        UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-      `).bind(releaseTxHash, aufPayment.id),
-      env.DB.prepare(`
-        UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-      `).bind(releaseTxHash, payoutPayment.id),
-      env.DB.prepare(`
-        UPDATE missions SET status = 'paid_complete', paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-      `).bind(submissionId),
-      env.DB.prepare(`
-        UPDATE operators SET total_earnings = total_earnings + ?, updated_at = datetime('now') WHERE id = ?
-      `).bind(promoterPayoutCents, mission.operator_id),
+      env.DB.prepare(`UPDATE payments SET tx_hash = ?, updated_at = datetime('now') WHERE id = ?`)
+        .bind(releaseTxHash, aufPayment.id),
+      env.DB.prepare(`UPDATE payments SET tx_hash = ?, updated_at = datetime('now') WHERE id = ?`)
+        .bind(releaseTxHash, payoutPayment.id),
     ]);
+  } else if (aufPayment.tx_hash) {
+    // Escrow already released in a prior attempt — reuse saved tx_hash
+    aufTxHash = aufPayment.tx_hash;
+    payoutTxHash = payoutPayment.tx_hash || aufPayment.tx_hash;
+  }
+
+  // Step 4: Finalize DB state (payments confirmed, mission paid, earnings updated)
+  if (aufPayment.status === 'pending' || payoutPayment.status === 'pending') {
+    try {
+      await env.DB.batch([
+        env.DB.prepare(`
+          UPDATE payments SET status = 'confirmed', tx_hash = COALESCE(tx_hash, ?), confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+        `).bind(aufTxHash, aufPayment.id),
+        env.DB.prepare(`
+          UPDATE payments SET status = 'confirmed', tx_hash = COALESCE(tx_hash, ?), confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+        `).bind(payoutTxHash, payoutPayment.id),
+        env.DB.prepare(`
+          UPDATE missions SET status = 'paid_complete', paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+        `).bind(submissionId),
+        env.DB.prepare(`
+          UPDATE operators SET total_earnings = total_earnings + ?, updated_at = datetime('now') WHERE id = ?
+        `).bind(promoterPayoutCents, mission.operator_id),
+      ]);
+    } catch (dbError) {
+      console.error('DB batch update failed after escrow release:', dbError);
+      return error('DB_UPDATE_FAILED', 'Escrow released successfully but DB update failed. Safe to retry — escrow will not be double-released.', requestId, 500);
+    }
   } else {
     // Payments already confirmed (retry scenario) — ensure mission status is synced
     await env.DB.batch([
