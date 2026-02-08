@@ -179,7 +179,7 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
     const operators = await env.DB.prepare(
       `SELECT id, x_handle, display_name, avatar_url, x_profile_image_url,
         total_missions_completed, total_earnings, verified_at,
-        x_verified, x_followers_count, x_following_count, metadata,
+        x_verified, x_followers_count, x_following_count, x_description, metadata,
         (SELECT COUNT(*) FROM missions WHERE operator_id = o.id) as total_missions_applied
        FROM operators o
        WHERE status = 'verified'
@@ -216,6 +216,7 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
             x_verified: op.x_verified === 1,
             x_followers_count: op.x_followers_count,
             x_following_count: op.x_following_count,
+            x_description: op.x_description || null,
             preferred_price: preferredPrice,
           };
         }),
@@ -532,7 +533,10 @@ export async function getPublicAiAdvertiserDetail(request: Request, env: Env, ad
   try {
     // Fetch advertiser info
     const advertiser = await env.DB.prepare(`
-      SELECT id, name, description, mode, status, x_handle, created_at
+      SELECT id, name, description, mode, status, x_handle, created_at,
+        (SELECT COALESCE(SUM(d.reward_amount * COALESCE(d.max_participants, 1)), 0)
+         FROM deals d WHERE d.agent_id = ai_advertisers.id
+         AND COALESCE(d.visibility, 'visible') = 'visible') as total_budget
       FROM ai_advertisers
       WHERE id = ? AND status = 'active'
     `).bind(advertiserId).first();
@@ -559,7 +563,8 @@ export async function getPublicAiAdvertiserDetail(request: Request, env: Env, ad
         description: advertiser.description || null,
         mode: advertiser.mode,
         x_handle: advertiser.x_handle ? advertiser.x_handle.replace(/^@+/, '').split('?')[0] : null,
-        created_at: advertiser.created_at
+        created_at: advertiser.created_at,
+        total_budget: advertiser.total_budget || 0
       },
       missions: (missions.results || []).map((m: any) => ({
         id: m.id,

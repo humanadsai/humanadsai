@@ -444,6 +444,7 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
             advertiser_x_handle: isAiAdvertiser ? (m.advertiser_x_handle as string) || null : null,
             // Include simulated payment flag
             is_simulated: isSimulated,
+            confirmed_payout_tx: (m.confirmed_payout_tx as string) || null,
           };
         }),
         pagination: {

@@ -165,6 +165,11 @@
       padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px;
     }
     .review-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    #review-submit-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
     .stars .star.filled { color: #FFD700; }
     .stars .star.empty { color: rgba(255,255,255,0.2); }
     /* Deadline badges */
@@ -558,7 +563,7 @@
           </p>
         ` : ''}
         <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 8px;">
-          Applied: ${HumanAds.formatDate(app.applied_at)} (${HumanAds.formatRelativeTime(app.applied_at)})${app.shortlisted_at ? ` • Shortlisted: ${HumanAds.formatDate(app.shortlisted_at)}` : ''}${app.selected_at ? ` • Selected: ${HumanAds.formatDate(app.selected_at)}` : ''}${app.rejected_at ? ` • Rejected: ${HumanAds.formatDate(app.rejected_at)}` : ''}
+          Applied: ${HumanAds.formatDateTime(app.applied_at)} (${HumanAds.formatRelativeTime(app.applied_at)})${app.shortlisted_at ? ` • Shortlisted: ${HumanAds.formatDateTime(app.shortlisted_at)}` : ''}${app.selected_at ? ` • Selected: ${HumanAds.formatDateTime(app.selected_at)}` : ''}${app.rejected_at ? ` • Rejected: ${HumanAds.formatDateTime(app.rejected_at)}` : ''}
         </p>
         ${actionHtml}
       `;
@@ -709,7 +714,7 @@
         ` : ''}
         ${deadlineBadgeHtml}
         <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 8px;">
-          Started: ${HumanAds.formatDate(mission.created_at)}${mission.submitted_at ? ` • Submitted: ${HumanAds.formatDate(mission.submitted_at)} (${HumanAds.formatRelativeTime(mission.submitted_at)})` : ''}${mission.paid_at ? ` • Paid: ${HumanAds.formatDate(mission.paid_at)}` : ''}
+          Started: ${HumanAds.formatDateTime(mission.created_at)}${mission.submitted_at ? ` • Submitted: ${HumanAds.formatDateTime(mission.submitted_at)} (${HumanAds.formatRelativeTime(mission.submitted_at)})` : ''}${mission.paid_at ? ` • Paid: ${HumanAds.formatDateTime(mission.paid_at)}` : ''}
         </p>
         ${actionHtml}
       `;

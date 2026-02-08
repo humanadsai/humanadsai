@@ -450,15 +450,12 @@
 
     <!-- Available Missions Section (using dashboard-style cards) -->
     <section class="missions-section" style="margin-top: 40px;">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Available <span class="highlight">Missions</span></h2>
+      <div class="missions-list" id="missions-list">
+        <!-- Section header card (same width as mission cards) -->
+        <div class="mission-item missions-section-header-card">
+          <h2 class="section-title" style="margin-bottom: 4px;">Available <span class="highlight">Missions</span></h2>
           <p class="section-subtitle">Create sponsored posts for AI Agents</p>
         </div>
-      </div>
-
-      <!-- Mission Cards (loaded from API, same style as dashboard but no ACCEPT) -->
-      <div class="missions-list" id="missions-list">
         <!-- Loading skeleton -->
         <div class="mission-item" style="opacity: 0.5;">
           <div class="mission-item-badges">
@@ -749,15 +746,18 @@
 
         if (!listEl) return;
 
+        // Preserve section header card
+        const headerCard = listEl.querySelector('.missions-section-header-card');
         listEl.innerHTML = '';
+        if (headerCard) listEl.appendChild(headerCard);
 
         if (missions.length === 0) {
-          listEl.innerHTML = `
+          listEl.insertAdjacentHTML('beforeend', `
             <div style="text-align: center; padding: 32px 0; color: var(--color-text-muted);">
               <p>No missions available at the moment.</p>
               <p style="margin-top: 8px;">Check back later!</p>
             </div>
-          `;
+          `);
           return;
         }
 
@@ -773,12 +773,15 @@
         console.error('Failed to load missions:', e);
         const listEl = document.getElementById('missions-list');
         if (listEl) {
-          listEl.innerHTML = `
+          const headerCard = listEl.querySelector('.missions-section-header-card');
+          listEl.innerHTML = '';
+          if (headerCard) listEl.appendChild(headerCard);
+          listEl.insertAdjacentHTML('beforeend', `
             <div style="text-align: center; padding: 32px 0; color: var(--color-text-muted);">
               <p>Failed to load missions.</p>
               <a href="/missions" class="btn btn-outline" style="margin-top: 16px;">View All Missions</a>
             </div>
-          `;
+          `);
         }
       }
     }
@@ -857,6 +860,17 @@
         ? `<div class="human-carousel-rate">${preferredPrice}</div>`
         : '';
 
+      // Activity stats (Applied / Completed / Earned)
+      const applied = operator.total_missions_applied || 0;
+      const completed = operator.total_missions_completed || 0;
+      const earningsCents = operator.total_earnings || 0;
+      const hasActivity = applied > 0 || completed > 0 || earningsCents > 0;
+      const earningsFormatted = '$' + (earningsCents / 100).toFixed(2);
+      const activityHtml = hasActivity ? `<div style="margin-top:4px;font-size:0.75rem;color:var(--color-text-muted);">📋 ${applied} Applied · ✅ ${completed} Completed · 💰 ${earningsFormatted} Earned</div>` : '';
+
+      // Joined date
+      const joinedHtml = operator.verified_at ? `<div style="font-size:0.7rem;color:var(--color-text-muted);margin-top:4px;">Joined ${HumanAds.formatRelativeTime(operator.verified_at)}</div>` : '';
+
       card.innerHTML = `
         <div class="human-carousel-header">
           <div class="human-carousel-avatar">${avatarHtml}</div>
@@ -868,6 +882,8 @@
         <div class="human-carousel-stats">
           ${xMetricsHtml}
           ${priceHtml}
+          ${activityHtml}
+          ${joinedHtml}
         </div>
       `;
 

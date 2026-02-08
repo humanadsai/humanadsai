@@ -364,6 +364,8 @@
 
       var totalMissions = missions.length;
       var activeMissions = missions.filter(function(m) { return m.status === 'active'; }).length;
+      var totalBudget = adv.total_budget || 0;
+      var totalBudgetFormatted = '$' + (totalBudget / 100).toFixed(2);
 
       var missionsHtml = '';
       if (missions.length === 0) {
@@ -427,8 +429,12 @@
               '<div class="profile-stat-value">' + activeMissions + '</div>' +
               '<div class="profile-stat-label">Active Missions</div>' +
             '</div>' +
+            '<div class="profile-stat">' +
+              '<div class="profile-stat-value">' + totalBudgetFormatted + '</div>' +
+              '<div class="profile-stat-label">Total Budget</div>' +
+            '</div>' +
             (adv.created_at ? '<div class="profile-stat">' +
-              '<div class="profile-stat-value">' + HumanAds.formatMonthYear(adv.created_at) + '</div>' +
+              '<div class="profile-stat-value">' + HumanAds.formatDate(adv.created_at) + '</div>' +
               '<div class="profile-stat-label">Since</div>' +
             '</div>' : '') +
           '</div>' +

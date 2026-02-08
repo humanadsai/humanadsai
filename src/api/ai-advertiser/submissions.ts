@@ -1015,39 +1015,48 @@ export async function handleExecutePayout(
     const aufPaymentId = `pay_${generateRandomString(16)}`;
     const payoutPaymentId = `pay_${generateRandomString(16)}`;
 
-    await env.DB.batch([
-      env.DB.prepare(`
-        UPDATE missions SET status = 'approved', approved_at = datetime('now'),
-               payout_deadline_at = ?, updated_at = datetime('now') WHERE id = ?
-      `).bind(payoutDeadline, submissionId),
-      env.DB.prepare(`
-        INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type,
-                              amount_cents, chain, token, status, deadline_at,
-                              to_address, created_at, updated_at, payout_mode)
-        VALUES (?, ?, ?, ?, 'auf', ?, 'sepolia', 'hUSD', 'pending', ?, ?, datetime('now'), datetime('now'), 'onchain')
-      `).bind(aufPaymentId, submissionId, advertiser.id, mission.operator_id,
-              platformFeeCents, payoutDeadline, treasuryAddress),
-      env.DB.prepare(`
-        INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type,
-                              amount_cents, chain, token, status, deadline_at,
-                              to_address, created_at, updated_at, payout_mode)
-        VALUES (?, ?, ?, ?, 'payout', ?, 'sepolia', 'hUSD', 'pending', ?, ?, datetime('now'), datetime('now'), 'onchain')
-      `).bind(payoutPaymentId, submissionId, advertiser.id, mission.operator_id,
-              promoterPayoutCents, payoutDeadline, promoterAddress)
-    ]);
+    try {
+      await env.DB.batch([
+        env.DB.prepare(`
+          UPDATE missions SET status = 'approved', approved_at = datetime('now'),
+                 payout_deadline_at = ?, updated_at = datetime('now') WHERE id = ?
+        `).bind(payoutDeadline, submissionId),
+        env.DB.prepare(`
+          INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type,
+                                amount_cents, chain, token, status, deadline_at,
+                                to_address, created_at, updated_at, payout_mode)
+          VALUES (?, ?, ?, ?, 'auf', ?, 'sepolia', 'hUSD', 'pending', ?, ?, datetime('now'), datetime('now'), 'onchain')
+        `).bind(aufPaymentId, submissionId, advertiser.id, mission.operator_id,
+                platformFeeCents, payoutDeadline, treasuryAddress),
+        env.DB.prepare(`
+          INSERT INTO payments (id, mission_id, agent_id, operator_id, payment_type,
+                                amount_cents, chain, token, status, deadline_at,
+                                to_address, created_at, updated_at, payout_mode)
+          VALUES (?, ?, ?, ?, 'payout', ?, 'sepolia', 'hUSD', 'pending', ?, ?, datetime('now'), datetime('now'), 'onchain')
+        `).bind(payoutPaymentId, submissionId, advertiser.id, mission.operator_id,
+                promoterPayoutCents, payoutDeadline, promoterAddress)
+      ]);
+    } catch (e) {
+      console.error(`[ExecutePayout] Failed to create payment records for ${submissionId}:`, e);
+      return error('PAYMENT_RECORD_FAILED', `Failed to create payment records: ${e instanceof Error ? e.message : 'unknown'}. Retry this endpoint.`, requestId, 500);
+    }
 
-    // Send approval notification
-    const dealForNotif = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
-      .bind(mission.deal_id).first<{ title: string }>();
-    await createNotificationWithEmail(env.DB, env, {
-      recipientId: mission.operator_id,
-      type: 'submission_approved',
-      title: 'Submission Approved',
-      body: `Your submission for '${dealForNotif?.title || 'a mission'}' has been approved. Payout will be processed soon.`,
-      referenceType: 'mission',
-      referenceId: submissionId,
-      metadata: { deal_title: dealForNotif?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2) },
-    });
+    // Send approval notification (non-blocking — don't let notification failure block payment)
+    try {
+      const dealForNotif = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+        .bind(mission.deal_id).first<{ title: string }>();
+      await createNotificationWithEmail(env.DB, env, {
+        recipientId: mission.operator_id,
+        type: 'submission_approved',
+        title: 'Submission Approved',
+        body: `Your submission for '${dealForNotif?.title || 'a mission'}' has been approved. Payout will be processed soon.`,
+        referenceType: 'mission',
+        referenceId: submissionId,
+        metadata: { deal_title: dealForNotif?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2) },
+      });
+    } catch (e) {
+      console.error(`[ExecutePayout] Approval notification failed for ${submissionId} (non-fatal):`, e);
+    }
   }
 
   // Step 2: Get pending payment records
@@ -1060,7 +1069,8 @@ export async function handleExecutePayout(
   const payoutPayment = payments.results.find(p => p.payment_type === 'payout');
 
   if (!aufPayment || !payoutPayment) {
-    return errors.internalError(requestId);
+    console.error(`[ExecutePayout] Payment records missing for ${submissionId}: auf=${!!aufPayment}, payout=${!!payoutPayment}, total=${payments.results.length}, status=${mission.status}`);
+    return error('PAYMENT_RECORDS_MISSING', `Payment records not found for this submission (status: ${mission.status}). This may indicate a database issue. Try calling POST /submissions/${submissionId}/payout first, then retry.`, requestId, 500);
   }
 
   let aufTxHash = aufPayment.tx_hash;
@@ -1078,53 +1088,70 @@ export async function handleExecutePayout(
     }
 
     const releaseTxHash = releaseResult.txHash || `SERVER_RELEASE_${generateRandomString(16)}`;
-    aufTxHash = releaseTxHash;
-    payoutTxHash = releaseTxHash;
+    // Suffix tx_hash to avoid UNIQUE(tx_hash, chain) constraint — single escrow release covers both payments
+    aufTxHash = `${releaseTxHash}_auf`;
+    payoutTxHash = `${releaseTxHash}_payout`;
 
-    // Mark both payment records as confirmed with the same tx hash
-    // AND update mission status + operator earnings in a single atomic batch
-    // to prevent status divergence if the worker crashes between batches
-    await env.DB.batch([
-      env.DB.prepare(`
-        UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-      `).bind(releaseTxHash, aufPayment.id),
-      env.DB.prepare(`
-        UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-      `).bind(releaseTxHash, payoutPayment.id),
-      env.DB.prepare(`
-        UPDATE missions SET status = 'paid_complete', paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-      `).bind(submissionId),
-      env.DB.prepare(`
-        UPDATE operators SET total_earnings = total_earnings + ?, updated_at = datetime('now') WHERE id = ?
-      `).bind(promoterPayoutCents, mission.operator_id),
-    ]);
+    // Mark both payment records as confirmed
+    // AND update mission status + operator earnings/completed count in a single atomic batch
+    try {
+      await env.DB.batch([
+        env.DB.prepare(`
+          UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+        `).bind(aufTxHash, aufPayment.id),
+        env.DB.prepare(`
+          UPDATE payments SET status = 'confirmed', tx_hash = ?, confirmed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+        `).bind(payoutTxHash, payoutPayment.id),
+        env.DB.prepare(`
+          UPDATE missions SET status = 'paid_complete', paid_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
+        `).bind(submissionId),
+        env.DB.prepare(`
+          UPDATE operators SET total_earnings = total_earnings + ?, total_missions_completed = total_missions_completed + 1, updated_at = datetime('now') WHERE id = ?
+        `).bind(promoterPayoutCents, mission.operator_id),
+      ]);
+    } catch (e) {
+      console.error(`[ExecutePayout] DB batch failed after escrow release for ${submissionId} (tx: ${releaseTxHash}):`, e);
+      return error('DB_UPDATE_FAILED', `Escrow release succeeded (tx: ${releaseTxHash}) but database update failed. Retry this endpoint to sync status.`, requestId, 500);
+    }
   } else {
     // Payments already confirmed (retry scenario) — ensure mission status is synced
-    await env.DB.batch([
-      env.DB.prepare(`
-        UPDATE missions SET status = 'paid_complete', paid_at = COALESCE(paid_at, datetime('now')), updated_at = datetime('now') WHERE id = ?
-      `).bind(submissionId),
-      env.DB.prepare(`
-        UPDATE operators SET total_earnings = CASE
-          WHEN (SELECT status FROM missions WHERE id = ?) != 'paid_complete'
-          THEN total_earnings + ? ELSE total_earnings END,
-          updated_at = datetime('now') WHERE id = ?
-      `).bind(submissionId, promoterPayoutCents, mission.operator_id),
-    ]);
+    try {
+      await env.DB.batch([
+        env.DB.prepare(`
+          UPDATE missions SET status = 'paid_complete', paid_at = COALESCE(paid_at, datetime('now')), updated_at = datetime('now') WHERE id = ?
+        `).bind(submissionId),
+        env.DB.prepare(`
+          UPDATE operators SET total_earnings = CASE
+            WHEN (SELECT status FROM missions WHERE id = ?) != 'paid_complete'
+            THEN total_earnings + ? ELSE total_earnings END,
+            total_missions_completed = CASE
+            WHEN (SELECT status FROM missions WHERE id = ?) != 'paid_complete'
+            THEN total_missions_completed + 1 ELSE total_missions_completed END,
+            updated_at = datetime('now') WHERE id = ?
+        `).bind(submissionId, promoterPayoutCents, submissionId, mission.operator_id),
+      ]);
+    } catch (e) {
+      console.error(`[ExecutePayout] DB batch failed for retry sync ${submissionId}:`, e);
+      return error('DB_UPDATE_FAILED', `Payment was already confirmed but status sync failed. Retry this endpoint.`, requestId, 500);
+    }
   }
 
-  // Notify promoter
-  const dealForComplete = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
-    .bind(mission.deal_id).first<{ title: string }>();
-  await createNotificationWithEmail(env.DB, env, {
-    recipientId: mission.operator_id,
-    type: 'payout_complete',
-    title: 'Payment Complete',
-    body: `Payment of ${(promoterPayoutCents / 100).toFixed(2)} hUSD for '${dealForComplete?.title || 'a mission'}' has been sent to your wallet.`,
-    referenceType: 'mission',
-    referenceId: submissionId,
-    metadata: { deal_title: dealForComplete?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2), tx_hash: payoutTxHash },
-  });
+  // Notify promoter (non-blocking — payment already succeeded at this point)
+  try {
+    const dealForComplete = await env.DB.prepare('SELECT title FROM deals WHERE id = ?')
+      .bind(mission.deal_id).first<{ title: string }>();
+    await createNotificationWithEmail(env.DB, env, {
+      recipientId: mission.operator_id,
+      type: 'payout_complete',
+      title: 'Payment Complete',
+      body: `Payment of ${(promoterPayoutCents / 100).toFixed(2)} hUSD for '${dealForComplete?.title || 'a mission'}' has been sent to your wallet.`,
+      referenceType: 'mission',
+      referenceId: submissionId,
+      metadata: { deal_title: dealForComplete?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2), tx_hash: payoutTxHash },
+    });
+  } catch (e) {
+    console.error(`[ExecutePayout] Completion notification failed for ${submissionId} (non-fatal):`, e);
+  }
 
   return success({
     submission_id: submissionId,

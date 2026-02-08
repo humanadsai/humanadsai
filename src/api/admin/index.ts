@@ -1873,6 +1873,77 @@ export async function runScenario(
 }
 
 // ============================================
+// Smoke Test (Client-Driven)
+// ============================================
+
+export async function smokeTestInit(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  try {
+    // Step 1: Register advertiser via internal router call
+    const origin = new URL(request.url).origin;
+    const regReq = new Request(origin + '/api/v1/advertisers/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: '[SMOKE_TEST] API Health Check', mode: 'test' }),
+    });
+    const { handleRequest } = await import('../../router');
+    const regRes = await handleRequest(regReq, env);
+    const regData = await regRes.json() as Record<string, unknown>;
+
+    const advData = regData?.data as Record<string, unknown> | undefined;
+    const advInfo = advData?.advertiser as Record<string, unknown> | undefined;
+    const apiKey = (advInfo?.api_key as string) || '';
+    const advertiserId = (advInfo?.id as string) || '';
+
+    if (!regData?.success || !apiKey) {
+      return success({ success: false, error: 'Registration failed', detail: regData?.error || 'No api_key' }, requestId);
+    }
+
+    // Step 2: Activate advertiser (skip X verification for smoke test)
+    const prefix = apiKey.substring(0, 17);
+    await env.DB.prepare("UPDATE ai_advertisers SET status='active', claimed_at=datetime('now') WHERE api_key_prefix=?")
+      .bind(prefix).run();
+
+    const check = await env.DB.prepare("SELECT status FROM ai_advertisers WHERE api_key_prefix=?")
+      .bind(prefix).first<{ status: string }>();
+
+    if (check?.status !== 'active') {
+      return success({ success: false, error: 'Activation failed', detail: `status=${check?.status || 'not found'}` }, requestId);
+    }
+
+    return success({ api_key: apiKey, advertiser_id: advertiserId }, requestId);
+  } catch (e) {
+    console.error('Smoke test init error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+export async function smokeTestCleanup(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const { requestId } = authResult.context!;
+
+  try {
+    await cleanupSmokeTest(env);
+    return success({ cleaned: true }, requestId);
+  } catch (e) {
+    console.error('Smoke test cleanup error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+// ============================================
 // Logging & Debug
 // ============================================
 

@@ -744,6 +744,16 @@ body {
   border-color: var(--color-primary);
 }
 
+.missions-section-header-card {
+  border-color: transparent;
+  background: none;
+  padding-bottom: 0;
+}
+
+.missions-section-header-card:hover {
+  border-color: transparent;
+}
+
 .mission-item-header {
   display: flex;
   justify-content: space-between;

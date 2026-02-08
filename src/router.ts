@@ -101,6 +101,8 @@ import {
   reviewMission,
   testPayout,
   runScenario,
+  smokeTestInit,
+  smokeTestCleanup,
   getAuditLogs,
   getPayments,
   getFeeRecipients,
@@ -1329,6 +1331,16 @@ async function handleAdminApi(
   // POST /api/admin/scenarios/run - Run scenario
   if (path === '/api/admin/scenarios/run' && method === 'POST') {
     return runScenario(request, env);
+  }
+
+  // POST /api/admin/smoke-test/init - Init smoke test (register + activate)
+  if (path === '/api/admin/smoke-test/init' && method === 'POST') {
+    return smokeTestInit(request, env);
+  }
+
+  // POST /api/admin/smoke-test/cleanup - Cleanup smoke test data
+  if (path === '/api/admin/smoke-test/cleanup' && method === 'POST') {
+    return smokeTestCleanup(request, env);
   }
 
   // ============================================
