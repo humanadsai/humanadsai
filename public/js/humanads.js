@@ -364,24 +364,26 @@
      * @param {string|number} date
      * @returns {string}
      */
+    // Parse DB timestamp as UTC (datetime('now') omits 'Z')
+    _parseUTC(date) {
+      if (typeof date === 'number') return new Date(date);
+      const s = String(date);
+      if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) return new Date(s + 'Z');
+      return new Date(s);
+    },
+
     formatDate(date) {
       if (!date) return 'N/A';
-      const d = new Date(typeof date === 'number' ? date : date);
-      return d.toLocaleDateString('en-US', {
+      return this._parseUTC(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
       });
     },
 
-    /**
-     * Format relative time (e.g., "2 hours ago")
-     * @param {string|number} date
-     * @returns {string}
-     */
     formatRelativeTime(date) {
       if (!date) return 'N/A';
-      const d = new Date(typeof date === 'number' ? date : date);
+      const d = this._parseUTC(date);
       const now = new Date();
       const diffMs = now - d;
       const diffSec = Math.floor(diffMs / 1000);
@@ -396,14 +398,9 @@
       return this.formatDate(date);
     },
 
-    /**
-     * Get deadline urgency level
-     * @param {string|number} date
-     * @returns {string} 'expired' | 'urgent' | 'warning' | 'normal'
-     */
     getDeadlineUrgency(date) {
       if (!date) return 'normal';
-      const d = new Date(typeof date === 'number' ? date : date);
+      const d = this._parseUTC(date);
       const now = new Date();
       const diffMs = d - now;
       if (diffMs <= 0) return 'expired';
@@ -413,14 +410,9 @@
       return 'normal';
     },
 
-    /**
-     * Format deadline as remaining time
-     * @param {string|number} date
-     * @returns {string} e.g. "3d 12h left", "Expired"
-     */
     formatDeadline(date) {
       if (!date) return '';
-      const d = new Date(typeof date === 'number' ? date : date);
+      const d = this._parseUTC(date);
       const now = new Date();
       const diffMs = d - now;
       if (diffMs <= 0) return 'Expired';

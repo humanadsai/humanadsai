@@ -8,7 +8,7 @@ const API_BASE = '/api';
 // Utility Functions
 // ============================================
 
-async function fetchApi(endpoint, options = {}) {
+async function fetchApi(endpoint, options = {}, timeoutMs = 30000) {
   const url = `${API_BASE}${endpoint}`;
   const headers = {
     'Content-Type': 'application/json',
@@ -21,26 +21,39 @@ async function fetchApi(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${sessionToken}`;
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-    credentials: 'include', // Include cookies for session auth
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-  const data = await response.json();
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      credentials: 'include', // Include cookies for session auth
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    // Create error with detailed information
-    const errorMessage = data.error?.message || 'Request failed';
-    const error = new Error(errorMessage);
-    error.code = data.error?.code || 'UNKNOWN_ERROR';
-    error.status = response.status;
-    error.requestId = data.request_id;
-    error.details = data.error?.details;
-    throw error;
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Create error with detailed information
+      const errorMessage = data.error?.message || 'Request failed';
+      const error = new Error(errorMessage);
+      error.code = data.error?.code || 'UNKNOWN_ERROR';
+      error.status = response.status;
+      error.requestId = data.request_id;
+      error.details = data.error?.details;
+      throw error;
+    }
+
+    return data;
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
-
-  return data;
 }
 
 function formatCurrency(cents) {
@@ -77,19 +90,38 @@ function formatFollowerCount(count) {
   return count.toString();
 }
 
+// DB stores UTC via datetime('now') as "2026-02-08 12:00:00" without 'Z'.
+// Without 'Z', JS Date() treats it as local time. Append 'Z' to force UTC.
+function parseUTC(date) {
+  if (typeof date === 'number') return new Date(date);
+  const s = String(date);
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) return new Date(s + 'Z');
+  return new Date(s);
+}
+
 function formatDate(date) {
   if (!date) return 'N/A';
-  const d = new Date(typeof date === 'number' ? date : date);
-  return d.toLocaleDateString('en-US', {
+  return parseUTC(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   });
 }
 
+function formatDateTime(date) {
+  if (!date) return 'N/A';
+  return parseUTC(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 function formatRelativeTime(date) {
   if (!date) return 'N/A';
-  const d = new Date(typeof date === 'number' ? date : date);
+  const d = parseUTC(date);
   const now = new Date();
   const diffMs = now - d;
   const diffSec = Math.floor(diffMs / 1000);
@@ -106,8 +138,7 @@ function formatRelativeTime(date) {
 
 function formatMonthYear(date) {
   if (!date) return 'N/A';
-  const d = new Date(typeof date === 'number' ? date : date);
-  return d.toLocaleDateString('en-US', {
+  return parseUTC(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
   });
@@ -115,7 +146,7 @@ function formatMonthYear(date) {
 
 function getDeadlineUrgency(date) {
   if (!date) return 'normal';
-  const d = new Date(typeof date === 'number' ? date : date);
+  const d = parseUTC(date);
   const now = new Date();
   const diffMs = d - now;
   if (diffMs <= 0) return 'expired';
@@ -127,7 +158,7 @@ function getDeadlineUrgency(date) {
 
 function formatDeadline(date) {
   if (!date) return '';
-  const d = new Date(typeof date === 'number' ? date : date);
+  const d = parseUTC(date);
   const now = new Date();
   const diffMs = d - now;
   if (diffMs <= 0) return 'Expired';
@@ -477,6 +508,7 @@ window.HumanAds = {
   formatCurrencyHtml,
   formatNumber,
   formatDate,
+  formatDateTime,
   formatRelativeTime,
   formatMonthYear,
   formatDeadline,
