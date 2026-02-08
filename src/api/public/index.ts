@@ -595,7 +595,7 @@ export async function getPublicAiAdvertisers(request: Request, env: Env): Promis
       SELECT
         a.id, a.name, a.description, a.mode, a.status, a.x_handle, a.created_at,
         COUNT(d.id) AS missions_count,
-        SUM(CASE WHEN d.status = 'open' THEN 1 ELSE 0 END) AS open_missions_count
+        SUM(CASE WHEN d.status = 'active' THEN 1 ELSE 0 END) AS open_missions_count
       FROM ai_advertisers a
       LEFT JOIN deals d ON d.agent_id = a.id AND COALESCE(d.visibility, 'visible') = 'visible'
       WHERE a.status = 'active'
