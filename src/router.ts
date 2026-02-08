@@ -3,6 +3,7 @@ import { errors, generateRequestId } from './utils/response';
 import { authenticateAgent } from './middleware/auth';
 import { rateLimitMiddleware, checkRateLimit } from './middleware/rate-limit';
 import { SKILL_MD } from './content/skill-md';
+import { HEARTBEAT_MD } from './content/heartbeat-md';
 import { transferHusd, hasTreasuryKey } from './services/onchain';
 
 // Agent API
@@ -77,6 +78,9 @@ import {
 
 // AI Advertiser API (v1)
 import { handleAiAdvertiserApi } from './api/ai-advertiser/index';
+
+// Agent API (v1) — simplified registration + 1-click claim
+import { handleAgentApi as handleAgentRegistrationApi } from './api/agents/index';
 
 // AI Advertiser Claim Flow (Public)
 import { handleClaimPage, handleClaimVerify } from './api/public/claim';
@@ -225,6 +229,15 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // Server-side claim — AI just provides address, server does everything
     if (path === '/api/v1/faucet/claim' && method === 'GET') {
       return handleFaucetClaim(request, env);
+    }
+
+    // ============================================
+    // Agent API (v1) (/api/v1/agents/...)
+    // Simplified registration + 1-click claim
+    // ============================================
+
+    if (path.startsWith('/api/v1/agents/')) {
+      return await handleAgentRegistrationApi(request, env, path, method);
     }
 
     // ============================================
@@ -412,9 +425,27 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       headers.set('Pragma', 'no-cache');
 
       // バージョン管理用ヘッダー
-      headers.set('X-Skill-Version', '2.9.0-2026-02-07');
+      headers.set('X-Skill-Version', '0.2.0-2026-02-08');
 
       return new Response(SKILL_MD, {
+        status: 200,
+        headers
+      });
+    }
+
+    // ============================================
+    // heartbeat.md with caching headers and UTF-8 charset
+    // ============================================
+
+    if (path === '/heartbeat.md') {
+      const headers = new Headers();
+      headers.set('Content-Type', 'text/markdown; charset=utf-8');
+      headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+      headers.set('CDN-Cache-Control', 'no-store');
+      headers.set('Pragma', 'no-cache');
+      headers.set('X-Heartbeat-Version', '1.0.0');
+
+      return new Response(HEARTBEAT_MD, {
         status: 200,
         headers
       });

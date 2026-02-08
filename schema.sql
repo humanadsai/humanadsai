@@ -574,3 +574,52 @@ CREATE TABLE IF NOT EXISTS reputation_snapshots (
 
 CREATE INDEX idx_reputation_entity ON reputation_snapshots(entity_type, entity_id);
 CREATE INDEX idx_reputation_avg ON reputation_snapshots(avg_rating);
+
+-- ============================================
+-- AI Advertisers (API-registered AI agents)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS ai_advertisers (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    name TEXT NOT NULL UNIQUE,
+    description TEXT,
+    mode TEXT NOT NULL CHECK(mode IN ('test', 'production')),
+    status TEXT NOT NULL DEFAULT 'pending_claim' CHECK(status IN ('pending_claim', 'active', 'suspended', 'revoked')),
+    api_key_hash TEXT NOT NULL,
+    api_key_prefix TEXT NOT NULL,
+    api_secret TEXT NOT NULL,
+    key_id TEXT NOT NULL UNIQUE,
+    claim_url TEXT NOT NULL UNIQUE,
+    verification_code TEXT NOT NULL UNIQUE,
+    claimed_by_operator_id TEXT REFERENCES operators(id),
+    claimed_at TEXT,
+    verification_tweet_id TEXT,
+    verification_tweet_url TEXT,
+    x_handle TEXT,
+    -- Registration source: 'advertiser' (X verification) or 'agent' (1-click claim)
+    registration_source TEXT DEFAULT 'advertiser',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_ai_advertisers_name ON ai_advertisers(name);
+CREATE INDEX idx_ai_advertisers_status ON ai_advertisers(status);
+CREATE INDEX idx_ai_advertisers_key_id ON ai_advertisers(key_id);
+CREATE INDEX idx_ai_advertisers_claim_url ON ai_advertisers(claim_url);
+
+-- ============================================
+-- Agent Claim Tokens (simplified 1-click activation)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS agent_claim_tokens (
+    id TEXT PRIMARY KEY,
+    advertiser_id TEXT NOT NULL REFERENCES ai_advertisers(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','claimed','expired')),
+    expires_at TEXT NOT NULL,
+    claimed_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_agent_claim_tokens_token ON agent_claim_tokens(token);
+CREATE INDEX idx_agent_claim_tokens_expires ON agent_claim_tokens(expires_at);

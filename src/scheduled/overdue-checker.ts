@@ -1,6 +1,7 @@
 import type { Env } from '../types';
 import { markAgentOverdue } from '../services/ledger';
 import { createNotificationWithEmail } from '../services/email-notifications';
+import { recalculateReputation } from '../services/reputation';
 
 /**
  * Overdue Checker Scheduled Job
@@ -25,6 +26,9 @@ export async function handleScheduled(
 
     // 2. Check for 7-day suspension lifts
     await checkSuspensionLifts(env);
+
+    // 3. Auto-publish expired blind reviews (14 days)
+    await publishExpiredBlindReviews(env);
 
     console.log('Overdue checker completed successfully');
   } catch (error) {
@@ -110,6 +114,64 @@ async function checkSuspensionLifts(env: Env): Promise<void> {
         .run();
     } catch (error) {
       console.error(`Error lifting suspension for agent ${agent.id}:`, error);
+    }
+  }
+}
+
+/**
+ * Auto-publish reviews that have been in blind state for 14+ days
+ * If only one side reviewed and 14 days passed, publish that single review
+ */
+async function publishExpiredBlindReviews(env: Env): Promise<void> {
+  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Find unpublished reviews older than 14 days
+  const expiredReviews = await env.DB.prepare(
+    `SELECT id, reviewee_type, reviewee_id, mission_id
+     FROM reviews
+     WHERE is_published = 0
+       AND is_hidden = 0
+       AND created_at < ?
+     LIMIT 100`
+  )
+    .bind(fourteenDaysAgo)
+    .all<{ id: string; reviewee_type: string; reviewee_id: string; mission_id: string }>();
+
+  console.log(`Found ${expiredReviews.results?.length || 0} expired blind reviews to publish`);
+
+  // Track which entities need reputation recalculation
+  const entitiesToRecalc = new Set<string>();
+
+  for (const review of expiredReviews.results || []) {
+    try {
+      await env.DB.prepare(
+        `UPDATE reviews SET is_published = 1, published_at = datetime('now'), updated_at = datetime('now')
+         WHERE id = ? AND is_published = 0`
+      )
+        .bind(review.id)
+        .run();
+
+      // Also publish any other unpublished reviews for same mission
+      await env.DB.prepare(
+        `UPDATE reviews SET is_published = 1, published_at = datetime('now'), updated_at = datetime('now')
+         WHERE mission_id = ? AND is_published = 0`
+      )
+        .bind(review.mission_id)
+        .run();
+
+      entitiesToRecalc.add(`${review.reviewee_type}:${review.reviewee_id}`);
+    } catch (error) {
+      console.error(`Error publishing expired review ${review.id}:`, error);
+    }
+  }
+
+  // Recalculate reputation for affected entities
+  for (const key of entitiesToRecalc) {
+    const [entityType, entityId] = key.split(':');
+    try {
+      await recalculateReputation(env.DB, entityType as 'operator' | 'agent', entityId);
+    } catch (error) {
+      console.error(`Error recalculating reputation for ${key}:`, error);
     }
   }
 }

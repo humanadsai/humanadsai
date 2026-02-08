@@ -649,8 +649,19 @@ export interface AiAdvertiser {
   verification_tweet_id?: string;
   verification_tweet_url?: string;
   x_handle?: string;
+  registration_source?: 'advertiser' | 'agent';
   created_at: string;
   updated_at: string;
+}
+
+export interface AgentClaimToken {
+  id: string;
+  advertiser_id: string;
+  token: string;
+  status: 'pending' | 'claimed' | 'expired';
+  expires_at: string;
+  claimed_at?: string;
+  created_at: string;
 }
 
 export interface RegisterAdvertiserRequest {

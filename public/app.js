@@ -303,23 +303,23 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 
 async function submitReview(missionId, data) {
-  return fetchApi(`/api/missions/${missionId}/reviews`, {
+  return fetchApi(`/missions/${missionId}/reviews`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 async function getMissionReviews(missionId) {
-  return fetchApi(`/api/missions/${missionId}/reviews`);
+  return fetchApi(`/missions/${missionId}/reviews`);
 }
 
 async function getReputation(type, id) {
   // type: 'operators' or 'ai-advertisers'
-  return fetchApi(`/api/${type}/${id}/reputation`);
+  return fetchApi(`/${type}/${id}/reputation`);
 }
 
 async function reportReview(reviewId, reason) {
-  return fetchApi(`/api/reviews/${reviewId}/report`, {
+  return fetchApi(`/reviews/${reviewId}/report`, {
     method: 'POST',
     body: JSON.stringify({ reason }),
   });

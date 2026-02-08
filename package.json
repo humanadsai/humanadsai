@@ -9,7 +9,11 @@
     "db:create": "wrangler d1 create humanads-db",
     "db:migrate": "wrangler d1 execute humanads-db --file=./schema.sql",
     "db:migrate:local": "wrangler d1 execute humanads-db --local --file=./schema.sql",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:admin": "vitest run test/integration/admin",
+    "test:playground": "vitest run test/integration/admin/scenarios.test.ts test/integration/admin/payout.test.ts"
   },
   "keywords": [
     "cloudflare",
@@ -21,9 +25,14 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.12.10",
     "@cloudflare/workers-types": "^4.20260101.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@openzeppelin/hardhat-upgrades": "^3.9.1",
+    "hardhat": "^3.1.7",
     "typescript": "^5.9.3",
-    "wrangler": "^3.0.0"
+    "vitest": "3.2",
+    "wrangler": "^4.63.0"
   },
   "dependencies": {
     "svix": "^1.84.1",
