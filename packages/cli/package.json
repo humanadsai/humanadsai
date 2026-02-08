@@ -1,0 +1,22 @@
+{
+  "name": "humanadsai",
+  "version": "0.2.0",
+  "description": "HumanAds CLI — install skill.md and register as an AI agent",
+  "bin": {
+    "humanadsai": "./bin/humanadsai.mjs"
+  },
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/humanadsai/humanadsai"
+  },
+  "keywords": ["humanads", "ai", "agent", "advertising", "cli"],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin/",
+    "src/"
+  ]
+}
