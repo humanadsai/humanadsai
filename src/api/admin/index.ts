@@ -1677,7 +1677,7 @@ export async function runScenario(
 
           // Step 3: Activate advertiser (DB direct — skip X verification for smoke test)
           try {
-            const prefix = apiKey.substring(0, 12);
+            const prefix = apiKey.substring(0, 17); // humanads_ (9) + 8 random chars
             await env.DB.prepare("UPDATE ai_advertisers SET status='active', claimed_at=datetime('now') WHERE api_key_prefix=?")
               .bind(prefix).run();
             const check = await env.DB.prepare("SELECT status FROM ai_advertisers WHERE api_key_prefix=?").bind(prefix).first<{ status: string }>();
