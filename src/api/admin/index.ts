@@ -1619,15 +1619,17 @@ export async function runScenario(
         const steps: { step: string; status: 'pass' | 'fail' | 'warn'; detail?: string }[] = [];
         const origin = new URL(request.url).origin;
 
-        // Helper: internal fetch with optional Bearer auth
+        // Helper: internal request via router (avoids 522 on self-fetch through Cloudflare edge)
         async function apiFetch(method: string, path: string, body?: unknown, apiKey?: string) {
           const headers: Record<string, string> = { 'Content-Type': 'application/json' };
           if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
-          const res = await fetch(new Request(origin + path, {
+          const req = new Request(origin + path, {
             method,
             headers,
             body: body ? JSON.stringify(body) : undefined,
-          }));
+          });
+          const { handleRequest } = await import('../../router');
+          const res = await handleRequest(req, env);
           return { status: res.status, data: await res.json() as Record<string, unknown> };
         }
 
