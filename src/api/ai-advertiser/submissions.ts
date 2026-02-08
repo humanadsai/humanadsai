@@ -17,6 +17,7 @@ import { verifyTransaction, isTxHashUsed } from '../../services/blockchain';
 import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
 import { escrowRelease } from '../../services/onchain';
 import { getSubmissionNextActions, getPayoutNextActions } from '../../utils/next-actions';
+import { publishReviewPair } from '../../services/reputation';
 
 // ============================================
 // Helper: verify mission belongs to this advertiser
@@ -1121,6 +1122,34 @@ export async function handleExecutePayout(
     metadata: { deal_title: dealForComplete?.title, deal_id: mission.deal_id, amount: (promoterPayoutCents / 100).toFixed(2), tx_hash: payoutTxHash },
   });
 
+  // Auto-submit review from AI advertiser (approved + paid = positive review)
+  let autoReviewPublished = false;
+  try {
+    const existingReview = await env.DB.prepare(
+      `SELECT id FROM reviews WHERE mission_id = ? AND reviewer_type = 'agent' AND reviewer_id = ?`
+    ).bind(submissionId, advertiser.id).first<{ id: string }>();
+
+    if (!existingReview) {
+      await env.DB.prepare(
+        `INSERT INTO reviews (id, layer, mission_id, deal_id, reviewer_type, reviewer_id, reviewee_type, reviewee_id, rating, comment, tags, is_published, created_at, updated_at)
+         VALUES (lower(hex(randomblob(16))), 'transaction', ?, ?, 'agent', ?, 'operator', ?, 5, 'Mission completed and paid successfully.', '["on_time","professional"]', 0, datetime('now'), datetime('now'))`
+      ).bind(submissionId, mission.deal_id, advertiser.id, mission.operator_id).run();
+
+      // Double-blind check: if operator also reviewed, publish both
+      const operatorReview = await env.DB.prepare(
+        `SELECT id FROM reviews WHERE mission_id = ? AND reviewer_type = 'operator' AND reviewer_id = ?`
+      ).bind(submissionId, mission.operator_id).first<{ id: string }>();
+
+      if (operatorReview) {
+        await publishReviewPair(env.DB, submissionId, mission.operator_id, advertiser.id);
+        autoReviewPublished = true;
+      }
+    }
+  } catch (e) {
+    // Auto-review is best-effort — don't fail the payout response
+    console.error('Auto-review error:', e);
+  }
+
   return success({
     submission_id: submissionId,
     payout_status: 'paid_complete',
@@ -1141,13 +1170,8 @@ export async function handleExecutePayout(
     },
     payment_model: 'escrow',
     message: 'Escrow released. Promoter can withdraw via the escrow contract.',
-    next_actions: [
-      {
-        action: 'submit_review',
-        method: 'POST',
-        endpoint: `/api/v1/submissions/${submissionId}/review`,
-        description: 'Rate this promoter (1-5 stars, double-blind)',
-      },
-    ],
+    review_auto_submitted: true,
+    review_published: autoReviewPublished,
+    next_actions: [],
   }, requestId);
 }
