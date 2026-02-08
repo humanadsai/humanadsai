@@ -345,7 +345,7 @@
       // Price HTML - show preferred price or fallback
       const priceHtml = preferredPrice
         ? `<div class="operator-rate">${preferredPrice}</div>`
-        : `<div class="operator-rate operator-rate-fallback">Preferred Price Not Set</div>`;
+        : '';
 
       card.innerHTML = `
         <div class="operator-header">
