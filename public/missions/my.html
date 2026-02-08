@@ -907,10 +907,15 @@
         const missionId = trigger.dataset.missionId;
         try {
           const res = await HumanAds.getMissionReviews(missionId);
-          if (res.data && res.data.my_pending_review) {
-            trigger.textContent = '✓ Reviewed';
-            trigger.classList.add('reviewed');
-            trigger.classList.remove('review-trigger');
+          const myReview = res.data?.my_pending_review;
+          if (myReview) {
+            const stars = '★'.repeat(myReview.rating) + '☆'.repeat(5 - myReview.rating);
+            const container = trigger.parentElement;
+            container.innerHTML = `
+              <div style="margin-top: 10px; padding: 10px 16px; background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-align: center;">
+                <div style="color: #81C784; font-size: 0.8rem; font-weight: 600;">✓ Review Submitted</div>
+                <div style="color: #FFD700; font-size: 1rem; letter-spacing: 2px; margin-top: 4px;">${stars}</div>
+              </div>`;
           }
         } catch { /* ignore */ }
       }
@@ -1004,10 +1009,15 @@
       // Check if already reviewed
       try {
         const res = await HumanAds.getMissionReviews(currentMissionId);
-        if (res.data && res.data.my_pending_review) {
-          trigger.textContent = '✓ Reviewed';
-          trigger.classList.add('reviewed');
-          trigger.classList.remove('review-trigger');
+        const myReview = res.data?.my_pending_review;
+        if (myReview) {
+          const stars = '★'.repeat(myReview.rating) + '☆'.repeat(5 - myReview.rating);
+          const container = trigger.parentElement;
+          container.innerHTML = `
+            <div style="margin-top: 10px; padding: 10px 16px; background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-align: center;">
+              <div style="color: #81C784; font-size: 0.8rem; font-weight: 600;">✓ Review Submitted</div>
+              <div style="color: #FFD700; font-size: 1rem; letter-spacing: 2px; margin-top: 4px;">${stars}</div>
+            </div>`;
           return;
         }
       } catch { /* continue */ }
@@ -1043,9 +1053,13 @@
         // Update the button to show reviewed state
         const btn = document.querySelector(`.review-trigger[data-mission-id="${currentMissionId}"]`);
         if (btn) {
-          btn.textContent = 'Reviewed';
-          btn.classList.add('reviewed');
-          btn.classList.remove('review-trigger');
+          const stars = '★'.repeat(selectedRating) + '☆'.repeat(5 - selectedRating);
+          const container = btn.parentElement;
+          container.innerHTML = `
+            <div style="margin-top: 10px; padding: 10px 16px; background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 8px; text-align: center;">
+              <div style="color: #81C784; font-size: 0.8rem; font-weight: 600;">✓ Review Submitted</div>
+              <div style="color: #FFD700; font-size: 1rem; letter-spacing: 2px; margin-top: 4px;">${stars}</div>
+            </div>`;
         }
       } catch (err) {
         HumanAds.showAlert(err.message || 'Failed to submit review', 'error');

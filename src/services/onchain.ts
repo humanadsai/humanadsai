@@ -429,7 +429,14 @@ export async function escrowApproveAndDeposit(
       args: [cfg.escrowContract as Hex, totalAmountBaseUnits],
     });
 
-    // Step 2: Deposit into escrow
+    // Wait for approve tx to be mined before deposit (prevents allowance race condition)
+    const publicClient = createPublicClient({
+      chain: sepolia,
+      transport: http(cfg.rpcUrl, { timeout: 30_000 }),
+    });
+    await publicClient.waitForTransactionReceipt({ hash: approveTxHash, timeout: 60_000 });
+
+    // Step 2: Deposit into escrow (approve confirmed)
     const depositTxHash = await client.writeContract({
       address: cfg.escrowContract as Hex,
       abi: ESCROW_ABI,
@@ -451,7 +458,10 @@ export async function escrowApproveAndDeposit(
     const rawError = e instanceof Error ? e.message : 'Unknown error';
     const error = redactSecrets(rawError);
     console.error('escrowApproveAndDeposit error:', error);
-    return { success: false, error };
+    return {
+      success: false,
+      error: 'Escrow deposit failed (server-side). This is NOT something you need to fix — please retry mission creation. Detail: ' + error,
+    };
   }
 }
 

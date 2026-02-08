@@ -178,13 +178,13 @@ export async function getMissionReviews(
         .bind(missionId, operatorId)
         .first<Review>();
 
-      if (own && !own.is_published) {
+      if (own) {
         myReview = {
           id: own.id,
           rating: own.rating,
           comment: own.comment,
           tags: own.tags ? JSON.parse(own.tags) : [],
-          is_published: false,
+          is_published: !!own.is_published,
           created_at: own.created_at,
         };
       }
