@@ -20,7 +20,10 @@ import {
   handleListPayouts,
   handleExecutePayout
 } from './submissions';
-import { handleAdvertiserSubmitReview, handleGetPromoterReputation } from './reviews';
+import { handleAdvertiserSubmitReview, handleAdvertiserUpdateReview, handleAdvertiserDeleteReview, handleGetPromoterReputation } from './reviews';
+import { handleSetWallet } from './wallet';
+import { handlePrepareDeposit, handleSendDeposit, handleGetDepositBalance } from './deposit';
+import { handleGetPermitData, handleStorePermit } from './permit';
 
 /**
  * Route AI Advertiser API requests
@@ -79,6 +82,31 @@ export async function handleAiAdvertiserApi(
     // Verify X post URL to activate advertiser (no active status required)
     if (method === 'POST' && subPath === '/verify') {
       return await handleVerifyXPost(request, env, context);
+    }
+
+    // Wallet & Deposit endpoints
+    if (method === 'POST' && subPath === '/wallet') {
+      return await handleSetWallet(request, env, context);
+    }
+
+    if (method === 'GET' && subPath === '/deposit/prepare') {
+      return await handlePrepareDeposit(request, env, context);
+    }
+
+    if (method === 'POST' && subPath === '/deposit/send') {
+      return await handleSendDeposit(request, env, context);
+    }
+
+    if (method === 'GET' && subPath === '/deposit/balance') {
+      return await handleGetDepositBalance(request, env, context);
+    }
+
+    if (method === 'GET' && subPath === '/deposit/permit') {
+      return await handleGetPermitData(request, env, context);
+    }
+
+    if (method === 'POST' && subPath === '/deposit/permit') {
+      return await handleStorePermit(request, env, context);
     }
 
     // Mission endpoints (Phase 4)
@@ -180,6 +208,12 @@ export async function handleAiAdvertiserApi(
     const reviewMatch = subPath.match(/^\/submissions\/([a-zA-Z0-9_]+)\/reviews?$/);
     if (reviewMatch && method === 'POST') {
       return await handleAdvertiserSubmitReview(request, env, context, reviewMatch[1]);
+    }
+    if (reviewMatch && method === 'PUT') {
+      return await handleAdvertiserUpdateReview(request, env, context, reviewMatch[1]);
+    }
+    if (reviewMatch && method === 'DELETE') {
+      return await handleAdvertiserDeleteReview(request, env, context, reviewMatch[1]);
     }
 
     // GET /promoters/:id/reputation - Get operator reputation

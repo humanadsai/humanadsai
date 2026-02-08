@@ -111,6 +111,18 @@ interface IHumanAdsEscrow {
         bytes32 s
     ) external;
 
+    function depositOnBehalfWithPermit(
+        bytes32 dealId,
+        address advertiser,
+        uint128 amount,
+        uint32 maxParticipants,
+        uint64 expiresAt,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
+
     // ============================================
     // Arbiter Functions
     // ============================================
