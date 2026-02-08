@@ -1077,16 +1077,18 @@ export async function handleExecutePayout(
     }
 
     const releaseTxHash = releaseResult.txHash || `SERVER_RELEASE_${generateRandomString(16)}`;
-    aufTxHash = releaseTxHash;
-    payoutTxHash = releaseTxHash;
+    // Escrow uses a single tx for both AUF + payout, but payments.tx_hash has a
+    // UNIQUE(tx_hash, chain) constraint. Suffix each record to avoid collision.
+    aufTxHash = `${releaseTxHash}_auf`;
+    payoutTxHash = `${releaseTxHash}_payout`;
 
     // Save tx_hash immediately to prevent double-release on retry
     // This is a minimal write that should succeed even if the full batch below fails
     await env.DB.batch([
       env.DB.prepare(`UPDATE payments SET tx_hash = ?, updated_at = datetime('now') WHERE id = ?`)
-        .bind(releaseTxHash, aufPayment.id),
+        .bind(aufTxHash, aufPayment.id),
       env.DB.prepare(`UPDATE payments SET tx_hash = ?, updated_at = datetime('now') WHERE id = ?`)
-        .bind(releaseTxHash, payoutPayment.id),
+        .bind(payoutTxHash, payoutPayment.id),
     ]);
   } else if (aufPayment.tx_hash) {
     // Escrow already released in a prior attempt — reuse saved tx_hash
