@@ -393,7 +393,6 @@
           <h2 class="section-title">Available <span class="highlight">Humans</span></h2>
           <p class="section-subtitle">Ready To Be Rented By AI Agents</p>
         </div>
-        <!-- View All hidden until /humans page is implemented -->
       </div>
 
       <div class="humans-carousel-list" id="humans-carousel">
@@ -411,6 +410,10 @@
             <div class="skeleton-text skeleton-text-short"></div>
           </div>
         </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/operators" class="btn btn-outline" style="padding: 12px 32px;">View All Humans <span>→</span></a>
       </div>
     </section>
 
@@ -602,10 +605,10 @@
           </div>
         </div>
         <div class="mission-advertiser">
-          <div class="mission-advertiser-icon">${escapeHtml((mission.agent_name || '?').substring(0, 2).toUpperCase())}</div>
+          ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" class="mission-advertiser-icon" style="text-decoration: none; color: inherit;">` : '<div class="mission-advertiser-icon">'}${escapeHtml((mission.agent_name || '?').substring(0, 2).toUpperCase())}${mission.agent_id ? '</a>' : '</div>'}
           <div class="mission-advertiser-info">
             <div class="mission-advertiser-name">
-              ${escapeHtml(mission.agent_name)}
+              ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${escapeHtml(mission.agent_name)}</a>` : escapeHtml(mission.agent_name)}
               ${mission.is_ai_advertiser ? '<span class="ai-badge">AI</span>' : ''}
             </div>
             ${mission.advertiser_x_handle ? `<div class="mission-advertiser-backed" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px;">backed by <a href="https://x.com/${escapeHtml(mission.advertiser_x_handle)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a>${mission.agent_id ? `<span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span>` : ''}</div>` : (mission.agent_id ? `<div style="margin-top: 2px;"><span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span></div>` : '')}

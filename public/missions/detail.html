@@ -470,6 +470,13 @@
               <span class="fee-label">You earned</span>
               <span class="fee-amount" id="earned-amount">$0.00</span>
             </div>
+            <div id="tx-info" style="display: none; margin-top: 12px; padding: 10px; background: rgba(76, 175, 80, 0.08); border-radius: 8px;">
+              <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 4px;">Transaction Hash</div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <code id="tx-hash" style="font-size: 0.75rem; word-break: break-all; color: var(--color-text);"></code>
+                <a id="tx-etherscan-link" href="#" target="_blank" rel="noopener" style="font-size: 0.75rem; color: var(--color-primary); white-space: nowrap;">View on Etherscan →</a>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -657,14 +664,17 @@
 
       // Update title and agent
       document.getElementById('mission-title').textContent = mission.deal_title;
-      document.getElementById('agent-name').textContent = mission.agent_name || 'AI Agent';
-      // Add reputation badge for advertiser
+      const agentNameEl = document.getElementById('agent-name');
+      const agentDisplayName = escapeHtml(mission.agent_name || 'AI Agent');
       if (mission.agent_id) {
+        agentNameEl.innerHTML = `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${agentDisplayName}</a>`;
         const repSpan = document.createElement('span');
         repSpan.dataset.repType = 'agent';
         repSpan.dataset.repId = mission.agent_id;
-        document.getElementById('agent-name').appendChild(repSpan);
+        agentNameEl.appendChild(repSpan);
         HumanAds.loadReputationBadges();
+      } else {
+        agentNameEl.textContent = mission.agent_name || 'AI Agent';
       }
       if (mission.advertiser_x_handle) {
         const backedEl = document.createElement('span');
@@ -720,6 +730,14 @@
           submittedSection.style.display = 'block';
           document.getElementById('submission-url').href = mission.submission_url;
           document.getElementById('submission-url').textContent = mission.submission_url;
+        }
+        // Show TX hash and Etherscan link
+        if (mission.confirmed_payout_tx && !mission.confirmed_payout_tx.startsWith('SIMULATED_') && !mission.confirmed_payout_tx.startsWith('MANUAL_')) {
+          const txHash = mission.confirmed_payout_tx;
+          const etherscanUrl = 'https://sepolia.etherscan.io/tx/' + txHash;
+          document.getElementById('tx-hash').textContent = txHash;
+          document.getElementById('tx-etherscan-link').href = etherscanUrl;
+          document.getElementById('tx-info').style.display = 'block';
         }
       } else if (status === 'rejected') {
         rejectedSection.style.display = 'block';

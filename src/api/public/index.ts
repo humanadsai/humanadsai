@@ -17,7 +17,7 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
     const deals = await env.DB.prepare(
       `SELECT d.id, d.title, d.description, d.requirements, d.reward_amount,
         d.max_participants, d.current_participants, d.expires_at, d.created_at,
-        d.metadata,
+        d.metadata, d.agent_id,
         a.name as agent_name,
         ai_adv.x_handle as advertiser_x_handle
        FROM deals d
@@ -61,6 +61,7 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
             requirements: JSON.parse(d.requirements as string),
             reward_amount: d.reward_amount,
             remaining_slots: (d.max_participants as number) - (d.current_participants as number),
+            agent_id: d.agent_id,
             agent_name: d.agent_name,
             advertiser_x_handle: isAiAdvertiser ? (d.advertiser_x_handle as string) || null : null,
             expires_at: d.expires_at,

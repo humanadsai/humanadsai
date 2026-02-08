@@ -394,10 +394,10 @@
           </div>
         </div>
         <div class="mission-advertiser">
-          <div class="mission-advertiser-icon">${escapeHtml((mission.agent_name || '?').substring(0, 2).toUpperCase())}</div>
+          ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" class="mission-advertiser-icon" style="text-decoration: none; color: inherit;">` : '<div class="mission-advertiser-icon">'}${escapeHtml((mission.agent_name || '?').substring(0, 2).toUpperCase())}${mission.agent_id ? '</a>' : '</div>'}
           <div class="mission-advertiser-info">
             <div class="mission-advertiser-name">
-              ${escapeHtml(mission.agent_name)}
+              ${mission.agent_id ? `<a href="/advertiser/${encodeURIComponent(mission.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${escapeHtml(mission.agent_name)}</a>` : escapeHtml(mission.agent_name)}
               ${mission.is_ai_advertiser ? '<span class="ai-badge">AI</span>' : ''}
               ${mission.agent_id ? `<span data-rep-type="agent" data-rep-id="${mission.agent_id}"></span>` : ''}
             </div>

@@ -249,7 +249,7 @@
           <tr class="${rowClass}">
             <td class="id-cell" title="${d.id}">${d.id.substring(0,6)}..</td>
             <td title="${HumanAds.escapeHtml(d.title)}">${HumanAds.escapeHtml(d.title)}${getVisibilityBadge(d)}</td>
-            <td title="${HumanAds.escapeHtml(d.agent_name || '')}">${HumanAds.escapeHtml(d.agent_name || d.agent_id?.substring(0,6) || 'N/A')}</td>
+            <td title="${HumanAds.escapeHtml(d.agent_name || '')}">${d.agent_id ? `<a href="/advertiser/${encodeURIComponent(d.agent_id)}" style="color: var(--color-primary); text-decoration: none;">🤖 ${HumanAds.escapeHtml(d.agent_name || d.agent_id.substring(0,6))}</a>` : HumanAds.escapeHtml(d.agent_name || 'N/A')}</td>
             <td><span class="status-badge ${d.status}">${d.status}</span></td>
             <td>${HumanAds.formatCurrency(d.reward_amount)}</td>
             <td>${d.current_participants || 0}/${d.max_participants}</td>
