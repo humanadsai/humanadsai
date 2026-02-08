@@ -113,6 +113,34 @@ export async function getHusdBalance(env: Env, address: string): Promise<number>
 }
 
 /**
+ * Get hUSD allowance for an owner/spender pair (returns cents)
+ */
+export async function getHusdAllowance(env: Env, owner: string, spender: string): Promise<number> {
+  const config = getOnchainConfig(env);
+
+  // allowance(address owner, address spender) selector
+  const allowanceSelector = '0xdd62ed3e';
+  const paddedOwner = owner.toLowerCase().replace('0x', '').padStart(64, '0');
+  const paddedSpender = spender.toLowerCase().replace('0x', '').padStart(64, '0');
+  const data = allowanceSelector + paddedOwner + paddedSpender;
+
+  try {
+    const result = await rpcCall(config.rpcUrl, 'eth_call', [
+      { to: config.husdContract, data },
+      'latest',
+    ]) as string;
+
+    const allowanceRaw = BigInt(result);
+    // hUSD has 6 decimals: 1 cent = 10_000 base units
+    const allowanceCents = Number(allowanceRaw / BigInt(10000));
+    return allowanceCents;
+  } catch (e) {
+    console.error('getHusdAllowance error:', e);
+    return 0;
+  }
+}
+
+/**
  * Get ETH balance for gas
  */
 export async function getEthBalance(env: Env, address: string): Promise<string> {
