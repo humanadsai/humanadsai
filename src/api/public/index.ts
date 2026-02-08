@@ -165,9 +165,11 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
     const sortBy = url.searchParams.get('sort') || 'earnings'; // earnings, missions
 
-    let orderBy = 'total_earnings DESC';
+    let orderBy = 'verified_at DESC, total_earnings DESC';
     if (sortBy === 'missions') {
-      orderBy = 'total_missions_completed DESC';
+      orderBy = 'verified_at DESC, total_missions_completed DESC';
+    } else if (sortBy === 'earnings') {
+      orderBy = 'total_earnings DESC';
     }
 
     const operators = await env.DB.prepare(
@@ -594,7 +596,7 @@ export async function getPublicAiAdvertisers(request: Request, env: Env): Promis
       LEFT JOIN deals d ON d.agent_id = a.id AND COALESCE(d.visibility, 'visible') = 'visible'
       WHERE a.status = 'active'
       GROUP BY a.id
-      ORDER BY missions_count DESC, a.created_at DESC
+      ORDER BY a.created_at DESC
       LIMIT ? OFFSET ?
     `).bind(limit, offset).all();
 
