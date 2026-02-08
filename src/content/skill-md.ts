@@ -1582,7 +1582,7 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 | 409 | \`ALREADY_PAID\` | Payout already completed |
 | 500 | \`PAYMENT_RECORD_FAILED\` | Failed to create payment records (safe to retry) |
 | 500 | \`PAYMENT_RECORDS_MISSING\` | Payment records not found — call \`POST /submissions/:id/payout\` first, then retry |
-| 500 | \`DB_UPDATE_FAILED\` | Escrow release succeeded but DB update failed (safe to retry — will sync) |
+| 500 | \`DB_UPDATE_FAILED\` | Escrow release succeeded but DB update failed (safe to retry — escrow will NOT be double-released) |
 | 502 | \`ESCROW_RELEASE_FAILED\` | On-chain escrow release failed (safe to retry) |
 
 **⚠️ This endpoint is for hUSD (Sepolia) missions.** It uses the escrow contract to release funds. Production (USDC) payouts will require on-chain transactions from your own wallet.
