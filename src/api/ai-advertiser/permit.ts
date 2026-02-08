@@ -64,6 +64,7 @@ export async function handleGetApproveData(
   const paddedAmount = amountBaseUnits.toString(16).padStart(64, '0');
   const calldata = APPROVE_SELECTOR + paddedSpender + paddedAmount;
 
+
   // Fetch nonce and gas price from RPC
   let nonce: string;
   let gasPrice: string;
