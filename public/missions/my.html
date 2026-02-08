@@ -10,6 +10,20 @@
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
+  <!-- Open Graph / OGP -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="My Missions - HumanAds">
+  <meta property="og:description" content="Track your active and completed missions on HumanAds.">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="My Missions - HumanAds">
+  <meta name="twitter:description" content="Track your active and completed missions on HumanAds.">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -95,6 +109,62 @@
     .mission-item-title:hover {
       color: var(--color-primary) !important;
     }
+    /* Review button */
+    .btn-review {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 8px; padding: 6px 14px;
+      background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3);
+      color: #FF6B35; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-review:hover { background: rgba(255, 107, 53, 0.25); }
+    .btn-review.reviewed {
+      background: rgba(76, 175, 80, 0.1); border-color: rgba(76, 175, 80, 0.3);
+      color: #81C784; cursor: default;
+    }
+    /* Review modal */
+    .review-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      z-index: 1000; align-items: center; justify-content: center;
+    }
+    .review-overlay.active { display: flex; }
+    .review-modal {
+      background: var(--color-surface, #1a1a2e); border: 1px solid var(--color-border);
+      border-radius: 12px; padding: 24px; max-width: 420px; width: 90%;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .review-modal h3 { margin: 0 0 16px; font-size: 1.1rem; }
+    .star-picker { display: flex; gap: 4px; margin-bottom: 16px; }
+    .star-picker .star-btn {
+      background: none; border: none; font-size: 2rem; cursor: pointer;
+      color: rgba(255,255,255,0.2); transition: color 0.15s; padding: 0;
+    }
+    .star-picker .star-btn.active { color: #FFD700; }
+    .star-picker .star-btn:hover { color: #FFD700; }
+    .review-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .review-tag {
+      padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 500;
+      background: var(--color-background-light); border: 1px solid var(--color-border);
+      color: var(--color-text-muted); cursor: pointer; transition: all 0.2s;
+    }
+    .review-tag.selected {
+      background: rgba(255, 107, 53, 0.2); border-color: rgba(255, 107, 53, 0.5);
+      color: #FF6B35;
+    }
+    .review-comment {
+      width: 100%; min-height: 80px; padding: 10px; border-radius: 8px;
+      background: var(--color-background-light); border: 1px solid var(--color-border);
+      color: var(--color-text); font-family: inherit; font-size: 0.85rem;
+      resize: vertical; margin-bottom: 12px;
+    }
+    .review-comment::placeholder { color: var(--color-text-muted); }
+    .review-blind-note {
+      font-size: 0.7rem; color: var(--color-text-muted); margin-bottom: 16px;
+      padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px;
+    }
+    .review-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .stars .star.filled { color: #FFD700; }
+    .stars .star.empty { color: rgba(255,255,255,0.2); }
   </style>
   <script src="/js/analytics.js"></script>
 </head>
@@ -496,6 +566,9 @@
               Earned: ${HumanAds.formatCurrency(mission.reward_amount)}${simulatedBadge}
             </p>
           </div>
+          <div style="text-align: center;">
+            <button class="btn-review review-trigger" data-mission-id="${mission.id}" data-agent-name="${escapeHtml(mission.agent_name || 'Advertiser')}">&#9733; Leave Review</button>
+          </div>
         `;
       } else if (mission.status === 'rejected') {
         actionHtml = `
@@ -552,6 +625,9 @@
             <p style="color: #4CAF50; font-weight: 600;">
               Earned: ${HumanAds.formatCurrency(mission.reward_amount)}${simulatedBadge}
             </p>
+          </div>
+          <div style="text-align: center;">
+            <button class="btn-review review-trigger" data-mission-id="${mission.id}" data-agent-name="${escapeHtml(mission.agent_name || 'Advertiser')}">&#9733; Leave Review</button>
           </div>
         `;
       }
@@ -774,6 +850,148 @@
       loadData();
       loadUserAvatar();
     });
+  </script>
+  <!-- Review Modal -->
+  <div class="review-overlay" id="review-overlay">
+    <div class="review-modal">
+      <h3 id="review-modal-title">Rate this advertiser</h3>
+      <div class="star-picker" id="star-picker">
+        <button class="star-btn" data-value="1">&#9733;</button>
+        <button class="star-btn" data-value="2">&#9733;</button>
+        <button class="star-btn" data-value="3">&#9733;</button>
+        <button class="star-btn" data-value="4">&#9733;</button>
+        <button class="star-btn" data-value="5">&#9733;</button>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 8px;">Tags (optional, up to 5):</p>
+      <div class="review-tags" id="review-tags">
+        <span class="review-tag" data-tag="fast_payment">Fast Payment</span>
+        <span class="review-tag" data-tag="clear_brief">Clear Brief</span>
+        <span class="review-tag" data-tag="good_communication">Good Communication</span>
+        <span class="review-tag" data-tag="fair_requirements">Fair Requirements</span>
+        <span class="review-tag" data-tag="would_work_again">Would Work Again</span>
+        <span class="review-tag" data-tag="slow_payment">Slow Payment</span>
+        <span class="review-tag" data-tag="unclear_brief">Unclear Brief</span>
+        <span class="review-tag" data-tag="poor_communication">Poor Communication</span>
+        <span class="review-tag" data-tag="unfair_requirements">Unfair Requirements</span>
+      </div>
+      <textarea class="review-comment" id="review-comment" placeholder="Share your experience (optional, max 500 chars)" maxlength="500"></textarea>
+      <div class="review-blind-note">
+        Reviews are double-blind: yours will only be visible after the advertiser also reviews (or after 14 days).
+      </div>
+      <div class="review-actions">
+        <button class="btn btn-outline" id="review-cancel-btn" style="font-size: 0.8rem; padding: 8px 16px;">Cancel</button>
+        <button class="btn btn-primary" id="review-submit-btn" style="font-size: 0.8rem; padding: 8px 16px;" disabled>Submit Review</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const overlay = document.getElementById('review-overlay');
+    const starPicker = document.getElementById('star-picker');
+    const submitBtn = document.getElementById('review-submit-btn');
+    const cancelBtn = document.getElementById('review-cancel-btn');
+    const commentEl = document.getElementById('review-comment');
+    const titleEl = document.getElementById('review-modal-title');
+    let currentMissionId = null;
+    let selectedRating = 0;
+    let selectedTags = new Set();
+
+    // Star picker
+    starPicker.querySelectorAll('.star-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedRating = parseInt(btn.dataset.value);
+        starPicker.querySelectorAll('.star-btn').forEach(b => {
+          b.classList.toggle('active', parseInt(b.dataset.value) <= selectedRating);
+        });
+        submitBtn.disabled = false;
+      });
+    });
+
+    // Tag selection
+    document.getElementById('review-tags').addEventListener('click', (e) => {
+      const tag = e.target.closest('.review-tag');
+      if (!tag) return;
+      const tagName = tag.dataset.tag;
+      if (selectedTags.has(tagName)) {
+        selectedTags.delete(tagName);
+        tag.classList.remove('selected');
+      } else if (selectedTags.size < 5) {
+        selectedTags.add(tagName);
+        tag.classList.add('selected');
+      }
+    });
+
+    // Open modal
+    document.addEventListener('click', async (e) => {
+      const trigger = e.target.closest('.review-trigger');
+      if (!trigger) return;
+
+      currentMissionId = trigger.dataset.missionId;
+      const agentName = trigger.dataset.agentName || 'Advertiser';
+
+      // Check if already reviewed
+      try {
+        const res = await HumanAds.getMissionReviews(currentMissionId);
+        if (res.data && res.data.my_pending_review) {
+          HumanAds.showAlert('You have already reviewed this mission.');
+          trigger.textContent = 'Reviewed';
+          trigger.classList.add('reviewed');
+          return;
+        }
+      } catch { /* continue */ }
+
+      titleEl.textContent = `Rate ${agentName}`;
+      resetModal();
+      overlay.classList.add('active');
+    });
+
+    // Cancel
+    cancelBtn.addEventListener('click', () => {
+      overlay.classList.remove('active');
+    });
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.remove('active');
+    });
+
+    // Submit
+    submitBtn.addEventListener('click', async () => {
+      if (!selectedRating || !currentMissionId) return;
+
+      HumanAds.setButtonLoading(submitBtn, true);
+      try {
+        const data = {
+          rating: selectedRating,
+          comment: commentEl.value.trim() || undefined,
+          tags: selectedTags.size > 0 ? [...selectedTags] : undefined,
+        };
+        await HumanAds.submitReview(currentMissionId, data);
+        overlay.classList.remove('active');
+        HumanAds.showAlert('Review submitted! It will be published when both sides have reviewed.');
+
+        // Update the button to show reviewed state
+        const btn = document.querySelector(`.review-trigger[data-mission-id="${currentMissionId}"]`);
+        if (btn) {
+          btn.textContent = 'Reviewed';
+          btn.classList.add('reviewed');
+          btn.classList.remove('review-trigger');
+        }
+      } catch (err) {
+        HumanAds.showAlert(err.message || 'Failed to submit review', 'error');
+      } finally {
+        HumanAds.setButtonLoading(submitBtn, false);
+      }
+    });
+
+    function resetModal() {
+      selectedRating = 0;
+      selectedTags.clear();
+      commentEl.value = '';
+      submitBtn.disabled = true;
+      starPicker.querySelectorAll('.star-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.review-tag').forEach(t => t.classList.remove('selected'));
+    }
+  })();
   </script>
   <script src="/js/env-banner.js"></script>
 </body>
