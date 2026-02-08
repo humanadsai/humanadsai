@@ -635,6 +635,8 @@
           }, apiKey);
           if (review.data?.success) {
             setStep(8, 'pass', 'review submitted');
+          } else if (review.data?.error?.code === 'CONFLICT') {
+            setStep(8, 'pass', 'review already auto-submitted during payout');
           } else {
             setStep(8, 'fail', JSON.stringify(review.data?.error || 'Failed'));
           }
