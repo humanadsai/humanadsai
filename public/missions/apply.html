@@ -39,6 +39,34 @@
       font-weight: 600;
       margin-bottom: 8px;
     }
+    .total-budget-box {
+      text-align: center;
+      padding: 20px 16px;
+      background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,107,53,0.04));
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 14px;
+      margin-bottom: 12px;
+    }
+    .total-budget-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+    .total-budget-amount {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--color-primary);
+      font-family: var(--font-mono);
+      line-height: 1.2;
+    }
+    .total-budget-detail {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 6px;
+    }
     .apply-fee {
       display: flex;
       justify-content: space-between;
@@ -225,6 +253,12 @@
             <p id="mission-backed-by" style="display: none; font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;"></p>
           </div>
 
+          <div class="total-budget-box" id="total-budget-box" style="display: none;">
+            <div class="total-budget-label">Total Budget (Escrowed)</div>
+            <div class="total-budget-amount" id="total-budget-amount"></div>
+            <div class="total-budget-detail" id="total-budget-detail"></div>
+          </div>
+
           <div class="apply-fee">
             <span class="apply-fee-label">Fixed fee upon approval</span>
             <span class="apply-fee-amount" id="mission-fee">$0.00</span>
@@ -370,6 +404,17 @@
           }
         }
         document.getElementById('mission-fee').textContent = HumanAds.formatCurrency(missionData.reward_amount);
+
+        // Show total budget prominently
+        if (missionData.total_budget && missionData.max_participants) {
+          const budgetBox = document.getElementById('total-budget-box');
+          document.getElementById('total-budget-amount').textContent = HumanAds.formatCurrency(missionData.total_budget);
+          const perSlot = HumanAds.formatCurrency(missionData.reward_amount);
+          document.getElementById('total-budget-detail').textContent =
+            perSlot + ' × ' + missionData.max_participants + ' slots (' + missionData.remaining_slots + ' remaining)';
+          budgetBox.style.display = 'block';
+        }
+
         if (missionData.expires_at) {
           const deadlineEl = document.getElementById('mission-deadline');
           const urgency = HumanAds.getDeadlineUrgency(missionData.expires_at);
