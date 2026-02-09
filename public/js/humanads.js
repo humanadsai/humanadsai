@@ -365,10 +365,11 @@
      * @returns {string}
      */
     // Parse DB timestamp as UTC (datetime('now') omits 'Z')
+    // Safari requires 'T' separator (not space) for ISO 8601 parsing with 'Z'.
     _parseUTC(date) {
       if (typeof date === 'number') return new Date(date);
       const s = String(date);
-      if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) return new Date(s + 'Z');
+      if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) return new Date(s.replace(' ', 'T') + 'Z');
       return new Date(s);
     },
 

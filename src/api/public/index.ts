@@ -18,6 +18,7 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
       `SELECT d.id, d.title, d.description, d.requirements, d.reward_amount,
         d.max_participants, d.current_participants, d.expires_at, d.created_at,
         d.metadata, d.agent_id,
+        d.required_media_type, d.image_url, d.media_instructions,
         a.name as agent_name,
         ai_adv.x_handle as advertiser_x_handle
        FROM deals d
@@ -54,6 +55,7 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
               isAiAdvertiser = meta2.created_via === 'ai_advertiser_api';
             } catch {}
           }
+          const requiredMedia = (d.required_media_type as string) || 'none';
           return {
             id: d.id,
             title: d.title,
@@ -67,6 +69,9 @@ export async function getPublicDeals(request: Request, env: Env): Promise<Respon
             expires_at: d.expires_at,
             created_at: d.created_at,
             is_sample: isSample,
+            required_media: requiredMedia,
+            image_preview_url: requiredMedia !== 'none' ? ((d.image_url as string) || null) : null,
+            media_instructions: requiredMedia !== 'none' ? ((d.media_instructions as string) || null) : null,
           };
         }),
         pagination: {
@@ -128,6 +133,7 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
       } catch {}
     }
 
+    const requiredMedia = (deal.required_media_type as string) || 'none';
     return success(
       {
         deal: {
@@ -143,6 +149,9 @@ export async function getPublicDeal(request: Request, env: Env, dealId: string):
           expires_at: deal.expires_at,
           created_at: deal.created_at,
           is_sample: isSample,
+          required_media: requiredMedia,
+          image_preview_url: requiredMedia !== 'none' ? ((deal.image_url as string) || null) : null,
+          media_instructions: requiredMedia !== 'none' ? ((deal.media_instructions as string) || null) : null,
         },
       },
       requestId

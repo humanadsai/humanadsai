@@ -18,6 +18,7 @@ import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
 import { escrowRelease } from '../../services/onchain';
 import { getSubmissionNextActions, getPayoutNextActions } from '../../utils/next-actions';
 import { publishReviewPair } from '../../services/reputation';
+import { fetchTweetWithMedia, verifyMediaRequirement } from '../../services/twitter';
 
 // ============================================
 // Helper: verify mission belongs to this advertiser
@@ -39,9 +40,9 @@ async function getMissionWithOwnership(
 
   // Check ownership via deal -> agent_id
   const deal = await env.DB
-    .prepare('SELECT agent_id, reward_amount, metadata, payment_model FROM deals WHERE id = ?')
+    .prepare('SELECT agent_id, reward_amount, metadata, payment_model, required_media_type FROM deals WHERE id = ?')
     .bind(mission.deal_id)
-    .first<{ agent_id: string; reward_amount: number; metadata: string | null; payment_model: string }>();
+    .first<{ agent_id: string; reward_amount: number; metadata: string | null; payment_model: string; required_media_type: string | null }>();
 
   if (!deal || deal.agent_id !== advertiserId) {
     return {
@@ -368,9 +369,9 @@ export async function handleCreateTestSubmission(
 
   // Verify deal ownership
   const deal = await env.DB
-    .prepare('SELECT id, agent_id, reward_amount, metadata FROM deals WHERE id = ?')
+    .prepare('SELECT id, agent_id, reward_amount, metadata, required_media_type FROM deals WHERE id = ?')
     .bind(dealId)
-    .first<{ id: string; agent_id: string; reward_amount: number; metadata: string | null }>();
+    .first<{ id: string; agent_id: string; reward_amount: number; metadata: string | null; required_media_type: string | null }>();
 
   if (!deal || deal.agent_id !== advertiser.id) {
     return error('NOT_YOUR_MISSION', 'Mission not found or does not belong to you', requestId, 403);
@@ -410,19 +411,25 @@ export async function handleCreateTestSubmission(
       .run();
 
     // Create submission (mission record with status 'submitted')
+    // For test submissions on image-required missions, mark media_requirement_passed = 1
     const submissionId = generateRandomString(32);
+    const hasMediaReq = deal.required_media_type && deal.required_media_type !== 'none';
     await env.DB
       .prepare(`
         INSERT INTO missions (id, deal_id, operator_id, status, submission_url,
-                              submission_content, submitted_at, created_at, updated_at)
-        VALUES (?, ?, ?, 'submitted', ?, ?, datetime('now'), datetime('now'), datetime('now'))
+                              submission_content, submitted_at, created_at, updated_at,
+                              detected_media_count, detected_media_types, media_requirement_passed)
+        VALUES (?, ?, ?, 'submitted', ?, ?, datetime('now'), datetime('now'), datetime('now'), ?, ?, ?)
       `)
       .bind(
         submissionId,
         dealId,
         p.id,
         p.submission_url,
-        `Promoting HumanAds! #HumanAds #ad @HumanAdsAI https://humanadsai.com`
+        `Promoting HumanAds! #HumanAds #ad @HumanAdsAI https://humanadsai.com`,
+        hasMediaReq ? 1 : null,
+        hasMediaReq ? '["photo"]' : null,
+        hasMediaReq ? 1 : null
       )
       .run();
 
@@ -485,11 +492,86 @@ export async function handleApproveSubmission(
 
   // Parse optional body
   let verificationResult: string | null = null;
+  let skipMediaCheck = false;
   try {
-    const body = await request.json() as { verification_result?: string };
+    const body = await request.json() as { verification_result?: string; skip_media_check?: boolean };
     verificationResult = body.verification_result || null;
+    skipMediaCheck = body.skip_media_check === true;
   } catch {
     // No body is fine
+  }
+
+  // Media verification (if mission requires image)
+  const requiredMediaType = mission._deal.required_media_type || 'none';
+  let mediaCheckResult: {
+    passed: boolean;
+    reason: string;
+    detected_media_count: number;
+    detected_media_types: string[];
+  } | null = null;
+
+  if (requiredMediaType !== 'none' && !skipMediaCheck) {
+    // Extract tweet ID from submission URL
+    const submissionUrl = mission.submission_url || '';
+    const tweetIdMatch = submissionUrl.match(/\/status\/(\d+)/);
+
+    if (!tweetIdMatch) {
+      return error('INVALID_SUBMISSION_URL', 'Cannot extract tweet ID from submission URL for media check', requestId, 400);
+    }
+
+    const tweetId = tweetIdMatch[1];
+    const tweetResult = await fetchTweetWithMedia(tweetId, env);
+
+    if (!tweetResult.success) {
+      // If X API is not configured, allow approval with warning
+      if (tweetResult.errorCode === 'X_API_NOT_CONFIGURED') {
+        console.warn(`[Approve] Skipping media check — X_BEARER_TOKEN not set, mission ${mission.deal_id}`);
+      } else if (tweetResult.errorCode === 'X_API_RATE_LIMIT') {
+        return error('X_API_RATE_LIMIT', tweetResult.error || 'X API rate limit reached', requestId, 429);
+      } else if (tweetResult.errorCode === 'TWEET_NOT_FOUND') {
+        return error('TWEET_NOT_FOUND', tweetResult.error || 'Tweet not found or deleted', requestId, 400);
+      } else {
+        return error('X_API_ERROR', tweetResult.error || 'Failed to verify tweet media', requestId, 502);
+      }
+    } else {
+      // Verify media requirement
+      mediaCheckResult = verifyMediaRequirement(requiredMediaType, tweetResult.data!.media || []);
+
+      if (!mediaCheckResult.passed) {
+        // Update submission with media check details
+        const details = JSON.stringify({
+          media_keys: (tweetResult.data!.media || []).map(m => m.media_key),
+          types: mediaCheckResult.detected_media_types,
+          checked_at: new Date().toISOString(),
+        });
+        await env.DB.prepare(`
+          UPDATE missions SET
+            detected_media_count = ?, detected_media_types = ?,
+            media_requirement_passed = 0, media_verify_details = ?,
+            updated_at = datetime('now')
+          WHERE id = ?
+        `).bind(
+          mediaCheckResult.detected_media_count,
+          JSON.stringify(mediaCheckResult.detected_media_types),
+          details,
+          submissionId
+        ).run();
+
+        const errorCode = mediaCheckResult.reason === 'UNSUPPORTED_MEDIA' ? 'UNSUPPORTED_MEDIA' : 'MISSING_IMAGE';
+        const errorMsg = errorCode === 'UNSUPPORTED_MEDIA'
+          ? 'This mission requires a photo image, but the tweet contains only video/GIF.'
+          : 'This mission requires an image attachment. The submitted tweet has no image.';
+        return error(errorCode, errorMsg, requestId, 400, {
+          media_check: mediaCheckResult,
+          hint: 'Ask the promoter to repost with the image attached, or use skip_media_check: true to override.',
+        });
+      }
+    }
+  }
+
+  // If skip_media_check was used, log it
+  if (skipMediaCheck && requiredMediaType !== 'none') {
+    console.log(`[Approve] Media check skipped by advertiser for submission ${submissionId}`);
   }
 
   // Calculate payout breakdown
@@ -506,6 +588,17 @@ export async function handleApproveSubmission(
     }
   } catch { /* ignore */ }
 
+  // Prepare media verification details for storage
+  const mediaCount = mediaCheckResult?.detected_media_count ?? null;
+  const mediaTypes = mediaCheckResult ? JSON.stringify(mediaCheckResult.detected_media_types) : null;
+  const mediaPassed = mediaCheckResult ? 1 : (skipMediaCheck && requiredMediaType !== 'none' ? null : null);
+  const mediaDetails = mediaCheckResult ? JSON.stringify({
+    types: mediaCheckResult.detected_media_types,
+    reason: mediaCheckResult.reason,
+    checked_at: new Date().toISOString(),
+    skipped: false,
+  }) : (skipMediaCheck ? JSON.stringify({ skipped: true, checked_at: new Date().toISOString() }) : null);
+
   // Update mission status to verified
   await env.DB
     .prepare(`
@@ -513,10 +606,14 @@ export async function handleApproveSubmission(
       SET status = 'verified',
           verified_at = datetime('now'),
           verification_result = ?,
+          detected_media_count = ?,
+          detected_media_types = ?,
+          media_requirement_passed = ?,
+          media_verify_details = ?,
           updated_at = datetime('now')
       WHERE id = ?
     `)
-    .bind(verificationResult, submissionId)
+    .bind(verificationResult, mediaCount, mediaTypes, mediaPassed, mediaDetails, submissionId)
     .run();
 
   // Notify operator
@@ -545,6 +642,11 @@ export async function handleApproveSubmission(
         promoter_payout: (promoterPayoutCents / 100).toFixed(2)
       }
     },
+    media_check: mediaCheckResult ? {
+      passed: mediaCheckResult.passed,
+      detected_media_count: mediaCheckResult.detected_media_count,
+      detected_media_types: mediaCheckResult.detected_media_types,
+    } : (skipMediaCheck ? { skipped: true } : null),
     next_actions: getSubmissionNextActions('verified', submissionId),
   }, requestId);
 }

@@ -412,6 +412,11 @@
           reqItems.push(`Include hashtags: ${hashtags.join(', ')}`);
         }
         reqItems.push('Post must remain live for review');
+        if (missionData.required_media === 'image') {
+          reqItems.push('🖼️ <strong>Image Required</strong> — Attach the provided creative image to your post');
+        } else if (missionData.required_media === 'image_optional') {
+          reqItems.push('🖼️ Image optional — You may attach the provided image to your post');
+        }
 
         document.getElementById('requirements-list').innerHTML = reqItems.map(r => `<li>${r}</li>`).join('');
 

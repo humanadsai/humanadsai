@@ -52,7 +52,9 @@
 
   function timeAgo(dateStr) {
     var now = new Date();
-    var date = new Date(dateStr + (dateStr.endsWith('Z') ? '' : 'Z'));
+    var s = String(dateStr);
+    if (!s.endsWith('Z') && !/[+-]\d/.test(s)) s = s.replace(' ', 'T') + 'Z';
+    var date = new Date(s);
     var seconds = Math.floor((now - date) / 1000);
     if (seconds < 60) return 'a few seconds ago';
     var minutes = Math.floor(seconds / 60);

@@ -166,7 +166,7 @@
     SideMenu.init(true);
 
     function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-    function shortDate(s) { if (!s) return '-'; try { return new Date(s).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); } catch { return s; } }
+    function shortDate(s) { if (!s) return '-'; try { var v = String(s); if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(v) && !/[Z+-]\d/.test(v)) v = v.replace(' ', 'T') + 'Z'; return new Date(v).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); } catch { return s; } }
 
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(function(btn) {

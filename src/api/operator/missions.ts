@@ -99,6 +99,7 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
       const slotsSelected = (deal.slots_selected as number) ?? (deal.current_participants as number);
 
       const isAiAdvertiser = deal.created_via === 'ai_advertiser_api';
+      const requiredMedia = (deal.required_media_type as string) || 'none';
       return {
         deal_id: deal.id,
         title: deal.title,
@@ -119,6 +120,9 @@ export async function getAvailableMissions(request: Request, env: Env): Promise<
         mission_status: appInfo?.mission_status || null,
         mission_id: appInfo?.mission_id || null,
         is_sample: deal.is_sample === 1 || deal.is_sample === true,
+        required_media: requiredMedia,
+        image_preview_url: requiredMedia !== 'none' ? ((deal.image_url as string) || null) : null,
+        media_instructions: requiredMedia !== 'none' ? ((deal.media_instructions as string) || null) : null,
       };
     });
 
@@ -388,6 +392,7 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
     let query = `
       SELECT m.*, d.title as deal_title, d.requirements, d.reward_amount,
              d.agent_id, m.payout_tx_hash, d.expires_at as deal_expires_at,
+             d.required_media_type, d.image_url as deal_image_url, d.media_instructions,
              ag.name as agent_name,
              json_extract(d.metadata, '$.created_via') as created_via,
              ai_adv.x_handle as advertiser_x_handle,
@@ -426,6 +431,7 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
           const isSimulated = payoutTxHash ? isSimulatedTxHash(payoutTxHash) : false;
 
           const isAiAdvertiser = m.created_via === 'ai_advertiser_api';
+          const requiredMedia = (m.required_media_type as string) || 'none';
           return {
             id: m.id,
             deal_id: m.deal_id,
@@ -444,6 +450,10 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
             advertiser_x_handle: isAiAdvertiser ? (m.advertiser_x_handle as string) || null : null,
             // Include simulated payment flag
             is_simulated: isSimulated,
+            // Image creative fields
+            required_media: requiredMedia,
+            image_preview_url: requiredMedia !== 'none' ? ((m.deal_image_url as string) || null) : null,
+            media_instructions: requiredMedia !== 'none' ? ((m.media_instructions as string) || null) : null,
           };
         }),
         pagination: {

@@ -388,10 +388,14 @@
       // Popular badge
       const popularHtml = mission.applications_count >= 5 ? `<span class="popular-badge">🔥 Popular</span>` : '';
 
+      // Image required badge
+      const imageBadgeHtml = mission.required_media === 'image' ? '<span class="badge badge--image">Image Required</span>' : '';
+
       el.innerHTML = `
         <div class="mission-item-badges">
           <span class="badge badge--disclosure">#ad</span>
           <span class="badge badge--type">${postType}</span>
+          ${imageBadgeHtml}
           ${deadlineBadgeHtml}
         </div>
         <div class="mission-item-header">
