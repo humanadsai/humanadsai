@@ -240,6 +240,8 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // ============================================
 
     if (path.startsWith('/api/v1/advertisers/')) {
+      const ipRateLimit = await rateLimitMiddleware(request, env);
+      if (!ipRateLimit.allowed) return ipRateLimit.error!;
       return await handleAiAdvertiserApi(request, env, path, method);
     }
 
@@ -1512,8 +1514,6 @@ const RPC_ALLOWED_METHODS = new Set([
 const RPC_TARGETS = [
   'https://ethereum-sepolia-rpc.publicnode.com',
   'https://1rpc.io/sepolia',
-  'https://eth-sepolia.public.blastapi.io',
-  'https://ethereum-sepolia.blockpi.network/v1/rpc/public',
   'https://sepolia.drpc.org',
 ];
 

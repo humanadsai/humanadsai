@@ -462,6 +462,62 @@
     },
 
     /**
+     * Withdraw escrow balance via MetaMask
+     */
+    async escrowWithdraw() {
+      if (typeof window.ethereum === 'undefined') {
+        throw new Error('MetaMask not detected. Install MetaMask to withdraw.');
+      }
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No account connected');
+      }
+      const connectedAddress = accounts[0].toLowerCase();
+
+      // Verify MetaMask address matches registered wallet
+      const balRes = await this.fetchApi('/operator/escrow-balance');
+      if (balRes.success && balRes.data?.wallet_address) {
+        const registeredAddress = balRes.data.wallet_address.toLowerCase();
+        if (connectedAddress !== registeredAddress) {
+          throw new Error(
+            'MetaMask address (' + connectedAddress.slice(0, 6) + '...' + connectedAddress.slice(-4) +
+            ') does not match your registered wallet (' + registeredAddress.slice(0, 6) + '...' + registeredAddress.slice(-4) +
+            '). Please switch to the correct account in MetaMask.'
+          );
+        }
+        if (balRes.data.balance_cents <= 0) {
+          throw new Error('No withdrawable balance in escrow.');
+        }
+      }
+
+      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+      if (chainId !== '0xaa36a7') {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0xaa36a7' }],
+          });
+        } catch (switchError) {
+          throw new Error('Please switch to Sepolia network in MetaMask');
+        }
+      }
+      const escrowContract = balRes.data?.escrow_contract || '0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a';
+      const txHash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: accounts[0],
+          to: escrowContract,
+          data: '0x3ccfd60b',
+          gas: '0x30D40', // 200,000
+        }],
+      });
+      return {
+        txHash,
+        explorerUrl: `https://sepolia.etherscan.io/tx/${txHash}`,
+      };
+    },
+
+    /**
      * Copy text to clipboard
      * @param {string} text
      * @returns {Promise<boolean>}

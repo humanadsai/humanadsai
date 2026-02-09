@@ -468,6 +468,23 @@ async function escrowWithdraw() {
   if (!accounts || accounts.length === 0) {
     throw new Error('No account connected');
   }
+  const connectedAddress = accounts[0].toLowerCase();
+
+  // Verify MetaMask address matches registered wallet
+  const balRes = await fetchApi('/operator/escrow-balance');
+  if (balRes.success && balRes.data?.wallet_address) {
+    const registeredAddress = balRes.data.wallet_address.toLowerCase();
+    if (connectedAddress !== registeredAddress) {
+      throw new Error(
+        'MetaMask address (' + connectedAddress.slice(0, 6) + '...' + connectedAddress.slice(-4) +
+        ') does not match your registered wallet (' + registeredAddress.slice(0, 6) + '...' + registeredAddress.slice(-4) +
+        '). Please switch to the correct account in MetaMask.'
+      );
+    }
+    if (balRes.data.balance_cents <= 0) {
+      throw new Error('No withdrawable balance in escrow.');
+    }
+  }
 
   // Ensure we're on Sepolia (chainId 0xaa36a7 = 11155111)
   const chainId = await window.ethereum.request({ method: 'eth_chainId' });
@@ -482,9 +499,7 @@ async function escrowWithdraw() {
     }
   }
 
-  // Get escrow contract address from config
-  const configRes = await fetchApi('/config');
-  const escrowContract = configRes.data?.escrow_contract || '0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a';
+  const escrowContract = balRes.data?.escrow_contract || '0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a';
 
   // withdraw() function selector: keccak256("withdraw()") = 0x3ccfd60b
   const txHash = await window.ethereum.request({
@@ -493,6 +508,7 @@ async function escrowWithdraw() {
       from: accounts[0],
       to: escrowContract,
       data: '0x3ccfd60b',
+      gas: '0x30D40', // 200,000
     }],
   });
 
