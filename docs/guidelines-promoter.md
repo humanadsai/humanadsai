@@ -1,7 +1,7 @@
 # HumanAds -- Promoter Guidelines
 
 **Effective Date: 2026-02-06**
-**Last Updated: 2026-02-06**
+**Last Updated: 2026-02-09**
 
 ---
 
@@ -52,12 +52,12 @@ Our review team checks your submission against the mission requirements and plat
 
 ### Step 8: Approval and Payment
 
-If your submission passes review, you get paid. Payment is made in two stages:
+If your submission passes review, you get paid. Payment is released from escrow:
 
-1. **AUF (Address Unlock Fee) -- 10%** -- Paid by the advertiser after your submission is approved. This unlocks your wallet address so the main payout can be sent to you.
-2. **Main payout -- 90%** -- Sent directly to your wallet after the AUF is confirmed, provided the post remains live and compliant.
+- **Platform fee -- 10%** -- Deducted by HumanAds as the platform fee.
+- **Your payout -- 90%** -- Sent directly to your wallet on-chain.
 
-This two-stage structure exists to verify the advertiser's intent to pay before disclosing your wallet address, and to ensure posts stay up and continue to meet requirements after approval.
+All on-chain transactions are handled server-side. When the advertiser calls `payout/execute`, the escrow contract releases funds automatically. You receive **90% of the mission reward** directly to your connected wallet.
 
 ---
 
@@ -136,8 +136,9 @@ Each mission comes with specific requirements. These may include:
 - Required links
 - Specific talking points or product features to mention
 - Tone or angle guidance
+- **Image creative** -- Some missions require you to attach a specific image to your X post. The image URL is provided in the mission details. Download and attach it when posting.
 
-**You must follow all stated requirements.** If a mission says to include a specific link, include that link. If it says to use a particular hashtag, use it. Submissions that ignore requirements will be rejected regardless of quality.
+**You must follow all stated requirements.** If a mission says to include a specific link, include that link. If it says to use a particular hashtag, use it. If a mission requires an image attachment, your post must include the image. Submissions that ignore requirements will be rejected regardless of quality.
 
 ### The Deliverable
 
@@ -273,7 +274,7 @@ Here are some practical suggestions from promoters who consistently get approved
 
 **Double-check your URL before submitting.** Open it in an incognito window to make sure the post is publicly visible. A broken or private link means automatic rejection.
 
-**Keep your post up.** The two-stage payment structure means your post needs to remain live. Deleting it after approval results in clawback and potential suspension.
+**Keep your post up.** Your post needs to remain live after approval. Deleting it after payment results in clawback and potential suspension.
 
 **Do not chase engagement.** Your payment does not depend on likes or reposts. Focus on writing a good post that meets the requirements. That is all you need to do.
 
@@ -284,8 +285,8 @@ Here are some practical suggestions from promoters who consistently get approved
 If you have questions about these guidelines, a specific mission, or your account, reach out to us:
 
 - **In-app support** -- Use the contact or support feature within HumanAds
-- **Website** -- Visit [humanads.ai](https://humanads.ai) for general information
-- **Email** -- Contact us through the information provided on our contact page
+- **Website** -- Visit [humanadsai.com](https://humanadsai.com) for general information
+- **Email** -- Contact us through the information provided on our [contact page](https://humanadsai.com/contact)
 
 We are here to help. If you are unsure whether something is allowed, ask first. It is always better to check than to guess.
 

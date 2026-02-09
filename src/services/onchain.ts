@@ -4,7 +4,7 @@
  */
 
 import type { Env } from '../types';
-import { createWalletClient, createPublicClient, http, parseAbi, getAddress, keccak256, toHex, type Hex } from 'viem';
+import { createWalletClient, createPublicClient, http, parseAbi, parseEther, getAddress, keccak256, toHex, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 
@@ -61,30 +61,55 @@ export function hasTreasuryKey(env: Env): boolean {
   return !!env.TREASURY_PRIVATE_KEY;
 }
 
+// Fallback RPC endpoints for Sepolia (verified working — blastapi/blockpi removed as dead)
+const RPC_FALLBACKS = [
+  'https://ethereum-sepolia-rpc.publicnode.com',
+  'https://1rpc.io/sepolia',
+  'https://sepolia.drpc.org',
+];
+
 /**
- * Make an RPC call to the Ethereum node
+ * Make an RPC call to the Ethereum node with fallback across multiple providers.
  */
 export async function rpcCall(rpcUrl: string, method: string, params: unknown[]): Promise<unknown> {
-  const response = await fetch(rpcUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: Date.now(),
-      method,
-      params,
-    }),
-  });
+  // Build target list: primary first, then fallbacks (deduplicated)
+  const targets = [rpcUrl, ...RPC_FALLBACKS.filter(u => u !== rpcUrl)];
+  let lastError: Error | undefined;
 
-  const data = await response.json() as { result?: unknown; error?: { message: string } };
-  if (data.error) {
-    throw new Error(data.error.message);
+  for (const target of targets) {
+    try {
+      const response = await fetch(target, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: Date.now(),
+          method,
+          params,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json() as { result?: unknown; error?: { message: string } };
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
+      return data.result;
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error('Unknown RPC error');
+      console.warn(`[rpcCall] ${method} failed on ${target}:`, lastError.message);
+    }
   }
-  return data.result;
+
+  throw lastError!;
 }
 
 /**
- * Get hUSD balance for an address (returns cents)
+ * Get hUSD balance for an address (returns cents).
+ * Throws on RPC error — callers must handle this to avoid treating RPC failure as "balance 0".
  */
 export async function getHusdBalance(env: Env, address: string): Promise<number> {
   const config = getOnchainConfig(env);
@@ -94,26 +119,22 @@ export async function getHusdBalance(env: Env, address: string): Promise<number>
   const paddedAddress = address.toLowerCase().replace('0x', '').padStart(64, '0');
   const data = balanceOfSelector + paddedAddress;
 
-  try {
-    const result = await rpcCall(config.rpcUrl, 'eth_call', [
-      { to: config.husdContract, data },
-      'latest',
-    ]) as string;
+  const result = await rpcCall(config.rpcUrl, 'eth_call', [
+    { to: config.husdContract, data },
+    'latest',
+  ]) as string;
 
-    // Convert from wei-like (6 decimals) to cents
-    const balanceRaw = BigInt(result);
-    // hUSD has 6 decimals, so 1 hUSD = 1_000_000 base units
-    // 1 cent = 10_000 base units (since $1 = 100 cents = 1_000_000 base units)
-    const balanceCents = Number(balanceRaw / BigInt(10000));
-    return balanceCents;
-  } catch (e) {
-    console.error('getHusdBalance error:', e);
-    return 0;
-  }
+  // Convert from wei-like (6 decimals) to cents
+  const balanceRaw = BigInt(result);
+  // hUSD has 6 decimals, so 1 hUSD = 1_000_000 base units
+  // 1 cent = 10_000 base units (since $1 = 100 cents = 1_000_000 base units)
+  const balanceCents = Number(balanceRaw / BigInt(10000));
+  return balanceCents;
 }
 
 /**
- * Get hUSD allowance for an owner/spender pair (returns cents)
+ * Get hUSD allowance for an owner/spender pair (returns cents).
+ * Throws on RPC error — callers must handle this.
  */
 export async function getHusdAllowance(env: Env, owner: string, spender: string): Promise<number> {
   const config = getOnchainConfig(env);
@@ -124,40 +145,76 @@ export async function getHusdAllowance(env: Env, owner: string, spender: string)
   const paddedSpender = spender.toLowerCase().replace('0x', '').padStart(64, '0');
   const data = allowanceSelector + paddedOwner + paddedSpender;
 
-  try {
-    const result = await rpcCall(config.rpcUrl, 'eth_call', [
-      { to: config.husdContract, data },
-      'latest',
-    ]) as string;
+  const result = await rpcCall(config.rpcUrl, 'eth_call', [
+    { to: config.husdContract, data },
+    'latest',
+  ]) as string;
 
-    const allowanceRaw = BigInt(result);
-    // hUSD has 6 decimals: 1 cent = 10_000 base units
-    const allowanceCents = Number(allowanceRaw / BigInt(10000));
-    return allowanceCents;
-  } catch (e) {
-    console.error('getHusdAllowance error:', e);
-    return 0;
-  }
+  const allowanceRaw = BigInt(result);
+  // hUSD has 6 decimals: 1 cent = 10_000 base units
+  const allowanceCents = Number(allowanceRaw / BigInt(10000));
+  return allowanceCents;
 }
 
 /**
- * Get ETH balance for gas
+ * Get ETH balance for gas.
+ * Throws on RPC error — callers must handle this.
  */
 export async function getEthBalance(env: Env, address: string): Promise<string> {
   const config = getOnchainConfig(env);
 
-  try {
-    const result = await rpcCall(config.rpcUrl, 'eth_getBalance', [
-      address,
-      'latest',
-    ]) as string;
+  const result = await rpcCall(config.rpcUrl, 'eth_getBalance', [
+    address,
+    'latest',
+  ]) as string;
 
-    const balanceWei = BigInt(result);
-    const balanceEth = Number(balanceWei) / 1e18;
-    return balanceEth.toFixed(6);
+  const balanceWei = BigInt(result);
+  const balanceEth = Number(balanceWei) / 1e18;
+  return balanceEth.toFixed(6);
+}
+
+/**
+ * Send ETH from Treasury to a target address for gas.
+ * Used to auto-fund AI advertiser wallets so they can broadcast approve txs.
+ */
+export async function sendEthForGas(
+  env: Env,
+  toAddress: string,
+  amountEth: number = 0.002
+): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  if (!env.TREASURY_PRIVATE_KEY) {
+    return { success: false, error: 'Treasury private key not configured' };
+  }
+
+  // Ledger mode — simulate
+  if (env.PAYOUT_MODE !== 'onchain') {
+    const simulatedHash = 'SIMULATED_ETH_' + crypto.randomUUID().replace(/-/g, '');
+    return { success: true, txHash: simulatedHash };
+  }
+
+  try {
+    const { client, config } = createTreasuryClient(env);
+    const normalizedTo = normalizeAddress(toAddress) as Hex;
+
+    const publicClient = createPublicClient({
+      chain: sepolia,
+      transport: http(config.rpcUrl, { timeout: 30_000 }),
+    });
+
+    const txHash = await client.sendTransaction({
+      to: normalizedTo,
+      value: parseEther(amountEth.toString()),
+    });
+
+    // Wait for receipt so the ETH is available before the AI broadcasts approve tx
+    await publicClient.waitForTransactionReceipt({ hash: txHash, timeout: 60_000 });
+
+    return { success: true, txHash };
   } catch (e) {
-    console.error('getEthBalance error:', e);
-    return '0';
+    const rawError = e instanceof Error ? e.message : 'Unknown error';
+    const error = redactSecrets(rawError);
+    console.error('sendEthForGas error:', error);
+    return { success: false, error };
   }
 }
 
@@ -627,43 +684,25 @@ export async function escrowRelease(
 
 /**
  * Get an operator's withdrawable balance from the escrow contract.
- * Returns cents.
+ * Returns cents. Throws on RPC error.
  */
 export async function escrowGetBalance(env: Env, address: string): Promise<number> {
   const config = getOnchainConfig(env);
 
-  // Use raw RPC call (same pattern as getHusdBalance)
   // keccak256("getWithdrawableBalance(address)") = 0x843592d3...
   const selector = '0x843592d3';
   const paddedAddress = address.toLowerCase().replace('0x', '').padStart(64, '0');
   const data = selector + paddedAddress;
 
-  try {
-    const response = await fetch(config.rpcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: Date.now(),
-        method: 'eth_call',
-        params: [{ to: config.escrowContract, data }, 'latest'],
-      }),
-    });
+  const result = await rpcCall(config.rpcUrl, 'eth_call', [
+    { to: config.escrowContract, data },
+    'latest',
+  ]) as string;
 
-    const result = await response.json() as { result?: string; error?: { message: string } };
-    if (result.error) {
-      console.error('escrowGetBalance RPC error:', result.error.message);
-      return 0;
-    }
-
-    const balanceRaw = BigInt(result.result || '0x0');
-    // hUSD has 6 decimals: 1 cent = 10_000 base units
-    const balanceCents = Number(balanceRaw / BigInt(10000));
-    return balanceCents;
-  } catch (e) {
-    console.error('escrowGetBalance error:', e);
-    return 0;
-  }
+  const balanceRaw = BigInt(result || '0x0');
+  // hUSD has 6 decimals: 1 cent = 10_000 base units
+  const balanceCents = Number(balanceRaw / BigInt(10000));
+  return balanceCents;
 }
 
 /**

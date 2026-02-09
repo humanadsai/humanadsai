@@ -2089,7 +2089,13 @@ export async function handleFaucet(request: Request, env: Env): Promise<Response
     }
 
     // Check treasury balance
-    const treasuryBalance = await getHusdBalance(env, config.treasuryAddress);
+    let treasuryBalance: number;
+    try {
+      treasuryBalance = await getHusdBalance(env, config.treasuryAddress);
+    } catch (e) {
+      console.error('[AdminFaucet] RPC error checking treasury balance:', e);
+      return errors.internalError(requestId);
+    }
     if (treasuryBalance < config.faucetAmount) {
       return errors.invalidRequest(requestId, {
         code: 'INSUFFICIENT_TREASURY',

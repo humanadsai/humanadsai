@@ -5,7 +5,8 @@
 import type { Env } from '../../types';
 import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { success, error, errors } from '../../utils/response';
-import { getOnchainConfig, rpcCall, normalizeAddress, getHusdAllowance } from '../../services/onchain';
+import { getOnchainConfig, rpcCall, normalizeAddress, getHusdAllowance, getEthBalance, sendEthForGas } from '../../services/onchain';
+import { parseTransaction, recoverTransactionAddress, type Hex } from 'viem';
 
 // approve(address,uint256) selector
 const APPROVE_SELECTOR = '0x095ea7b3';
@@ -47,7 +48,14 @@ export async function handleGetApproveData(
   const amountBaseUnits = BigInt(Math.round(amountHusd * 1_000_000));
 
   // Check on-chain allowance
-  const currentAllowanceCents = await getHusdAllowance(env, advertiser.wallet_address, config.escrowContract);
+  let currentAllowanceCents: number;
+  try {
+    currentAllowanceCents = await getHusdAllowance(env, advertiser.wallet_address, config.escrowContract);
+  } catch (e) {
+    console.error('[GetApproveData] RPC error checking allowance:', e);
+    // On RPC error, assume allowance is 0 and proceed to return unsigned tx (safe fallback)
+    currentAllowanceCents = 0;
+  }
   const requiredCents = Math.round(amountHusd * 100);
 
   if (currentAllowanceCents >= requiredCents) {
@@ -59,11 +67,55 @@ export async function handleGetApproveData(
     }, requestId);
   }
 
+  // Auto-fund ETH for gas if the advertiser's balance is too low
+  // Security: cooldown (1 per 24h per advertiser), skip on RPC error (refuse to fund when balance unknown)
+  let ethFunded = false;
+  let ethFundTxHash: string | undefined;
+  let ethBalance: number | null = null;
+  try {
+    ethBalance = parseFloat(await getEthBalance(env, advertiser.wallet_address));
+  } catch (e) {
+    console.error('[GetApproveData] RPC error checking ETH balance, skipping auto-fund:', e);
+    // Do NOT fund on RPC error — refuse when balance cannot be verified
+  }
+  if (ethBalance !== null && ethBalance < 0.001) {
+    // Check cooldown: max 1 ETH funding per advertiser per 24 hours
+    const lastFunding = await env.DB.prepare(
+      `SELECT created_at FROM advertiser_eth_funding WHERE advertiser_id = ? ORDER BY created_at DESC LIMIT 1`
+    ).bind(advertiser.id).first<{ created_at: string }>();
+
+    const cooldownMs = 24 * 60 * 60 * 1000; // 24 hours
+    const canFund = !lastFunding || (Date.now() - new Date(lastFunding.created_at).getTime()) >= cooldownMs;
+
+    if (canFund) {
+      console.log(`[GetApproveData] ETH balance ${ethBalance} < 0.001, auto-funding 0.002 ETH to ${advertiser.wallet_address}`);
+      const fundResult = await sendEthForGas(env, advertiser.wallet_address, 0.002);
+      if (fundResult.success) {
+        ethFunded = true;
+        ethFundTxHash = fundResult.txHash;
+        // Record funding for cooldown tracking
+        await env.DB.prepare(
+          `INSERT INTO advertiser_eth_funding (id, advertiser_id, wallet_address, amount_wei, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))`
+        ).bind(
+          crypto.randomUUID().replace(/-/g, ''),
+          advertiser.id,
+          advertiser.wallet_address,
+          '2000000000000000', // 0.002 ETH in wei
+          ethFundTxHash || null,
+        ).run();
+        console.log(`[GetApproveData] ETH funded: ${ethFundTxHash}`);
+      } else {
+        console.error(`[GetApproveData] ETH funding failed: ${fundResult.error}`);
+      }
+    } else {
+      console.log(`[GetApproveData] ETH funding cooldown active for advertiser ${advertiser.id}`);
+    }
+  }
+
   // Build approve calldata: approve(escrowContract, amountBaseUnits)
   const paddedSpender = config.escrowContract.toLowerCase().replace('0x', '').padStart(64, '0');
   const paddedAmount = amountBaseUnits.toString(16).padStart(64, '0');
   const calldata = APPROVE_SELECTOR + paddedSpender + paddedAmount;
-
 
   // Fetch nonce and gas price from RPC
   let nonce: string;
@@ -83,14 +135,16 @@ export async function handleGetApproveData(
       to: config.husdContract,
       data: calldata,
       value: '0x0',
+      type: '0x0',
       chainId: config.chainId,
-      gas_estimate: '0x' + (65000).toString(16),
+      gas: '0x' + (65000).toString(16),
       nonce,
       gasPrice,
     },
     approve_amount_husd: amountHusd.toFixed(2),
     current_allowance_husd: (currentAllowanceCents / 100).toFixed(2),
     spender: config.escrowContract,
+    ...(ethFunded ? { eth_funded: true, eth_fund_tx_hash: ethFundTxHash } : {}),
     message: `Sign this approve transaction to allow ${amountHusd.toFixed(2)} hUSD spending, then POST to /advertisers/deposit/approve.`,
   }, requestId);
 }
@@ -126,6 +180,42 @@ export async function handleSendApprove(
 
   const config = getOnchainConfig(env);
 
+  // Pre-validate: recover sender from signed tx and verify it matches the advertiser's wallet
+  let recoveredSender: string | undefined;
+  try {
+    const parsedTx = parseTransaction(signedTx as Hex);
+    recoveredSender = await recoverTransactionAddress({ serializedTransaction: signedTx as Hex });
+
+    if (recoveredSender.toLowerCase() !== advertiser.wallet_address!.toLowerCase()) {
+      console.error(`[SendApprove] Sender mismatch: recovered=${recoveredSender}, expected=${advertiser.wallet_address}`);
+      return error(
+        'SENDER_MISMATCH',
+        `The signed transaction sender (${recoveredSender}) does not match your registered wallet (${advertiser.wallet_address}). Make sure you are signing with the correct private key.`,
+        requestId,
+        400
+      );
+    }
+
+    // Validate chainId
+    if (parsedTx.chainId && parsedTx.chainId !== config.chainId) {
+      return error(
+        'WRONG_CHAIN',
+        `Transaction chainId (${parsedTx.chainId}) does not match expected (${config.chainId}). Use Sepolia (chainId: ${config.chainId}).`,
+        requestId,
+        400
+      );
+    }
+  } catch (e) {
+    const parseMsg = e instanceof Error ? e.message : 'Unknown parse error';
+    console.error('[SendApprove] Failed to validate signed tx:', parseMsg);
+    return error(
+      'INVALID_SIGNED_TX',
+      `Could not parse or validate the signed transaction. Ensure it is a properly signed, RLP-encoded hex string. Detail: ${parseMsg}`,
+      requestId,
+      400
+    );
+  }
+
   // Broadcast the transaction
   let txHash: string;
   try {
@@ -133,7 +223,11 @@ export async function handleSendApprove(
   } catch (e: any) {
     const msg = e instanceof Error ? e.message : 'Unknown RPC error';
     console.error('[SendApprove] eth_sendRawTransaction failed:', msg);
-    return error('BROADCAST_FAILED', `Failed to broadcast transaction: ${msg}`, requestId, 502);
+    // Add helpful context about sender address if broadcast fails with "insufficient funds"
+    const hint = msg.includes('insufficient funds') || msg.includes('have 0')
+      ? ` Verify you are signing with the private key for ${advertiser.wallet_address}.`
+      : '';
+    return error('BROADCAST_FAILED', `Failed to broadcast transaction: ${msg}.${hint}`, requestId, 502);
   }
 
   // Validate the transaction

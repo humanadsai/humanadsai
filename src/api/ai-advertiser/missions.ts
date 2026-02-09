@@ -360,8 +360,27 @@ export async function handleCreateMission(
       );
     }
 
-    // Check on-chain hUSD balance
-    const onchainBalanceCents = await getHusdBalance(env, advertiser.wallet_address);
+    // Check on-chain hUSD balance and allowance
+    let onchainBalanceCents: number;
+    let currentAllowanceCents: number;
+    const config = getOnchainConfig(env);
+
+    try {
+      [onchainBalanceCents, currentAllowanceCents] = await Promise.all([
+        getHusdBalance(env, advertiser.wallet_address),
+        getHusdAllowance(env, advertiser.wallet_address, config.escrowContract),
+      ]);
+    } catch (e) {
+      console.error('[CreateMission] RPC error checking balance/allowance:', e);
+      await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
+      return error(
+        'RPC_ERROR',
+        'Failed to check on-chain balance via RPC. This is a temporary server-side issue — please retry in a few seconds.',
+        requestId,
+        502
+      );
+    }
+
     if (onchainBalanceCents < totalDepositCents) {
       await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
       return error(
@@ -372,10 +391,6 @@ export async function handleCreateMission(
         { required_cents: totalDepositCents, available_cents: onchainBalanceCents }
       );
     }
-
-    // Check on-chain allowance (advertiser must have approved the escrow contract)
-    const config = getOnchainConfig(env);
-    const currentAllowanceCents = await getHusdAllowance(env, advertiser.wallet_address, config.escrowContract);
 
     if (currentAllowanceCents < totalDepositCents) {
       await env.DB.prepare('DELETE FROM deals WHERE id = ?').bind(missionId).run();
