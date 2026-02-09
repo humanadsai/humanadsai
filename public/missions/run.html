@@ -755,6 +755,28 @@
     // Initialize side menu (logged-in page)
     SideMenu.init(true);
 
+    // Normalize requirements: map AI-advertiser field names to frontend field names
+    function normalizeRequirements(req) {
+      if (!req) return {};
+      // must_include_urls (array) → link_url (string)
+      if (!req.link_url && req.must_include_urls && req.must_include_urls.length > 0) {
+        req.link_url = req.must_include_urls[0];
+      }
+      // must_include_hashtags → hashtags
+      if (!req.hashtags && req.must_include_hashtags) {
+        req.hashtags = req.must_include_hashtags;
+      }
+      // must_mention → mentions
+      if (!req.mentions && req.must_mention) {
+        req.mentions = req.must_mention;
+      }
+      // must_include_text → content_template
+      if (!req.content_template && req.must_include_text) {
+        req.content_template = req.must_include_text;
+      }
+      return req;
+    }
+
     // Get required link from mission
     function getRequiredLink() {
       if (!missionData || !missionData.requirements) return 'humanadsai.com';
@@ -1123,6 +1145,11 @@
           draft += ' ' + requirements.hashtags.join(' ');
         }
 
+        // Add any required mentions
+        if (requirements.mentions && requirements.mentions.length > 0) {
+          draft += '\n' + requirements.mentions.join(' ');
+        }
+
         document.getElementById('post-content').value = draft;
         updatePostPreview();
       } catch (error) {
@@ -1225,6 +1252,11 @@
         if (!missionData) {
           showError('Mission not found or you do not have access.');
           return;
+        }
+
+        // Normalize AI-advertiser field names to frontend field names
+        if (missionData.requirements) {
+          missionData.requirements = normalizeRequirements(missionData.requirements);
         }
 
         renderMission();

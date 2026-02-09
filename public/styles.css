@@ -1888,6 +1888,13 @@ body {
   color: rgba(180, 245, 255, 0.95);
 }
 
+/* Image Required Badge - Purple tint */
+.badge--image {
+  background: rgba(140, 80, 200, 0.28);
+  border: 1px solid rgba(140, 80, 200, 0.35);
+  color: rgba(220, 190, 255, 0.95);
+}
+
 /* Status Badges */
 .badge--status {
   background: rgba(255, 255, 255, 0.1);

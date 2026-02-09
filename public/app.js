@@ -92,10 +92,11 @@ function formatFollowerCount(count) {
 
 // DB stores UTC via datetime('now') as "2026-02-08 12:00:00" without 'Z'.
 // Without 'Z', JS Date() treats it as local time. Append 'Z' to force UTC.
+// Safari requires 'T' separator (not space) for ISO 8601 parsing with 'Z'.
 function parseUTC(date) {
   if (typeof date === 'number') return new Date(date);
   const s = String(date);
-  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) return new Date(s + 'Z');
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) return new Date(s.replace(' ', 'T') + 'Z');
   return new Date(s);
 }
 

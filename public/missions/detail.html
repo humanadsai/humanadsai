@@ -424,6 +424,20 @@
               <span class="requirement-icon">📝</span>
               <div><strong>Post Type:</strong> <span id="post-type">Original Post</span></div>
             </div>
+            <div class="requirement-item" id="image-requirement" style="display: none;">
+              <span class="requirement-icon">🖼️</span>
+              <div>
+                <strong>Image Required</strong> — Attach the provided image to your X post
+                <div id="media-instructions-text" style="margin-top: 4px; font-size: 0.8rem; color: var(--color-text-muted);"></div>
+              </div>
+            </div>
+            <div id="image-preview-section" style="display: none; margin: 12px 0; padding: 12px; background: rgba(140, 80, 200, 0.08); border: 1px solid rgba(140, 80, 200, 0.2); border-radius: 8px;">
+              <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; color: rgba(220, 190, 255, 0.95);">Creative Image</div>
+              <img id="image-preview-img" src="" alt="Mission creative" style="max-width: 100%; max-height: 300px; border-radius: 6px; display: block; margin-bottom: 8px;" />
+              <a id="image-download-link" href="#" download target="_blank" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--color-primary); text-decoration: none;">
+                ⬇️ Download Image
+              </a>
+            </div>
             <div class="requirement-warning">
               <strong>Important:</strong> Repost/Like/Follow actions are NOT paid. Only original sponsored content qualifies.
             </div>
@@ -686,6 +700,31 @@
       // Update fee
       document.getElementById('fee-amount').textContent = formatCurrency(mission.reward_amount);
       document.getElementById('earned-amount').textContent = formatCurrency(mission.reward_amount);
+
+      // Image creative requirement
+      if (mission.required_media === 'image' || mission.required_media === 'image_optional') {
+        var imageReqEl = document.getElementById('image-requirement');
+        if (imageReqEl) {
+          imageReqEl.style.display = '';
+          if (mission.required_media === 'image_optional') {
+            imageReqEl.querySelector('strong').textContent = 'Image Optional';
+          }
+        }
+        if (mission.media_instructions) {
+          var instrEl = document.getElementById('media-instructions-text');
+          if (instrEl) instrEl.textContent = mission.media_instructions;
+        }
+        if (mission.image_preview_url) {
+          var previewSection = document.getElementById('image-preview-section');
+          var previewImg = document.getElementById('image-preview-img');
+          var downloadLink = document.getElementById('image-download-link');
+          if (previewSection && previewImg && downloadLink) {
+            previewImg.src = mission.image_preview_url;
+            downloadLink.href = mission.image_preview_url;
+            previewSection.style.display = '';
+          }
+        }
+      }
 
       // Render steps
       renderSteps(status);
