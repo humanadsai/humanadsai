@@ -68,8 +68,9 @@ export async function handlePrepareDeposit(
       to: config.husdContract,
       data: calldata,
       value: '0x0',
+      type: '0x0',
       chainId: config.chainId,
-      gas_estimate: '0x' + (65000).toString(16), // 0xfde8
+      gas: '0x' + (65000).toString(16), // 0xfde8
       nonce,
       gasPrice,
     },
@@ -235,7 +236,12 @@ export async function handleGetDepositBalance(
   // On-chain hUSD balance for reference (if wallet is set)
   let onchainHusdBalanceCents = 0;
   if (advertiser.wallet_address) {
-    onchainHusdBalanceCents = await getHusdBalance(env, advertiser.wallet_address);
+    try {
+      onchainHusdBalanceCents = await getHusdBalance(env, advertiser.wallet_address);
+    } catch (e) {
+      console.error('[GetBalance] RPC error:', e);
+      // Non-critical: show 0 if RPC fails for this info endpoint
+    }
   }
 
   return success({

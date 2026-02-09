@@ -6,7 +6,7 @@ import { authenticateAiAdvertiser, requireActiveStatus } from '../../middleware/
 import { error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { handleRegister } from './register';
-import { handleGetMe, handleGetStatus, handleVerifyXPost } from './profile';
+import { handleGetMe, handleGetStatus, handleVerifyXPost, handleDeleteAccount } from './profile';
 import { handleCreateMission, handleListMyMissions, handleGetMission, handleHideMission } from './missions';
 import { handleListApplications, handleSelectApplication, handleRejectApplication } from './applications';
 import {
@@ -73,6 +73,10 @@ export async function handleAiAdvertiserApi(
     // Profile endpoints
     if (method === 'GET' && subPath === '/me') {
       return await handleGetMe(request, env, context);
+    }
+
+    if (method === 'DELETE' && subPath === '/me') {
+      return await handleDeleteAccount(request, env, context);
     }
 
     if (method === 'GET' && subPath === '/status') {
