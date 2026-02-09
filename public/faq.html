@@ -194,7 +194,7 @@
               <li><strong>Review</strong> — the advertiser verifies your post meets requirements</li>
               <li><strong>Payout</strong> — if approved, payment is sent to your wallet on-chain</li>
             </ol>
-            <p>Payments are processed on-chain (Sepolia for Test Mode, Ethereum/Base/Polygon for Production). A <strong>10% platform fee</strong> is deducted, and you receive <strong>90% of the mission reward</strong> directly to your wallet.</p>
+            <p>Payments are released from escrow on-chain (Sepolia for Test Mode, Ethereum/Base/Polygon for Production). A <strong>10% platform fee</strong> is deducted, and you receive <strong>90% of the mission reward</strong> directly to your wallet. All on-chain transactions are handled by the server.</p>
             <p>Payment is for compliant content creation — not for engagement metrics.</p>
           </div>
         </div>
@@ -242,11 +242,11 @@
             <p><strong>Test Mode is currently the only available mode.</strong> Production Mode (USDC) is not yet available.</p>
             <ul>
               <li><strong>Ad spend:</strong> FREE (hUSD is a test token with no real value)</li>
-              <li><strong>Gas:</strong> Sepolia ETH required (free from faucet)</li>
+              <li><strong>Gas:</strong> Auto-funded by the server (0.002 ETH sent when needed)</li>
               <li><strong>Network:</strong> Sepolia testnet</li>
               <li><strong>Purpose:</strong> Testing campaigns, learning the platform</li>
             </ul>
-            <p>You still need <strong>Sepolia ETH for gas</strong>. Get it from: <a href="https://sepolia-faucet.pk910.de/" target="_blank">https://sepolia-faucet.pk910.de/</a></p>
+            <p>For the initial hUSD faucet claim, you need a small amount of <strong>Sepolia ETH</strong>. After that, the server automatically sends ETH for gas when you approve the escrow contract.</p>
           </div>
         </div>
 
@@ -362,6 +362,39 @@
           </div>
         </div>
 
+        <!-- Question: How does the escrow model work? -->
+        <div class="faq-item">
+          <button class="faq-question">
+            How does the escrow model work?
+          </button>
+          <div class="faq-answer">
+            <p>HumanAds uses an <strong>on-chain escrow contract</strong> to secure mission funds.</p>
+            <ol>
+              <li><strong>Approve:</strong> You approve the escrow contract to spend your hUSD (a standard ERC20 approve transaction, signed locally)</li>
+              <li><strong>Create mission:</strong> The server deposits your hUSD into escrow on your behalf</li>
+              <li><strong>Payout:</strong> When you approve a submission, the escrow releases funds: 10% platform fee + 90% to the promoter</li>
+              <li><strong>Refund:</strong> If you cancel a mission, unspent funds are returned to your wallet</li>
+            </ol>
+            <p>All on-chain transactions (deposit, payout, refund) are handled by the server. You only need to sign the initial approve transaction.</p>
+          </div>
+        </div>
+
+        <!-- Question: Do missions support image creatives? -->
+        <div class="faq-item">
+          <button class="faq-question">
+            Do missions support image creatives?
+          </button>
+          <div class="faq-answer">
+            <p><strong>Yes.</strong> Missions can require promoters to attach a specific image to their X posts.</p>
+            <ul>
+              <li>Set <code>required_media: "image"</code> when creating a mission</li>
+              <li>Provide the image URL via <code>image_url</code></li>
+              <li>The server automatically verifies that submitted tweets contain image attachments</li>
+            </ul>
+            <p>This is useful for campaigns with branded banners, product photos, or other visual assets.</p>
+          </div>
+        </div>
+
         <!-- ========== CLAIM PROCESS ========== -->
 
         <!-- Question: How do I apply for a mission? -->
@@ -471,17 +504,17 @@
             What is the platform fee?
           </button>
           <div class="faq-answer">
-            <p>HumanAds charges a <strong>10% platform fee</strong> (called Advertiser Upfront Fee, or AUF) on each approved submission.</p>
+            <p>HumanAds charges a <strong>10% platform fee</strong> on each approved submission. The fee is deducted automatically when the escrow releases funds.</p>
             <ul>
               <li><strong>Platform fee:</strong> 10% of the mission reward</li>
               <li><strong>Promoter payout:</strong> 90% of the mission reward</li>
             </ul>
             <p><strong>Example:</strong> For a mission paying 5.00 hUSD:</p>
             <ul>
-              <li>Platform fee (AUF): 0.50 hUSD</li>
+              <li>Platform fee: 0.50 hUSD</li>
               <li>You receive: 4.50 hUSD</li>
             </ul>
-            <p>The fee is deducted automatically during the payout process. No separate action is required.</p>
+            <p>The fee is deducted automatically by the escrow contract during payout. No separate action is required.</p>
           </div>
         </div>
 
@@ -494,10 +527,8 @@
             <p>After your submission is approved, the payout goes through these stages:</p>
             <ol>
               <li><strong>Verified</strong> — Submission approved, payout pending</li>
-              <li><strong>Approved</strong> — Payout authorized</li>
-              <li><strong>Address Unlocked</strong> — Your wallet address revealed for payout</li>
-              <li><strong>Paid (Partial)</strong> — Platform fee processed, your payout pending</li>
-              <li><strong>Paid (Complete)</strong> — All payments confirmed on-chain</li>
+              <li><strong>Approved</strong> — Payout authorized, payment records created</li>
+              <li><strong>Paid (Complete)</strong> — Escrow released: 10% platform fee + 90% to your wallet</li>
             </ol>
             <p>You can check your payout status in the dashboard. All transactions are on-chain and verifiable.</p>
           </div>
