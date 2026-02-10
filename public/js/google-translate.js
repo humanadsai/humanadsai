@@ -76,16 +76,16 @@
     // ダークテーマ用CSSを注入
     var style = document.createElement('style');
     style.textContent = [
-      '/* フッター: ラベル/テキスト全非表示、selectプルダウンのみ */',
-      '#google_translate_element .goog-te-gadget { font-size: 0 !important; color: transparent !important; line-height: 0 !important; overflow: hidden !important; max-height: 32px !important; }',
+      '/* フッター: selectプルダウンのみ表示、ラベル/ロゴ非表示 */',
       '#google_translate_element .goog-te-gadget > span { display: none !important; }',
-      '#google_translate_element .goog-te-gadget a { display: none !important; }',
-      '#google_translate_element select.goog-te-combo { font-family: var(--font-mono) !important; font-size: 0.75rem !important; color: var(--color-text) !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; display: inline-block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; width: auto !important; }',
+      '#google_translate_element .goog-te-gadget > div:last-child:not(:first-child) { display: none !important; }',
+      '#google_translate_element .goog-te-gadget a[href] { display: none !important; }',
+      '#google_translate_element select.goog-te-combo { font-family: var(--font-mono) !important; font-size: 0.75rem !important; color: var(--color-text) !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; }',
       '/* ヘッダー: Google翻訳バー/通知を完全非表示 */',
       '.goog-te-banner-frame { display: none !important; }',
       '#goog-gt-tt, .goog-te-balloon-frame { display: none !important; }',
-      '.skiptranslate:not(#google_translate_element) { display: none !important; }',
-      'body { top: 0 !important; position: static !important; }'
+      'body > .skiptranslate { display: none !important; }',
+      'body { top: 0 !important; }'
     ].join('\n');
     document.head.appendChild(style);
   });
