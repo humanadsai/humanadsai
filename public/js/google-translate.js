@@ -135,9 +135,18 @@
         if (!fb.value) return;
         localStorage.setItem(MANUAL_LANG_KEY, fb.value);
         setTranslateCookie(fb.value);
+        sessionStorage.setItem('gt_fb_reloaded', '1');
         location.reload();
       });
       container.appendChild(fb);
+
+      // 初回訪問で自動翻訳: cookie設定済み+まだリロードしてない → 1回リロード
+      var targetLang = browserLang || '';
+      var alreadyReloaded = sessionStorage.getItem('gt_fb_reloaded');
+      if (targetLang && targetLang !== 'en' && !alreadyReloaded && !localStorage.getItem(MANUAL_LANG_KEY)) {
+        sessionStorage.setItem('gt_fb_reloaded', '1');
+        location.reload();
+      }
     }, 3000);
 
     // CSS注入
