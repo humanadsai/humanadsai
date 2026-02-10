@@ -1165,8 +1165,22 @@ export async function handleExecutePayout(
   let payoutTxHash = payoutPayment.tx_hash;
 
   // Step 3: Execute escrow release (skip if tx_hash already saved from prior attempt)
-  const needsRelease = (aufPayment.status === 'pending' || payoutPayment.status === 'pending')
-    && !aufPayment.tx_hash && !payoutPayment.tx_hash;
+  // Use atomic UPDATE to prevent race condition (double-release from concurrent requests)
+  let needsRelease = false;
+  if ((aufPayment.status === 'pending' || payoutPayment.status === 'pending')
+    && !aufPayment.tx_hash && !payoutPayment.tx_hash) {
+    // Atomically claim: only proceed if status is still 'pending' AND tx_hash is NULL
+    const claimResult = await env.DB.prepare(
+      `UPDATE payments SET status = 'processing', updated_at = datetime('now') WHERE id = ? AND status = 'pending' AND tx_hash IS NULL`
+    ).bind(aufPayment.id).run();
+    needsRelease = (claimResult.meta?.changes ?? 0) > 0;
+    if (needsRelease) {
+      // Also mark payout as processing
+      await env.DB.prepare(
+        `UPDATE payments SET status = 'processing', updated_at = datetime('now') WHERE id = ? AND status = 'pending' AND tx_hash IS NULL`
+      ).bind(payoutPayment.id).run();
+    }
+  }
 
   if (needsRelease) {
     // All hUSD payouts use escrow: single release — contract handles 10%/90% split

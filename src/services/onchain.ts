@@ -249,6 +249,9 @@ export async function transferHusd(
   amountCents: number,
   options?: { forceOnchain?: boolean }
 ): Promise<TransferResult> {
+  if (amountCents <= 0 || !Number.isFinite(amountCents)) {
+    return { success: false, error: 'Amount must be a positive finite number' };
+  }
   const config = getOnchainConfig(env);
 
   // Check if we have the private key
@@ -648,6 +651,9 @@ export async function escrowRelease(
   operatorAddress: string,
   rewardAmountCents: number
 ): Promise<EscrowResult> {
+  if (rewardAmountCents <= 0 || !Number.isFinite(rewardAmountCents)) {
+    return { success: false, error: 'Reward amount must be a positive finite number' };
+  }
   const config = getOnchainConfig(env);
 
   if (!env.TREASURY_PRIVATE_KEY) {

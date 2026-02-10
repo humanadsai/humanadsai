@@ -28,15 +28,30 @@
     }, 'google_translate_element');
   };
 
+  // widget読み込み後にプログラムで言語を選択（リロード不要で即翻訳）
+  function autoSelectLanguage(lang) {
+    var attempts = 0;
+    var interval = setInterval(function() {
+      var select = document.querySelector('.goog-te-combo');
+      if (select) {
+        select.value = lang;
+        select.dispatchEvent(new Event('change'));
+        clearInterval(interval);
+      }
+      if (++attempts > 50) clearInterval(interval); // 5秒でタイムアウト
+    }, 100);
+  }
+
   // DOMContentLoaded後にウィジェットを挿入
   document.addEventListener('DOMContentLoaded', function() {
     var footer = document.querySelector('footer.footer');
     if (!footer) return;
 
-    // ブラウザ言語が英語以外で、まだ翻訳cookieが無ければ自動設定
+    // ブラウザ言語が英語以外なら自動翻訳
     var browserLang = detectLanguage();
-    if (browserLang && document.cookie.indexOf('googtrans') === -1) {
-      setTranslateCookie(browserLang);
+    if (browserLang) {
+      setTranslateCookie(browserLang);  // 次回以降のため（毎回上書きで確実に）
+      autoSelectLanguage(browserLang);  // widget初期化後に即座に言語選択
     }
 
     // コンテナ作成
@@ -61,16 +76,9 @@
     // ダークテーマ用CSSを注入
     var style = document.createElement('style');
     style.textContent = [
-      '/* Google翻訳ウィジェットのダークテーマ調整 */',
-      '.goog-te-gadget { font-family: var(--font-mono) !important; font-size: 0.75rem !important; color: var(--color-text-muted) !important; }',
-      '.goog-te-gadget-simple { background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; }',
-      '.goog-te-gadget-simple a { color: var(--color-text-muted) !important; text-decoration: none !important; }',
-      '.goog-te-gadget-simple a:hover { color: var(--color-primary) !important; }',
-      '.goog-te-menu-value span { color: var(--color-text) !important; }',
-      '/* "Powered by Google 翻訳" テキストを非表示 */',
-      '.goog-te-gadget > span { display: none !important; }',
-      '#google_translate_element .goog-te-gadget { color: transparent !important; font-size: 0 !important; }',
-      '#google_translate_element .goog-te-gadget .goog-te-gadget-simple { font-size: 0.75rem !important; }',
+      '/* Google翻訳: "Powered by"テキスト非表示、selectプルダウンのみ表示 */',
+      '#google_translate_element .goog-te-gadget { font-size: 0 !important; color: transparent !important; line-height: 0 !important; overflow: hidden !important; max-height: 32px !important; }',
+      '#google_translate_element select.goog-te-combo { font-family: var(--font-mono) !important; font-size: 0.75rem !important; color: var(--color-text) !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; display: inline-block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; width: auto !important; }',
       '/* ページ上部の翻訳バーを非表示 */',
       '.goog-te-banner-frame { display: none !important; }',
       'body { top: 0 !important; }'

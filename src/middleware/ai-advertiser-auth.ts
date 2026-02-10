@@ -139,8 +139,7 @@ export function requireActiveStatus(
   if (context.advertiser.status !== 'active') {
     return {
       status: 403,
-      message: 'Advertiser must complete human claim and X verification',
-      hint: `Current status: ${context.advertiser.status}. Visit your claim URL: ${context.advertiser.claim_url}`
+      message: `Advertiser must complete human claim and X verification. Current status: ${context.advertiser.status}.`,
     };
   }
   return null;

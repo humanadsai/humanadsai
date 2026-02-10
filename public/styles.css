@@ -224,13 +224,15 @@ body {
 
 .stats-row-3 {
   justify-content: space-around;
-  max-width: 360px;
+  max-width: 420px;
   margin: 0 auto;
+  gap: 12px;
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.7rem;
   color: var(--color-text-muted);
+  line-height: 1.3;
 }
 
 .stats-indicator {

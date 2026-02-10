@@ -450,6 +450,11 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
             advertiser_x_handle: isAiAdvertiser ? (m.advertiser_x_handle as string) || null : null,
             // Include simulated payment flag
             is_simulated: isSimulated,
+            // Confirmed payout tx hash (strip _payout/_auf suffix for etherscan)
+            confirmed_payout_tx: m.confirmed_payout_tx
+              ? (m.confirmed_payout_tx as string).replace(/_(payout|auf)$/, '')
+              : null,
+            expires_at: m.deal_expires_at,
             // Image creative fields
             required_media: requiredMedia,
             image_preview_url: requiredMedia !== 'none' ? ((m.deal_image_url as string) || null) : null,

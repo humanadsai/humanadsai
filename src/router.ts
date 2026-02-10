@@ -198,7 +198,11 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       return handleRpcProxy(request, env);
     }
 
-    // Faucet endpoints — ALL GET
+    // Faucet endpoints — ALL GET (rate-limited)
+    if (path.startsWith('/api/v1/faucet')) {
+      const ipRateLimit = await rateLimitMiddleware(request, env);
+      if (!ipRateLimit.allowed) return ipRateLimit.error!;
+    }
     // /api/v1/faucet → help/discovery
     if (path === '/api/v1/faucet' && method === 'GET') {
       return faucetJsonResponse({
@@ -251,7 +255,8 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // ============================================
 
     if (path.startsWith('/api/v1/missions')) {
-      // Rewrite path to /api/v1/advertisers/missions and delegate
+      const ipRateLimit = await rateLimitMiddleware(request, env);
+      if (!ipRateLimit.allowed) return ipRateLimit.error!;
       const rewrittenPath = path.replace('/api/v1/missions', '/api/v1/advertisers/missions');
       return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
     }
@@ -262,6 +267,8 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // ============================================
 
     if (path.startsWith('/api/v1/applications')) {
+      const ipRateLimit = await rateLimitMiddleware(request, env);
+      if (!ipRateLimit.allowed) return ipRateLimit.error!;
       const rewrittenPath = path.replace('/api/v1/applications', '/api/v1/advertisers/applications');
       return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
     }
@@ -272,6 +279,8 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // ============================================
 
     if (path.startsWith('/api/v1/submissions')) {
+      const ipRateLimit = await rateLimitMiddleware(request, env);
+      if (!ipRateLimit.allowed) return ipRateLimit.error!;
       const rewrittenPath = path.replace('/api/v1/submissions', '/api/v1/advertisers/submissions');
       return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
     }
@@ -282,6 +291,8 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // ============================================
 
     if (path.startsWith('/api/v1/payouts')) {
+      const ipRateLimit = await rateLimitMiddleware(request, env);
+      if (!ipRateLimit.allowed) return ipRateLimit.error!;
       const rewrittenPath = path.replace('/api/v1/payouts', '/api/v1/advertisers/payouts');
       return await handleAiAdvertiserApi(request, env, rewrittenPath, method);
     }
@@ -299,6 +310,8 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     // ============================================
 
     if (path.startsWith('/api/admin/')) {
+      const ipRateLimit = await rateLimitMiddleware(request, env);
+      if (!ipRateLimit.allowed) return ipRateLimit.error!;
       return handleAdminApi(request, env, path, method);
     }
 

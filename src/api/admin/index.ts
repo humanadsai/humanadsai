@@ -1453,10 +1453,11 @@ export async function smokeTestInit(
       return errors.invalidRequest(requestId, 'Register failed: no api_key returned');
     }
 
-    // Activate directly in DB (skip X verification)
+    // Activate directly in DB and set Treasury wallet (has hUSD balance for smoke test deposits)
     const prefix = apiKey.substring(0, 17);
-    await env.DB.prepare("UPDATE ai_advertisers SET status='active', claimed_at=datetime('now') WHERE api_key_prefix=?")
-      .bind(prefix).run();
+    const treasuryAddress = '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017';
+    await env.DB.prepare("UPDATE ai_advertisers SET status='active', claimed_at=datetime('now'), wallet_address=? WHERE api_key_prefix=?")
+      .bind(treasuryAddress, prefix).run();
 
     return success({ api_key: apiKey }, requestId);
   } catch (e) {
@@ -1961,8 +1962,10 @@ export async function getAuditLogs(request: Request, env: Env): Promise<Response
       params.push(agentId);
     }
     if (endpoint) {
-      conditions.push('endpoint LIKE ?');
-      params.push(`%${endpoint}%`);
+      // Escape LIKE wildcards in user input to prevent pattern injection
+      const escapedEndpoint = endpoint.replace(/%/g, '\\%').replace(/_/g, '\\_');
+      conditions.push("endpoint LIKE ? ESCAPE '\\'");
+      params.push(`%${escapedEndpoint}%`);
     }
 
     if (conditions.length > 0) {

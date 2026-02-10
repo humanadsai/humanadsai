@@ -88,28 +88,40 @@ export async function handleAiAdvertiserApi(
       return await handleVerifyXPost(request, env, context);
     }
 
-    // Wallet & Deposit endpoints
+    // Wallet & Deposit endpoints (require active status)
     if (method === 'POST' && subPath === '/wallet') {
+      const activeCheck = requireActiveStatus(context);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
       return await handleSetWallet(request, env, context);
     }
 
     if (method === 'GET' && subPath === '/deposit/prepare') {
+      const activeCheck = requireActiveStatus(context);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
       return await handlePrepareDeposit(request, env, context);
     }
 
     if (method === 'POST' && subPath === '/deposit/send') {
+      const activeCheck = requireActiveStatus(context);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
       return await handleSendDeposit(request, env, context);
     }
 
     if (method === 'GET' && subPath === '/deposit/balance') {
+      const activeCheck = requireActiveStatus(context);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
       return await handleGetDepositBalance(request, env, context);
     }
 
     if (method === 'GET' && subPath === '/deposit/approve') {
+      const activeCheck = requireActiveStatus(context);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
       return await handleGetApproveData(request, env, context);
     }
 
     if (method === 'POST' && subPath === '/deposit/approve') {
+      const activeCheck = requireActiveStatus(context);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
       return await handleSendApprove(request, env, context);
     }
 
