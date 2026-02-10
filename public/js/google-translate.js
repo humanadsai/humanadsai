@@ -111,6 +111,35 @@
     script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     document.body.appendChild(script);
 
+    // widget読み込み失敗時のフォールバック（Safari/iOS等でスクリプトがブロックされる場合）
+    setTimeout(function() {
+      if (document.querySelector('.goog-te-combo') || document.querySelector('.goog-te-gadget-simple')) return;
+      // widgetが出なかった → 自前selectを表示
+      var fb = document.createElement('select');
+      fb.className = 'gt-fallback-select';
+      var langs = [
+        ['', 'Language'], ['en', 'English'], ['ja', '日本語'],
+        ['zh-CN', '中文(简体)'], ['zh-TW', '中文(繁體)'], ['ko', '한국어'],
+        ['es', 'Español'], ['fr', 'Français'], ['de', 'Deutsch'],
+        ['pt', 'Português'], ['ar', 'العربية'], ['hi', 'हिन्दी'],
+        ['th', 'ไทย'], ['vi', 'Tiếng Việt']
+      ];
+      for (var i = 0; i < langs.length; i++) {
+        var o = document.createElement('option');
+        o.value = langs[i][0]; o.textContent = langs[i][1];
+        fb.appendChild(o);
+      }
+      var cur = localStorage.getItem(MANUAL_LANG_KEY) || browserLang || '';
+      if (cur) fb.value = cur;
+      fb.addEventListener('change', function() {
+        if (!fb.value) return;
+        localStorage.setItem(MANUAL_LANG_KEY, fb.value);
+        setTranslateCookie(fb.value);
+        location.reload();
+      });
+      container.appendChild(fb);
+    }, 3000);
+
     // CSS注入
     var style = document.createElement('style');
     style.textContent = [
@@ -124,6 +153,8 @@
       '#google_translate_element .goog-te-gadget-simple a { font-size: 0.75rem !important; color: var(--color-text-muted) !important; text-decoration: none !important; }',
       '#google_translate_element .goog-te-gadget-simple .goog-te-menu-value span { color: var(--color-text) !important; }',
       '#google_translate_element .goog-te-gadget-simple img { display: none !important; }',
+      '/* フォールバックselect */',
+      '.gt-fallback-select { font-family: var(--font-mono) !important; font-size: 0.75rem !important; color: var(--color-text) !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; -webkit-appearance: menulist !important; }',
       '/* ヘッダー: Google翻訳バー/通知を完全非表示 */',
       '.goog-te-banner-frame { display: none !important; }',
       '#goog-gt-tt, .goog-te-balloon-frame { display: none !important; }',
