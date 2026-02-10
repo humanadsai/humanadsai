@@ -104,6 +104,29 @@
       margin-bottom: 8px;
       font-size: 0.875rem;
     }
+    .creative-preview {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .creative-preview h4 {
+      margin-bottom: 12px;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    .creative-preview img {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+    .creative-preview .creative-hint {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 8px;
+    }
     .form-group {
       margin-bottom: 16px;
     }
@@ -271,6 +294,12 @@
               <li>Include required disclosure (e.g., #Ad)</li>
               <li>Follow content guidelines</li>
             </ul>
+          </div>
+
+          <div class="creative-preview" id="creative-preview" style="display: none;">
+            <h4>Creative Image</h4>
+            <img id="creative-image" src="" alt="Ad creative">
+            <p class="creative-hint" id="creative-hint"></p>
           </div>
 
           <form id="application-form">
@@ -464,6 +493,17 @@
         }
 
         document.getElementById('requirements-list').innerHTML = reqItems.map(r => `<li>${r}</li>`).join('');
+
+        // Show creative image preview
+        if (missionData.image_preview_url) {
+          const previewEl = document.getElementById('creative-preview');
+          document.getElementById('creative-image').src = missionData.image_preview_url;
+          const hint = missionData.required_media === 'image'
+            ? 'Attach this image to your post'
+            : 'You may attach this image to your post (optional)';
+          document.getElementById('creative-hint').textContent = hint;
+          previewEl.style.display = 'block';
+        }
 
         document.getElementById('loading').style.display = 'none';
         document.getElementById('apply-form').style.display = 'block';
