@@ -4,7 +4,7 @@
  */
 
 import type { Env } from '../types';
-import { createWalletClient, createPublicClient, http, parseAbi, parseEther, getAddress, keccak256, toHex, type Hex } from 'viem';
+import { createWalletClient, createPublicClient, http, fallback, parseAbi, parseEther, getAddress, keccak256, toHex, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 
@@ -196,9 +196,10 @@ export async function sendEthForGas(
     const { client, config } = createTreasuryClient(env);
     const normalizedTo = normalizeAddress(toAddress) as Hex;
 
+    const rpcUrls = [config.rpcUrl, ...RPC_FALLBACKS.filter(u => u !== config.rpcUrl)];
     const publicClient = createPublicClient({
       chain: sepolia,
-      transport: http(config.rpcUrl, { timeout: 30_000 }),
+      transport: fallback(rpcUrls.map(url => http(url, { timeout: 30_000 }))),
     });
 
     const txHash = await client.sendTransaction({
@@ -466,13 +467,15 @@ function createTreasuryClient(env: Env) {
     throw new Error('Treasury key/address mismatch');
   }
 
+  const rpcUrls = [config.rpcUrl, ...RPC_FALLBACKS.filter(u => u !== config.rpcUrl)];
+  const transport = fallback(
+    rpcUrls.map(url => http(url, { timeout: 30_000, retryCount: 1 }))
+  );
+
   const client = createWalletClient({
     account,
     chain: sepolia,
-    transport: http(config.rpcUrl, {
-      timeout: 30_000,
-      retryCount: 1,
-    }),
+    transport,
   });
 
   return { client, account, config };
@@ -511,9 +514,10 @@ export async function escrowApproveAndDeposit(
     const totalAmountBaseUnits = BigInt(totalAmountCents) * BigInt(10_000);
     const expiresAtUnix = BigInt(Math.floor(new Date(expiresAtISO).getTime() / 1000));
 
+    const rpcUrls = [cfg.rpcUrl, ...RPC_FALLBACKS.filter(u => u !== cfg.rpcUrl)];
     const publicClient = createPublicClient({
       chain: sepolia,
-      transport: http(cfg.rpcUrl, { timeout: 30_000 }),
+      transport: fallback(rpcUrls.map(url => http(url, { timeout: 30_000 }))),
     });
 
     // Step 1: Check current allowance — only approve if insufficient

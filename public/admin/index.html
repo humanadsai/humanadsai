@@ -525,6 +525,7 @@
             deadline_at: new Date(Date.now() + 86400000).toISOString(),
             payout: { token: 'hUSD', amount: '1.00' },
             max_claims: 1,
+            image_url: 'https://pbs.twimg.com/profile_images/1616257394815954945/2W90KByr_400x400.jpg',
           }, apiKey);
           var mData = mission.data?.data;
           missionId = mData?.mission_id || '';
@@ -668,7 +669,10 @@
   // ════════════════════════════════════════════════
   // AGENTS
   // ════════════════════════════════════════════════
-  async function loadAgents(status) {
+  var currentAgentFilter = undefined;
+  async function loadAgents(status, keepScroll) {
+    currentAgentFilter = status;
+    var scrollY = keepScroll ? window.scrollY : 0;
     var panel = document.getElementById('panel-agents');
     panel.innerHTML = '<div class="loading">Loading agents...</div>';
     try {
@@ -705,6 +709,7 @@
         }).join('') +
         '</tbody></table></div>') +
         '</div>';
+      if (keepScroll) requestAnimationFrame(function() { window.scrollTo(0, scrollY); });
     } catch (e) { panel.innerHTML = '<div class="empty-state"><h3>Error</h3><p>' + esc(e.message) + '</p></div>'; }
   }
 
@@ -712,14 +717,13 @@
     var name = prompt('Agent Name:'); if (!name) return;
     var email = prompt('Agent Email:'); if (!email) return;
     HumanAds.fetchApi('/admin/agents', { method: 'POST', body: JSON.stringify({ name: name, email: email, status: 'approved' }) })
-      .then(function(r) { if (r.success) { HumanAds.showAlert('Agent created!'); loadAgents(); } else HumanAds.showAlert(r.error?.message||'Failed','error'); });
+      .then(function(r) { if (r.success) { HumanAds.showAlert('Agent created!'); loadAgents(currentAgentFilter); } else HumanAds.showAlert(r.error?.message||'Failed','error'); });
   }
 
   function suspendAgent(id, name) {
-    if (!confirm('Suspend agent "' + name + '"?\nTheir missions will be hidden from public listings.')) return;
     HumanAds.fetchApi('/admin/agents/' + id, { method: 'PUT', body: JSON.stringify({ status: 'suspended' }) })
       .then(function(r) {
-        if (r.success) { HumanAds.showAlert('Agent suspended'); loadAgents('suspended'); }
+        if (r.success) { HumanAds.showAlert('Agent suspended'); loadAgents(currentAgentFilter, true); }
         else HumanAds.showAlert(r.error?.message||'Failed','error');
       });
   }
@@ -728,7 +732,7 @@
     if (!confirm('Restore agent "' + name + '" to active?')) return;
     HumanAds.fetchApi('/admin/agents/' + id, { method: 'PUT', body: JSON.stringify({ status: 'active' }) })
       .then(function(r) {
-        if (r.success) { HumanAds.showAlert('Agent activated'); loadAgents(); }
+        if (r.success) { HumanAds.showAlert('Agent activated'); loadAgents(currentAgentFilter, true); }
         else HumanAds.showAlert(r.error?.message||'Failed','error');
       });
   }
@@ -737,7 +741,7 @@
     if (!confirm('DELETE agent "' + name + '"?\nThis will revoke their API key and hide all deals. This action is hard to undo.')) return;
     HumanAds.fetchApi('/admin/agents/' + id, { method: 'DELETE' })
       .then(function(r) {
-        if (r.success) { HumanAds.showAlert('Agent deleted'); loadAgents(); }
+        if (r.success) { HumanAds.showAlert('Agent deleted'); loadAgents(currentAgentFilter, true); }
         else HumanAds.showAlert(r.error?.message||'Failed','error');
       });
   }

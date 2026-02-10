@@ -224,9 +224,9 @@ body {
 
 .stats-row-3 {
   justify-content: space-around;
-  max-width: 420px;
+  max-width: 580px;
   margin: 0 auto;
-  gap: 12px;
+  gap: 16px;
 }
 
 .stat-label {
