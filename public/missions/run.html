@@ -266,6 +266,60 @@
       color: #F44336;
     }
 
+    /* Image Creative Preview */
+    .image-creative-card {
+      background: rgba(140, 80, 200, 0.08);
+      border: 1px solid rgba(140, 80, 200, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .image-creative-card h3 {
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(220, 190, 255, 0.95);
+    }
+    .image-creative-card img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .image-creative-card .image-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.8rem;
+    }
+    .image-creative-card .image-actions a {
+      color: var(--color-primary);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .image-creative-card .media-instructions {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-top: 8px;
+    }
+    .image-required-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(140, 80, 200, 0.15);
+      border: 1px solid rgba(140, 80, 200, 0.3);
+      color: #CE93D8;
+    }
+
     /* Required Elements */
     .required-elements {
       background: rgba(255, 107, 53, 0.08);
@@ -606,6 +660,17 @@
           </ul>
         </div>
 
+        <!-- Image Creative (shown when mission requires image) -->
+        <div id="image-creative-section" class="image-creative-card" style="display: none;">
+          <h3><span>🖼️</span> <span id="image-creative-title">Image Required</span></h3>
+          <img id="image-creative-img" src="" alt="Mission creative image" />
+          <div class="image-actions">
+            <a id="image-download-link" href="#" download target="_blank">⬇️ Download Image</a>
+            <span id="image-required-badge" class="image-required-badge">REQUIRED</span>
+          </div>
+          <div id="image-media-instructions" class="media-instructions" style="display: none;"></div>
+        </div>
+
         <!-- Post Composer Section (shown for accepted missions) -->
         <div id="composer-section" style="display: none;">
           <div class="post-composer">
@@ -648,6 +713,10 @@
               <div class="required-element" id="link-status">
                 <span class="status-icon missing">!</span>
                 <span>Required link: <code id="required-link">humanadsai.com</code></span>
+              </div>
+              <div class="required-element" id="image-attach-status" style="display: none;">
+                <span class="status-icon missing">!</span>
+                <span>Attach the provided image to your X post</span>
               </div>
             </div>
 
@@ -1302,6 +1371,39 @@
       // Build key points
       buildKeyPoints(requirements);
 
+      // Image creative section
+      if (missionData.required_media === 'image' || missionData.required_media === 'image_optional') {
+        const imageSection = document.getElementById('image-creative-section');
+        const imageTitle = document.getElementById('image-creative-title');
+        const imageBadge = document.getElementById('image-required-badge');
+        const imageAttachStatus = document.getElementById('image-attach-status');
+
+        if (missionData.required_media === 'image_optional') {
+          imageTitle.textContent = 'Image (Optional)';
+          imageBadge.textContent = 'OPTIONAL';
+          imageBadge.style.background = 'rgba(158, 158, 158, 0.15)';
+          imageBadge.style.borderColor = 'rgba(158, 158, 158, 0.3)';
+          imageBadge.style.color = '#BDBDBD';
+        }
+
+        if (missionData.image_preview_url) {
+          document.getElementById('image-creative-img').src = missionData.image_preview_url;
+          document.getElementById('image-download-link').href = missionData.image_preview_url;
+          imageSection.style.display = '';
+        }
+
+        if (missionData.media_instructions) {
+          const instrEl = document.getElementById('image-media-instructions');
+          instrEl.textContent = missionData.media_instructions;
+          instrEl.style.display = '';
+        }
+
+        // Show image attach reminder in required elements (for required images)
+        if (missionData.required_media === 'image' && imageAttachStatus) {
+          imageAttachStatus.style.display = '';
+        }
+      }
+
       // Update steps based on status
       updateSteps(missionData.status);
 
@@ -1439,6 +1541,12 @@
         items.push(`Content guidance: ${requirements.content_template}`);
       }
 
+      if (missionData.required_media === 'image') {
+        items.push('🖼️ Image Required — Attach the provided image to your post');
+      } else if (missionData.required_media === 'image_optional') {
+        items.push('🖼️ Image optional — You may attach the provided image');
+      }
+
       items.push('Post must remain live for verification');
 
       return items;
@@ -1447,11 +1555,40 @@
     // Build key points checkboxes
     function buildKeyPoints(requirements) {
       const container = document.getElementById('key-points-list');
-      const keyPoints = requirements.key_points || [
-        'Mention the main benefit',
-        'Share your personal experience',
-        'Include a call to action'
-      ];
+
+      // Use explicit key_points if provided
+      let keyPoints = requirements.key_points;
+
+      if (!keyPoints || keyPoints.length === 0) {
+        // Auto-generate from mission data
+        keyPoints = [];
+
+        // Extract from content_template / must_include_text
+        if (requirements.content_template) {
+          keyPoints.push(requirements.content_template);
+        }
+
+        // Extract from brief (first 1-2 sentences as a talking point)
+        const brief = missionData?.deal_brief || missionData?.brief || '';
+        if (brief) {
+          // Take first sentence (up to 120 chars) as a key point
+          const firstSentence = brief.split(/[.!?\n]/).filter(s => s.trim().length > 10)[0];
+          if (firstSentence && firstSentence.trim().length <= 120) {
+            keyPoints.push(firstSentence.trim());
+          }
+        }
+
+        // Add title as a talking point if we have few points
+        const title = missionData?.deal_title || missionData?.title || '';
+        if (title && keyPoints.length < 2) {
+          keyPoints.push(title);
+        }
+
+        // Fallback if still empty
+        if (keyPoints.length === 0) {
+          keyPoints = ['Share what you find interesting about this'];
+        }
+      }
 
       container.innerHTML = keyPoints.map((point, i) => `
         <label class="key-point-item">
@@ -1589,5 +1726,6 @@
     });
   </script>
   <script src="/js/env-banner.js"></script>
+<script src="/js/google-translate.js"></script>
 </body>
 </html>

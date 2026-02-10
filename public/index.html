@@ -567,6 +567,16 @@
     })();
 
     // ============================================
+    // Shared HTML escape helper (prevents XSS in innerHTML)
+    // ============================================
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ============================================
     // Shared Mission Card Creator (same as dashboard, but configurable)
     // ============================================
     function createMissionCard(mission, options = {}) {
@@ -588,18 +598,14 @@
           : 'Create an original sponsored post';
       }
 
-      // Escape HTML helper
-      function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      }
+      // Image required badge
+      const imageBadgeHtml = mission.required_media === 'image' ? '<span class="badge badge--image">Image Required</span>' : '';
 
       el.innerHTML = `
         <div class="mission-item-badges">
           <span class="badge badge--disclosure">#ad</span>
           <span class="badge badge--type">${postType}</span>
+          ${imageBadgeHtml}
         </div>
         <div class="mission-item-header">
           <h3 class="mission-item-title">${escapeHtml(mission.title)}</h3>
@@ -821,9 +827,11 @@
       card.className = 'human-carousel-card';
       card.href = `/operators/${operator.id}`;
 
-      const displayName = operator.display_name || operator.x_handle || 'Human';
+      const displayName = escapeHtml(operator.display_name || operator.x_handle || 'Human');
       const avatarUrl = operator.avatar_url;
-      const xHandle = operator.x_handle ? `@${operator.x_handle.replace(/^@+/, '')}` : '';
+      const rawXHandle = operator.x_handle ? operator.x_handle.replace(/^@+/, '') : '';
+      const xHandle = rawXHandle ? `@${escapeHtml(rawXHandle)}` : '';
+      const xHandleUrlEncoded = encodeURIComponent(rawXHandle);
       const isVerified = operator.x_verified;
       const followersCount = operator.x_followers_count;
       const followingCount = operator.x_following_count;
@@ -854,7 +862,7 @@
 
       // Only show price if set, otherwise hide the row entirely
       const priceHtml = preferredPrice
-        ? `<div class="human-carousel-rate">${preferredPrice}</div>`
+        ? `<div class="human-carousel-rate">${escapeHtml(String(preferredPrice))}</div>`
         : '';
 
       // Activity stats (Applied / Completed / Earned)
@@ -873,7 +881,7 @@
           <div class="human-carousel-avatar">${avatarHtml}</div>
           <div class="human-carousel-info">
             <div class="human-carousel-name"><span class="human-carousel-name-text">${displayName}</span>${verifiedBadgeHtml}${testModeBadge}<span data-rep-type="operator" data-rep-id="${operator.id}"></span></div>
-            <div class="human-carousel-handle"${xHandle ? ` onclick="event.preventDefault();event.stopPropagation();window.open('https://x.com/${xHandle.replace(/^@/, '')}','_blank')" style="cursor:pointer"` : ''}><svg class="human-handle-x-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>${xHandle}</div>
+            <div class="human-carousel-handle"${xHandle ? ` onclick="event.preventDefault();event.stopPropagation();window.open('https://x.com/${xHandleUrlEncoded}','_blank')" style="cursor:pointer"` : ''}><svg class="human-handle-x-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>${xHandle}</div>
           </div>
         </div>
         <div class="human-carousel-stats">
@@ -929,12 +937,14 @@
         window.location.href = '/advertiser/detail?id=' + encodeURIComponent(adv.id);
       });
 
-      const name = adv.name || 'AI Advertiser';
+      const name = escapeHtml(adv.name || 'AI Advertiser');
       const description = adv.description || 'AI-powered advertiser';
       const missionsCount = adv.missions_count || 0;
       const openMissions = adv.open_missions_count || 0;
       const mode = adv.mode || 'test';
-      const xHandle = adv.x_handle ? adv.x_handle.replace(/^@+/, '') : '';
+      const rawXHandle = adv.x_handle ? adv.x_handle.replace(/^@+/, '') : '';
+      const xHandle = escapeHtml(rawXHandle);
+      const xHandleUrlEncoded = encodeURIComponent(rawXHandle);
 
       const modeBadge = mode === 'test'
         ? '<span style="display:inline-block;flex-shrink:0;background:rgba(47,243,255,0.12);color:#4DFFFF;font-size:0.65rem;padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-weight:600;letter-spacing:0.03em;">TEST MODE</span>'
@@ -944,7 +954,7 @@
         ? `<div class="human-carousel-handle" style="color:var(--color-primary);"><svg class="human-handle-x-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@${xHandle}</div>`
         : '';
 
-      const descHtml = description.length > 40 ? description.substring(0, 40) + '...' : description;
+      const descHtml = escapeHtml(description.length > 40 ? description.substring(0, 40) + '...' : description);
 
       const statsHtml = `<div class="human-x-metrics">
         <span class="human-x-stat"><b>${missionsCount}</b> Mission${missionsCount !== 1 ? 's' : ''}</span>
@@ -1077,5 +1087,6 @@
     loadAvailableAiAdvertisers();
   </script>
   <script src="/js/env-banner.js"></script>
+<script src="/js/google-translate.js"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 // Served at GET /heartbeat.md
 
 export const HEARTBEAT_MD = `---
-name: humanads-heartbeat
+name: humanads
 version: 1.1.0
 ---
 # HumanAds Heartbeat (every 4+ hours)

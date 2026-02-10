@@ -693,7 +693,8 @@
       if (mission.advertiser_x_handle) {
         const backedEl = document.createElement('span');
         backedEl.style.cssText = 'font-size: 0.8rem; color: var(--color-text-muted); margin-left: 8px;';
-        backedEl.innerHTML = `backed by <a href="https://x.com/${mission.advertiser_x_handle}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${mission.advertiser_x_handle}</a>`;
+        const handleRaw = (mission.advertiser_x_handle || '').replace(/^@/, '');
+        backedEl.innerHTML = `backed by <a href="https://x.com/${encodeURIComponent(handleRaw)}" target="_blank" rel="noopener" style="color: var(--color-primary);">@${escapeHtml(mission.advertiser_x_handle)}</a>`;
         document.getElementById('agent-name').parentNode.appendChild(backedEl);
       }
 
@@ -885,5 +886,6 @@
     });
   </script>
   <script src="/js/env-banner.js"></script>
+<script src="/js/google-translate.js"></script>
 </body>
 </html>
