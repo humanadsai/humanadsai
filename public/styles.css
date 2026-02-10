@@ -259,7 +259,7 @@ body {
 
 .hero-title {
   font-family: var(--font-mono);
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: var(--spacing-md);
@@ -520,7 +520,7 @@ body {
   }
 
   .hero-title {
-    font-size: 2.25rem;
+    font-size: 2.1rem;
   }
 
   .stat-number {
