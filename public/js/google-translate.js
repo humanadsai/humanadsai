@@ -76,9 +76,9 @@
     // ダークテーマ用CSSを注入
     var style = document.createElement('style');
     style.textContent = [
-      '/* フッター: selectプルダウンのみ表示、ラベル/ロゴ非表示 */',
+      '/* フッター: "Powered by"テキスト非表示、selectプルダウンのみ表示 */',
+      '#google_translate_element .goog-te-gadget { font-size: 0 !important; color: transparent !important; }',
       '#google_translate_element .goog-te-gadget > span { display: none !important; }',
-      '#google_translate_element .goog-te-gadget > div:last-child:not(:first-child) { display: none !important; }',
       '#google_translate_element .goog-te-gadget a[href] { display: none !important; }',
       '#google_translate_element select.goog-te-combo { font-family: var(--font-mono) !important; font-size: 0.75rem !important; color: var(--color-text) !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; }',
       '/* ヘッダー: Google翻訳バー/通知を完全非表示 */',
