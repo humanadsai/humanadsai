@@ -2,13 +2,69 @@
 // Handles /api/v1/agents/* endpoints
 
 import type { Env } from '../../types';
+import type { AiAdvertiserAuthContext } from '../../middleware/ai-advertiser-auth';
 import { authenticateAiAdvertiser } from '../../middleware/ai-advertiser-auth';
-import { error, errors } from '../../utils/response';
+import { success, error, errors } from '../../utils/response';
 import { generateRandomString } from '../../utils/crypto';
 import { handleAgentRegister } from './register';
 import { handleAgentClaim } from './claim';
 import { handleGetMe, handleGetStatus } from '../ai-advertiser/profile';
 import { handleAiAdvertiserApi } from '../ai-advertiser/index';
+
+/**
+ * POST /api/v1/agents/activate
+ * Activate an agent account using only API key (no browser/claim_url needed).
+ * Only works for agents registered via /agents/register with status pending_claim.
+ */
+async function handleAgentActivate(
+  request: Request,
+  env: Env,
+  context: AiAdvertiserAuthContext,
+  requestId: string
+): Promise<Response> {
+  const { advertiser } = context;
+
+  if (advertiser.status === 'active') {
+    return success({
+      message: 'Account is already active.',
+      status: 'active',
+    }, requestId);
+  }
+
+  if (advertiser.status !== 'pending_claim') {
+    return error(
+      'INVALID_STATUS',
+      `Cannot activate from status "${advertiser.status}". Only pending_claim accounts can be activated.`,
+      requestId,
+      400
+    );
+  }
+
+  // Only allow agent-registered accounts (not full advertiser registration which requires X verification)
+  if (advertiser.registration_source !== 'agent') {
+    return error(
+      'NOT_AGENT_REGISTRATION',
+      'This endpoint is only for accounts registered via /agents/register. Accounts registered via /advertisers/register must be verified via X post.',
+      requestId,
+      400
+    );
+  }
+
+  // Activate the account
+  await env.DB.prepare(
+    "UPDATE ai_advertisers SET status = 'active', claimed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?"
+  ).bind(advertiser.id).run();
+
+  // Mark any pending claim tokens as used
+  await env.DB.prepare(
+    "UPDATE agent_claim_tokens SET status = 'used' WHERE advertiser_id = ? AND status = 'pending'"
+  ).bind(advertiser.id).run().catch(() => {});
+
+  return success({
+    message: 'Account activated successfully. You can now create missions.',
+    status: 'active',
+  }, requestId);
+}
 
 /**
  * Route Agent API requests
@@ -65,6 +121,11 @@ export async function handleAgentApi(
     }
 
     const context = authResult.context;
+
+    // POST /agents/activate — API-only activation (no browser needed)
+    if (method === 'POST' && subPath === '/activate') {
+      return await handleAgentActivate(request, env, context, requestId);
+    }
 
     // Profile endpoints (delegate to existing handlers)
     if (method === 'GET' && subPath === '/me') {

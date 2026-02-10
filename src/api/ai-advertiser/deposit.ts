@@ -52,9 +52,9 @@ export async function handlePrepareDeposit(
 
   // Fetch nonce and gas price from RPC
   let nonce: string;
-  let gasPrice: string;
+  let gasPriceRaw: string;
   try {
-    [nonce, gasPrice] = await Promise.all([
+    [nonce, gasPriceRaw] = await Promise.all([
       rpcCall(config.rpcUrl, 'eth_getTransactionCount', [advertiser.wallet_address, 'latest']) as Promise<string>,
       rpcCall(config.rpcUrl, 'eth_gasPrice', []) as Promise<string>,
     ]);
@@ -62,6 +62,10 @@ export async function handlePrepareDeposit(
     console.error('[PrepareDeposit] RPC error:', e);
     return error('RPC_ERROR', 'Failed to fetch nonce/gasPrice from RPC', requestId, 502);
   }
+
+  // Add 20% buffer to gasPrice for congested network conditions
+  const gasPriceBigInt = BigInt(gasPriceRaw);
+  const gasPrice = '0x' + (gasPriceBigInt * BigInt(120) / BigInt(100)).toString(16);
 
   return success({
     unsigned_tx: {
@@ -105,9 +109,16 @@ export async function handleSendDeposit(
     return errors.badRequest(requestId, 'Invalid JSON in request body');
   }
 
-  const signedTx = body.signed_tx;
-  if (!signedTx || typeof signedTx !== 'string' || !signedTx.startsWith('0x')) {
-    return errors.badRequest(requestId, 'Missing or invalid field: signed_tx (must be hex string starting with 0x)');
+  let signedTx = body.signed_tx;
+  if (!signedTx || typeof signedTx !== 'string') {
+    return errors.badRequest(requestId, 'Missing or invalid field: signed_tx (must be hex string)');
+  }
+  // Auto-prepend 0x if missing (many libraries output without prefix)
+  if (!signedTx.startsWith('0x')) {
+    signedTx = '0x' + signedTx;
+  }
+  if (!/^0x[0-9a-fA-F]+$/.test(signedTx)) {
+    return errors.badRequest(requestId, 'signed_tx must be a valid hex string');
   }
 
   const config = getOnchainConfig(env);
