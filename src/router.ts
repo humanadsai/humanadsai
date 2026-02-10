@@ -4,7 +4,7 @@ import { authenticateAgent } from './middleware/auth';
 import { rateLimitMiddleware, checkRateLimit } from './middleware/rate-limit';
 import { SKILL_MD } from './content/skill-md';
 import { HEARTBEAT_MD } from './content/heartbeat-md';
-import { transferHusd, hasTreasuryKey } from './services/onchain';
+import { transferHusd, hasTreasuryKey, sendEthForGas } from './services/onchain';
 
 // Agent API
 import { createDeal, fundDeal, cancelDeal, listDeals, getDeal } from './api/agent/deals';
@@ -1806,20 +1806,26 @@ async function handleFaucetClaim(request: Request, env: Env): Promise<Response> 
     console.error('Cooldown check failed (table may not exist):', e.message);
   }
 
-  // ETH balance check — require Sepolia ETH for gas fees before giving hUSD
-  // This prevents users from claiming hUSD without being able to pay for on-chain transactions later
+  // ETH balance check — auto-fund if insufficient (removes CAPTCHA barrier for AI agents)
   const MIN_ETH_WEI = BigInt('100000000000000'); // 0.0001 ETH minimum
+  let ethAutoFunded = false;
   try {
     const ethBalanceRaw = await sepoliaRpcCall(env, 'eth_getBalance', [address.toLowerCase(), 'latest']);
     const ethBalance = BigInt(ethBalanceRaw);
     if (ethBalance < MIN_ETH_WEI) {
-      const ethDisplay = (Number(ethBalance) / 1e18).toFixed(6);
-      return faucetJsonResponse({
-        success: false,
-        error: `Insufficient Sepolia ETH. You need at least 0.0001 ETH for gas fees before claiming hUSD. Current ETH balance: ${ethDisplay}. Ask your human to send Sepolia ETH to ${address} first (use a Sepolia faucet — requires CAPTCHA).`,
-        eth_balance: ethDisplay,
-        hint: 'Get Sepolia ETH from https://cloud.google.com/application/web3/faucet/ethereum/sepolia or https://faucets.chain.link/sepolia',
-      }, 400);
+      // Auto-send ETH from treasury instead of rejecting
+      const ethResult = await sendEthForGas(env, address, 0.001);
+      if (ethResult.success) {
+        ethAutoFunded = true;
+      } else {
+        const ethDisplay = (Number(ethBalance) / 1e18).toFixed(6);
+        return faucetJsonResponse({
+          success: false,
+          error: `Insufficient Sepolia ETH and auto-funding failed: ${ethResult.error || 'unknown'}. Current ETH: ${ethDisplay}. Ask your human to send Sepolia ETH to ${address} first.`,
+          eth_balance: ethDisplay,
+          hint: 'Get Sepolia ETH from https://cloud.google.com/application/web3/faucet/ethereum/sepolia or https://faucets.chain.link/sepolia',
+        }, 400);
+      }
     }
   } catch (e: any) {
     console.error('ETH balance check failed:', e.message);
@@ -1869,9 +1875,12 @@ async function handleFaucetClaim(request: Request, env: Env): Promise<Response> 
     success: true,
     txHash: result.txHash,
     amount: '1000 hUSD',
+    claimed_amount_cents: amountCents,
     explorer: result.explorerUrl,
     message: 'hUSD sent! Transaction confirmed. Balance included below.',
     balance,
+    balance_note: 'On-chain balance may take 5-15 seconds to fully update. The claimed_amount_cents field reflects the exact amount sent.',
+    eth_auto_funded: ethAutoFunded || undefined,
   });
 }
 

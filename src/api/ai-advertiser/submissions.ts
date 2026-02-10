@@ -501,6 +501,11 @@ export async function handleApproveSubmission(
     // No body is fine
   }
 
+  // Auto-skip media check for test submissions (fake URLs can't be verified via X API)
+  if (!skipMediaCheck && mission.operator_id?.startsWith('op_test_')) {
+    skipMediaCheck = true;
+  }
+
   // Media verification (if mission requires image)
   const requiredMediaType = mission._deal.required_media_type || 'none';
   let mediaCheckResult: {
