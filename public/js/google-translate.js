@@ -18,14 +18,6 @@
     document.cookie = 'googtrans=/en/' + lang + ';path=/;domain=' + location.hostname + ';';
   }
 
-  // iOS / Safari検出（Google Translate widgetが動かない環境）
-  function needsFallback() {
-    var ua = navigator.userAgent;
-    if (/iP(hone|ad|od)/.test(ua)) return true;
-    if (/Safari/.test(ua) && !/Chrome|Chromium|Edg|Firefox|OPR/.test(ua)) return true;
-    return false;
-  }
-
   // 初期化関数（Google翻訳APIが呼び出す）
   window.googleTranslateElementInit = function() {
     new google.translate.TranslateElement({
@@ -39,7 +31,7 @@
   var MANUAL_LANG_KEY = 'gt_manual_lang';
 
   // widget読み込み後にプログラムで言語を選択（リロード不要で即翻訳）
-  // また、ユーザーの手動切り替えを検知してlocalStorageに保存
+  // select(.goog-te-combo)を検出 → 値設定+changeイベント
   function autoSelectLanguage(lang) {
     var programmatic = true;
     var attempts = 0;
@@ -49,7 +41,6 @@
         select.value = lang;
         select.dispatchEvent(new Event('change'));
         clearInterval(interval);
-        // プログラム操作完了後、手動変更のリスナーを設定
         setTimeout(function() {
           programmatic = false;
           select.addEventListener('change', function() {
@@ -78,52 +69,6 @@
     }, 100);
   }
 
-  // Safari/iOS用フォールバックプルダウン
-  function initFallback(container) {
-    var options = [
-      { value: '', label: 'Language' },
-      { value: 'en', label: 'English' },
-      { value: 'ja', label: '日本語' },
-      { value: 'zh-CN', label: '中文(简体)' },
-      { value: 'zh-TW', label: '中文(繁體)' },
-      { value: 'ko', label: '한국어' },
-      { value: 'es', label: 'Español' },
-      { value: 'fr', label: 'Français' },
-      { value: 'de', label: 'Deutsch' },
-      { value: 'pt', label: 'Português' },
-      { value: 'ar', label: 'العربية' },
-      { value: 'hi', label: 'हिन्दी' },
-      { value: 'th', label: 'ไทย' },
-      { value: 'vi', label: 'Tiếng Việt' }
-    ];
-
-    var select = document.createElement('select');
-    select.className = 'gt-fallback-select';
-    for (var i = 0; i < options.length; i++) {
-      var opt = document.createElement('option');
-      opt.value = options[i].value;
-      opt.textContent = options[i].label;
-      select.appendChild(opt);
-    }
-
-    // 現在の選択言語を反映
-    var currentLang = localStorage.getItem(MANUAL_LANG_KEY) || detectLanguage() || '';
-    if (currentLang) select.value = currentLang;
-
-    select.addEventListener('change', function() {
-      var lang = select.value;
-      if (!lang) return;
-      localStorage.setItem(MANUAL_LANG_KEY, lang);
-      if (lang === 'en') {
-        window.location.href = window.location.pathname + window.location.search;
-      } else {
-        window.location.href = 'https://translate.google.com/translate?sl=en&tl=' + lang + '&u=' + encodeURIComponent(window.location.href);
-      }
-    });
-
-    container.appendChild(select);
-  }
-
   // DOMContentLoaded後にウィジェットを挿入
   document.addEventListener('DOMContentLoaded', function() {
     var footer = document.querySelector('footer.footer');
@@ -143,44 +88,42 @@
       footer.appendChild(container);
     }
 
-    // Safari/iOS → フォールバック、それ以外 → Google Translate widget
-    if (needsFallback()) {
-      initFallback(container);
-    } else {
-      // ユーザーが手動で言語を選んだ場合はそれを尊重
-      var manualLang = localStorage.getItem(MANUAL_LANG_KEY);
-      var browserLang = detectLanguage();
+    // ユーザーが手動で言語を選んだ場合はそれを尊重
+    var manualLang = localStorage.getItem(MANUAL_LANG_KEY);
+    var browserLang = detectLanguage();
 
-      if (manualLang) {
-        // 手動選択済み: cookieだけ設定（autoSelectしない＝Google Translateが自分でcookieを読む）
-        if (manualLang !== 'en') {
-          setTranslateCookie(manualLang);
-        }
-        watchManualChange();
-      } else if (browserLang) {
-        // 初回: ブラウザ言語で自動翻訳
-        setTranslateCookie(browserLang);
-        autoSelectLanguage(browserLang);
-      } else {
-        watchManualChange();
+    if (manualLang) {
+      // 手動選択済み: cookieだけ設定（autoSelectしない＝Google Translateが自分でcookieを読む）
+      if (manualLang !== 'en') {
+        setTranslateCookie(manualLang);
       }
-
-      // Google翻訳スクリプトをロード
-      var script = document.createElement('script');
-      script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-      document.body.appendChild(script);
+      watchManualChange();
+    } else if (browserLang) {
+      // 初回: ブラウザ言語で自動翻訳
+      setTranslateCookie(browserLang);
+      autoSelectLanguage(browserLang);
+    } else {
+      watchManualChange();
     }
+
+    // Google翻訳スクリプトをロード
+    var script = document.createElement('script');
+    script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    document.body.appendChild(script);
 
     // CSS注入
     var style = document.createElement('style');
     style.textContent = [
-      '/* フッター: "Powered by"テキスト非表示、selectプルダウンのみ表示 */',
+      '/* フッター: "Powered by"テキスト非表示、widget操作部のみ表示 */',
       '#google_translate_element .goog-te-gadget { font-size: 0 !important; color: transparent !important; }',
       '#google_translate_element .goog-te-gadget > span { display: none !important; }',
-      '#google_translate_element .goog-te-gadget a[href] { display: none !important; }',
+      '/* HORIZONTAL layout: selectプルダウン */',
       '#google_translate_element select.goog-te-combo { font-family: var(--font-mono) !important; font-size: 0.75rem !important; color: var(--color-text) !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; }',
-      '/* フォールバックselect (Safari/iOS) */',
-      '.gt-fallback-select { font-family: var(--font-mono) !important; font-size: 0.75rem !important; color: var(--color-text) !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; -webkit-appearance: menulist !important; }',
+      '/* SIMPLE layout: リンク形式ウィジェット（Safari等） */',
+      '#google_translate_element .goog-te-gadget-simple { font-size: 0.75rem !important; background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; border-radius: 6px !important; padding: 4px 8px !important; display: inline-block !important; }',
+      '#google_translate_element .goog-te-gadget-simple a { font-size: 0.75rem !important; color: var(--color-text-muted) !important; text-decoration: none !important; }',
+      '#google_translate_element .goog-te-gadget-simple .goog-te-menu-value span { color: var(--color-text) !important; }',
+      '#google_translate_element .goog-te-gadget-simple img { display: none !important; }',
       '/* ヘッダー: Google翻訳バー/通知を完全非表示 */',
       '.goog-te-banner-frame { display: none !important; }',
       '#goog-gt-tt, .goog-te-balloon-frame { display: none !important; }',
