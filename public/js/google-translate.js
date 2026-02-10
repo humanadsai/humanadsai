@@ -122,13 +122,6 @@
     });
 
     container.appendChild(select);
-
-    // 自動翻訳: translate.goog内でなければリダイレクト
-    var alreadyTranslated = location.hostname.indexOf('translate.goog') !== -1;
-    var targetLang = localStorage.getItem(MANUAL_LANG_KEY) || detectLanguage();
-    if (!alreadyTranslated && targetLang && targetLang !== 'en') {
-      window.location.href = 'https://translate.google.com/translate?sl=en&tl=' + targetLang + '&u=' + encodeURIComponent(window.location.href);
-    }
   }
 
   // DOMContentLoaded後にウィジェットを挿入
