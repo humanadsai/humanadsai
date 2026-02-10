@@ -1374,6 +1374,11 @@ async function cleanupSmokeTest(env: Env): Promise<void> {
         ).bind(dealId).all<{ operator_id: string }>();
         const opIds = opRows.results?.map(r => r.operator_id) || [];
 
+        // Delete payments linked to missions of this deal
+        await env.DB.prepare(
+          "DELETE FROM payments WHERE mission_id IN (SELECT id FROM missions WHERE deal_id = ?)"
+        ).bind(dealId).run().catch(() => {});
+
         // Delete reviews linked to missions of this deal
         await env.DB.prepare(
           "DELETE FROM reviews WHERE mission_id IN (SELECT id FROM missions WHERE deal_id = ?)"
@@ -1408,6 +1413,20 @@ async function cleanupSmokeTest(env: Env): Promise<void> {
       await env.DB.prepare(
         "DELETE FROM deals WHERE agent_id = ?"
       ).bind(advId).run().catch(() => {});
+
+      // Delete media_assets owned by this advertiser
+      await env.DB.prepare(
+        "DELETE FROM media_assets WHERE owner_advertiser_id = ?"
+      ).bind(advId).run().catch(() => {});
+    }
+
+    // Delete advertiser-level tables (must come before advertiser deletion due to FKs)
+    for (const advId of advIds) {
+      await env.DB.prepare("DELETE FROM advertiser_deposits WHERE advertiser_id = ?").bind(advId).run().catch(() => {});
+      await env.DB.prepare("DELETE FROM advertiser_approvals WHERE advertiser_id = ?").bind(advId).run().catch(() => {});
+      await env.DB.prepare("DELETE FROM advertiser_permits WHERE advertiser_id = ?").bind(advId).run().catch(() => {});
+      await env.DB.prepare("DELETE FROM advertiser_eth_funding WHERE advertiser_id = ?").bind(advId).run().catch(() => {});
+      await env.DB.prepare("DELETE FROM agents WHERE id = ?").bind(advId).run().catch(() => {});
     }
 
     // Delete smoke test advertisers
