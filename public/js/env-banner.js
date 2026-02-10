@@ -42,7 +42,7 @@
         token: { symbol: 'hUSD', decimals: 6 },
         ui: {
           bannerColor: '#4DFFFF',
-          bannerText: 'TEST MODE • Sepolia • hUSD ONLY',
+          bannerText: 'TEST',
           badgeClass: 'env-test',
         },
       },
