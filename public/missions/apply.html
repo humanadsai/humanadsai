@@ -127,6 +127,81 @@
       color: var(--color-text-muted);
       margin-top: 8px;
     }
+    .creative-url-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+      padding: 6px 10px;
+    }
+    .creative-url-row input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      outline: none;
+      min-width: 0;
+    }
+    .creative-url-row button {
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--color-text);
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .creative-url-row button:hover {
+      background: rgba(255,255,255,0.14);
+    }
+    .draft-preview-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .draft-preview-box h4 {
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    .draft-preview-box .draft-text {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      position: relative;
+    }
+    .draft-preview-box .draft-copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--color-text);
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .draft-preview-box .draft-copy-btn:hover {
+      background: rgba(255,255,255,0.14);
+    }
+    .draft-preview-box .draft-hint {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      margin-top: 6px;
+    }
     .form-group {
       margin-bottom: 16px;
     }
@@ -299,7 +374,19 @@
           <div class="creative-preview" id="creative-preview" style="display: none;">
             <h4>Creative Image</h4>
             <img id="creative-image" src="" alt="Ad creative">
+            <div class="creative-url-row">
+              <input type="text" id="creative-url-text" readonly>
+              <button type="button" id="copy-image-url-btn">Copy URL</button>
+            </div>
             <p class="creative-hint" id="creative-hint"></p>
+          </div>
+
+          <div class="draft-preview-box" id="draft-preview-box" style="display: none;">
+            <h4>Suggested Post Draft</h4>
+            <div class="draft-text" id="draft-text">
+              <button type="button" class="draft-copy-btn" id="copy-draft-btn">Copy</button>
+            </div>
+            <p class="draft-hint">Edit freely — this is just a starting point. Paste into "Draft copy" below or post directly.</p>
           </div>
 
           <form id="application-form">
@@ -494,15 +581,42 @@
 
         document.getElementById('requirements-list').innerHTML = reqItems.map(r => `<li>${r}</li>`).join('');
 
-        // Show creative image preview
+        // Show creative image preview + copyable URL
         if (missionData.image_preview_url) {
           const previewEl = document.getElementById('creative-preview');
           document.getElementById('creative-image').src = missionData.image_preview_url;
+          document.getElementById('creative-url-text').value = missionData.image_preview_url;
           const hint = missionData.required_media === 'image'
             ? 'Attach this image to your post'
             : 'You may attach this image to your post (optional)';
           document.getElementById('creative-hint').textContent = hint;
           previewEl.style.display = 'block';
+        }
+
+        // Generate suggested draft text
+        {
+          const parts = [];
+          const req = missionData.requirements || {};
+          if (req.content_template || req.must_include_text) {
+            parts.push(req.content_template || req.must_include_text);
+          }
+          const linkUrl = req.link_url || (req.must_include_urls && req.must_include_urls[0]);
+          if (linkUrl) parts.push(linkUrl);
+          if (missionData.image_preview_url) parts.push(missionData.image_preview_url);
+          const tags = req.hashtags || req.must_include_hashtags || [];
+          const mentions = req.mentions || req.must_mention || [];
+          if (mentions.length > 0) parts.push(mentions.join(' '));
+          const allTags = [...tags];
+          if (!allTags.some(t => t.toLowerCase().replace('#','') === 'ad')) allTags.push('#ad');
+          if (allTags.length > 0) parts.push(allTags.map(t => t.startsWith('#') ? t : '#' + t).join(' '));
+          if (parts.length > 0) {
+            const draftBox = document.getElementById('draft-preview-box');
+            const draftTextEl = document.getElementById('draft-text');
+            const copyBtn = draftTextEl.querySelector('.draft-copy-btn');
+            const textNode = document.createTextNode(parts.join('\n\n'));
+            draftTextEl.insertBefore(textNode, copyBtn);
+            draftBox.style.display = 'block';
+          }
         }
 
         document.getElementById('loading').style.display = 'none';
@@ -558,6 +672,25 @@
         hideConfirmDialog();
       }
     }
+
+    // Copy image URL button
+    document.getElementById('copy-image-url-btn').addEventListener('click', function() {
+      const urlInput = document.getElementById('creative-url-text');
+      navigator.clipboard.writeText(urlInput.value).then(() => {
+        this.textContent = 'Copied!';
+        setTimeout(() => { this.textContent = 'Copy URL'; }, 1500);
+      });
+    });
+
+    // Copy draft button
+    document.getElementById('copy-draft-btn').addEventListener('click', function() {
+      const draftEl = document.getElementById('draft-text');
+      const text = draftEl.textContent.replace('Copy', '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        this.textContent = 'Copied!';
+        setTimeout(() => { this.textContent = 'Copy'; }, 1500);
+      });
+    });
 
     document.getElementById('application-form').addEventListener('submit', async (e) => {
       e.preventDefault();
