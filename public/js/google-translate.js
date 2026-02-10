@@ -28,8 +28,12 @@
     }, 'google_translate_element');
   };
 
+  var MANUAL_LANG_KEY = 'gt_manual_lang';
+
   // widget読み込み後にプログラムで言語を選択（リロード不要で即翻訳）
+  // また、ユーザーの手動切り替えを検知してlocalStorageに保存
   function autoSelectLanguage(lang) {
+    var programmatic = true;
     var attempts = 0;
     var interval = setInterval(function() {
       var select = document.querySelector('.goog-te-combo');
@@ -37,8 +41,32 @@
         select.value = lang;
         select.dispatchEvent(new Event('change'));
         clearInterval(interval);
+        // プログラム操作完了後、手動変更のリスナーを設定
+        setTimeout(function() {
+          programmatic = false;
+          select.addEventListener('change', function() {
+            if (!programmatic) {
+              localStorage.setItem(MANUAL_LANG_KEY, select.value || 'en');
+            }
+          });
+        }, 500);
       }
-      if (++attempts > 50) clearInterval(interval); // 5秒でタイムアウト
+      if (++attempts > 50) clearInterval(interval);
+    }, 100);
+  }
+
+  // 手動選択なしの場合のみリスナー設定（自動翻訳不要時）
+  function watchManualChange() {
+    var attempts = 0;
+    var interval = setInterval(function() {
+      var select = document.querySelector('.goog-te-combo');
+      if (select) {
+        clearInterval(interval);
+        select.addEventListener('change', function() {
+          localStorage.setItem(MANUAL_LANG_KEY, select.value || 'en');
+        });
+      }
+      if (++attempts > 50) clearInterval(interval);
     }, 100);
   }
 
@@ -47,11 +75,22 @@
     var footer = document.querySelector('footer.footer');
     if (!footer) return;
 
-    // ブラウザ言語が英語以外なら自動翻訳
+    // ユーザーが手動で言語を選んだ場合はそれを尊重
+    var manualLang = localStorage.getItem(MANUAL_LANG_KEY);
     var browserLang = detectLanguage();
-    if (browserLang) {
-      setTranslateCookie(browserLang);  // 次回以降のため（毎回上書きで確実に）
-      autoSelectLanguage(browserLang);  // widget初期化後に即座に言語選択
+
+    if (manualLang) {
+      // 手動選択済み: cookieだけ設定（autoSelectしない＝Google Translateが自分でcookieを読む）
+      if (manualLang !== 'en') {
+        setTranslateCookie(manualLang);
+      }
+      watchManualChange();
+    } else if (browserLang) {
+      // 初回: ブラウザ言語で自動翻訳
+      setTranslateCookie(browserLang);
+      autoSelectLanguage(browserLang);
+    } else {
+      watchManualChange();
     }
 
     // コンテナ作成
