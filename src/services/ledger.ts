@@ -66,6 +66,9 @@ export async function deposit(
   idempotencyKey: string,
   description?: string
 ): Promise<{ success: boolean; balance?: Balance; error?: string }> {
+  if (amount <= 0 || !Number.isFinite(amount)) {
+    return { success: false, error: 'Amount must be a positive finite number' };
+  }
   // べき等チェック
   const existing = await db
     .prepare('SELECT id FROM ledger_entries WHERE idempotency_key = ?')
@@ -123,6 +126,9 @@ export async function holdEscrow(
   amount: number,
   idempotencyKey: string
 ): Promise<{ success: boolean; escrow?: EscrowHold; error?: string }> {
+  if (amount <= 0 || !Number.isFinite(amount)) {
+    return { success: false, error: 'Amount must be a positive finite number' };
+  }
   // べき等チェック
   const existingEscrow = await db
     .prepare('SELECT * FROM escrow_holds WHERE deal_id = ?')
@@ -335,18 +341,15 @@ export async function refundEscrow(
     return { success: false, error: 'Agent balance not found' };
   }
 
-  const newAvailable = balance.available + escrow.amount;
-  const newPending = balance.pending - escrow.amount;
-
-  // バッチで実行
+  // バッチで実行（相対UPDATE: TOCTOU race condition防止）
   await db.batch([
-    // 残高更新
+    // 残高更新（relative — consistent with holdEscrow/releaseToOperator）
     db
       .prepare(
-        `UPDATE balances SET available = ?, pending = ?, updated_at = datetime('now')
+        `UPDATE balances SET available = available + ?, pending = pending - ?, updated_at = datetime('now')
          WHERE owner_type = 'agent' AND owner_id = ? AND currency = 'USD'`
       )
-      .bind(newAvailable, newPending, escrow.agent_id),
+      .bind(escrow.amount, escrow.amount, escrow.agent_id),
     // エスクロー更新
     db
       .prepare(

@@ -161,7 +161,13 @@ export async function authenticateAgentHmac(
   }
 
   // スコープチェック
-  const keyScopes: ApiScope[] = JSON.parse(keyRecord.scopes);
+  let keyScopes: ApiScope[];
+  try {
+    keyScopes = JSON.parse(keyRecord.scopes);
+  } catch {
+    console.error(`[Auth] Failed to parse scopes for key ${keyRecord.id}`);
+    return { success: false, error: errors.internalError(requestId) };
+  }
   for (const scope of requiredScopes) {
     if (!keyScopes.includes(scope)) {
       await writeAuditLog(env.DB, {
@@ -439,7 +445,13 @@ export async function authenticateAgent(
   }
 
   // スコープチェック
-  const keyScopes: ApiScope[] = JSON.parse(foundKey.scopes);
+  let keyScopes: ApiScope[];
+  try {
+    keyScopes = JSON.parse(foundKey.scopes);
+  } catch {
+    console.error(`[Auth] Failed to parse scopes for key ${foundKey.id}`);
+    return { success: false, error: errors.internalError(requestId) };
+  }
   for (const scope of requiredScopes) {
     if (!keyScopes.includes(scope)) {
       await writeAuditLog(env.DB, {

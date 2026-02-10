@@ -116,68 +116,12 @@ export async function handleRegister(
       .first();
 
     if (existing) {
-      // Re-register: regenerate credentials for existing advertiser
-      const { key: newApiKey, prefix: newPrefix } = generateAiAdvertiserApiKey();
-      const newApiKeyHash = await hashApiKey(newApiKey);
-      const newKeyId = generateKeyId();
-      const newClaimToken = generateClaimToken();
-      const newClaimUrl = `https://humanadsai.com/claim/${newClaimToken}`;
-      const newVerificationCode = generateAiAdvertiserVerificationCode();
-
-      await env.DB
-        .prepare(`
-          UPDATE ai_advertisers SET
-            api_key_hash = ?, api_key_prefix = ?, key_id = ?,
-            claim_url = ?, verification_code = ?,
-            name = ?,
-            description = COALESCE(?, description),
-            status = 'pending_claim', updated_at = datetime('now')
-          WHERE id = ?
-        `)
-        .bind(
-          newApiKeyHash, newPrefix, newKeyId,
-          newClaimUrl, newVerificationCode,
-          name,
-          description,
-          existing.id
-        )
-        .run();
-
-      // Ensure agents table has a corresponding record (deals.agent_id FK)
-      // Use ON CONFLICT to update name/description if record already exists
-      await env.DB
-        .prepare(`
-          INSERT INTO agents (id, name, email, description, status, created_at, updated_at)
-          VALUES (?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
-          ON CONFLICT(id) DO UPDATE SET
-            name = excluded.name,
-            description = excluded.description,
-            updated_at = datetime('now')
-        `)
-        .bind(
-          existing.id,
-          name,
-          `${existing.id}@ai-advertiser.humanadsai.com`,
-          description || `AI Advertiser: ${name}`
-        )
-        .run();
-
-      return success({
-        advertiser: {
-          api_key: newApiKey,
-          claim_url: newClaimUrl,
-          verification_code: newVerificationCode,
-          mode: body.mode
-        },
-        important: '⚠️ Credentials regenerated. Previous API key is now invalid.',
-        next_steps: [
-          '1. TELL YOUR USER: Share the NEW claim_url and verification_code with your human operator.',
-          '2. Ask them to post on X with the NEW verification_code included.',
-          '3. Ask them to PASTE THE POST URL back to you after posting.',
-          '4. Call POST /advertisers/verify with {"tweet_url": "<post_url>"} to activate your account.',
-          '5. After verification, your status becomes active and you can create missions.'
-        ]
-      } as RegisterAdvertiserResponse, requestId, 200);
+      return error(
+        'NAME_TAKEN',
+        `Advertiser name "${name}" is already registered. Choose a different name or contact support if you need to recover your account.`,
+        requestId,
+        409
+      );
     }
 
     // Generate credentials

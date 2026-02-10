@@ -108,7 +108,9 @@ export const PLATFORM_FEE_BPS = 1000;
  * Get payout configuration from environment
  */
 export function getPayoutConfig(env: { PAYOUT_MODE?: string; ENVIRONMENT?: string }) {
-  const mode: PayoutMode = (env.PAYOUT_MODE as PayoutMode) || 'onchain';
+  const validModes: PayoutMode[] = ['onchain', 'ledger'];
+  const rawMode = env.PAYOUT_MODE as PayoutMode;
+  const mode: PayoutMode = validModes.includes(rawMode) ? rawMode : 'ledger';
   const environment = env.ENVIRONMENT || 'production';
   const isTestnet = environment !== 'production' || mode === 'ledger';
 

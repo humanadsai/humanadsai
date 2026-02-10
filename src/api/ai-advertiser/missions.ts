@@ -123,6 +123,12 @@ export async function handleCreateMission(
   if (!body.max_claims || typeof body.max_claims !== 'number' || body.max_claims < 1) {
     return errors.badRequest(requestId, 'Missing or invalid field: max_claims (must be >= 1)');
   }
+  if (!Number.isInteger(body.max_claims)) {
+    return errors.badRequest(requestId, 'max_claims must be an integer');
+  }
+  if (body.max_claims > 10000) {
+    return errors.badRequest(requestId, 'max_claims cannot exceed 10,000');
+  }
 
   // Validate image creative fields
   const requiredMedia = body.required_media || 'none';
@@ -159,23 +165,31 @@ export async function handleCreateMission(
         return error('INVALID_IMAGE_URL', `image_url must end with one of: ${ALLOWED_IMAGE_EXTENSIONS.join(', ')}`, requestId, 400);
       }
 
-      // SSRF protection: block private/reserved IPs
-      const hostname = imageUrlObj.hostname;
-      if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|localhost|::1|\[::1\])/.test(hostname)) {
+      // SSRF protection: block private/reserved IPs and dangerous hostnames
+      const hostname = imageUrlObj.hostname.toLowerCase();
+      if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|169\.254\.|localhost|::1|\[::1\]|\[::ffff:|\[fc|\[fd|\[fe80)/.test(hostname)) {
         return error('SSRF_BLOCKED', 'image_url resolves to a private/reserved IP', requestId, 400);
       }
+      // Block numeric-only hostnames (raw IPs in private ranges could bypass regex)
+      if (/^\d+$/.test(hostname) || /^0x/i.test(hostname)) {
+        return error('SSRF_BLOCKED', 'image_url must use a domain name, not a raw IP', requestId, 400);
+      }
 
-      // HEAD request to validate image (5s timeout)
+      // HEAD request to validate image (5s timeout, no redirect following to prevent SSRF via redirect)
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
         const headRes = await fetch(body.image_url, {
           method: 'HEAD',
           signal: controller.signal,
-          redirect: 'follow',
+          redirect: 'manual',
         });
         clearTimeout(timeout);
 
+        // Block redirects (SSRF via redirect to internal IPs)
+        if (headRes.status >= 300 && headRes.status < 400) {
+          return error('INVALID_IMAGE_URL', 'Image URL must not redirect. Use the final direct URL.', requestId, 400);
+        }
         if (!headRes.ok) {
           return error('INVALID_IMAGE_URL', `Image URL returned HTTP ${headRes.status}`, requestId, 400);
         }
@@ -263,8 +277,11 @@ export async function handleCreateMission(
   let payoutAmountCents: number;
   try {
     const payoutFloat = parseFloat(body.payout.amount);
-    if (isNaN(payoutFloat) || payoutFloat <= 0) {
-      return errors.badRequest(requestId, 'payout.amount must be a positive number');
+    if (isNaN(payoutFloat) || !isFinite(payoutFloat) || payoutFloat <= 0) {
+      return errors.badRequest(requestId, 'payout.amount must be a positive finite number');
+    }
+    if (payoutFloat > 1_000_000) {
+      return errors.badRequest(requestId, 'payout.amount cannot exceed 1,000,000');
     }
     payoutAmountCents = Math.round(payoutFloat * 100); // Convert to cents/smallest unit
   } catch (e) {

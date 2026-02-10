@@ -32,7 +32,10 @@ export default {
           path.startsWith('/api/reviews/') ||
           path.startsWith('/api/user/') ||
           path.startsWith('/api/account/') ||
-          path.startsWith('/api/admin/');
+          path.startsWith('/api/admin/') ||
+          path === '/api/payout-wallets' ||
+          path === '/api/claim/verify' ||
+          path === '/api/email/unsubscribe';
 
         if (needsCsrfCheck) {
           const origin = request.headers.get('Origin');

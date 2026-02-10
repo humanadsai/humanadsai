@@ -17,10 +17,11 @@
     .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
     .filter-chip { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-family: var(--font-mono); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; }
     .filter-chip:hover, .filter-chip.active { border-color: var(--color-primary); color: var(--color-primary); }
-    .data-table { width: 100%; border-collapse: collapse; }
-    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; }
+    .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .data-table th { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; }
-    .data-table tr:hover { background: rgba(255,255,255,0.02); }
+    .data-table tr:hover { background: rgba(255,255,255,0.05); }
+    .data-table tr:last-child td { border-bottom: none; }
     .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-family: var(--font-mono); font-weight: 600; }
     .status-badge.verified { background: rgba(52,199,89,0.2); color: #34c759; }
     .status-badge.pending { background: rgba(255,149,0,0.2); color: #ff9500; }
@@ -93,7 +94,7 @@
             ${operators.length === 0 ? '<div class="empty">No operators found</div>' : `
               <table class="data-table">
                 <thead>
-                  <tr><th></th><th>Handle</th><th>Name</th><th>Status</th><th>Role</th><th>Followers</th><th>Missions</th><th>Created</th><th>Verified</th><th>Actions</th></tr>
+                  <tr><th style="width:40px"></th><th style="width:14%">Handle</th><th style="width:14%">Name</th><th style="width:9%">Status</th><th style="width:8%">Role</th><th style="width:10%">Followers</th><th style="width:9%">Missions</th><th style="width:12%">Created</th><th style="width:12%">Verified</th><th style="width:12%">Actions</th></tr>
                 </thead>
                 <tbody>
                   ${operators.map(o => `
