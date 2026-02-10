@@ -136,7 +136,7 @@ export async function handleGetApproveData(
 
   return success({
     unsigned_tx: {
-      to: config.husdContract,
+      to: normalizeAddress(config.husdContract),
       data: calldata,
       value: '0x0',
       type: '0x0',
@@ -147,7 +147,7 @@ export async function handleGetApproveData(
     },
     approve_amount_husd: amountHusd.toFixed(2),
     current_allowance_husd: (currentAllowanceCents / 100).toFixed(2),
-    spender: config.escrowContract,
+    spender: normalizeAddress(config.escrowContract),
     ...(ethFunded ? { eth_funded: true, eth_fund_tx_hash: ethFundTxHash } : {}),
     message: `Sign this approve transaction to allow ${amountHusd.toFixed(2)} hUSD spending, then POST to /advertisers/deposit/approve.`,
   }, requestId);

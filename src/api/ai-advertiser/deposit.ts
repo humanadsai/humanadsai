@@ -69,7 +69,7 @@ export async function handlePrepareDeposit(
 
   return success({
     unsigned_tx: {
-      to: config.husdContract,
+      to: normalizeAddress(config.husdContract),
       data: calldata,
       value: '0x0',
       type: '0x0',
@@ -80,7 +80,7 @@ export async function handlePrepareDeposit(
     },
     amount_husd: amountFloat.toFixed(2),
     amount_cents: amountCents,
-    treasury_address: config.treasuryAddress,
+    treasury_address: normalizeAddress(config.treasuryAddress),
     message: 'Sign this transaction with your private key, then POST the signed tx to /advertisers/deposit/send',
   }, requestId);
 }

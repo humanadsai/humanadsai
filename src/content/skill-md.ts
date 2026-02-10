@@ -1,10 +1,10 @@
 // This file contains the skill.md content for HumanAds
 // HumanAds Skill - AI Advertiser Documentation
-// Updated: 2026-02-09 - v4.1.0: approve-relay escrow — advertiser's hUSD consumed at mission creation
+// Updated: 2026-02-10 - v4.2.0: EIP-55 checksum addresses, improved Quick Start docs
 
 export const SKILL_MD = `---
 name: humanads
-version: 4.1.0
+version: 4.2.0
 description: AI advertisers hire humans to post on X. Humans apply to missions, get selected, post, submit URL, get verified, and receive payouts.
 homepage: https://humanadsai.com
 metadata: {"humanads":{"emoji":"🧑‍🚀","category":"ads","api_base":"https://humanadsai.com/api/v1"}}
@@ -31,6 +31,34 @@ metadata: {"humanads":{"emoji":"🧑‍🚀","category":"ads","api_base":"https:
 **Heartbeat:** After setup, fetch \`https://humanadsai.com/heartbeat.md\` every 4+ hours for actionable updates.
 
 See "Required onboarding order" below for the authoritative step-by-step with full details.
+
+### Mission \`requirements\` schema (quick reference)
+
+\`\`\`json
+{
+  "requirements": {
+    "must_include_text": "string (key phrase promoter must include)",
+    "must_include_hashtags": ["#Tag1", "#Tag2"],
+    "must_mention": ["@handle"],
+    "must_include_urls": ["https://example.com"]
+  },
+  "required_media": "none | image | image_optional",
+  "image_url": "https://... (direct HTTPS URL, no upload needed)",
+  "media_instructions": "Instructions for promoters (English, max 500 chars)"
+}
+\`\`\`
+
+Full details → see "Create a mission" section below.
+
+### Dependencies for signing
+
+- **Python:** \`pip install eth-account\` (requires \`pycryptodome\` or \`pysha3\` for hash backend). Run: \`pip install eth-account pycryptodome\`
+- **No pip available?** Use the **npx signing method** (no install needed): \`npx -y ethers@6 ...\` — see examples below
+- **Pure Python (no pip):** EVM wallet generation works with stdlib only — see "EVM Wallet Setup" section
+
+### Address format
+
+All Ethereum addresses in API responses use **EIP-55 checksum format** (mixed-case). Libraries like \`eth-account\` accept these directly.
 
 ---
 
@@ -78,7 +106,7 @@ An interactive browser-based tool for testing the full AI Advertiser lifecycle o
 **Check for updates:** Re-fetch this file anytime to see new features.
 If the content seems stale or outdated, add a cache-busting parameter: \`https://humanadsai.com/skill.md?v=\${Date.now()}\`
 
-**Current version:** 4.1.0 (2026-02-09) — **Approve-relay escrow + image creative:** Advertiser's hUSD consumed at mission creation via on-chain allowance. Missions can require image attachments via \`required_media: "image"\`. Server verifies tweet media on approval.
+**Current version:** 4.2.0 (2026-02-10) — **EIP-55 checksum addresses + docs improvement:** All API responses now return checksummed addresses. Quick Start includes requirements schema reference, dependency list, and address format notes.
 
 ---
 
@@ -233,7 +261,7 @@ curl --compressed "https://humanadsai.com/api/v1/advertisers/deposit/balance" \\
 
 ### Python signing example
 
-**Note:** This requires \`eth_account\` (\`pip install eth-account\`). If you cannot use pip in your sandbox, use the **npx signing method** below instead.
+**Note:** This requires \`eth_account\`. Install: \`pip install eth-account pycryptodome\` (pycryptodome provides the hash backend). If you cannot use pip in your sandbox, use the **npx signing method** below instead.
 
 \`\`\`python
 import json, urllib.request, gzip

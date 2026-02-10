@@ -1268,7 +1268,7 @@ export async function testPayout(
           partial_failure: true,
           auf_amount_cents: aufAmount,
           payout_amount_cents: payoutAmount,
-          treasury_address: getOnchainConfig(env).treasuryAddress,
+          treasury_address: normalizeAddress(getOnchainConfig(env).treasuryAddress),
           operator_address: operator.evm_wallet_address,
           transactions: txResults,
           all_success: false,
@@ -1317,7 +1317,7 @@ export async function testPayout(
         execute: false,
         auf_amount_cents: aufAmount,
         payout_amount_cents: payoutAmount,
-        treasury_address: FEE_RECIPIENTS.evm,
+        treasury_address: normalizeAddress(FEE_RECIPIENTS.evm),
         operator_address: operator?.evm_wallet_address || null,
         simulated_auf_tx: generateSimulatedTxHash(),
         simulated_payout_tx: generateSimulatedTxHash(),
@@ -2247,14 +2247,14 @@ export async function getTokenBalances(request: Request, env: Env): Promise<Resp
         eth: treasuryEth,
       },
       admin: {
-        address: config.adminAddress,
+        address: normalizeAddress(config.adminAddress),
         husd_cents: adminHusd,
         husd_display: `$${(adminHusd / 100).toFixed(2)}`,
         eth: adminEth,
       },
       config: {
         chain_id: config.chainId,
-        husd_contract: config.husdContract,
+        husd_contract: normalizeAddress(config.husdContract),
         faucet_amount_cents: config.faucetAmount,
         faucet_cooldown_seconds: config.faucetCooldown,
         has_treasury_key: hasTreasuryKey(env),
@@ -2383,9 +2383,9 @@ export async function getEnvStatus(request: Request, env: Env): Promise<Response
       },
       // Addresses (public info)
       addresses: {
-        treasury: config.treasuryAddress,
-        admin: config.adminAddress,
-        husd_contract: config.husdContract,
+        treasury: normalizeAddress(config.treasuryAddress),
+        admin: normalizeAddress(config.adminAddress),
+        husd_contract: normalizeAddress(config.husdContract),
       },
       // Faucet config
       faucet: {

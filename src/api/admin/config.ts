@@ -15,6 +15,7 @@ import {
   isProductionReady,
   type PaymentProfileId,
 } from '../../services/payment-profile';
+import { normalizeAddress } from '../../services/onchain';
 
 /**
  * GET /api/config
@@ -42,12 +43,12 @@ export async function getPublicConfig(request: Request, env: Env): Promise<Respo
           contract: profile.token.contract,
           decimals: profile.token.decimals,
         },
-        treasury_address: profile.treasury.address,
-        fee_recipient: profile.treasury.feeRecipient,
+        treasury_address: normalizeAddress(profile.treasury.address),
+        fee_recipient: normalizeAddress(profile.treasury.feeRecipient),
         ui: profile.ui,
       },
       payout_mode: env.PAYOUT_MODE || 'ledger',
-      escrow_contract: env.ESCROW_CONTRACT || '0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a',
+      escrow_contract: normalizeAddress(env.ESCROW_CONTRACT || '0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a'),
     }, requestId);
   } catch (e) {
     console.error('getPublicConfig error:', e);

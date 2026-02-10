@@ -2,7 +2,7 @@ import type { Env, Operator, Deal, Mission, AcceptMissionRequest, SubmitMissionR
 import { success, errors, generateRequestId } from '../../utils/response';
 import { authenticateOperator } from './register';
 import { isSimulatedTxHash } from '../../config/payout';
-import { escrowGetBalance, getOnchainConfig } from '../../services/onchain';
+import { escrowGetBalance, getOnchainConfig, normalizeAddress } from '../../services/onchain';
 
 /**
  * 利用可能なミッション一覧取得
@@ -513,10 +513,10 @@ export async function getEscrowBalance(request: Request, env: Env): Promise<Resp
     return success({
       balance_cents: balanceCents,
       balance_formatted: (balanceCents / 100).toFixed(2),
-      escrow_contract: config.escrowContract,
+      escrow_contract: normalizeAddress(config.escrowContract),
       chain: 'sepolia',
-      wallet_address: evmAddress,
-      explorer_url: `${config.explorerUrl}/address/${config.escrowContract}`,
+      wallet_address: normalizeAddress(evmAddress),
+      explorer_url: `${config.explorerUrl}/address/${normalizeAddress(config.escrowContract)}`,
     }, requestId);
   } catch (e) {
     console.error('Get escrow balance error:', e);
