@@ -347,6 +347,7 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
     let siteAccessCount = 0;
     let operatorsCount = 0;
     let agentsCount = 0;
+    let aiAdvertisersCount = 0;
 
     // Debug info
     const debugInfo: Record<string, unknown> = {};
@@ -423,14 +424,31 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
       }
     }
 
+    // AI Advertisers - active advertisers
+    try {
+      const advResult = await env.DB.prepare(
+        `SELECT COUNT(*) as count FROM ai_advertisers WHERE status = 'active'`
+      ).first<{ count: number }>();
+      aiAdvertisersCount = advResult?.count || 0;
+      if (debug) {
+        debugInfo.ai_advertisers_query = 'success';
+        debugInfo.ai_advertisers_count = aiAdvertisersCount;
+      }
+    } catch (e) {
+      console.error('AI advertisers count query failed:', e);
+      if (debug) {
+        debugInfo.ai_advertisers_query = 'failed';
+        debugInfo.ai_advertisers_error = String(e);
+      }
+    }
+
     // Build response with no-cache headers to prevent CDN/browser caching
     // ai_connected includes samples for demo/MVP (use ai_connected_real for production)
     const responseData: Record<string, unknown> = {
       site_access: siteAccessCount,
       human_operators: operatorsCount,
-      ai_connected: agentsCount, // Total (including samples for demo)
-      ai_connected_real: agentsCountReal, // Real agents only (excluding samples)
-      ai_connected_sample: agentsCountSample, // Sample agents only
+      ai_connected: aiAdvertisersCount, // Active AI advertisers (shown on KPI card)
+      ai_advertisers: aiAdvertisersCount, // Alias for clarity
       generated_at: new Date().toISOString(),
       cache: 'miss',
     };
