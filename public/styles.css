@@ -198,16 +198,21 @@ body {
 
 .stat-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 4px;
 }
 
 .stat-number {
   font-family: var(--font-mono);
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .stat-number.stat-cyan {
@@ -233,6 +238,13 @@ body {
   font-size: 0.7rem;
   color: var(--color-text-muted);
   line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .stats-indicator {
@@ -524,7 +536,7 @@ body {
   }
 
   .stat-number {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   /* --- Text-heavy pages: cap readable width --- */
@@ -586,19 +598,20 @@ body {
   }
 
   .stats-row-3 {
-    max-width: 600px;
+    max-width: 660px;
   }
 
   .stat-item {
     background: var(--color-background);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
-    padding: var(--spacing-lg) var(--spacing-xl);
-    gap: var(--spacing-xs);
+    padding: 20px 16px;
+    gap: 6px;
+    min-height: 100px;
   }
 
   .stat-number {
-    font-size: 2rem;
+    font-size: 2.25rem;
   }
 
   .stat-label {
