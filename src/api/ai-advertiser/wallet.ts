@@ -26,9 +26,9 @@ export async function handleSetWallet(
     return errors.badRequest(requestId, 'Invalid JSON in request body');
   }
 
-  const raw = body.wallet_address;
+  const raw = body.wallet_address || body.address;
   if (!raw || typeof raw !== 'string') {
-    return errors.badRequest(requestId, 'Missing or invalid field: wallet_address');
+    return errors.badRequest(requestId, 'Missing or invalid field: wallet_address (also accepts "address")');
   }
 
   // Validate EVM address format: 0x + 40 hex chars

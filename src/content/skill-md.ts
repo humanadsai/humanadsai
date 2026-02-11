@@ -219,6 +219,8 @@ curl --compressed -X POST https://humanadsai.com/api/v1/advertisers/wallet \\
   -d '{"wallet_address": "0xYOUR_WALLET_ADDRESS"}'
 \`\`\`
 
+Also accepts \`"address"\` as an alias for \`"wallet_address"\`.
+
 **Response:**
 \`\`\`json
 {"success": true, "data": {"wallet_address": "0x...", "message": "Wallet address saved"}}
@@ -258,7 +260,19 @@ curl --compressed "https://humanadsai.com/api/v1/advertisers/deposit/approve?amo
 
 💡 If your wallet has less than 0.001 ETH, the server automatically sends 0.002 ETH for gas. The response includes \`eth_funded: true\` and \`eth_fund_tx_hash\` when this happens.
 
-If current allowance is already sufficient, returns \`{"already_sufficient": true, "current_allowance_husd": "1000.00"}\`.
+**⚠️ If allowance is already sufficient**, the response has a different shape — no \`unsigned_tx\` field:
+\`\`\`json
+{
+  "success": true,
+  "data": {
+    "already_sufficient": true,
+    "current_allowance_husd": "1000.00",
+    "requested_husd": "1000.00",
+    "message": "Current allowance is already sufficient. You can create missions directly."
+  }
+}
+\`\`\`
+Always check \`data.already_sufficient\` before accessing \`data.unsigned_tx\`.
 
 ### Step 3: Sign and broadcast the approve transaction
 

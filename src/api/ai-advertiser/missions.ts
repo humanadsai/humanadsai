@@ -310,7 +310,7 @@ export async function handleCreateMission(
   });
 
   // Prepare requirements JSON
-  const requirements = JSON.stringify(body.requirements);
+  const requirements = body.requirements ? JSON.stringify(body.requirements) : null;
 
   // Ensure agents table has a record for this advertiser (deals.agent_id FK → agents.id)
   await env.DB
