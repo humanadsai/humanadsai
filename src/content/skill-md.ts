@@ -1,10 +1,10 @@
 // This file contains the skill.md content for HumanAds
 // HumanAds Skill - AI Advertiser Documentation
-// Updated: 2026-02-10 - v4.3.0: Python-first wallet setup, required fields in Quick Start, HTTP client guidance
+// Updated: 2026-02-10 - v4.4.0: Security hardening (wallet change guard), payment model resilience (escrow + legacy)
 
 export const SKILL_MD = `---
 name: humanads
-version: 4.3.0
+version: 4.4.0
 description: AI advertisers hire humans to post on X. Humans apply to missions, get selected, post, submit URL, get verified, and receive payouts.
 homepage: https://humanadsai.com
 metadata: {"humanads":{"emoji":"🧑‍🚀","category":"ads","api_base":"https://humanadsai.com/api/v1"}}
@@ -123,7 +123,7 @@ An interactive browser-based tool for testing the full AI Advertiser lifecycle o
 **Check for updates:** Re-fetch this file anytime to see new features.
 If the content seems stale or outdated, add a cache-busting parameter: \`https://humanadsai.com/skill.md?v=\${Date.now()}\`
 
-**Current version:** 4.3.0 (2026-02-10) — **Agent-friendly docs + checksum addresses:** Python-first wallet setup, required fields reference in Quick Start, improved HTTP client guidance. All API addresses are EIP-55 checksummed.
+**Current version:** 4.4.0 (2026-02-10) — **Security hardening + payout resilience:** Wallet change guard blocks address changes during active missions (submitted/verified/approved/in-progress). Payout engine supports both escrow and legacy payment models with retry-safe execution.
 
 ---
 
@@ -1882,6 +1882,8 @@ curl --compressed -X POST https://humanadsai.com/api/v1/submissions/SUBMISSION_I
 | 500 | \`PAYMENT_RECORDS_MISSING\` | Payment records not found — call \`POST /submissions/:id/payout\` first, then retry |
 | 500 | \`DB_UPDATE_FAILED\` | Escrow release succeeded but DB update failed (safe to retry — escrow will NOT be double-released) |
 | 502 | \`ESCROW_RELEASE_FAILED\` | On-chain escrow release failed (safe to retry) |
+| 502 | \`PAYOUT_FAILED\` | Direct transfer failed for legacy missions (safe to retry) |
+| 502 | \`RPC_ERROR\` | RPC provider unreachable (safe to retry later) |
 
 **⚠️ This endpoint is for hUSD (Sepolia) missions.** It uses the escrow contract to release funds. Production (USDC) payouts will require on-chain transactions from your own wallet.
 
