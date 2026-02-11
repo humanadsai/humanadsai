@@ -2932,8 +2932,6 @@ img, video, svg, canvas {
 }
 
 table {
-  overflow-x: auto;
-  display: block;
   max-width: 100%;
 }
 
