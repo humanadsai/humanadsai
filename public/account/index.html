@@ -397,7 +397,7 @@
           if (!timestamp) return 'Unknown';
           if (typeof timestamp === 'number') return new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
           let s = String(timestamp);
-          if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) s = s.replace(' ', 'T') + 'Z';
+          if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/Z$|[+-]\d{2}(?::?\d{2})?$/.test(s)) s = s.replace(' ', 'T') + 'Z';
           return new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         }
 

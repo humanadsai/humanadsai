@@ -322,7 +322,7 @@
         function formatDate(dateStr) {
           if (!dateStr) return '—';
           let s = String(dateStr);
-          if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) s = s.replace(' ', 'T') + 'Z';
+          if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/Z$|[+-]\d{2}(?::?\d{2})?$/.test(s)) s = s.replace(' ', 'T') + 'Z';
           const d = new Date(s);
           return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         }

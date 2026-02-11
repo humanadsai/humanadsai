@@ -96,7 +96,7 @@ function formatFollowerCount(count) {
 function parseUTC(date) {
   if (typeof date === 'number') return new Date(date);
   const s = String(date);
-  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/[Z+-]\d/.test(s)) return new Date(s.replace(' ', 'T') + 'Z');
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !/Z$|[+-]\d{2}(?::?\d{2})?$/.test(s)) return new Date(s.replace(' ', 'T') + 'Z');
   return new Date(s);
 }
 
