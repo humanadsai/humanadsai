@@ -15,7 +15,7 @@ import { generateRandomString } from '../../utils/crypto';
 import { createNotificationWithEmail } from '../../services/email-notifications';
 import { verifyTransaction, isTxHashUsed } from '../../services/blockchain';
 import { getPayoutConfig, isSimulatedTxHash } from '../../config/payout';
-import { escrowRelease } from '../../services/onchain';
+import { escrowRelease, transferHusd, normalizeAddress } from '../../services/onchain';
 import { getSubmissionNextActions, getPayoutNextActions } from '../../utils/next-actions';
 import { publishReviewPair } from '../../services/reputation';
 import { fetchTweetWithMedia, verifyMediaRequirement } from '../../services/twitter';
@@ -42,7 +42,7 @@ async function getMissionWithOwnership(
   const deal = await env.DB
     .prepare('SELECT agent_id, reward_amount, metadata, payment_model, required_media_type FROM deals WHERE id = ?')
     .bind(mission.deal_id)
-    .first<{ agent_id: string; reward_amount: number; metadata: string | null; payment_model: string; required_media_type: string | null }>();
+    .first<{ agent_id: string; reward_amount: number; metadata: string | null; payment_model: string | null; required_media_type: string | null }>();
 
   if (!deal || deal.agent_id !== advertiserId) {
     return {
@@ -1192,20 +1192,46 @@ export async function handleExecutePayout(
   }
 
   if (needsRelease) {
-    // All hUSD payouts use escrow: single release — contract handles 10%/90% split
-    const releaseResult = await escrowRelease(env, mission.deal_id, promoterAddress, rewardAmountCents);
+    const paymentModel = mission._deal.payment_model || 'escrow';
 
-    if (!releaseResult.success) {
-      await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
-        .bind(submissionId).run();
-      return error('ESCROW_RELEASE_FAILED', `Escrow release failed: ${releaseResult.error || 'unknown error'}. Retry this endpoint to complete.`, requestId, 502);
+    if (paymentModel === 'escrow') {
+      // Escrow model: single release — contract handles 10%/90% split
+      const releaseResult = await escrowRelease(env, mission.deal_id, promoterAddress, rewardAmountCents);
+
+      if (!releaseResult.success) {
+        await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
+          .bind(submissionId).run();
+        return error('ESCROW_RELEASE_FAILED', `Escrow release failed: ${releaseResult.error || 'unknown error'}. Retry this endpoint to complete.`, requestId, 502);
+      }
+
+      const releaseTxHash = releaseResult.txHash || `SERVER_RELEASE_${generateRandomString(16)}`;
+      // Escrow uses a single tx for both AUF + payout, but payments.tx_hash has a
+      // UNIQUE(tx_hash, chain) constraint. Suffix each record to avoid collision.
+      aufTxHash = `${releaseTxHash}_auf`;
+      payoutTxHash = `${releaseTxHash}_payout`;
+    } else {
+      // A-Plan / legacy model: direct hUSD transfers from Treasury
+      const aufResult = await transferHusd(env, treasuryAddress, platformFeeCents, { forceOnchain: true });
+      if (!aufResult.success) {
+        await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
+          .bind(submissionId).run();
+        return error('PAYOUT_FAILED', `AUF fee transfer failed: ${aufResult.error || 'unknown error'}. Retry this endpoint.`, requestId, 502);
+      }
+
+      const payoutResult = await transferHusd(env, promoterAddress, promoterPayoutCents, { forceOnchain: true });
+      if (!payoutResult.success) {
+        // AUF succeeded but payout failed — save AUF tx_hash to avoid re-sending
+        aufTxHash = aufResult.txHash || `DIRECT_AUF_${generateRandomString(16)}`;
+        await env.DB.prepare(`UPDATE payments SET tx_hash = ?, updated_at = datetime('now') WHERE id = ?`)
+          .bind(aufTxHash, aufPayment.id).run();
+        await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
+          .bind(submissionId).run();
+        return error('PAYOUT_FAILED', `Operator payout transfer failed: ${payoutResult.error || 'unknown error'}. Retry this endpoint.`, requestId, 502);
+      }
+
+      aufTxHash = aufResult.txHash || `DIRECT_AUF_${generateRandomString(16)}`;
+      payoutTxHash = payoutResult.txHash || `DIRECT_PAYOUT_${generateRandomString(16)}`;
     }
-
-    const releaseTxHash = releaseResult.txHash || `SERVER_RELEASE_${generateRandomString(16)}`;
-    // Escrow uses a single tx for both AUF + payout, but payments.tx_hash has a
-    // UNIQUE(tx_hash, chain) constraint. Suffix each record to avoid collision.
-    aufTxHash = `${releaseTxHash}_auf`;
-    payoutTxHash = `${releaseTxHash}_payout`;
 
     // Save tx_hash immediately to prevent double-release on retry
     // This is a minimal write that should succeed even if the full batch below fails
