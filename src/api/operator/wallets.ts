@@ -146,14 +146,16 @@ export async function updateOperatorWallets(request: Request, env: Env): Promise
   }
 
   try {
-    // Block wallet changes while on-chain payouts are in progress
+    // Block wallet changes while missions are in escrow or payout pipeline
+    // Covers: submitted/verified (awaiting payout), approved (payout initiated),
+    // address_unlocked/paid_partial (on-chain in progress)
     const pendingMissions = await env.DB.prepare(
       `SELECT COUNT(*) as cnt FROM missions
-       WHERE operator_id = ? AND status IN ('address_unlocked','paid_partial')`
+       WHERE operator_id = ? AND status IN ('submitted','verified','approved','address_unlocked','paid_partial')`
     ).bind(operator.id).first<{ cnt: number }>();
 
     if (pendingMissions && pendingMissions.cnt > 0) {
-      return errors.invalidRequest(requestId, 'Cannot change wallet address while on-chain payouts are in progress. Please wait until all pending payouts are completed.');
+      return errors.invalidRequest(requestId, 'Cannot change wallet address while you have active or pending missions. Please wait until all missions are completed or paid.');
     }
 
     // Check if wallet columns exist
