@@ -809,6 +809,10 @@ export async function handleTriggerPayout(
     .first<{ evm_wallet_address: string | null }>();
   const promoterAddress = operator?.evm_wallet_address || '';
 
+  if (!promoterAddress) {
+    return error('NO_WALLET', 'Promoter has not set up a payout wallet address', requestId, 400);
+  }
+
   // Treasury address (fee vault for Sepolia hUSD)
   const treasuryAddress = '0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017';
 
