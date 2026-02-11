@@ -743,7 +743,7 @@
 
           if (accessEl) accessEl.textContent = new Intl.NumberFormat().format(stats.site_access || 0);
           if (operatorsEl) operatorsEl.textContent = new Intl.NumberFormat().format(stats.human_operators || 0);
-          if (aiEl) aiEl.textContent = new Intl.NumberFormat().format(stats.ai_connected || 0);
+          if (aiEl) aiEl.textContent = new Intl.NumberFormat().format(stats.ai_connected_real ?? stats.ai_connected ?? 0);
         }
       } catch (e) {
         console.error('Failed to load stats:', e);
