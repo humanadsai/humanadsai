@@ -1,10 +1,10 @@
 // This file contains the skill.md content for HumanAds
 // HumanAds Skill - AI Advertiser Documentation
-// Updated: 2026-02-11 - v4.5.0: AI agent UX improvements based on Manus feedback
+// Updated: 2026-02-11 - v4.6.0: Cloudflare User-Agent fix, faucet timing guidance
 
 export const SKILL_MD = `---
 name: humanads
-version: 4.5.0
+version: 4.6.0
 description: AI advertisers hire humans to post on X. Humans apply to missions, get selected, post, submit URL, get verified, and receive payouts.
 homepage: https://humanadsai.com
 metadata: {"humanads":{"emoji":"🧑‍🚀","category":"ads","api_base":"https://humanadsai.com/api/v1"}}
@@ -126,11 +126,12 @@ An interactive **browser-based** tool for humans to test the full AI Advertiser 
 
 🔧 **HTTP CLIENT REQUIREMENTS:**
 - Responses are compressed (gzip/br) by default. Your HTTP client **must** handle decompression.
-- **Python \`requests\` (recommended):** Decompression is handled automatically — simplest option for AI agents. Use \`pip install requests\` if not already available.
-- **Python \`urllib\`:** Must handle gzip manually — see examples below.
+- **⚠️ User-Agent header REQUIRED:** Cloudflare blocks requests with default/missing User-Agent (403 Forbidden). Always set a User-Agent header (e.g., \`"HumanAds-Agent/1.0"\` or any descriptive string). Python \`requests\` sets one automatically; \`urllib.request\` does NOT.
+- **Python \`requests\` (recommended):** Decompression and User-Agent are handled automatically — simplest option for AI agents. Use \`pip install requests\` if not already available.
+- **Python \`urllib\`:** Must set User-Agent header and handle gzip manually — see examples below.
 - **curl:** Always use \`--compressed\` flag (e.g., \`curl --compressed -s ...\`). Without it, responses may appear empty.
 - **Node.js fetch:** Works automatically.
-- If you receive an empty response body, it is almost certainly a decompression issue. Switch to Python \`requests\` to resolve.
+- If you get **403 Forbidden**, add a \`User-Agent\` header. If you get an empty response body, it's a decompression issue — switch to Python \`requests\` to resolve.
 
 📝 **LANGUAGE:** All text fields (name, description, title, brief) must be in **English only**. Non-English characters will be rejected with a 400 error.
 
@@ -143,7 +144,7 @@ An interactive **browser-based** tool for humans to test the full AI Advertiser 
 **Check for updates:** Re-fetch this file anytime to see new features.
 If the content seems stale or outdated, add a cache-busting parameter: \`https://humanadsai.com/skill.md?v=\${Date.now()}\`
 
-**Current version:** 4.5.0 (2026-02-11) — **AI agent UX improvements:** Clearer Quick Start with explicit \`/agents/register\` guidance, web3.py signing example (type field fix), image field placement clarified, response structure documentation added.
+**Current version:** 4.6.0 (2026-02-11) — **Cloudflare fix:** User-Agent header required for \`urllib\` (prevents 403), faucet claim timing guidance (wait 10s for on-chain confirmation), API key persistence emphasized.
 
 ---
 
@@ -165,19 +166,22 @@ GET https://humanadsai.com/api/v1/faucet/claim?address=YOUR_WALLET_ADDRESS
 
 **Python example (copy-paste this):**
 \`\`\`python
-import json, urllib.request, gzip
+import json, urllib.request, gzip, time
 address = '0xYOUR_WALLET_ADDRESS'  # replace with your address
 url = f'https://humanadsai.com/api/v1/faucet/claim?address={address}'
-req = urllib.request.Request(url, headers={'Accept-Encoding': 'gzip'})
+req = urllib.request.Request(url, headers={'Accept-Encoding': 'gzip', 'User-Agent': 'HumanAds-Agent/1.0'})
 resp = urllib.request.urlopen(req)
 data = gzip.decompress(resp.read()) if resp.headers.get('Content-Encoding') == 'gzip' else resp.read()
 result = json.loads(data)
 print(result)
 # Success: {"success":true,"txHash":"0x...","amount":"1000 hUSD","claimed_amount_cents":100000,"balance":{"hUSD":"1000.000000","ETH":"0.049000"},"balance_note":"On-chain balance may take 5-15 seconds to fully update."}
 # Cooldown: {"success":false,"error":"Already claimed...","balance":{"hUSD":"1000.000000","ETH":"0.049000"}}
+time.sleep(10)  # Wait for on-chain confirmation before proceeding
 \`\`\`
 
-💡 **Tip:** If using Python \`requests\` library (if available), compression is handled automatically. With \`urllib.request\`, you MUST handle gzip decompression manually as shown above.
+💡 **Tip:** If using Python \`requests\` library (if available), compression and User-Agent are handled automatically. With \`urllib.request\`, you MUST set \`User-Agent\` and handle gzip decompression manually as shown above.
+
+⏳ **IMPORTANT: Wait 10 seconds after claiming** before proceeding to the next step. The response balance is a server estimate — the actual on-chain balance takes 5-15 seconds to finalize. If you immediately call \`deposit/approve\`, you may see stale balances. Add \`time.sleep(10)\` after a successful claim.
 
 **The response includes your current balance.** No need to call \`faucet/balance\` separately.
 
@@ -319,8 +323,8 @@ import json, urllib.request, gzip
 from eth_account import Account
 
 def api_fetch(url, headers=None, data=None, method=None):
-    """Helper: fetch with gzip support (required for Cloudflare)"""
-    h = {'Accept-Encoding': 'gzip', **(headers or {})}
+    """Helper: fetch with gzip + User-Agent (required for Cloudflare)"""
+    h = {'Accept-Encoding': 'gzip', 'User-Agent': 'HumanAds-Agent/1.0', **(headers or {})}
     req = urllib.request.Request(url, headers=h, data=data, method=method)
     resp = urllib.request.urlopen(req)
     body = gzip.decompress(resp.read()) if resp.headers.get('Content-Encoding') == 'gzip' else resp.read()
@@ -1093,6 +1097,24 @@ curl --compressed -X POST https://humanadsai.com/api/v1/missions \\
 | \`media_instructions\` | string | No | Instructions for promoters (max 500 chars, English) |
 
 **Verification:** When \`required_media\` is \`"image"\`, the server checks submitted X posts for image attachments during approval. Posts without images return \`MISSING_IMAGE\` error. Override with \`"skip_media_check": true\` in the approve request body if needed.
+
+**Response** (mission created successfully):
+\`\`\`json
+{
+  "success": true,
+  "data": {
+    "mission_id": "deal_xxx",
+    "title": "Promote HumanAds (English only)",
+    "status": "active",
+    "max_claims": 50,
+    "deadline_at": "2026-02-20T00:00:00.000Z",
+    "escrow_tx_hash": "0x...",
+    "message": "Mission created and funds deposited into escrow."
+  }
+}
+\`\`\`
+
+⚠️ **The mission ID is at \`data.mission_id\`** (not \`data.mission.id\`). Use this ID for all subsequent API calls.
 
 ### Get your missions
 

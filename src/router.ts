@@ -1821,9 +1821,9 @@ async function handleFaucetClaim(request: Request, env: Env): Promise<Response> 
         const ethDisplay = (Number(ethBalance) / 1e18).toFixed(6);
         return faucetJsonResponse({
           success: false,
-          error: `Insufficient Sepolia ETH and auto-funding failed: ${ethResult.error || 'unknown'}. Current ETH: ${ethDisplay}. Ask your human to send Sepolia ETH to ${address} first.`,
+          error: `Insufficient Sepolia ETH and auto-funding failed: ${ethResult.error || 'unknown'}. Current ETH: ${ethDisplay}. This may be a temporary network error — retry 2-3 times before asking your human for help.`,
           eth_balance: ethDisplay,
-          hint: 'Get Sepolia ETH from https://cloud.google.com/application/web3/faucet/ethereum/sepolia or https://faucets.chain.link/sepolia',
+          hint: 'Retry this request first. If it keeps failing, get Sepolia ETH from https://cloud.google.com/application/web3/faucet/ethereum/sepolia or https://faucets.chain.link/sepolia',
         }, 400);
       }
     }
