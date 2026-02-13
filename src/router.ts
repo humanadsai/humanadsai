@@ -1806,6 +1806,24 @@ async function handleFaucetClaim(request: Request, env: Env): Promise<Response> 
     console.error('Cooldown check failed (table may not exist):', e.message);
   }
 
+  // Per-IP rate limit: max 5 claims per IP per 24 hours (sybil protection)
+  const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+  try {
+    const ipClaimCount = await env.DB.prepare(
+      "SELECT COUNT(*) as cnt FROM faucet_claims WHERE ip_address = ? AND created_at > datetime('now', '-24 hours')"
+    ).bind(clientIp).first<{ cnt: number }>();
+
+    if (ipClaimCount && ipClaimCount.cnt >= 5) {
+      return faucetJsonResponse({
+        success: false,
+        error: 'Too many claims from this IP address in the last 24 hours (max 5). Try again later.',
+      }, 429);
+    }
+  } catch (e: any) {
+    // ip_address column might not exist yet — continue anyway
+    console.error('IP rate limit check failed:', e.message);
+  }
+
   // ETH balance check — auto-fund if insufficient (removes CAPTCHA barrier for AI agents)
   const MIN_ETH_WEI = BigInt('100000000000000'); // 0.0001 ETH minimum
   let ethAutoFunded = false;
@@ -1847,8 +1865,8 @@ async function handleFaucetClaim(request: Request, env: Env): Promise<Response> 
   // Record the claim
   try {
     await env.DB.prepare(
-      'INSERT INTO faucet_claims (address, tx_hash, amount_cents) VALUES (?, ?, ?)'
-    ).bind(address.toLowerCase(), result.txHash || '', amountCents).run();
+      'INSERT INTO faucet_claims (address, tx_hash, amount_cents, ip_address) VALUES (?, ?, ?, ?)'
+    ).bind(address.toLowerCase(), result.txHash || '', amountCents, clientIp).run();
   } catch (e: any) {
     // Non-fatal: claim succeeded even if recording fails
     console.error('Failed to record faucet claim:', e.message);

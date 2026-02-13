@@ -1201,7 +1201,7 @@ export async function handleExecutePayout(
       if (!releaseResult.success) {
         await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
           .bind(submissionId).run();
-        return error('ESCROW_RELEASE_FAILED', `Escrow release failed: ${releaseResult.error || 'unknown error'}. Retry this endpoint to complete.`, requestId, 502);
+        return error('ESCROW_RELEASE_FAILED', 'Escrow release failed. Retry this endpoint to complete.', requestId, 502);
       }
 
       const releaseTxHash = releaseResult.txHash || `SERVER_RELEASE_${generateRandomString(16)}`;
@@ -1215,7 +1215,7 @@ export async function handleExecutePayout(
       if (!aufResult.success) {
         await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
           .bind(submissionId).run();
-        return error('PAYOUT_FAILED', `AUF fee transfer failed: ${aufResult.error || 'unknown error'}. Retry this endpoint.`, requestId, 502);
+        return error('PAYOUT_FAILED', 'AUF fee transfer failed. Retry this endpoint.', requestId, 502);
       }
 
       const payoutResult = await transferHusd(env, promoterAddress, promoterPayoutCents, { forceOnchain: true });
@@ -1226,7 +1226,7 @@ export async function handleExecutePayout(
           .bind(aufTxHash, aufPayment.id).run();
         await env.DB.prepare(`UPDATE missions SET status = 'paid_partial', updated_at = datetime('now') WHERE id = ?`)
           .bind(submissionId).run();
-        return error('PAYOUT_FAILED', `Operator payout transfer failed: ${payoutResult.error || 'unknown error'}. Retry this endpoint.`, requestId, 502);
+        return error('PAYOUT_FAILED', 'Operator payout transfer failed. Retry this endpoint.', requestId, 502);
       }
 
       aufTxHash = aufResult.txHash || `DIRECT_AUF_${generateRandomString(16)}`;

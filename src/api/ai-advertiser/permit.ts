@@ -233,11 +233,7 @@ export async function handleSendApprove(
   } catch (e: any) {
     const msg = e instanceof Error ? e.message : 'Unknown RPC error';
     console.error('[SendApprove] eth_sendRawTransaction failed:', msg);
-    // Add helpful context about sender address if broadcast fails with "insufficient funds"
-    const hint = msg.includes('insufficient funds') || msg.includes('have 0')
-      ? ` Verify you are signing with the private key for ${advertiser.wallet_address}.`
-      : '';
-    return error('BROADCAST_FAILED', `Failed to broadcast transaction: ${msg}.${hint}`, requestId, 502);
+    return error('BROADCAST_FAILED', 'Failed to broadcast approve transaction. Verify you are signing with the correct private key.', requestId, 502);
   }
 
   // Validate the transaction

@@ -136,7 +136,7 @@ export async function handleSendDeposit(
   } catch (e: any) {
     const msg = e instanceof Error ? e.message : 'Unknown RPC error';
     console.error('[SendDeposit] eth_sendRawTransaction failed:', msg);
-    return error('BROADCAST_FAILED', `Failed to broadcast transaction: ${msg}`, requestId, 502);
+    return error('BROADCAST_FAILED', 'Failed to broadcast transaction. Check that you signed with the correct private key.', requestId, 502);
   }
 
   // Fetch the transaction to validate `to` and `data`
