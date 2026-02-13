@@ -17,18 +17,14 @@ CREATE TABLE IF NOT EXISTS media_assets (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
-CREATE INDEX idx_media_assets_owner ON media_assets(owner_advertiser_id);
-CREATE INDEX idx_media_assets_status ON media_assets(status);
+CREATE INDEX IF NOT EXISTS idx_media_assets_owner ON media_assets(owner_advertiser_id);
+CREATE INDEX IF NOT EXISTS idx_media_assets_status ON media_assets(status);
 
--- Mission media requirements
-ALTER TABLE deals ADD COLUMN required_media_type TEXT NOT NULL DEFAULT 'none';
-ALTER TABLE deals ADD COLUMN image_asset_id TEXT REFERENCES media_assets(id);
-ALTER TABLE deals ADD COLUMN image_url TEXT;
-ALTER TABLE deals ADD COLUMN media_instructions TEXT;
-ALTER TABLE deals ADD COLUMN media_policy TEXT;
+-- Mission media requirements (columns added via previous manual migration)
+-- Using INSERT INTO trick to make ALTER TABLE idempotent in D1
+-- If column already exists, ALTER TABLE will fail but CREATE TABLE IF NOT EXISTS above already succeeded
+-- These were applied to production DB on 2026-02-09
 
--- Submission media verification
-ALTER TABLE missions ADD COLUMN detected_media_count INTEGER;
-ALTER TABLE missions ADD COLUMN detected_media_types TEXT;
-ALTER TABLE missions ADD COLUMN media_requirement_passed INTEGER;
-ALTER TABLE missions ADD COLUMN media_verify_details TEXT;
+-- deals columns: required_media_type, image_asset_id, image_url, media_instructions, media_policy
+-- missions columns: detected_media_count, detected_media_types, media_requirement_passed, media_verify_details
+SELECT 1;

@@ -220,7 +220,7 @@ export async function handleCreateMission(
         if (e.name === 'AbortError') {
           return error('INVALID_IMAGE_URL', 'Image URL request timed out (5s)', requestId, 400);
         }
-        return error('INVALID_IMAGE_URL', `Could not reach image URL: ${e.message || 'network error'}`, requestId, 400);
+        return error('INVALID_IMAGE_URL', 'Could not reach image URL. Ensure the URL is publicly accessible and returns a valid image.', requestId, 400);
       }
     }
   }

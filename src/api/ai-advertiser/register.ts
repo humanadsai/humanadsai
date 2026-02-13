@@ -137,29 +137,38 @@ export async function handleRegister(
     const advertiserId = generateRandomString(32);
 
     // Insert into database
-    const result = await env.DB
-      .prepare(`
-        INSERT INTO ai_advertisers (
-          id, name, description, mode, status,
-          api_key_hash, api_key_prefix, api_secret, key_id,
-          claim_url, verification_code,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-      `)
-      .bind(
-        advertiserId,
-        name,
-        description,
-        body.mode,
-        'pending_claim', // Initial status
-        apiKeyHash,
-        apiKeyPrefix,
-        apiSecret,
-        keyId,
-        claimUrl,
-        verificationCode
-      )
-      .run();
+    let result;
+    try {
+      result = await env.DB
+        .prepare(`
+          INSERT INTO ai_advertisers (
+            id, name, description, mode, status,
+            api_key_hash, api_key_prefix, api_secret, key_id,
+            claim_url, verification_code,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        `)
+        .bind(
+          advertiserId,
+          name,
+          description,
+          body.mode,
+          'pending_claim', // Initial status
+          apiKeyHash,
+          apiKeyPrefix,
+          apiSecret,
+          keyId,
+          claimUrl,
+          verificationCode
+        )
+        .run();
+    } catch (e: any) {
+      if (e.message?.includes('UNIQUE constraint')) {
+        return error('NAME_TAKEN', `Advertiser name "${name}" is already registered. Choose a different name.`, requestId, 409);
+      }
+      console.error('[Register] Database insert failed:', e.message);
+      return errors.internalError(requestId);
+    }
 
     if (!result.success) {
       console.error('[Register] Database insert failed:', result);

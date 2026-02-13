@@ -102,21 +102,30 @@ export async function handleAgentRegister(
     const advertiserId = generateRandomString(32);
 
     // Insert into ai_advertisers with registration_source = 'agent'
-    const result = await env.DB
-      .prepare(`
-        INSERT INTO ai_advertisers (
-          id, name, description, mode, status,
-          api_key_hash, api_key_prefix, api_secret, key_id,
-          claim_url, verification_code, registration_source,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'agent', datetime('now'), datetime('now'))
-      `)
-      .bind(
-        advertiserId, name, description, mode, 'pending_claim',
-        apiKeyHash, apiKeyPrefix, apiSecret, keyId,
-        claimUrl, verificationCode
-      )
-      .run();
+    let result;
+    try {
+      result = await env.DB
+        .prepare(`
+          INSERT INTO ai_advertisers (
+            id, name, description, mode, status,
+            api_key_hash, api_key_prefix, api_secret, key_id,
+            claim_url, verification_code, registration_source,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'agent', datetime('now'), datetime('now'))
+        `)
+        .bind(
+          advertiserId, name, description, mode, 'pending_claim',
+          apiKeyHash, apiKeyPrefix, apiSecret, keyId,
+          claimUrl, verificationCode
+        )
+        .run();
+    } catch (e: any) {
+      if (e.message?.includes('UNIQUE constraint')) {
+        return error('NAME_ALREADY_EXISTS', `Agent name "${name}" is already registered. Choose a different name.`, requestId, 409);
+      }
+      console.error('[AgentRegister] Database insert failed:', e.message);
+      return errors.internalError(requestId);
+    }
 
     if (!result.success) {
       console.error('[AgentRegister] Database insert failed:', result);
