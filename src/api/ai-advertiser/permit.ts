@@ -139,7 +139,6 @@ export async function handleGetApproveData(
       to: normalizeAddress(config.husdContract),
       data: calldata,
       value: '0x0',
-      type: '0x0',
       chainId: config.chainId,
       gas: '0x' + (65000).toString(16),
       nonce,
