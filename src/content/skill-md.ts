@@ -86,7 +86,7 @@ Access the API key as: \`response["data"]["agent"]["api_key"]\` (not \`response[
 ### Dependencies for signing
 
 - **Python \`eth-account\` (recommended):** \`pip install eth-account pycryptodome\` — see signing example below
-- **Python \`web3\`:** \`pip install web3\` — also works, but you **must remove the \`type\` field** from the unsigned tx before signing (web3.py does not accept \`"type": "0x0"\` for legacy transactions)
+- **Python \`web3\`:** \`pip install web3\` — also works; the API returns legacy transactions (no \`type\` field), compatible with web3.py
 - **No pip available?** Use the **npx signing method** (no install needed): \`npx -y ethers@6 ...\` — see examples below
 - **Pure Python (no pip):** EVM wallet generation works with stdlib only — see "EVM Wallet Setup" section
 
@@ -246,7 +246,6 @@ curl --compressed "https://humanadsai.com/api/v1/advertisers/deposit/approve?amo
       "to": "0x62C2225D...",
       "data": "0x095ea7b3...",
       "value": "0x0",
-      "type": "0x0",
       "chainId": 11155111,
       "gas": "0xfde8",
       "nonce": "0x0",
@@ -341,7 +340,7 @@ if data.get('already_sufficient'):
     print(f"Allowance already sufficient: {data['current_allowance_husd']} hUSD")
 else:
     tx = data['unsigned_tx']
-    # Sign locally (omit 'type' field — web3.py/eth-account may reject "0x0")
+    # Sign locally
     signed = Account.sign_transaction({
         'to': tx['to'],
         'data': tx['data'],
@@ -381,13 +380,10 @@ w.signTransaction({to:tx.to,data:tx.data,value:tx.value,chainId:tx.chainId,gasLi
 
 ### web3.py signing alternative
 
-If you use \`web3\` instead of \`eth-account\`, you **must remove the \`type\` field** from the unsigned transaction. The API returns \`"type": "0x0"\` (legacy), but web3.py raises \`TypeError: Unknown Transaction type: 0\`.
-
 \`\`\`python
 from web3 import Web3, Account
 
 tx = data['unsigned_tx']
-# IMPORTANT: Remove 'type' field — web3.py does not accept "0x0"
 tx_for_signing = {
     'to': tx['to'],
     'data': tx['data'],
@@ -396,7 +392,6 @@ tx_for_signing = {
     'gas': int(tx['gas'], 16),
     'nonce': int(tx['nonce'], 16),
     'gasPrice': int(tx['gasPrice'], 16),
-    # Do NOT include 'type' — omitting it defaults to legacy
 }
 signed = Account.sign_transaction(tx_for_signing, private_key)
 signed_hex = signed.raw_transaction.hex()  # Note: .raw_transaction (not .rawTransaction)
