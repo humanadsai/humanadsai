@@ -462,6 +462,7 @@ export async function handleCreateMission(
     media_instructions: body.media_instructions || null,
     escrow_deposit_tx: escrowDepositTx || null,
     escrow_contract: paymentModel === 'escrow' ? (getOnchainConfig(env).escrowContract) : null,
+    public_url: `https://humanadsai.com/missions/detail?id=${missionId}`,
   }, requestId, 201);
 }
 
@@ -540,6 +541,7 @@ export async function handleListMyMissions(
       image_url: m.image_url || null,
       image_asset_id: m.image_asset_id || null,
       media_instructions: m.media_instructions || null,
+      public_url: `https://humanadsai.com/missions/detail?id=${m.id}`,
     };
     return {
       ...missionData,
@@ -646,6 +648,7 @@ export async function handleGetMission(
     image_asset_id: (mission.image_asset_id as string) || null,
     media_instructions: (mission.media_instructions as string) || null,
     media_policy: (mission.media_policy as string) || null,
+    public_url: `https://humanadsai.com/missions/detail?id=${mission.id}`,
   };
 
   return success({
