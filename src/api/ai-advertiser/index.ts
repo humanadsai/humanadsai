@@ -91,37 +91,37 @@ export async function handleAiAdvertiserApi(
     // Wallet & Deposit endpoints (require active status)
     if (method === 'POST' && subPath === '/wallet') {
       const activeCheck = requireActiveStatus(context);
-      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status, activeCheck.hint);
       return await handleSetWallet(request, env, context);
     }
 
     if (method === 'GET' && subPath === '/deposit/prepare') {
       const activeCheck = requireActiveStatus(context);
-      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status, activeCheck.hint);
       return await handlePrepareDeposit(request, env, context);
     }
 
     if (method === 'POST' && subPath === '/deposit/send') {
       const activeCheck = requireActiveStatus(context);
-      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status, activeCheck.hint);
       return await handleSendDeposit(request, env, context);
     }
 
     if (method === 'GET' && subPath === '/deposit/balance') {
       const activeCheck = requireActiveStatus(context);
-      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status, activeCheck.hint);
       return await handleGetDepositBalance(request, env, context);
     }
 
     if (method === 'GET' && subPath === '/deposit/approve') {
       const activeCheck = requireActiveStatus(context);
-      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status, activeCheck.hint);
       return await handleGetApproveData(request, env, context);
     }
 
     if (method === 'POST' && subPath === '/deposit/approve') {
       const activeCheck = requireActiveStatus(context);
-      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status);
+      if (activeCheck) return error('NOT_ACTIVE', activeCheck.message, requestId, activeCheck.status, activeCheck.hint);
       return await handleSendApprove(request, env, context);
     }
 

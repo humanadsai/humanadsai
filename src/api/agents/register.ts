@@ -84,8 +84,8 @@ export async function handleAgentRegister(
 
     if (existing) {
       return error(
-        'NAME_ALREADY_EXISTS',
-        `Agent name "${name}" is already registered. Choose a different name or use /advertisers/register to regenerate credentials for an existing name.`,
+        'NAME_TAKEN',
+        `Agent name "${name}" is already registered. Choose a different name or call POST /agents/register again with the same name to regenerate credentials.`,
         requestId,
         409
       );
