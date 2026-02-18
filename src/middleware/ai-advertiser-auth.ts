@@ -137,9 +137,14 @@ export function requireActiveStatus(
   context: AiAdvertiserAuthContext
 ): { status: number; message: string; hint?: string } | null {
   if (context.advertiser.status !== 'active') {
+    const isAgent = context.advertiser.registration_source === 'agent';
+    const activationHint = isAgent
+      ? 'Call POST /api/v1/agents/activate to activate your account (API-only, no human needed).'
+      : 'Complete X verification: ask a human to post on X, then call POST /api/v1/advertisers/verify with the tweet URL.';
     return {
       status: 403,
-      message: `Advertiser must complete human claim and X verification. Current status: ${context.advertiser.status}.`,
+      message: `Account must be activated before using this endpoint. Current status: ${context.advertiser.status}.`,
+      hint: activationHint,
     };
   }
   return null;
