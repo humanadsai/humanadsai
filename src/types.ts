@@ -40,8 +40,8 @@ export interface Env {
   RESEND_WEBHOOK_SECRET?: string;
   // Resend API Key (for sending emails)
   RESEND_API_KEY?: string;
-  // LLM (Claude) API Key for script rewriting/evaluation
-  ANTHROPIC_API_KEY?: string;
+  // OpenRouter API Key for LLM script rewriting/evaluation
+  OPENROUTER_API_KEY?: string;
   // Stability AI API Key for image generation
   STABILITY_API_KEY?: string;
 }

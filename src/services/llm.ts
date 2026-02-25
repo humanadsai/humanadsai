@@ -1,17 +1,16 @@
 /**
- * LLM Service — Claude API client for script rewriting and evaluation.
+ * LLM Service — OpenRouter API client for script rewriting and evaluation.
  *
- * Uses Claude API directly via fetch() (no SDK dependency).
+ * Uses OpenRouter (OpenAI-compatible) API via fetch().
  * Two functions:
  *   1. rewriteScript()   — rewrites a script for viral short-form video
  *   2. evaluateScript()  — harsh "辛口" evaluator scores 0-100
  */
 
-const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
-const CLAUDE_MODEL = 'claude-sonnet-4-6';
-const ANTHROPIC_VERSION = '2023-06-01';
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const LLM_MODEL = 'anthropic/claude-sonnet-4-20250514';
 
-// Cost per token for claude-sonnet-4-6 (approximate)
+// OpenRouter pricing for claude-sonnet-4 (approximate)
 const INPUT_COST_PER_TOKEN = 0.000003;  // $3 per 1M input tokens
 const OUTPUT_COST_PER_TOKEN = 0.000015; // $15 per 1M output tokens
 
@@ -39,36 +38,39 @@ export interface EvalResult {
   costUsd: number;
 }
 
-async function callClaude(
+async function callLLM(
   apiKey: string,
   systemPrompt: string,
   userMessage: string,
   maxTokens: number = 2048,
 ): Promise<{ content: string; inputTokens: number; outputTokens: number }> {
-  const res = await fetch(CLAUDE_API_URL, {
+  const res = await fetch(OPENROUTER_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': ANTHROPIC_VERSION,
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': 'https://humanadsai.com',
+      'X-Title': 'HumanAds Video Pipeline',
     },
     body: JSON.stringify({
-      model: CLAUDE_MODEL,
+      model: LLM_MODEL,
       max_tokens: maxTokens,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userMessage }],
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
     }),
   });
 
   if (!res.ok) {
     const errBody = await res.text();
-    throw new Error(`Claude API error (${res.status}): ${errBody}`);
+    throw new Error(`OpenRouter API error (${res.status}): ${errBody}`);
   }
 
   const data = await res.json() as any;
-  const content = data.content?.[0]?.text || '';
-  const inputTokens = data.usage?.input_tokens || 0;
-  const outputTokens = data.usage?.output_tokens || 0;
+  const content = data.choices?.[0]?.message?.content || '';
+  const inputTokens = data.usage?.prompt_tokens || 0;
+  const outputTokens = data.usage?.completion_tokens || 0;
 
   return { content, inputTokens, outputTokens };
 }
@@ -76,7 +78,7 @@ async function callClaude(
 /**
  * Rewrite a script for viral short-form video (15-45 seconds).
  *
- * @param apiKey - Anthropic API key
+ * @param apiKey - OpenRouter API key
  * @param script - Original script text
  * @param targetDurationSec - Target duration (15-45)
  * @param feedback - Optional evaluator feedback to incorporate
@@ -117,7 +119,7 @@ Output format — write ONLY the rewritten script text:
     userMessage += `\n\n---\nEvaluator feedback to address:\n${feedback}`;
   }
 
-  const result = await callClaude(apiKey, systemPrompt, userMessage);
+  const result = await callLLM(apiKey, systemPrompt, userMessage);
   const costUsd = result.inputTokens * INPUT_COST_PER_TOKEN + result.outputTokens * OUTPUT_COST_PER_TOKEN;
 
   return {
@@ -133,7 +135,7 @@ Output format — write ONLY the rewritten script text:
  * Score 0-100, with breakdown across 5 dimensions.
  * Pass threshold: 90+
  *
- * @param apiKey - Anthropic API key
+ * @param apiKey - OpenRouter API key
  * @param script - Script text to evaluate
  */
 export async function evaluateScript(
@@ -166,7 +168,7 @@ Do not include any text before or after the JSON.`;
 
   const userMessage = `Evaluate this short-form video script:\n\n${script}`;
 
-  const result = await callClaude(apiKey, systemPrompt, userMessage, 1024);
+  const result = await callLLM(apiKey, systemPrompt, userMessage, 1024);
   const costUsd = result.inputTokens * INPUT_COST_PER_TOKEN + result.outputTokens * OUTPUT_COST_PER_TOKEN;
 
   // Parse JSON response

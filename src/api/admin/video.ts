@@ -862,7 +862,7 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
 
   // Determine initial status: if LLM APIs are configured, start with 'queued' for LLM pipeline;
   // otherwise fall back to 'queued_render' for direct rendering
-  const hasLlmPipeline = !!(env as any).ANTHROPIC_API_KEY;
+  const hasLlmPipeline = !!(env as any).OPENROUTER_API_KEY;
   const initialStatus = hasLlmPipeline ? 'queued' : 'queued_render';
 
   const videoPostId = generateId('vp_');
@@ -1800,7 +1800,7 @@ async function recordCost(
 export async function processVideoPostJobs(env: Env): Promise<void> {
   console.log('[VideoJobs] Starting video post job processing');
 
-  const anthropicKey = (env as any).ANTHROPIC_API_KEY;
+  const anthropicKey = (env as any).OPENROUTER_API_KEY;
   const stabilityKey = (env as any).STABILITY_API_KEY;
 
   // ── Stage 1: queued → script_rewriting (LLM rewrite) ──
