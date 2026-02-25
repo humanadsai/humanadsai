@@ -685,9 +685,17 @@ async function createPostizPost(
   }
 
   // Map publish_mode to Postiz type
+  // If scheduled_at has already passed (e.g. rendering took too long), fall back to immediate post
   let postizType = 'draft';
   if (videoPost.publish_mode === 'publish_now') postizType = 'now';
-  if (videoPost.publish_mode === 'scheduled') postizType = 'schedule';
+  if (videoPost.publish_mode === 'scheduled') {
+    const scheduledTime = new Date(videoPost.scheduled_at).getTime();
+    if (isNaN(scheduledTime) || scheduledTime <= Date.now()) {
+      postizType = 'now';
+    } else {
+      postizType = 'schedule';
+    }
+  }
 
   const body: any = {
     type: postizType,
