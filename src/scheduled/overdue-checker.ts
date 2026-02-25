@@ -2,6 +2,7 @@ import type { Env } from '../types';
 import { createNotificationWithEmail } from '../services/email-notifications';
 import { recalculateReputation } from '../services/reputation';
 import { escrowRefund } from '../services/onchain';
+import { processVideoPostJobs } from '../api/admin/video';
 
 /**
  * Scheduled Job
@@ -25,6 +26,9 @@ export async function handleScheduled(
 
     // 2. Auto-publish expired blind reviews (14 days)
     await publishExpiredBlindReviews(env);
+
+    // 3. Process video post pipeline (upload to Postiz, create posts)
+    await processVideoPostJobs(env);
 
     console.log('Scheduled checker completed successfully');
   } catch (error) {

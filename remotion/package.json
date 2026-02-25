@@ -1,0 +1,24 @@
+{
+  "name": "humanads-video-templates",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npx remotion studio",
+    "build": "npx remotion bundle",
+    "render": "npx remotion render Slideshow out/slideshow.mp4",
+    "deploy-lambda": "npx remotion lambda sites create src/index.ts --site-name=humanads-video"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.242",
+    "@remotion/google-fonts": "4.0.242",
+    "@remotion/lambda": "4.0.242",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.242",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "typescript": "^5.5.0"
+  }
+}
