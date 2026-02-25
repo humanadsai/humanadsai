@@ -88,10 +88,20 @@ export async function rewriteScript(
   script: string,
   targetDurationSec: number = 30,
   feedback?: string,
+  pastLearnings?: string,
 ): Promise<RewriteResult> {
   // ~2-3 words/sec for Japanese, ~2.5 words/sec for English
   const minWords = Math.floor(targetDurationSec * 2);
   const maxWords = Math.ceil(targetDurationSec * 3);
+
+  let learningsBlock = '';
+  if (pastLearnings) {
+    learningsBlock = `
+
+IMPORTANT — Past evaluation insights (ノウハウ):
+The following patterns have been identified from previous script evaluations. Apply these learnings to produce a higher-scoring script:
+${pastLearnings}`;
+  }
 
   const systemPrompt = `You are a viral short-form video scriptwriter for HumanAds, an AI-powered ad platform.
 Your job is to rewrite scripts into punchy 15-45 second TikTok/YouTube Shorts scripts.
@@ -112,7 +122,7 @@ Output format — write ONLY the rewritten script text:
 - Use --- on its own line to separate chapters
 - First paragraph is always the hook
 - Last paragraph is always the CTA
-- Do NOT include any metadata, labels, timing markers, or explanations`;
+- Do NOT include any metadata, labels, timing markers, or explanations${learningsBlock}`;
 
   let userMessage = `Rewrite this script for a ${targetDurationSec}-second short-form video:\n\n${script}`;
   if (feedback) {
