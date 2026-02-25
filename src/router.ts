@@ -135,6 +135,16 @@ import { getEmailStats, getEmailLogs, getEmailSuppressions, removeEmailSuppressi
 // Webhook API
 import { handleResendWebhook } from './api/webhooks/resend';
 
+// Admin Video Posts API
+import {
+  createVideoPost,
+  listVideoPosts,
+  getVideoPost,
+  retryVideoPost,
+  deleteVideoPost,
+  handleRemotionWebhook,
+} from './api/admin/video';
+
 // Config API
 import {
   getPublicConfig,
@@ -303,6 +313,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
     if (path === '/api/webhooks/resend' && method === 'POST') {
       return handleResendWebhook(request, env);
+    }
+
+    if (path === '/api/webhooks/remotion' && method === 'POST') {
+      return handleRemotionWebhook(request, env);
     }
 
     // ============================================
@@ -1467,6 +1481,31 @@ async function handleAdminApi(
   // GET /api/admin/config/history - Get config change history
   if (path === '/api/admin/config/history' && method === 'GET') {
     return getConfigHistory(request, env);
+  }
+
+  // ============================================
+  // Video Posts Management
+  // ============================================
+
+  if (path === '/api/admin/video-posts' && method === 'POST') {
+    return createVideoPost(request, env);
+  }
+
+  if (path === '/api/admin/video-posts' && method === 'GET') {
+    return listVideoPosts(request, env);
+  }
+
+  const videoPostMatch = path.match(/^\/api\/admin\/video-posts\/([a-zA-Z0-9_]+)$/);
+  if (videoPostMatch && method === 'GET') {
+    return getVideoPost(request, env, videoPostMatch[1]);
+  }
+  if (videoPostMatch && method === 'DELETE') {
+    return deleteVideoPost(request, env, videoPostMatch[1]);
+  }
+
+  const videoPostRetryMatch = path.match(/^\/api\/admin\/video-posts\/([a-zA-Z0-9_]+)\/retry$/);
+  if (videoPostRetryMatch && method === 'POST') {
+    return retryVideoPost(request, env, videoPostRetryMatch[1]);
   }
 
   // Fallback: serve static assets from /public via env.ASSETS
