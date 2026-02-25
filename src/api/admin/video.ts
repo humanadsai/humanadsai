@@ -188,7 +188,7 @@ function buildSlidesPayload(
   const caption = captionText || scriptText.substring(0, 200).replace(/\n/g, ' ').trim();
 
   // Build hashtags
-  const defaultHashtags = ['#HumanAds', '#HumanAdsAI'];
+  const defaultHashtags = ['#OpenClaw', '#RentAHuman'];
   const userHashtags = hashtagsText
     ? hashtagsText.split(/[\s,]+/).filter(h => h.startsWith('#'))
     : [];
@@ -408,7 +408,7 @@ function buildEnhancedSlidesPayload(
   });
 
   const caption = captionText || scriptText.substring(0, 200).replace(/\n/g, ' ').trim();
-  const defaultHashtags = ['#HumanAds', '#HumanAdsAI'];
+  const defaultHashtags = ['#OpenClaw', '#RentAHuman'];
   const userHashtags = hashtagsText
     ? hashtagsText.split(/[\s,]+/).filter(h => h.startsWith('#'))
     : [];
@@ -705,7 +705,7 @@ async function createPostizPost(
       const captionWithTags = [
         videoPost.caption_text || '',
         '',
-        videoPost.hashtags_text || '#HumanAds #HumanAdsAI',
+        videoPost.hashtags_text || '#OpenClaw #RentAHuman',
       ].join('\n');
 
       posts.push({
