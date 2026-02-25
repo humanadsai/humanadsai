@@ -523,8 +523,14 @@ async function triggerRemotionRender(
     return { success: false, error: 'AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.' };
   }
 
-  // Remotion Lambda expects this payload shape for renderMediaOnLambda
+  // Remotion Lambda payload — must match SDK's renderMediaOnLambda() format exactly.
+  // inputProps are wrapped in { type: 'payload', payload: '<json>' } for inline serialization.
   const remotionVersion = (env as any).REMOTION_VERSION || '4.0.242';
+  const serializedInputProps = {
+    type: 'payload',
+    payload: JSON.stringify(payload),
+  };
+
   const remotionPayload: Record<string, unknown> = {
     type: 'start',
     version: remotionVersion,
@@ -532,12 +538,44 @@ async function triggerRemotionRender(
     composition: 'Slideshow',
     codec: 'h264',
     imageFormat: 'jpeg',
-    inputProps: payload,
+    inputProps: serializedInputProps,
+    crf: null,
+    envVariables: {},
+    pixelFormat: null,
+    proResProfile: null,
+    x264Preset: null,
+    jpegQuality: 80,
     maxRetries: 1,
     privacy: 'public',
     logLevel: 'warning',
-    timeoutInMilliseconds: 240000,
+    frameRange: null,
     outName: null,
+    timeoutInMilliseconds: 240000,
+    chromiumOptions: {},
+    scale: 1,
+    everyNthFrame: 1,
+    numberOfGifLoops: null,
+    concurrencyPerLambda: 1,
+    downloadBehavior: { type: 'play-in-browser' },
+    muted: false,
+    overwrite: false,
+    audioBitrate: null,
+    videoBitrate: null,
+    encodingBufferSize: null,
+    encodingMaxRate: null,
+    webhook: null,
+    forceHeight: null,
+    forceWidth: null,
+    rendererFunctionName: null,
+    framesPerLambda: null,
+    bucketName: null,
+    audioCodec: null,
+    offthreadVideoCacheSizeInBytes: null,
+    deleteAfter: null,
+    colorSpace: null,
+    preferLossless: false,
+    forcePathStyle: false,
+    metadata: null,
   };
 
   if (webhookSecret) {
