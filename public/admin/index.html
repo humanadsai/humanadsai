@@ -1223,10 +1223,10 @@
         '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
           '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Platforms *</label>' +
             '<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer;"><input type="checkbox" id="vp-yt" checked> YouTube</label>' +
-            '<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer;"><input type="checkbox" id="vp-ig" checked> Instagram</label></div>' +
+            '<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer;"><input type="checkbox" id="vp-ig"> Instagram</label></div>' +
           '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Publish Mode *</label>' +
-            '<select class="form-select" id="vp-mode"><option value="draft">Draft (下書き)</option><option value="scheduled">Scheduled (予約)</option><option value="publish_now">Publish Now (即時)</option></select></div>' +
-          '<div class="form-group" style="flex:1;min-width:200px;" id="vp-schedule-group" style="display:none;"><label class="form-label">Scheduled Date (JST)</label>' +
+            '<select class="form-select" id="vp-mode"><option value="draft">Draft (下書き)</option><option value="scheduled" selected>Scheduled (予約)</option><option value="publish_now">Publish Now (即時)</option></select></div>' +
+          '<div class="form-group" style="flex:1;min-width:200px;" id="vp-schedule-group"><label class="form-label">Scheduled Date (JST)</label>' +
             '<input class="form-input" type="datetime-local" id="vp-scheduled-at"></div>' +
         '</div>' +
         '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
@@ -1250,9 +1250,32 @@
     document.getElementById('vp-mode').addEventListener('change', function() {
       document.getElementById('vp-schedule-group').style.display = this.value === 'scheduled' ? 'block' : 'none';
     });
-    // Character count
+    // Set default scheduled date to now + 1 min (JST)
+    var now = new Date(Date.now() + 60000);
+    var jstOffset = 9 * 60 * 60000;
+    var jstDate = new Date(now.getTime() + jstOffset);
+    document.getElementById('vp-scheduled-at').value = jstDate.toISOString().slice(0, 16);
+    // Track manually edited fields
+    var manuallyEdited = {};
+    ['vp-title', 'vp-yt-title', 'vp-caption', 'vp-hashtags'].forEach(function(id) {
+      document.getElementById(id).addEventListener('input', function() { manuallyEdited[id] = true; });
+    });
+    // Auto-fill from script with debounce
+    var scriptDebounce = null;
     document.getElementById('vp-script').addEventListener('input', function() {
       document.getElementById('vp-script-count').textContent = this.value.length;
+      clearTimeout(scriptDebounce);
+      var scriptVal = this.value;
+      scriptDebounce = setTimeout(function() {
+        var text = scriptVal.trim();
+        if (!text) return;
+        var firstLine = text.split('\n')[0].trim();
+        var autoTitle = firstLine.length > 50 ? firstLine.slice(0, 50) + '...' : firstLine;
+        if (!manuallyEdited['vp-title']) document.getElementById('vp-title').value = autoTitle;
+        if (!manuallyEdited['vp-yt-title']) document.getElementById('vp-yt-title').value = autoTitle;
+        if (!manuallyEdited['vp-caption']) document.getElementById('vp-caption').value = text.slice(0, 200);
+        if (!manuallyEdited['vp-hashtags']) document.getElementById('vp-hashtags').value = '#HumanAds #HumanAdsAI';
+      }, 300);
     });
   }
 
@@ -1266,6 +1289,10 @@
     if (document.getElementById('vp-yt').checked) platforms.push('youtube');
     if (document.getElementById('vp-ig').checked) platforms.push('instagram');
 
+    if (!title && script) {
+      var fl = script.split('\n')[0].trim();
+      title = fl.length > 50 ? fl.slice(0, 50) + '...' : fl;
+    }
     if (!title) { HumanAds.showAlert('Title is required', 'error'); return; }
     if (!script) { HumanAds.showAlert('Script is required', 'error'); return; }
     if (platforms.length === 0) { HumanAds.showAlert('Select at least one platform', 'error'); return; }
