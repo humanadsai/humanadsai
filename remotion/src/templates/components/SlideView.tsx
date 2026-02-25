@@ -6,6 +6,12 @@ import {
 } from 'remotion';
 import type { Slide } from '../../schemas';
 import { getPreset } from '../../styles/presets';
+import { EmphasisText } from './EmphasisText';
+import { HookPunchScene } from '../scenes/HookPunchScene';
+import { RevealListScene } from '../scenes/RevealListScene';
+import { ConceptExplainScene } from '../scenes/ConceptExplainScene';
+import { DangerShiftScene } from '../scenes/DangerShiftScene';
+import { CtaTeaseScene } from '../scenes/CtaTeaseScene';
 
 interface SlideViewProps {
   slide: Slide;
@@ -14,6 +20,33 @@ interface SlideViewProps {
 }
 
 export const SlideView: React.FC<SlideViewProps> = ({
+  slide,
+  startFrame,
+  durationFrames,
+}) => {
+  const sceneType = slide.sceneType || 'standard';
+
+  // Dispatch to specialized scene components
+  switch (sceneType) {
+    case 'hook_punch':
+      return <HookPunchScene slide={slide} startFrame={startFrame} durationFrames={durationFrames} />;
+    case 'reveal_list':
+      return <RevealListScene slide={slide} startFrame={startFrame} durationFrames={durationFrames} />;
+    case 'concept_explain':
+      return <ConceptExplainScene slide={slide} startFrame={startFrame} durationFrames={durationFrames} />;
+    case 'danger_shift':
+      return <DangerShiftScene slide={slide} startFrame={startFrame} durationFrames={durationFrames} />;
+    case 'cta_tease':
+      return <CtaTeaseScene slide={slide} startFrame={startFrame} durationFrames={durationFrames} />;
+    default:
+      return <StandardSlide slide={slide} startFrame={startFrame} durationFrames={durationFrames} />;
+  }
+};
+
+/**
+ * Standard slide — original layout with added motion presets and emphasis text support.
+ */
+const StandardSlide: React.FC<SlideViewProps> = ({
   slide,
   startFrame,
   durationFrames,
@@ -32,13 +65,44 @@ export const SlideView: React.FC<SlideViewProps> = ({
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
   );
 
-  // Slide up animation
-  const translateY = interpolate(
-    localFrame,
-    [0, fadeInFrames],
-    [30, 0],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
-  );
+  // Motion presets
+  const motionPreset = slide.motionPreset || 'none';
+  let transform = '';
+
+  if (motionPreset === 'zoom_in') {
+    const scale = interpolate(
+      localFrame,
+      [0, durationFrames],
+      [1, 1.05],
+      { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+    );
+    transform = `scale(${scale})`;
+  } else if (motionPreset === 'pulse') {
+    const pulseScale = interpolate(
+      localFrame % 30,
+      [0, 15, 30],
+      [1, 1.03, 1],
+      { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+    );
+    transform = `scale(${pulseScale})`;
+  } else if (motionPreset === 'slide_left') {
+    const translateX = interpolate(
+      localFrame,
+      [0, fadeInFrames],
+      [30, 0],
+      { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+    );
+    transform = `translateX(${translateX}px)`;
+  } else {
+    // Default: slide up animation
+    const translateY = interpolate(
+      localFrame,
+      [0, fadeInFrames],
+      [30, 0],
+      { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+    );
+    transform = `translateY(${translateY}px)`;
+  }
 
   const isHook = slide.type === 'hook';
   const isCta = slide.type === 'cta';
@@ -47,6 +111,8 @@ export const SlideView: React.FC<SlideViewProps> = ({
 
   const fontSize = isHook || isEmphasis ? 56 : (isChapterTitle ? 48 : 40);
   const fontWeight = isHook || isEmphasis || isChapterTitle ? 800 : 600;
+
+  const hasEmphasis = slide.captionEmphasisWords && slide.captionEmphasisWords.length > 0;
 
   return (
     <AbsoluteFill
@@ -60,7 +126,7 @@ export const SlideView: React.FC<SlideViewProps> = ({
     >
       <div
         style={{
-          transform: `translateY(${translateY}px)`,
+          transform,
           textAlign: 'center',
           maxWidth: '90%',
         }}
@@ -75,7 +141,15 @@ export const SlideView: React.FC<SlideViewProps> = ({
             textShadow: '0 2px 12px rgba(0,0,0,0.3)',
           }}
         >
-          {slide.text}
+          {hasEmphasis ? (
+            <EmphasisText
+              text={slide.text}
+              emphasisWords={slide.captionEmphasisWords}
+              accentColor="#FF6B35"
+            />
+          ) : (
+            slide.text
+          )}
         </div>
         {slide.subtext && (
           <div

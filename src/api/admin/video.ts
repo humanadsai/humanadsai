@@ -35,6 +35,11 @@ interface Slide {
   subtext?: string;
   durationSec: number;
   bgPreset?: string;
+  sceneType?: 'standard' | 'hook_punch' | 'reveal_list' | 'concept_explain' | 'danger_shift' | 'cta_tease';
+  listItems?: string[];
+  captionEmphasisWords?: string[];
+  motionPreset?: 'none' | 'zoom_in' | 'pulse' | 'slide_left';
+  visualNotes?: string;
 }
 
 interface SlidesPayload {
@@ -209,6 +214,264 @@ function buildSlidesPayload(
 }
 
 // ============================================
+// Enhanced Slides Builder (Scene-type aware)
+// ============================================
+
+const ENHANCED_BG_PRESETS = [
+  'gradient_blue', 'gradient_purple', 'solid_dark', 'solid_white', 'brand',
+  'danger_red', 'warm_amber', 'clean_minimal',
+];
+
+// Danger-related keywords for auto-detection
+const DANGER_KEYWORDS = ['危険', '注意', '警告', 'リスク', '問題', '失敗', 'NG', 'やばい', '絶対', 'まずい', '損', '詐欺'];
+
+/**
+ * Extract emphasis words from text.
+ * Matches 「」, **word**, *word* patterns.
+ */
+function extractEmphasisWords(text: string): string[] {
+  const words: string[] = [];
+  // Match 「...」
+  const kakko = text.match(/「([^」]+)」/g);
+  if (kakko) {
+    for (const m of kakko) {
+      words.push(m.slice(1, -1));
+    }
+  }
+  // Match **word** or *word*
+  const bold = text.match(/\*\*([^*]+)\*\*/g);
+  if (bold) {
+    for (const m of bold) {
+      words.push(m.slice(2, -2));
+    }
+  }
+  const italic = text.match(/(?<!\*)\*([^*]+)\*(?!\*)/g);
+  if (italic) {
+    for (const m of italic) {
+      words.push(m.slice(1, -1));
+    }
+  }
+  return [...new Set(words)];
+}
+
+/**
+ * Detect if text contains list-like content (numbered items, bullet points).
+ */
+function isListContent(text: string): boolean {
+  const lines = text.split('\n').filter(Boolean);
+  if (lines.length < 2) return false;
+  const listPatterns = /^[\s]*[•・\-\d①②③④⑤⑥⑦⑧⑨⑩]/;
+  const matchCount = lines.filter(l => listPatterns.test(l)).length;
+  return matchCount >= 2;
+}
+
+/**
+ * Detect if text contains alarming/danger content.
+ */
+function isDangerContent(text: string): boolean {
+  return DANGER_KEYWORDS.some(kw => text.includes(kw));
+}
+
+/**
+ * Build enhanced slides payload with scene types, emphasis, and motion presets.
+ * Original buildSlidesPayload() is unchanged for backward compat.
+ */
+function buildEnhancedSlidesPayload(
+  scriptText: string,
+  templateType: string,
+  internalTitle: string,
+  captionText: string,
+  hashtagsText: string,
+  bgmPreset: string,
+): SlidesPayload {
+  const isExplainer = templateType === 'explainer';
+
+  // Split by chapter separators
+  const chapters = scriptText.split(/\n-{3,}\n/).map(c => c.trim()).filter(Boolean);
+
+  const slides: Slide[] = [];
+  let bgIdx = 0;
+
+  for (let ci = 0; ci < chapters.length; ci++) {
+    const chapter = chapters[ci];
+    const paragraphs = chapter.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+
+    if (isExplainer && chapters.length > 1 && ci > 0) {
+      const firstLine = paragraphs[0] || '';
+      if (firstLine.length <= 20) {
+        slides.push({
+          type: 'chapter_title',
+          text: firstLine,
+          durationSec: 2,
+          bgPreset: ENHANCED_BG_PRESETS[bgIdx % ENHANCED_BG_PRESETS.length],
+          sceneType: 'standard',
+          motionPreset: 'none',
+        });
+        bgIdx++;
+        paragraphs.shift();
+      } else {
+        slides.push({
+          type: 'chapter_title',
+          text: `Part ${ci + 1}`,
+          durationSec: 2,
+          bgPreset: ENHANCED_BG_PRESETS[bgIdx % ENHANCED_BG_PRESETS.length],
+          sceneType: 'standard',
+          motionPreset: 'none',
+        });
+        bgIdx++;
+      }
+    }
+
+    for (let pi = 0; pi < paragraphs.length; pi++) {
+      const para = paragraphs[pi].trim();
+      if (!para) continue;
+
+      const isFirst = slides.length === 0;
+
+      // Check for list content
+      if (isListContent(para)) {
+        const items = para.split('\n')
+          .map(l => l.replace(/^[\s]*[•・\-\d①②③④⑤⑥⑦⑧⑨⑩]+[\.\)、\s]*/, '').trim())
+          .filter(Boolean);
+        slides.push({
+          type: 'body',
+          text: items.join('\n'),
+          durationSec: Math.min(6, Math.max(3, items.length * 1.5)),
+          bgPreset: ENHANCED_BG_PRESETS[bgIdx % ENHANCED_BG_PRESETS.length],
+          sceneType: 'reveal_list',
+          listItems: items.slice(0, 5),
+          motionPreset: 'none',
+        });
+        bgIdx++;
+        continue;
+      }
+
+      // Single-line processing
+      const cleanPara = para.replace(/\n/g, ' ').trim();
+      const subSlides = splitTextToSlides(cleanPara, MAX_SLIDE_CHARS);
+
+      for (const text of subSlides) {
+        const emphasisWords = extractEmphasisWords(text);
+        const cleanText = text.replace(/[「」\*]/g, '');
+
+        // Detect emphasis: numbers, short impactful
+        const isEmphasis = !isFirst && (
+          /\d+[%％万億件]/.test(text) ||
+          (text.length <= 30 && (text.endsWith('！') || text.endsWith('!') || text.endsWith('。')))
+        );
+        const hasDanger = isDangerContent(text);
+
+        // Scene type assignment
+        let sceneType: Slide['sceneType'] = 'standard';
+        let motionPreset: Slide['motionPreset'] = 'none';
+        let bgPreset = ENHANCED_BG_PRESETS[bgIdx % ENHANCED_BG_PRESETS.length];
+
+        if (isFirst) {
+          sceneType = 'hook_punch';
+          motionPreset = 'zoom_in';
+        } else if (hasDanger) {
+          sceneType = 'danger_shift';
+          bgPreset = 'danger_red';
+        } else if (isEmphasis) {
+          sceneType = 'standard';
+          motionPreset = 'pulse';
+        } else {
+          sceneType = 'concept_explain';
+        }
+
+        slides.push({
+          type: isFirst ? 'hook' : (isEmphasis ? 'emphasis' : 'body'),
+          text: cleanText,
+          durationSec: isFirst ? 3 : (isEmphasis ? 3 : Math.min(5, Math.max(3, Math.ceil(cleanText.length / 20)))),
+          bgPreset,
+          sceneType,
+          captionEmphasisWords: emphasisWords.length > 0 ? emphasisWords : undefined,
+          motionPreset,
+        });
+        bgIdx++;
+      }
+    }
+  }
+
+  // CTA slide with cta_tease scene
+  slides.push({
+    type: 'cta',
+    text: 'Follow us',
+    subtext: 'humanadsai.com\n@HumanAdsAI',
+    durationSec: 4,
+    bgPreset: 'brand',
+    sceneType: 'cta_tease',
+    motionPreset: 'none',
+  });
+
+  const caption = captionText || scriptText.substring(0, 200).replace(/\n/g, ' ').trim();
+  const defaultHashtags = ['#HumanAds', '#HumanAdsAI'];
+  const userHashtags = hashtagsText
+    ? hashtagsText.split(/[\s,]+/).filter(h => h.startsWith('#'))
+    : [];
+  const hashtags = [...new Set([...userHashtags, ...defaultHashtags])];
+  const totalDurationSec = slides.reduce((sum, s) => sum + s.durationSec, 0);
+
+  return {
+    templateType,
+    title: internalTitle,
+    slides,
+    caption,
+    hashtags,
+    bgmPreset: bgmPreset || 'none',
+    stylePreset: 'dark',
+    outroCta: { text: 'Follow @HumanAdsAI', url: 'https://humanadsai.com' },
+    metadata: {
+      totalDurationSec,
+      totalSlides: slides.length,
+      fps: 30,
+      width: 1080,
+      height: 1920,
+      codec: 'h264',
+    },
+  };
+}
+
+/**
+ * Scale slide durations to hit a target total duration.
+ * Hook (first) stays 2-3s, CTA (last) stays 3-4s. Body slides scale proportionally.
+ */
+function scaleSlidesToDuration(slides: Slide[], targetSec: number): Slide[] {
+  if (slides.length < 2) return slides;
+
+  const result = slides.map(s => ({ ...s }));
+  const hookIdx = 0;
+  const ctaIdx = result.length - 1;
+
+  // Fixed durations for hook and CTA
+  const hookDuration = Math.min(3, Math.max(2, result[hookIdx].durationSec));
+  const ctaDuration = Math.min(4, Math.max(3, result[ctaIdx].durationSec));
+  result[hookIdx].durationSec = hookDuration;
+  result[ctaIdx].durationSec = ctaDuration;
+
+  const fixedDuration = hookDuration + ctaDuration;
+  const remainingTarget = targetSec - fixedDuration;
+
+  if (remainingTarget <= 0 || result.length <= 2) return result;
+
+  // Body slides (everything between hook and CTA)
+  const bodySlides = result.slice(1, ctaIdx);
+  const currentBodyTotal = bodySlides.reduce((sum, s) => sum + s.durationSec, 0);
+
+  if (currentBodyTotal <= 0) return result;
+
+  const scaleFactor = remainingTarget / currentBodyTotal;
+
+  for (let i = 1; i < ctaIdx; i++) {
+    let scaled = Math.round(result[i].durationSec * scaleFactor * 10) / 10;
+    scaled = Math.max(2, Math.min(6, scaled)); // enforce min 2s / max 6s
+    result[i].durationSec = scaled;
+  }
+
+  return result;
+}
+
+// ============================================
 // Job Event Logging
 // ============================================
 
@@ -328,6 +591,11 @@ async function createPostizPost(
         ? videoPost.hashtags_text.split(/[\s,]+/).filter((h: string) => h.startsWith('#')).map((h: string) => ({ value: h.replace('#', ''), label: h.replace('#', '') }))
         : [];
 
+      // Prefix YouTube title with variant_id when present
+      const ytTitle = videoPost.variant_id
+        ? `[${videoPost.variant_id}] ${videoPost.yt_title || videoPost.internal_title}`
+        : (videoPost.yt_title || videoPost.internal_title);
+
       posts.push({
         integration: { id: ytIntegrationId },
         value: [{
@@ -336,7 +604,7 @@ async function createPostizPost(
         }],
         settings: {
           __type: 'youtube',
-          title: videoPost.yt_title || videoPost.internal_title,
+          title: ytTitle,
           type: videoPost.yt_visibility || 'unlisted',
           selfDeclaredMadeForKids: 'no',
           tags: hashtags,
@@ -850,6 +1118,483 @@ export async function handleRemotionWebhook(request: Request, env: Env): Promise
   }
 
   return success({ received: true }, requestId);
+}
+
+// ============================================
+// Variant Generation
+// ============================================
+
+/**
+ * POST /api/admin/video-posts/generate-variants
+ * Generate A/B test variants from a base script with hook/CTA/duration combinations.
+ */
+export async function generateVariants(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const requestId = generateRequestId();
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return errors.badRequest(requestId, 'Invalid JSON body');
+  }
+
+  const {
+    topic_id,
+    episode_number,
+    script_text,
+    hook_variants,
+    cta_variants,
+    durations,
+    self_score,
+    platforms,
+    publish_mode,
+    template_type,
+    internal_title,
+    caption_text,
+    hashtags_text,
+    bgm_preset,
+  } = body;
+
+  if (!topic_id || typeof topic_id !== 'string') {
+    return errors.badRequest(requestId, 'topic_id is required');
+  }
+  if (!episode_number || typeof episode_number !== 'number') {
+    return errors.badRequest(requestId, 'episode_number must be a number');
+  }
+  if (!script_text || typeof script_text !== 'string') {
+    return errors.badRequest(requestId, 'script_text is required');
+  }
+  if (!hook_variants || !Array.isArray(hook_variants) || hook_variants.length === 0) {
+    return errors.badRequest(requestId, 'hook_variants[] is required (at least 1)');
+  }
+  if (!cta_variants || !Array.isArray(cta_variants) || cta_variants.length === 0) {
+    return errors.badRequest(requestId, 'cta_variants[] is required (at least 1)');
+  }
+  if (!durations || !Array.isArray(durations) || durations.length === 0) {
+    return errors.badRequest(requestId, 'durations[] is required (e.g. [33, 39, 45])');
+  }
+  if (!platforms || !Array.isArray(platforms) || platforms.length === 0) {
+    return errors.badRequest(requestId, 'platforms[] is required');
+  }
+
+  const hookLabels = 'ABCDEFGHIJ';
+  const variants: any[] = [];
+  let variantCounter = 1;
+
+  // Build base enhanced payload from script
+  const basePayload = buildEnhancedSlidesPayload(
+    script_text,
+    template_type || 'slideshow',
+    internal_title || `${topic_id}_EP${String(episode_number).padStart(2, '0')}`,
+    caption_text || '',
+    hashtags_text || '',
+    bgm_preset || 'none',
+  );
+
+  // Cartesian product: hooks × CTAs × durations
+  for (let hi = 0; hi < hook_variants.length; hi++) {
+    for (let ci = 0; ci < cta_variants.length; ci++) {
+      for (const dur of durations) {
+        const hookLabel = hookLabels[hi] || `H${hi}`;
+        const ctaLabel = String(ci + 1);
+        const variantId = `YTShorts_${topic_id}_EP${String(episode_number).padStart(2, '0')}_HOOK${hookLabel}_CTA${ctaLabel}_LEN${dur}_V${String(variantCounter).padStart(2, '0')}`;
+
+        // Clone base slides and replace hook + CTA text
+        let variantSlides = basePayload.slides.map(s => ({ ...s }));
+
+        // Replace first slide (hook) text
+        if (variantSlides.length > 0) {
+          variantSlides[0].text = hook_variants[hi];
+        }
+
+        // Replace last slide (CTA) text
+        if (variantSlides.length > 1) {
+          variantSlides[variantSlides.length - 1].text = cta_variants[ci];
+        }
+
+        // Scale to target duration
+        variantSlides = scaleSlidesToDuration(variantSlides, dur);
+
+        const totalDurationSec = variantSlides.reduce((sum: number, s: Slide) => sum + s.durationSec, 0);
+
+        const variantPayload: SlidesPayload = {
+          ...basePayload,
+          title: variantId,
+          slides: variantSlides,
+          metadata: {
+            ...basePayload.metadata,
+            totalDurationSec,
+            totalSlides: variantSlides.length,
+          },
+        };
+
+        const videoPostId = generateId('vp_');
+        const renderJobId = generateId('vr_');
+
+        // Insert video_post
+        await env.DB.prepare(
+          `INSERT INTO video_posts (
+            id, internal_title, template_type, script_text, slides_json, slides_count,
+            caption_text, hashtags_text, yt_title, yt_visibility, bgm_preset,
+            status, publish_mode, variant_id, topic_id, episode_number,
+            hook_type, cta_type, duration_target_sec, self_score_json, parent_post_id,
+            created_by, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'unlisted', ?, 'queued_render', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+        ).bind(
+          videoPostId,
+          variantId,
+          template_type || 'slideshow',
+          script_text,
+          JSON.stringify(variantPayload),
+          variantSlides.length,
+          caption_text || variantPayload.caption,
+          hashtags_text || variantPayload.hashtags.join(' '),
+          variantId, // yt_title = variant_id for tracking
+          bgm_preset || 'none',
+          publish_mode || 'draft',
+          variantId,
+          topic_id,
+          episode_number,
+          hookLabel,
+          ctaLabel,
+          dur,
+          self_score ? JSON.stringify(self_score) : null,
+          null, // parent_post_id
+          authResult.context!.operator.id,
+        ).run();
+
+        // Insert targets
+        for (const platform of platforms) {
+          await env.DB.prepare(
+            `INSERT INTO video_post_targets (id, video_post_id, platform, target_status, created_at, updated_at)
+             VALUES (?, ?, ?, 'pending', datetime('now'), datetime('now'))`
+          ).bind(generateId('vt_'), videoPostId, platform).run();
+        }
+
+        // Insert render job
+        await env.DB.prepare(
+          `INSERT INTO video_render_jobs (
+            id, video_post_id, remotion_composition, input_payload_json,
+            render_status, created_at, updated_at
+          ) VALUES (?, ?, 'Slideshow', ?, 'queued', datetime('now'), datetime('now'))`
+        ).bind(renderJobId, videoPostId, JSON.stringify(variantPayload)).run();
+
+        await logEvent(env.DB, videoPostId, 'variant', 'created',
+          `Variant ${variantId}: hook=${hookLabel}, cta=${ctaLabel}, dur=${dur}s`,
+          { variantId, hookType: hookLabel, ctaType: ctaLabel, duration: dur }
+        );
+
+        variants.push({
+          video_post_id: videoPostId,
+          variant_id: variantId,
+          hook_type: hookLabel,
+          cta_type: ctaLabel,
+          duration_target: dur,
+          slides_count: variantSlides.length,
+          actual_duration: totalDurationSec,
+        });
+
+        variantCounter++;
+      }
+    }
+  }
+
+  return success({
+    variants_created: variants.length,
+    topic_id,
+    episode_number,
+    variants,
+  }, requestId, 201);
+}
+
+// ============================================
+// Metrics API
+// ============================================
+
+/**
+ * POST /api/admin/video-posts/:id/metrics
+ * Add PDCA metrics at a checkpoint (1h, 6h, 24h, 72h).
+ */
+export async function addVideoMetrics(request: Request, env: Env, videoPostId: string): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const requestId = generateRequestId();
+
+  const post = await env.DB.prepare('SELECT id FROM video_posts WHERE id = ? AND visibility = ?')
+    .bind(videoPostId, 'visible').first();
+  if (!post) return errors.notFound(requestId, 'Video post');
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return errors.badRequest(requestId, 'Invalid JSON body');
+  }
+
+  const { checkpoint, views, likes, comments, shares, retention_3s, retention_5s, completion_rate, ctr, avg_view_duration_sec } = body;
+
+  if (!checkpoint || !['1h', '6h', '24h', '72h'].includes(checkpoint)) {
+    return errors.badRequest(requestId, 'checkpoint must be one of: 1h, 6h, 24h, 72h');
+  }
+
+  const metricsId = generateId('vm_');
+  await env.DB.prepare(
+    `INSERT INTO video_pdca_metrics (
+      id, video_post_id, checkpoint, views, likes, comments, shares,
+      retention_3s, retention_5s, completion_rate, ctr, avg_view_duration_sec,
+      measured_at, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+  ).bind(
+    metricsId, videoPostId, checkpoint,
+    views || 0, likes || 0, comments || 0, shares || 0,
+    retention_3s ?? null, retention_5s ?? null, completion_rate ?? null,
+    ctr ?? null, avg_view_duration_sec ?? null,
+  ).run();
+
+  return success({ metrics_id: metricsId, checkpoint }, requestId, 201);
+}
+
+/**
+ * GET /api/admin/video-posts/:id/metrics
+ * List all PDCA metrics for a video post.
+ */
+export async function getVideoMetrics(request: Request, env: Env, videoPostId: string): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const requestId = generateRequestId();
+
+  const metrics = await env.DB.prepare(
+    `SELECT * FROM video_pdca_metrics WHERE video_post_id = ? ORDER BY created_at ASC`
+  ).bind(videoPostId).all();
+
+  // Determine next suggested checkpoint
+  const existingCheckpoints = (metrics.results || []).map((m: any) => m.checkpoint);
+  const allCheckpoints = ['1h', '6h', '24h', '72h'];
+  const nextCheckpoint = allCheckpoints.find(cp => !existingCheckpoints.includes(cp)) || null;
+
+  return success({
+    metrics: metrics.results || [],
+    next_suggested_checkpoint: nextCheckpoint,
+  }, requestId);
+}
+
+// ============================================
+// PDCA Analysis Engine
+// ============================================
+
+interface AnalysisThresholds {
+  retention_3s_min: number;
+  completion_rate_min: number;
+  comment_rate_min: number;
+  share_rate_min: number;
+}
+
+const DEFAULT_THRESHOLDS: AnalysisThresholds = {
+  retention_3s_min: 70, // %
+  completion_rate_min: 30, // %
+  comment_rate_min: 2, // % (comments / views * 100)
+  share_rate_min: 1, // % (shares / views * 100)
+};
+
+/**
+ * POST /api/admin/video-posts/analyze
+ * Rule-based PDCA analysis for variants of a topic/episode.
+ */
+export async function analyzeVariants(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+
+  const requestId = generateRequestId();
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return errors.badRequest(requestId, 'Invalid JSON body');
+  }
+
+  const { topic_id, episode_number, thresholds } = body;
+
+  if (!topic_id) return errors.badRequest(requestId, 'topic_id is required');
+
+  const th: AnalysisThresholds = { ...DEFAULT_THRESHOLDS, ...(thresholds || {}) };
+
+  // Fetch all variants for this topic/episode
+  let query = `SELECT vp.*,
+    (SELECT json_group_array(json_object(
+      'checkpoint', m.checkpoint, 'views', m.views, 'likes', m.likes,
+      'comments', m.comments, 'shares', m.shares,
+      'retention_3s', m.retention_3s, 'retention_5s', m.retention_5s,
+      'completion_rate', m.completion_rate, 'ctr', m.ctr,
+      'avg_view_duration_sec', m.avg_view_duration_sec
+    )) FROM video_pdca_metrics m WHERE m.video_post_id = vp.id) as metrics_json
+    FROM video_posts vp WHERE vp.topic_id = ? AND vp.visibility = 'visible'`;
+
+  const binds: any[] = [topic_id];
+  if (episode_number) {
+    query += ' AND vp.episode_number = ?';
+    binds.push(episode_number);
+  }
+  query += ' ORDER BY vp.created_at ASC';
+
+  const stmt = env.DB.prepare(query);
+  const result = binds.length > 1 ? await stmt.bind(...binds).all() : await stmt.bind(binds[0]).all();
+  const posts = result.results || [];
+
+  if (posts.length === 0) {
+    return errors.notFound(requestId, 'No variants found for this topic');
+  }
+
+  // Analyze each variant
+  const variantAnalysis: any[] = [];
+  const weaknesses: any[] = [];
+  const keepPoints: string[] = [];
+  let bestVariant: any = null;
+  let bestViews = -1;
+
+  for (const post of posts as any[]) {
+    let metrics: any[] = [];
+    try {
+      metrics = JSON.parse(post.metrics_json || '[]');
+    } catch { metrics = []; }
+
+    // Use the latest checkpoint metrics
+    const latestMetrics = metrics.length > 0 ? metrics[metrics.length - 1] : null;
+
+    const analysis: any = {
+      variant_id: post.variant_id,
+      video_post_id: post.id,
+      hook_type: post.hook_type,
+      cta_type: post.cta_type,
+      duration_target: post.duration_target_sec,
+      checkpoints_recorded: metrics.length,
+      latest_metrics: latestMetrics,
+      weaknesses: [] as string[],
+      strengths: [] as string[],
+    };
+
+    if (latestMetrics) {
+      const views = latestMetrics.views || 0;
+
+      // Track best variant by views
+      if (views > bestViews) {
+        bestViews = views;
+        bestVariant = post.variant_id;
+      }
+
+      // Hook weakness: retention_3s < threshold
+      if (latestMetrics.retention_3s !== null && latestMetrics.retention_3s < th.retention_3s_min) {
+        analysis.weaknesses.push('hook_weak');
+        weaknesses.push({
+          variant_id: post.variant_id,
+          weakness: 'hook_weak',
+          cause: `3s retention ${latestMetrics.retention_3s}% < ${th.retention_3s_min}%`,
+          suggestion: 'Try more provocative hook, larger font, faster reveal',
+        });
+      } else if (latestMetrics.retention_3s !== null) {
+        analysis.strengths.push(`Strong hook (${latestMetrics.retention_3s}% retention at 3s)`);
+      }
+
+      // Duration weakness: completion_rate < threshold
+      if (latestMetrics.completion_rate !== null && latestMetrics.completion_rate < th.completion_rate_min) {
+        analysis.weaknesses.push('too_long_or_boring');
+        weaknesses.push({
+          variant_id: post.variant_id,
+          weakness: 'too_long_or_boring',
+          cause: `Completion rate ${latestMetrics.completion_rate}% < ${th.completion_rate_min}%`,
+          suggestion: 'Shorten duration, add more visual transitions, cut filler',
+        });
+      } else if (latestMetrics.completion_rate !== null) {
+        analysis.strengths.push(`Good completion rate (${latestMetrics.completion_rate}%)`);
+        keepPoints.push(`${post.variant_id}: completion rate ${latestMetrics.completion_rate}%`);
+      }
+
+      // CTA weakness: comment_rate < threshold
+      if (views > 0) {
+        const commentRate = (latestMetrics.comments / views) * 100;
+        if (commentRate < th.comment_rate_min) {
+          analysis.weaknesses.push('cta_weak');
+          weaknesses.push({
+            variant_id: post.variant_id,
+            weakness: 'cta_weak',
+            cause: `Comment rate ${commentRate.toFixed(1)}% < ${th.comment_rate_min}%`,
+            suggestion: 'Add question in CTA, use controversy, ask for opinion',
+          });
+        }
+
+        const shareRate = (latestMetrics.shares / views) * 100;
+        if (shareRate < th.share_rate_min) {
+          analysis.weaknesses.push('not_shareable');
+          weaknesses.push({
+            variant_id: post.variant_id,
+            weakness: 'not_shareable',
+            cause: `Share rate ${shareRate.toFixed(1)}% < ${th.share_rate_min}%`,
+            suggestion: 'Add surprising fact, controversial take, or emotional peak',
+          });
+        } else {
+          analysis.strengths.push(`Shareable content (${shareRate.toFixed(1)}% share rate)`);
+          keepPoints.push(`${post.variant_id}: share rate ${shareRate.toFixed(1)}%`);
+        }
+      }
+    }
+
+    variantAnalysis.push(analysis);
+  }
+
+  // Aggregate unique weaknesses
+  const uniqueWeaknesses = [...new Set(weaknesses.map(w => w.weakness))];
+
+  // Generate next variant suggestions
+  const nextVariantSpecs: string[] = [];
+  if (uniqueWeaknesses.includes('hook_weak')) {
+    nextVariantSpecs.push('Create HOOK_E/F variants with question-based or shock-value hooks');
+  }
+  if (uniqueWeaknesses.includes('too_long_or_boring')) {
+    nextVariantSpecs.push('Create LEN27/LEN30 shorter variants');
+  }
+  if (uniqueWeaknesses.includes('cta_weak')) {
+    nextVariantSpecs.push('Create CTA4/CTA5 variants with question-based CTAs');
+  }
+  if (bestVariant) {
+    nextVariantSpecs.push(`Use ${bestVariant} as base for iteration`);
+  }
+
+  // Save suggestion to DB
+  const suggestionId = generateId('vs_');
+  await env.DB.prepare(
+    `INSERT INTO video_improvement_suggestions (
+      id, topic_id, episode_number, weakness, cause, suggestions_json,
+      next_variants_json, keep_points_json, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+  ).bind(
+    suggestionId,
+    topic_id,
+    episode_number || null,
+    uniqueWeaknesses.join(', ') || 'none',
+    weaknesses.length > 0 ? weaknesses.map(w => w.cause).join('; ') : 'No weaknesses detected',
+    JSON.stringify(weaknesses.map(w => w.suggestion)),
+    JSON.stringify(nextVariantSpecs),
+    JSON.stringify(keepPoints),
+  ).run();
+
+  return success({
+    topic_id,
+    episode_number,
+    variants_analyzed: variantAnalysis.length,
+    best_variant: bestVariant,
+    best_views: bestViews,
+    weaknesses: uniqueWeaknesses,
+    weakness_details: weaknesses,
+    keep_points: keepPoints,
+    next_variant_suggestions: nextVariantSpecs,
+    variant_analysis: variantAnalysis,
+    suggestion_id: suggestionId,
+  }, requestId);
 }
 
 // ============================================
