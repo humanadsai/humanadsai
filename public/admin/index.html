@@ -1541,7 +1541,7 @@
         HumanAds.showAlert('Retry queued: ' + (res.data.status||''));
         showVideoDetail(id);
       } else {
-        HumanAds.showAlert(res.error?.message || 'Failed', 'error');
+        HumanAds.showAlert(res.error?.details || res.error?.message || 'Failed', 'error');
       }
     } catch (e) { HumanAds.showAlert(e.message, 'error'); }
   }

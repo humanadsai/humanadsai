@@ -963,19 +963,51 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
       finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
 
       await env.DB.prepare(
-        `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+        `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
       ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
 
-      // Step 4: Trigger render via waitUntil (async, avoids 30s timeout)
-      const renderJobId = generateId('vr_');
-      await env.DB.prepare(
-        `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-      ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
-
-      // Use waitUntil to trigger render without blocking the response
+      // Step 4: Image gen + render via waitUntil (async, avoids 30s timeout)
+      const openaiKey = (env as any).OPENAI_API_KEY;
       const renderPromise = (async () => {
         try {
+          // Step 4a: Generate images for slides (if OPENAI_API_KEY set)
+          if (openaiKey) {
+            await logEvent(env.DB, videoPostId, 'image_gen', 'started', `Generating images for ${finalPayload.slides.filter((s: any) => s.type !== 'cta').length} slides`);
+            const imageResult = await generateSlideImages(openaiKey, finalPayload.slides);
+
+            // Attach images to slides
+            for (const img of imageResult.images) {
+              if (finalPayload.slides[img.slideIndex]) {
+                (finalPayload.slides[img.slideIndex] as any).imageUrl = img.imageUrl;
+              }
+            }
+
+            // Record image costs
+            for (const cost of imageResult.costs) {
+              await recordCost(env.DB, videoPostId, 'image_gen', cost.amountUsd, undefined, undefined, cost.model, { slideIndex: cost.slideIndex });
+            }
+
+            await logEvent(env.DB, videoPostId, 'image_gen', 'success',
+              `Generated ${imageResult.images.length} images, $${imageResult.totalCostUsd.toFixed(4)}`
+            );
+
+            // Update slides_json with images
+            await env.DB.prepare(
+              `UPDATE video_posts SET slides_json = ?, status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+            ).bind(JSON.stringify(finalPayload), videoPostId).run();
+          } else {
+            await env.DB.prepare(
+              `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+            ).bind(videoPostId).run();
+          }
+
+          // Step 4b: Trigger Remotion render
+          const renderJobId = generateId('vr_');
+          await env.DB.prepare(
+            `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
+             VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
+          ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
+
           const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
           if (renderResult.success && renderResult.renderId) {
             await env.DB.prepare(
@@ -988,9 +1020,9 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
           } else {
             await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued, will retry');
           }
-        } catch (renderErr: any) {
-          console.error(`[VideoPost] Async render trigger error: ${renderErr.message}`);
-          await logEvent(env.DB, videoPostId, 'render', 'failed', `Render trigger error: ${renderErr.message}. Use Retry button.`);
+        } catch (err: any) {
+          console.error(`[VideoPost] Async pipeline error: ${err.message}`);
+          await logEvent(env.DB, videoPostId, 'pipeline', 'failed', `Async error: ${err.message}. Use Retry button.`);
         }
       })();
 

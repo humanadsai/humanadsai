@@ -7,6 +7,7 @@ import {
 import type { Slide } from '../../schemas';
 import { getPreset } from '../../styles/presets';
 import { EmphasisText } from './EmphasisText';
+import { SlideBackground } from './SlideBackground';
 import { HookPunchScene } from '../scenes/HookPunchScene';
 import { RevealListScene } from '../scenes/RevealListScene';
 import { ConceptExplainScene } from '../scenes/ConceptExplainScene';
@@ -117,18 +118,27 @@ const StandardSlide: React.FC<SlideViewProps> = ({
   return (
     <AbsoluteFill
       style={{
-        background: preset.background,
+        background: slide.imageUrl ? '#0a0a0a' : preset.background,
         justifyContent: 'center',
         alignItems: 'center',
         opacity,
         padding: '60px 48px',
+        overflow: 'hidden',
       }}
     >
+      <SlideBackground
+        imageUrl={slide.imageUrl}
+        backgroundCss={preset.background}
+        startFrame={startFrame}
+        durationFrames={durationFrames}
+      />
       <div
         style={{
           transform,
           textAlign: 'center',
           maxWidth: '90%',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <div

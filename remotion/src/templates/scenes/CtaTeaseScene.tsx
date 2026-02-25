@@ -6,6 +6,7 @@ import {
 } from 'remotion';
 import type { Slide } from '../../schemas';
 import { getPreset } from '../../styles/presets';
+import { SlideBackground } from '../components/SlideBackground';
 
 interface Props {
   slide: Slide;
@@ -58,14 +59,16 @@ export const CtaTeaseScene: React.FC<Props> = ({
   return (
     <AbsoluteFill
       style={{
-        background: preset.background,
+        background: slide.imageUrl ? '#0a0a0a' : preset.background,
         justifyContent: 'center',
         alignItems: 'center',
         opacity,
         padding: '60px 48px',
+        overflow: 'hidden',
       }}
     >
-      <div style={{ textAlign: 'center', maxWidth: '90%' }}>
+      <SlideBackground imageUrl={slide.imageUrl} backgroundCss={preset.background} startFrame={startFrame} durationFrames={durationFrames} />
+      <div style={{ textAlign: 'center', maxWidth: '90%', position: 'relative', zIndex: 1 }}>
         <div
           style={{
             color: '#FF6B35',

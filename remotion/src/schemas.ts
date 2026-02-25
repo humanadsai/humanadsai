@@ -22,6 +22,8 @@ export const slideSchema = z.object({
   subtext: z.string().optional(),
   durationSec: z.number().default(3),
   bgPreset: z.string().optional(),
+  // AI-generated background image URL
+  imageUrl: z.string().optional(),
   // Enhanced fields for variant system
   sceneType: sceneTypeEnum.default('standard'),
   listItems: z.array(z.string()).optional(),

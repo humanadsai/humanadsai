@@ -161,7 +161,12 @@ import {
 /**
  * メインルーター
  */
-export async function handleRequest(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
+// Module-level holder for ExecutionContext, set per request
+let _execCtx: ExecutionContext | undefined;
+export function getExecCtx(): ExecutionContext | undefined { return _execCtx; }
+
+export async function handleRequest(request: Request, env: Env, execCtx?: ExecutionContext): Promise<Response> {
+  _execCtx = execCtx;
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
@@ -1493,7 +1498,7 @@ async function handleAdminApi(
   // ============================================
 
   if (path === '/api/admin/video-posts' && method === 'POST') {
-    return createVideoPost(request, env, ctx);
+    return createVideoPost(request, env, _execCtx);
   }
 
   if (path === '/api/admin/video-posts' && method === 'GET') {
@@ -1534,7 +1539,7 @@ async function handleAdminApi(
 
   const videoPostRetryMatch = path.match(/^\/api\/admin\/video-posts\/([a-zA-Z0-9_]+)\/retry$/);
   if (videoPostRetryMatch && method === 'POST') {
-    return retryVideoPost(request, env, videoPostRetryMatch[1], ctx);
+    return retryVideoPost(request, env, videoPostRetryMatch[1], _execCtx);
   }
 
   // Fallback: serve static assets from /public via env.ASSETS
