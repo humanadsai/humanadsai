@@ -15,7 +15,7 @@ import { success, error, errors, generateRequestId } from '../../utils/response'
 import { requireAdmin } from '../../middleware/admin';
 import { arrayBufferToHex } from '../../utils/crypto';
 import { invokeLambda } from '../../lib/aws-sigv4';
-import { rewriteScript, evaluateScript } from '../../services/llm';
+import { rewriteScript, evaluateScript, updateKnowhow } from '../../services/llm';
 import { generateSlideImages } from '../../services/image-generator';
 
 // ============================================
@@ -909,10 +909,11 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
 
     const pipelinePromise = (async () => {
       try {
-        // Step 0: Fetch past eval knowhow (PDCA feedback loop)
-        const pastLearnings = await buildEvalKnowhow(env.DB);
+        // Step 0: Fetch persistent knowhow rules (PDCA)
+        const knowhowRow = await env.DB.prepare('SELECT rules_text, version FROM video_knowhow WHERE id = ?').bind('global').first<any>();
+        const pastLearnings = knowhowRow?.rules_text || await buildEvalKnowhow(env.DB);
         if (pastLearnings) {
-          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'info', `PDCA knowhow injected: ${pastLearnings.length} chars from past evaluations`);
+          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'info', `PDCA knowhow v${knowhowRow?.version || 0} injected: ${pastLearnings.length} chars`);
         }
 
         // Step 1: Rewrite (with past learnings from PDCA)
@@ -949,6 +950,27 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
           `Script approved with score ${evalResult.score}/100. Proceeding to render.`
         );
 
+        // Step 2.5: Auto-update PDCA knowhow from eval feedback
+        try {
+          const currentRules = knowhowRow?.rules_text || '';
+          const currentVersion = knowhowRow?.version || 0;
+          const knowhowResult = await updateKnowhow(
+            openrouterKey, currentRules, evalResult.feedback, evalResult.breakdown, evalResult.score
+          );
+          await env.DB.prepare(
+            `INSERT INTO video_knowhow (id, rules_text, version, eval_count, updated_at)
+             VALUES ('global', ?, ?, 1, datetime('now'))
+             ON CONFLICT(id) DO UPDATE SET rules_text = ?, version = ?, eval_count = eval_count + 1, updated_at = datetime('now')`
+          ).bind(knowhowResult.updatedRules, currentVersion + 1, knowhowResult.updatedRules, currentVersion + 1).run();
+          await recordCost(env.DB, videoPostId, 'llm_knowhow', knowhowResult.costUsd, knowhowResult.inputTokens, knowhowResult.outputTokens, 'claude-sonnet-4');
+          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'success',
+            `Knowhow updated to v${currentVersion + 1}: ${knowhowResult.updatedRules.split('\n').length} rules, $${knowhowResult.costUsd.toFixed(4)}`
+          );
+        } catch (knowhowErr: any) {
+          console.error('[Pipeline] Knowhow update failed:', knowhowErr.message);
+          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'failed', knowhowErr.message);
+        }
+
         // Step 3: Rebuild slides from rewritten script
         const finalPayload = buildEnhancedSlidesPayload(
           bestScript, template_type, internal_title,
@@ -964,7 +986,8 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
             `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
           ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
 
-          await logEvent(env.DB, videoPostId, 'image_gen', 'started', `Generating images for ${finalPayload.slides.filter((s: any) => s.type !== 'cta').length} slides`);
+          const keySlideCount = finalPayload.slides.filter((s: any) => ['hook', 'chapter_title', 'emphasis'].includes(s.type)).length;
+          await logEvent(env.DB, videoPostId, 'image_gen', 'started', `Generating images for ${keySlideCount} key slides (hook/chapter/emphasis)`);
           const imageResult = await generateSlideImages(openaiKey, finalPayload.slides);
 
           for (const img of imageResult.images) {
@@ -2076,6 +2099,9 @@ export async function getEvalKnowhow(request: Request, env: Env): Promise<Respon
     }
   }
 
+  // Fetch persistent knowhow rules
+  const knowhowRow = await env.DB.prepare('SELECT rules_text, version, eval_count, updated_at FROM video_knowhow WHERE id = ?').bind('global').first<any>();
+
   return success({
     knowhow: {
       total_evaluations: count,
@@ -2085,6 +2111,12 @@ export async function getEvalKnowhow(request: Request, env: Env): Promise<Respon
       strong_areas: strongAreas,
       dimension_max: dimensionMax,
     },
+    persistent_rules: knowhowRow ? {
+      rules_text: knowhowRow.rules_text,
+      version: knowhowRow.version,
+      eval_count: knowhowRow.eval_count,
+      updated_at: knowhowRow.updated_at,
+    } : null,
     history,
   }, requestId);
 }
