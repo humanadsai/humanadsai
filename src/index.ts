@@ -133,13 +133,16 @@ export default {
         headers: newHeaders,
       });
     } catch (error) {
-      console.error('Unhandled error:', error);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      const errStack = error instanceof Error ? error.stack : '';
+      console.error('Unhandled error:', errMsg, errStack);
       return Response.json(
         {
           success: false,
           error: {
             code: 'INTERNAL_ERROR',
             message: 'An unexpected error occurred',
+            details: errMsg,
           },
         },
         { status: 500 }

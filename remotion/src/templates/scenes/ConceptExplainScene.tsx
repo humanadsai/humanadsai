@@ -7,6 +7,7 @@ import {
 import type { Slide } from '../../schemas';
 import { getPreset } from '../../styles/presets';
 import { EmphasisText } from '../components/EmphasisText';
+import { SlideBackground } from '../components/SlideBackground';
 
 interface Props {
   slide: Slide;
@@ -50,18 +51,22 @@ export const ConceptExplainScene: React.FC<Props> = ({
   return (
     <AbsoluteFill
       style={{
-        background: preset.background,
+        background: slide.imageUrl ? '#0a0a0a' : preset.background,
         justifyContent: 'center',
         alignItems: 'center',
         opacity,
         padding: '60px 48px',
+        overflow: 'hidden',
       }}
     >
+      <SlideBackground imageUrl={slide.imageUrl} backgroundCss={preset.background} startFrame={startFrame} durationFrames={durationFrames} />
       <div
         style={{
           transform: `translateY(${translateY}px)`,
           textAlign: 'center',
           maxWidth: '90%',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <div

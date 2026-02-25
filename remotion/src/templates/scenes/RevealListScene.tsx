@@ -6,6 +6,7 @@ import {
 } from 'remotion';
 import type { Slide } from '../../schemas';
 import { getPreset } from '../../styles/presets';
+import { SlideBackground } from '../components/SlideBackground';
 
 interface Props {
   slide: Slide;
@@ -40,13 +41,15 @@ export const RevealListScene: React.FC<Props> = ({
   return (
     <AbsoluteFill
       style={{
-        background: preset.background,
+        background: slide.imageUrl ? '#0a0a0a' : preset.background,
         justifyContent: 'center',
         alignItems: 'center',
         opacity,
         padding: '80px 48px',
+        overflow: 'hidden',
       }}
     >
+      <SlideBackground imageUrl={slide.imageUrl} backgroundCss={preset.background} startFrame={startFrame} durationFrames={durationFrames} />
       {slide.subtext && (
         <div
           style={{
@@ -56,12 +59,14 @@ export const RevealListScene: React.FC<Props> = ({
             marginBottom: 40,
             textAlign: 'center',
             textShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            position: 'relative',
+            zIndex: 1,
           }}
         >
           {slide.subtext}
         </div>
       )}
-      <div style={{ width: '85%' }}>
+      <div style={{ width: '85%', position: 'relative', zIndex: 1 }}>
         {items.map((item, i) => {
           const itemStart = fadeInFrames + i * staggerDelay;
           const itemOpacity = interpolate(

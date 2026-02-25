@@ -7,6 +7,7 @@ import {
 import type { Slide } from '../../schemas';
 import { getPreset } from '../../styles/presets';
 import { EmphasisText } from '../components/EmphasisText';
+import { SlideBackground } from '../components/SlideBackground';
 
 interface Props {
   slide: Slide;
@@ -58,19 +59,23 @@ export const DangerShiftScene: React.FC<Props> = ({
   return (
     <AbsoluteFill
       style={{
-        background: dangerProgress > 0.5 ? dangerPreset.background : normalPreset.background,
+        background: slide.imageUrl ? '#0a0a0a' : (dangerProgress > 0.5 ? dangerPreset.background : normalPreset.background),
         justifyContent: 'center',
         alignItems: 'center',
         opacity,
         padding: '60px 48px',
         transition: 'background 0.3s ease',
+        overflow: 'hidden',
       }}
     >
+      <SlideBackground imageUrl={slide.imageUrl} backgroundCss={normalPreset.background} startFrame={startFrame} durationFrames={durationFrames} />
       <div
         style={{
           transform: `translateX(${shakeX}px)`,
           textAlign: 'center',
           maxWidth: '90%',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <div

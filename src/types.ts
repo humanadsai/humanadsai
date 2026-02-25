@@ -42,8 +42,8 @@ export interface Env {
   RESEND_API_KEY?: string;
   // OpenRouter API Key for LLM script rewriting/evaluation
   OPENROUTER_API_KEY?: string;
-  // Stability AI API Key for image generation
-  STABILITY_API_KEY?: string;
+  // OpenAI API Key for image generation (gpt-image)
+  OPENAI_API_KEY?: string;
 }
 
 // ============================================
