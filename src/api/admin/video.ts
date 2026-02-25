@@ -695,8 +695,13 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
   }
 
   // Validate
-  const { internal_title, template_type, script_text, platforms, publish_mode } = body;
+  let { internal_title, template_type, script_text, platforms, publish_mode } = body;
 
+  // Auto-generate title from script first line if not provided
+  if ((!internal_title || typeof internal_title !== 'string') && script_text && typeof script_text === 'string') {
+    const firstLine = script_text.split('\n')[0].trim();
+    internal_title = firstLine.length > 50 ? firstLine.slice(0, 50) + '...' : firstLine;
+  }
   if (!internal_title || typeof internal_title !== 'string' || internal_title.length > 100) {
     return errors.badRequest(requestId, 'internal_title is required (max 100 chars)');
   }
