@@ -909,7 +909,7 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     let bestScript = script_text;
     let bestScore = 0;
     let totalAttempts = 0;
-    const MAX_INLINE_ATTEMPTS = 10;
+    const MAX_INLINE_ATTEMPTS = 3;
 
     try {
       // Step 1: Rewrite
