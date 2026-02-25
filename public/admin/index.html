@@ -1133,7 +1133,10 @@
         '<div id="video-analysis-form" style="display:none;"></div>' +
         '<div id="video-filters" style="padding:0 16px 12px;">' +
           fc(true, 'loadVideoPosts()', 'All') +
-          fc(false, "loadVideoPosts('queued_render')", 'Queued') +
+          fc(false, "loadVideoPosts('queued')", 'Queued') +
+          fc(false, "loadVideoPosts('evaluating_script')", 'Evaluating') +
+          fc(false, "loadVideoPosts('generating_images')", 'ImageGen') +
+          fc(false, "loadVideoPosts('queued_render')", 'Render Q') +
           fc(false, "loadVideoPosts('rendering')", 'Rendering') +
           fc(false, "loadVideoPosts('render_succeeded')", 'Rendered') +
           fc(false, "loadVideoPosts('postiz_draft_created')", 'Draft') +
@@ -1162,10 +1165,10 @@
       }
       el.innerHTML =
         '<div class="table-container"><table class="data-table"><thead><tr>' +
-          '<th style="width:6%">ID</th><th style="width:14%">Variant ID</th><th style="width:14%">Title</th>' +
-          '<th style="width:8%">Template</th><th style="width:8%">Platforms</th><th style="width:8%">Mode</th>' +
-          '<th style="width:10%">Status</th><th style="width:6%">Dur</th><th style="width:10%">Scheduled</th>' +
-          '<th style="width:9%">Created</th><th style="width:7%">Actions</th>' +
+          '<th style="width:6%">ID</th><th style="width:12%">Variant ID</th><th style="width:12%">Title</th>' +
+          '<th style="width:7%">Template</th><th style="width:6%">Plat</th><th style="width:6%">Mode</th>' +
+          '<th style="width:10%">Status</th><th style="width:5%">Score</th><th style="width:5%">Dur</th><th style="width:9%">Scheduled</th>' +
+          '<th style="width:8%">Created</th><th style="width:7%">Actions</th>' +
         '</tr></thead><tbody>' +
         videoState.posts.map(function(p) {
           var platforms = (p.platforms || '').split(',').filter(Boolean);
@@ -1175,6 +1178,10 @@
           var variantBadge = p.variant_id
             ? '<span title="' + esc(p.variant_id) + '" style="font-family:var(--font-mono);font-size:0.7rem;background:rgba(124,58,237,0.15);color:#a78bfa;padding:2px 6px;border-radius:4px;display:inline-block;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(p.variant_id.replace('YTShorts_','')) + '</span>'
             : '<span style="color:var(--color-text-muted);font-size:0.75rem;">-</span>';
+          var evalBadge = p.llm_eval_score != null
+            ? '<span style="font-weight:600;color:' + (p.llm_eval_score >= 90 ? '#34d399' : (p.llm_eval_score >= 70 ? '#fbbf24' : '#f87171')) + ';">' + p.llm_eval_score + '</span>' +
+              '<span style="font-size:0.65rem;color:var(--color-text-muted);">/' + (p.llm_eval_attempts||0) + '</span>'
+            : '-';
           return '<tr>' +
             '<td class="id-cell">' + esc((p.id||'').substring(0,11)) + '</td>' +
             '<td>' + variantBadge + '</td>' +
@@ -1183,6 +1190,7 @@
             '<td>' + esc(platformIcons) + '</td>' +
             '<td><span class="status-badge ' + (p.publish_mode==='scheduled'?'pending':'confirmed') + '">' + esc(p.publish_mode||'') + '</span></td>' +
             '<td><span class="status-badge ' + videoStatusClass(p.status) + '">' + esc(p.status||'') + '</span></td>' +
+            '<td>' + evalBadge + '</td>' +
             '<td>' + (p.duration_target_sec ? p.duration_target_sec + 's' : '-') + '</td>' +
             '<td>' + (p.scheduled_at ? fmtDt(p.scheduled_at) : '-') + '</td>' +
             '<td>' + fmtDt(p.created_at) + '</td>' +
@@ -1200,9 +1208,10 @@
   function videoStatusClass(s) {
     if (!s) return '';
     if (s.includes('failed')) return 'rejected';
-    if (s.includes('succeeded') || s === 'published' || s === 'postiz_draft_created') return 'confirmed';
-    if (s.includes('render') || s.includes('upload') || s.includes('sending') || s === 'publishing') return 'pending';
+    if (s.includes('succeeded') || s === 'published' || s === 'postiz_draft_created' || s === 'script_approved' || s === 'images_ready') return 'confirmed';
+    if (s.includes('render') || s.includes('upload') || s.includes('sending') || s === 'publishing' || s === 'script_rewriting' || s === 'evaluating_script' || s === 'generating_images') return 'pending';
     if (s === 'scheduled') return 'address_unlocked';
+    if (s === 'queued') return 'pending';
     return 'pending';
   }
 
@@ -1243,7 +1252,7 @@
           '<select class="form-select" id="vp-bgm"><option value="none">None</option><option value="upbeat">Upbeat</option><option value="calm">Calm</option><option value="corporate">Corporate</option></select></div>' +
         '<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;">' +
           '<button class="btn-sm" onclick="document.getElementById(\'video-create-form\').style.display=\'none\'">Cancel</button>' +
-          '<button class="btn-sm success" id="vp-submit-btn" onclick="submitVideoPost()">Create & Start Rendering</button>' +
+          '<button class="btn-sm success" id="vp-submit-btn" onclick="submitVideoPost()">Create & Start Pipeline</button>' +
         '</div>' +
       '</div>';
     // Show/hide schedule field
@@ -1320,14 +1329,16 @@
     try {
       var res = await HumanAds.fetchApi('/admin/video-posts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
       if (res.success) {
-        HumanAds.showAlert('Video post created! ' + res.data.slides_count + ' slides, ~' + res.data.estimated_duration_sec + 's');
+        var msg = 'Video post created! ' + res.data.slides_count + ' slides, ~' + res.data.estimated_duration_sec + 's';
+        if (res.data.pipeline) msg += ' | Pipeline: ' + res.data.pipeline;
+        HumanAds.showAlert(msg);
         document.getElementById('video-create-form').style.display = 'none';
         loadVideoPosts();
       } else {
         HumanAds.showAlert(res.error?.message || 'Failed', 'error');
       }
     } catch (e) { HumanAds.showAlert(e.message, 'error'); }
-    btn.disabled = false; btn.textContent = 'Create & Start Rendering';
+    btn.disabled = false; btn.textContent = 'Create & Start Pipeline';
   }
 
   async function showVideoDetail(id) {
@@ -1363,7 +1374,71 @@
           '<td>' + esc(e.message||'') + '</td></tr>';
       }).join('');
 
-      var canRetry = ['render_failed','upload_failed','postiz_failed','queued_render','render_succeeded'].includes(p.status);
+      var canRetry = ['render_failed','upload_failed','postiz_failed','queued_render','render_succeeded','queued','script_rewriting','evaluating_script','script_approved','generating_images','images_ready'].includes(p.status);
+
+      // LLM Eval Score section
+      var evalSection = '';
+      if (p.llm_eval_score != null || p.llm_eval_attempts > 0) {
+        var scoreColor = p.llm_eval_score >= 90 ? '#34d399' : (p.llm_eval_score >= 70 ? '#fbbf24' : '#f87171');
+        var feedbackDetail = '';
+        if (p.llm_eval_feedback) {
+          try {
+            var ef = JSON.parse(p.llm_eval_feedback);
+            feedbackDetail =
+              '<div style="margin-top:8px;font-size:0.8rem;">' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">' +
+                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Hook: ' + (ef.breakdown?.hook||0) + '/30</span>' +
+                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Pacing: ' + (ef.breakdown?.pacing||0) + '/20</span>' +
+                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Clarity: ' + (ef.breakdown?.clarity||0) + '/20</span>' +
+                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">CTA: ' + (ef.breakdown?.cta||0) + '/15</span>' +
+                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Emotion: ' + (ef.breakdown?.emotion||0) + '/15</span>' +
+                '</div>' +
+                '<div style="color:var(--color-text-muted);">' + esc(ef.feedback||'') + '</div>' +
+              '</div>';
+          } catch(e) {}
+        }
+        evalSection =
+          '<div style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
+            '<h4 style="margin:0 0 8px;color:#34d399;">LLM Evaluation</h4>' +
+            '<div style="display:flex;align-items:center;gap:16px;">' +
+              '<div style="font-size:2rem;font-weight:700;color:' + scoreColor + ';">' + (p.llm_eval_score != null ? p.llm_eval_score : '?') + '<span style="font-size:1rem;color:var(--color-text-muted);">/100</span></div>' +
+              '<div style="font-size:0.85rem;"><div>Attempts: <strong>' + (p.llm_eval_attempts||0) + '</strong>/10</div>' +
+              '<div>Status: <span class="status-badge ' + (p.llm_eval_score >= 90 ? 'confirmed' : 'pending') + '">' + (p.llm_eval_score >= 90 ? 'Passed' : 'In Progress') + '</span></div></div>' +
+            '</div>' +
+            feedbackDetail +
+          '</div>';
+      }
+
+      // Generation costs section
+      var costsSection = '';
+      if (p.generation_costs && p.generation_costs.length > 0) {
+        var costRows = p.generation_costs.map(function(c) {
+          return '<tr><td>' + esc(c.cost_type) + '</td><td>$' + Number(c.amount_usd).toFixed(4) + '</td><td>' + esc(c.model||'-') + '</td>' +
+            '<td style="font-size:0.75rem;">' + (c.input_tokens ? c.input_tokens + ' in / ' + (c.output_tokens||0) + ' out' : '-') + '</td>' +
+            '<td style="font-size:0.75rem;">' + fmtDt(c.created_at) + '</td></tr>';
+        }).join('');
+        costsSection =
+          '<h4 style="margin:20px 0 8px;">Generation Costs</h4>' +
+          '<div class="table-container"><table class="data-table"><thead><tr>' +
+            '<th>Type</th><th>Amount</th><th>Model</th><th>Tokens</th><th>Time</th>' +
+          '</tr></thead><tbody>' + costRows +
+          '<tr style="font-weight:600;border-top:2px solid var(--color-border);"><td>Total</td><td>$' + Number(p.costs_summary?.total_usd||0).toFixed(4) + '</td><td colspan="3"></td></tr>' +
+          '</tbody></table></div>';
+      }
+
+      // Posting preview section
+      var postingPreview =
+        '<div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
+          '<h4 style="margin:0 0 8px;color:#60a5fa;">Posting Preview</h4>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:0.85rem;">' +
+            '<div><strong>YT Title:</strong> ' + esc(p.yt_title||p.internal_title||'-') + '</div>' +
+            '<div><strong>YT Visibility:</strong> ' + esc(p.yt_visibility||'unlisted') + '</div>' +
+            '<div><strong>Publish Mode:</strong> ' + esc(p.publish_mode||'-') + '</div>' +
+            '<div><strong>Scheduled:</strong> ' + (p.scheduled_at ? fmtDt(p.scheduled_at) : 'Not scheduled') + '</div>' +
+            '<div style="grid-column:1/-1;"><strong>Caption:</strong> ' + esc((p.caption_text||'').substring(0,200)) + '</div>' +
+            '<div style="grid-column:1/-1;"><strong>Hashtags:</strong> ' + esc(p.hashtags_text||'#HumanAds') + '</div>' +
+          '</div>' +
+        '</div>';
 
       // Variant info section
       var variantSection = '';
@@ -1401,6 +1476,16 @@
         '</div>' +
         '<div id="video-add-metrics-' + p.id + '" style="display:none;"></div>';
 
+      // Rewritten script section
+      var rewrittenSection = '';
+      if (p.llm_rewritten_script) {
+        rewrittenSection =
+          '<h4 style="margin:20px 0 8px;">Rewritten Script (LLM)</h4>' +
+          '<details style="margin-bottom:8px;"><summary style="cursor:pointer;font-size:0.8rem;color:var(--color-text-muted);">Show original script for comparison</summary>' +
+          '<pre style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:8px;opacity:0.7;">' + esc(p.script_text||'') + '</pre></details>' +
+          '<pre style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">' + esc(p.llm_rewritten_script) + '</pre>';
+      }
+
       detailEl.innerHTML =
         '<div style="padding:16px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
@@ -1413,10 +1498,14 @@
             '<div class="summary-card"><div class="label">Slides</div><div class="value">' + (p.slides_count||0) + '</div></div>' +
             '<div class="summary-card"><div class="label">Mode</div><div class="value">' + esc(p.publish_mode) + '</div></div>' +
             '<div class="summary-card"><div class="label">Retries</div><div class="value">' + (p.retry_count||0) + '/3</div></div>' +
+            '<div class="summary-card"><div class="label">Eval Score</div><div class="value">' + (p.llm_eval_score != null ? '<span style="color:' + (p.llm_eval_score >= 90 ? '#34d399' : '#fbbf24') + ';font-weight:700;">' + p.llm_eval_score + '</span>/100' : '-') + '</div></div>' +
             (p.scheduled_at ? '<div class="summary-card"><div class="label">Scheduled</div><div class="value">' + fmtDt(p.scheduled_at) + '</div></div>' : '') +
           '</div>' +
+          evalSection +
+          postingPreview +
           variantSection +
           (canRetry ? '<div style="margin:12px 0;"><button class="btn-sm success" onclick="retryVideoPost(\'' + p.id + '\')">Retry</button> <button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button></div>' : '<div style="margin:12px 0;"><button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button></div>') +
+          costsSection +
           metricsSection +
           '<h4 style="margin:20px 0 8px;">Platform Targets</h4>' +
           '<div class="table-container"><table class="data-table"><thead><tr><th>Platform</th><th>Status</th><th>Postiz ID</th><th>URL</th><th>Error</th></tr></thead><tbody>' + (targets || '<tr><td colspan="5">No targets</td></tr>') + '</tbody></table></div>' +
@@ -1424,8 +1513,8 @@
           '<div class="table-container"><table class="data-table"><thead><tr><th>ID</th><th>Status</th><th>Output</th><th>Cost</th><th>Error</th></tr></thead><tbody>' + (renderJobs || '<tr><td colspan="5">No render jobs</td></tr>') + '</tbody></table></div>' +
           '<h4 style="margin:20px 0 8px;">Event Log</h4>' +
           '<div class="table-container"><table class="data-table"><thead><tr><th style="width:15%">Time</th><th style="width:12%">Job</th><th style="width:10%">Event</th><th>Message</th></tr></thead><tbody>' + (events || '<tr><td colspan="4">No events</td></tr>') + '</tbody></table></div>' +
-          '<h4 style="margin:20px 0 8px;">Script</h4>' +
-          '<pre style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">' + esc(p.script_text||'') + '</pre>' +
+          (rewrittenSection || '<h4 style="margin:20px 0 8px;">Script</h4>') +
+          (rewrittenSection ? '' : '<pre style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">' + esc(p.script_text||'') + '</pre>') +
         '</div>';
 
       // Load metrics async

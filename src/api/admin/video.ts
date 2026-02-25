@@ -15,6 +15,8 @@ import { success, error, errors, generateRequestId } from '../../utils/response'
 import { requireAdmin } from '../../middleware/admin';
 import { arrayBufferToHex } from '../../utils/crypto';
 import { invokeLambda } from '../../lib/aws-sigv4';
+import { rewriteScript, evaluateScript } from '../../services/llm';
+import { generateSlideImages } from '../../services/image-generator';
 
 // ============================================
 // ID Generation
@@ -847,14 +849,23 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     return errors.badRequest(requestId, 'Script produced too few slides. Add more content.');
   }
 
+  // Enforce 15-45s duration range
+  const clampedDuration = Math.max(15, Math.min(45, slidesPayload.metadata.totalDurationSec));
+  slidesPayload.slides = scaleSlidesToDuration(slidesPayload.slides, clampedDuration);
+  slidesPayload.metadata.totalDurationSec = slidesPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
+
   // Convert scheduled_at to UTC if provided
   let scheduledAtUtc: string | null = null;
   if (body.scheduled_at) {
     scheduledAtUtc = new Date(body.scheduled_at).toISOString();
   }
 
+  // Determine initial status: if LLM APIs are configured, start with 'queued' for LLM pipeline;
+  // otherwise fall back to 'queued_render' for direct rendering
+  const hasLlmPipeline = !!(env as any).ANTHROPIC_API_KEY;
+  const initialStatus = hasLlmPipeline ? 'queued' : 'queued_render';
+
   const videoPostId = generateId('vp_');
-  const renderJobId = generateId('vr_');
 
   // Insert video_post
   await env.DB.prepare(
@@ -862,7 +873,7 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
       id, internal_title, template_type, script_text, slides_json, slides_count,
       caption_text, hashtags_text, yt_title, yt_visibility, cta_text, bgm_preset,
       status, publish_mode, scheduled_at, created_by, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'queued_render', ?, ?, ?, datetime('now'), datetime('now'))`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
   ).bind(
     videoPostId,
     internal_title,
@@ -876,6 +887,7 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     body.yt_visibility || 'unlisted',
     body.cta_text || null,
     body.bgm_preset || 'none',
+    initialStatus,
     publish_mode,
     scheduledAtUtc,
     authResult.context!.operator.id,
@@ -889,52 +901,55 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     ).bind(generateId('vt_'), videoPostId, platform).run();
   }
 
-  // Insert render job
-  await env.DB.prepare(
-    `INSERT INTO video_render_jobs (
-      id, video_post_id, remotion_composition, input_payload_json,
-      render_status, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-  ).bind(
-    renderJobId,
-    videoPostId,
-    template_type === 'slideshow' ? 'Slideshow' : 'Explainer',
-    JSON.stringify(slidesPayload),
-  ).run();
-
   // Log event
   await logEvent(env.DB, videoPostId, 'build', 'success',
-    `Slides built: ${slidesPayload.slides.length} slides, ${slidesPayload.metadata.totalDurationSec}s`,
-    { slidesCount: slidesPayload.slides.length, duration: slidesPayload.metadata.totalDurationSec }
+    `Slides built: ${slidesPayload.slides.length} slides, ${slidesPayload.metadata.totalDurationSec}s. Pipeline: ${hasLlmPipeline ? 'LLM+ImageGen+Render' : 'Direct Render'}`,
+    { slidesCount: slidesPayload.slides.length, duration: slidesPayload.metadata.totalDurationSec, pipeline: initialStatus }
   );
 
-  // Trigger Remotion render (async best-effort)
-  const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, slidesPayload);
-
-  if (renderResult.success && renderResult.renderId) {
+  // If no LLM pipeline, create render job and trigger immediately (legacy flow)
+  if (!hasLlmPipeline) {
+    const renderJobId = generateId('vr_');
     await env.DB.prepare(
-      `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now')
-       WHERE id = ?`
-    ).bind(renderResult.renderId, renderJobId).run();
+      `INSERT INTO video_render_jobs (
+        id, video_post_id, remotion_composition, input_payload_json,
+        render_status, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
+    ).bind(
+      renderJobId,
+      videoPostId,
+      template_type === 'slideshow' ? 'Slideshow' : 'Explainer',
+      JSON.stringify(slidesPayload),
+    ).run();
 
-    await env.DB.prepare(
-      `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
-    ).bind(videoPostId).run();
+    const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, slidesPayload);
+    if (renderResult.success && renderResult.renderId) {
+      await env.DB.prepare(
+        `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+      ).bind(renderResult.renderId, renderJobId).run();
+      await env.DB.prepare(
+        `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+      ).bind(videoPostId).run();
+      await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+    } else {
+      await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued (Remotion Lambda not configured yet)');
+    }
 
-    await logEvent(env.DB, videoPostId, 'render', 'started',
-      `Remotion render triggered: ${renderResult.renderId}`
-    );
-  } else {
-    // Lambda not configured - stay in queued_render for manual processing
-    await logEvent(env.DB, videoPostId, 'render', 'queued',
-      renderResult.error || 'Render queued (Remotion Lambda not configured yet)'
-    );
+    return success({
+      video_post_id: videoPostId,
+      status: renderResult.success ? 'rendering' : 'queued_render',
+      render_job_id: renderJobId,
+      slides_count: slidesPayload.slides.length,
+      estimated_duration_sec: slidesPayload.metadata.totalDurationSec,
+      slides_preview: slidesPayload.slides.map(s => ({ type: s.type, text: s.text.substring(0, 50), durationSec: s.durationSec })),
+    }, requestId, 201);
   }
 
+  // LLM pipeline — cron will pick this up
   return success({
     video_post_id: videoPostId,
-    status: renderResult.success ? 'rendering' : 'queued_render',
-    render_job_id: renderJobId,
+    status: 'queued',
+    pipeline: 'llm_rewrite → evaluate → image_gen → render → postiz',
     slides_count: slidesPayload.slides.length,
     estimated_duration_sec: slidesPayload.metadata.totalDurationSec,
     slides_preview: slidesPayload.slides.map(s => ({ type: s.type, text: s.text.substring(0, 50), durationSec: s.durationSec })),
@@ -1012,11 +1027,28 @@ export async function getVideoPost(request: Request, env: Env, videoPostId: stri
     .bind(videoPostId)
     .all();
 
+  // Fetch generation costs
+  const costs = await env.DB.prepare(
+    'SELECT * FROM video_generation_costs WHERE video_post_id = ? ORDER BY created_at ASC'
+  ).bind(videoPostId).all();
+
+  // Aggregate costs by type
+  const costsByType: Record<string, { count: number; total: number }> = {};
+  let totalCost = 0;
+  for (const c of (costs.results || []) as any[]) {
+    if (!costsByType[c.cost_type]) costsByType[c.cost_type] = { count: 0, total: 0 };
+    costsByType[c.cost_type].count++;
+    costsByType[c.cost_type].total += c.amount_usd || 0;
+    totalCost += c.amount_usd || 0;
+  }
+
   return success({
     ...post,
     targets: targets.results || [],
     render_jobs: renderJobs.results || [],
     events: events.results || [],
+    generation_costs: costs.results || [],
+    costs_summary: { by_type: costsByType, total_usd: totalCost },
   }, requestId);
 }
 
@@ -1051,6 +1083,10 @@ export async function retryVideoPost(request: Request, env: Env, videoPostId: st
     if (['render_failed', 'queued_render'].includes(post.status)) retryStage = 'render';
     else if (post.status === 'upload_failed') retryStage = 'postiz_upload';
     else if (['postiz_failed', 'render_succeeded'].includes(post.status)) retryStage = 'postiz_upload';
+    else if (['queued', 'script_rewriting', 'evaluating_script', 'script_approved', 'generating_images', 'images_ready'].includes(post.status)) {
+      // Reset to beginning of LLM pipeline
+      retryStage = 'llm_pipeline';
+    }
     else {
       return errors.badRequest(requestId, `Cannot retry from status: ${post.status}`);
     }
@@ -1125,6 +1161,17 @@ export async function retryVideoPost(request: Request, env: Env, videoPostId: st
     await logEvent(env.DB, videoPostId, 'postiz_send', 'retry', `Postiz send retry #${post.retry_count + 1}`);
 
     return success({ status: 'queued_postiz', retry_count: post.retry_count + 1, message: 'Queued for Postiz send on next cron cycle' }, requestId);
+  }
+
+  if (retryStage === 'llm_pipeline') {
+    // Reset to beginning of LLM pipeline
+    await env.DB.prepare(
+      `UPDATE video_posts SET status = 'queued', llm_eval_attempts = 0, llm_eval_score = NULL, llm_eval_feedback = NULL, llm_rewritten_script = NULL, updated_at = datetime('now') WHERE id = ?`
+    ).bind(videoPostId).run();
+
+    await logEvent(env.DB, videoPostId, 'llm_pipeline', 'retry', `LLM pipeline retry #${post.retry_count + 1}`);
+
+    return success({ status: 'queued', retry_count: post.retry_count + 1, message: 'Queued for LLM pipeline on next cron cycle' }, requestId);
   }
 
   return errors.badRequest(requestId, `Unknown retry stage: ${retryStage}`);
@@ -1718,20 +1765,324 @@ export async function analyzeVariants(request: Request, env: Env): Promise<Respo
 }
 
 // ============================================
+// Cost Recording Helper
+// ============================================
+
+async function recordCost(
+  db: D1Database,
+  videoPostId: string,
+  costType: string,
+  amountUsd: number,
+  inputTokens?: number,
+  outputTokens?: number,
+  model?: string,
+  metadata?: Record<string, unknown>,
+) {
+  await db.prepare(
+    `INSERT INTO video_generation_costs (id, video_post_id, cost_type, amount_usd, input_tokens, output_tokens, model, metadata_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+  ).bind(
+    generateId('vc_'),
+    videoPostId,
+    costType,
+    amountUsd,
+    inputTokens ?? null,
+    outputTokens ?? null,
+    model ?? null,
+    metadata ? JSON.stringify(metadata) : null,
+  ).run();
+}
+
+// ============================================
 // Cron Job: Process Video Post Pipeline
 // ============================================
 
 export async function processVideoPostJobs(env: Env): Promise<void> {
   console.log('[VideoJobs] Starting video post job processing');
 
-  // 1. render_succeeded → upload to Postiz
+  const anthropicKey = (env as any).ANTHROPIC_API_KEY;
+  const stabilityKey = (env as any).STABILITY_API_KEY;
+
+  // ── Stage 1: queued → script_rewriting (LLM rewrite) ──
+  if (anthropicKey) {
+    const queuedPosts = await env.DB.prepare(
+      `SELECT vp.* FROM video_posts vp WHERE vp.status = 'queued' AND vp.visibility = 'visible' LIMIT 1`
+    ).all<any>();
+
+    for (const post of queuedPosts.results || []) {
+      try {
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = 'script_rewriting', updated_at = datetime('now') WHERE id = ?`
+        ).bind(post.id).run();
+
+        await logEvent(env.DB, post.id, 'llm_rewrite', 'started', 'LLM script rewrite started');
+
+        const targetDuration = Math.max(15, Math.min(45,
+          post.duration_target_sec || 30
+        ));
+
+        const result = await rewriteScript(anthropicKey, post.script_text, targetDuration);
+
+        // Save rewritten script
+        await env.DB.prepare(
+          `UPDATE video_posts SET llm_rewritten_script = ?, status = 'evaluating_script', updated_at = datetime('now') WHERE id = ?`
+        ).bind(result.rewrittenScript, post.id).run();
+
+        // Rebuild slides from rewritten script
+        const slidesPayload = buildEnhancedSlidesPayload(
+          result.rewrittenScript,
+          post.template_type,
+          post.internal_title,
+          post.caption_text || '',
+          post.hashtags_text || '',
+          post.bgm_preset || 'none',
+        );
+
+        // Enforce 15-45s duration
+        const clampedDuration = Math.max(15, Math.min(45, slidesPayload.metadata.totalDurationSec));
+        slidesPayload.slides = scaleSlidesToDuration(slidesPayload.slides, clampedDuration);
+        slidesPayload.metadata.totalDurationSec = slidesPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
+
+        await env.DB.prepare(
+          `UPDATE video_posts SET slides_json = ?, slides_count = ?, updated_at = datetime('now') WHERE id = ?`
+        ).bind(JSON.stringify(slidesPayload), slidesPayload.slides.length, post.id).run();
+
+        await recordCost(env.DB, post.id, 'llm_rewrite', result.costUsd, result.inputTokens, result.outputTokens, 'claude-sonnet-4-6');
+
+        await logEvent(env.DB, post.id, 'llm_rewrite', 'success',
+          `Script rewritten: ${result.outputTokens} output tokens, $${result.costUsd.toFixed(4)}`,
+          { inputTokens: result.inputTokens, outputTokens: result.outputTokens, cost: result.costUsd }
+        );
+      } catch (e: any) {
+        console.error(`[VideoJobs] LLM rewrite error for post ${post.id}:`, e);
+        // Stay in queued state for retry on next cycle
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = 'queued', updated_at = datetime('now') WHERE id = ?`
+        ).bind(post.id).run();
+        await logEvent(env.DB, post.id, 'llm_rewrite', 'failed', e.message);
+      }
+    }
+  }
+
+  // ── Stage 2: evaluating_script → score loop ──
+  if (anthropicKey) {
+    const evalPosts = await env.DB.prepare(
+      `SELECT vp.* FROM video_posts vp WHERE vp.status = 'evaluating_script' AND vp.visibility = 'visible' LIMIT 1`
+    ).all<any>();
+
+    for (const post of evalPosts.results || []) {
+      try {
+        const scriptToEval = post.llm_rewritten_script || post.script_text;
+        const attempts = (post.llm_eval_attempts || 0) + 1;
+
+        await logEvent(env.DB, post.id, 'llm_eval', 'started', `Evaluation attempt #${attempts}`);
+
+        const evalResult = await evaluateScript(anthropicKey, scriptToEval);
+
+        await recordCost(env.DB, post.id, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4-6',
+          { attempt: attempts, score: evalResult.score }
+        );
+
+        await logEvent(env.DB, post.id, 'llm_eval', 'completed',
+          `Score: ${evalResult.score}/100 (attempt #${attempts}). Breakdown: H${evalResult.breakdown.hook}/P${evalResult.breakdown.pacing}/C${evalResult.breakdown.clarity}/CTA${evalResult.breakdown.cta}/E${evalResult.breakdown.emotion}`,
+          { score: evalResult.score, breakdown: evalResult.breakdown, attempt: attempts }
+        );
+
+        if (evalResult.score >= 90) {
+          // Passed! Move to image generation
+          await env.DB.prepare(
+            `UPDATE video_posts SET
+              llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
+              status = 'script_approved', updated_at = datetime('now')
+             WHERE id = ?`
+          ).bind(evalResult.score, attempts, JSON.stringify(evalResult), post.id).run();
+
+          await logEvent(env.DB, post.id, 'llm_eval', 'success',
+            `Script approved with score ${evalResult.score}/100 after ${attempts} attempt(s)`
+          );
+        } else if (attempts >= 10) {
+          // Max attempts reached — use current version anyway
+          await env.DB.prepare(
+            `UPDATE video_posts SET
+              llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
+              status = 'script_approved', updated_at = datetime('now')
+             WHERE id = ?`
+          ).bind(evalResult.score, attempts, JSON.stringify(evalResult), post.id).run();
+
+          await logEvent(env.DB, post.id, 'llm_eval', 'warning',
+            `Max attempts (10) reached. Using script with score ${evalResult.score}/100`,
+            { score: evalResult.score, maxAttemptsReached: true }
+          );
+        } else {
+          // Score too low — rewrite with feedback and stay in evaluating_script
+          const rewriteResult = await rewriteScript(
+            anthropicKey,
+            post.script_text,
+            Math.max(15, Math.min(45, post.duration_target_sec || 30)),
+            evalResult.feedback,
+          );
+
+          await recordCost(env.DB, post.id, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4-6',
+            { attempt: attempts, rewriteAfterEval: true }
+          );
+
+          // Rebuild slides
+          const slidesPayload = buildEnhancedSlidesPayload(
+            rewriteResult.rewrittenScript,
+            post.template_type,
+            post.internal_title,
+            post.caption_text || '',
+            post.hashtags_text || '',
+            post.bgm_preset || 'none',
+          );
+          const clampedDuration = Math.max(15, Math.min(45, slidesPayload.metadata.totalDurationSec));
+          slidesPayload.slides = scaleSlidesToDuration(slidesPayload.slides, clampedDuration);
+          slidesPayload.metadata.totalDurationSec = slidesPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
+
+          await env.DB.prepare(
+            `UPDATE video_posts SET
+              llm_rewritten_script = ?, llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
+              slides_json = ?, slides_count = ?,
+              status = 'evaluating_script', updated_at = datetime('now')
+             WHERE id = ?`
+          ).bind(
+            rewriteResult.rewrittenScript,
+            evalResult.score,
+            attempts,
+            JSON.stringify(evalResult),
+            JSON.stringify(slidesPayload),
+            slidesPayload.slides.length,
+            post.id,
+          ).run();
+
+          await logEvent(env.DB, post.id, 'llm_eval', 'retry',
+            `Score ${evalResult.score}/100 < 90. Rewriting with feedback (attempt #${attempts})`,
+            { score: evalResult.score, feedback: evalResult.feedback }
+          );
+        }
+      } catch (e: any) {
+        console.error(`[VideoJobs] LLM eval error for post ${post.id}:`, e);
+        await logEvent(env.DB, post.id, 'llm_eval', 'failed', e.message);
+        // Stay in evaluating_script for retry next cycle
+      }
+    }
+  }
+
+  // ── Stage 3: script_approved → generating_images ──
+  if (stabilityKey) {
+    const approvedPosts = await env.DB.prepare(
+      `SELECT vp.* FROM video_posts vp WHERE vp.status = 'script_approved' AND vp.visibility = 'visible' LIMIT 1`
+    ).all<any>();
+
+    for (const post of approvedPosts.results || []) {
+      try {
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
+        ).bind(post.id).run();
+
+        await logEvent(env.DB, post.id, 'image_gen', 'started', 'Generating slide images');
+
+        const slidesPayload: SlidesPayload = JSON.parse(post.slides_json);
+        const imageResult = await generateSlideImages(stabilityKey, slidesPayload.slides);
+
+        // Update slides with generated images
+        for (const img of imageResult.images) {
+          if (slidesPayload.slides[img.slideIndex]) {
+            (slidesPayload.slides[img.slideIndex] as any).imageUrl = img.imageDataUri;
+          }
+        }
+
+        await env.DB.prepare(
+          `UPDATE video_posts SET slides_json = ?, status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
+        ).bind(JSON.stringify(slidesPayload), post.id).run();
+
+        // Record costs per image
+        for (const cost of imageResult.costs) {
+          await recordCost(env.DB, post.id, 'image_gen', cost.amountUsd, undefined, undefined, cost.model,
+            { slideIndex: cost.slideIndex }
+          );
+        }
+
+        await logEvent(env.DB, post.id, 'image_gen', 'success',
+          `Generated ${imageResult.images.length} images, total cost: $${imageResult.totalCostUsd.toFixed(4)}`,
+          { imageCount: imageResult.images.length, totalCost: imageResult.totalCostUsd }
+        );
+      } catch (e: any) {
+        console.error(`[VideoJobs] Image gen error for post ${post.id}:`, e);
+        // Fall back to script_approved so it can retry or proceed without images
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
+        ).bind(post.id).run();
+        await logEvent(env.DB, post.id, 'image_gen', 'failed', `Image gen failed, proceeding without images: ${e.message}`);
+      }
+    }
+  } else {
+    // No Stability key — skip image generation, move script_approved → images_ready
+    const approvedPosts = await env.DB.prepare(
+      `SELECT id FROM video_posts WHERE status = 'script_approved' AND visibility = 'visible' LIMIT 3`
+    ).all<any>();
+    for (const post of approvedPosts.results || []) {
+      await env.DB.prepare(
+        `UPDATE video_posts SET status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
+      ).bind(post.id).run();
+      await logEvent(env.DB, post.id, 'image_gen', 'skipped', 'STABILITY_API_KEY not configured, skipping image generation');
+    }
+  }
+
+  // ── Stage 4: images_ready → queued_render (trigger Remotion) ──
+  const readyToRender = await env.DB.prepare(
+    `SELECT vp.* FROM video_posts vp WHERE vp.status = 'images_ready' AND vp.visibility = 'visible' LIMIT 1`
+  ).all<any>();
+
+  for (const post of readyToRender.results || []) {
+    try {
+      const slidesPayload: SlidesPayload = JSON.parse(post.slides_json);
+      const renderJobId = generateId('vr_');
+
+      await env.DB.prepare(
+        `INSERT INTO video_render_jobs (
+          id, video_post_id, remotion_composition, input_payload_json,
+          render_status, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
+      ).bind(
+        renderJobId,
+        post.id,
+        post.template_type === 'slideshow' ? 'Slideshow' : 'Explainer',
+        post.slides_json,
+      ).run();
+
+      const renderResult = await triggerRemotionRender(env, post.id, renderJobId, slidesPayload);
+
+      if (renderResult.success && renderResult.renderId) {
+        await env.DB.prepare(
+          `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+        ).bind(renderResult.renderId, renderJobId).run();
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+        ).bind(post.id).run();
+        await logEvent(env.DB, post.id, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+      } else {
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+        ).bind(post.id).run();
+        await logEvent(env.DB, post.id, 'render', 'queued', renderResult.error || 'Render queued (Remotion Lambda not configured yet)');
+      }
+    } catch (e: any) {
+      console.error(`[VideoJobs] Render trigger error for post ${post.id}:`, e);
+      await env.DB.prepare(
+        `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+      ).bind(post.id).run();
+      await logEvent(env.DB, post.id, 'render', 'failed', e.message);
+    }
+  }
+
+  // ── Stage 5: render_succeeded → upload to Postiz ──
   const readyToUpload = await env.DB.prepare(
     `SELECT vp.* FROM video_posts vp WHERE vp.status = 'render_succeeded' AND vp.visibility = 'visible' LIMIT 3`
   ).all<any>();
 
   for (const post of readyToUpload.results || []) {
     try {
-      // Get render job with output URL
       const renderJob = await env.DB.prepare(
         `SELECT output_video_url FROM video_render_jobs WHERE video_post_id = ? AND render_status = 'completed' ORDER BY completed_at DESC LIMIT 1`
       ).bind(post.id).first<any>();
@@ -1750,7 +2101,6 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
       const uploadResult = await uploadToPostiz(env, renderJob.output_video_url);
 
       if (uploadResult.success) {
-        // Save media info to all targets
         await env.DB.prepare(
           `UPDATE video_post_targets SET postiz_media_id = ?, postiz_media_path = ?, target_status = 'uploaded', updated_at = datetime('now')
            WHERE video_post_id = ?`
@@ -1777,7 +2127,7 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
     }
   }
 
-  // 2. queued_postiz → create Postiz post
+  // ── Stage 6: queued_postiz → create Postiz post ──
   const readyToPost = await env.DB.prepare(
     `SELECT vp.* FROM video_posts vp WHERE vp.status = 'queued_postiz' AND vp.visibility = 'visible' LIMIT 3`
   ).all<any>();
@@ -1816,14 +2166,12 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
       );
 
       if (result.success && result.results) {
-        // Save postiz_post_id for each target
         for (const r of result.results) {
           await env.DB.prepare(
             `UPDATE video_post_targets SET postiz_post_id = ?, target_status = ?, updated_at = datetime('now')
              WHERE video_post_id = ? AND postiz_integration_id = ?`
           ).bind(r.postId, post.publish_mode === 'draft' ? 'draft_created' : (post.publish_mode === 'scheduled' ? 'scheduled' : 'publishing'), post.id, r.integration).run();
 
-          // Also try matching by platform if integration ID wasn't saved
           if (r.integration) {
             const ytId = (env as any).POSTIZ_YOUTUBE_INTEGRATION_ID;
             const igId = (env as any).POSTIZ_INSTAGRAM_INTEGRATION_ID;
@@ -1837,7 +2185,6 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
           }
         }
 
-        // Update overall status
         let newStatus = 'postiz_draft_created';
         if (post.publish_mode === 'scheduled') newStatus = 'scheduled';
         if (post.publish_mode === 'publish_now') newStatus = 'publishing';
@@ -1854,7 +2201,6 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
           `UPDATE video_posts SET status = 'postiz_failed', updated_at = datetime('now') WHERE id = ?`
         ).bind(post.id).run();
 
-        // Update target error info
         const errCode = result.error?.includes('401') ? 'POSTIZ_AUTH_EXPIRED' :
                         result.error?.includes('429') ? 'POSTIZ_RATE_LIMITED' :
                         result.error?.includes('disabled') ? 'POSTIZ_CHANNEL_DISABLED' :
