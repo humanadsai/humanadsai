@@ -1,4 +1,4 @@
-import { Composition } from 'remotion';
+import { Composition, registerRoot } from 'remotion';
 import { Slideshow } from './templates/Slideshow';
 import { slideshowSchema } from './schemas';
 import type { SlideshowProps } from './schemas';
@@ -43,3 +43,5 @@ export const RemotionRoot: React.FC = () => {
     </>
   );
 };
+
+registerRoot(RemotionRoot);

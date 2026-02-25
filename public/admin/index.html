@@ -1361,11 +1361,13 @@
       detailEl.style.display = 'block';
       detailEl.innerHTML = '<div class="loading">Loading...</div>';
     }
-    var scrollTop = isRefresh ? detailEl.scrollTop : 0;
     try {
       var res = await HumanAds.fetchApi('/admin/video-posts/' + id);
+      if (_currentDetailId !== id) return; // navigated away during fetch
       if (!res.success) throw new Error(res.error?.message || 'Failed');
       var p = res.data;
+      // Lock height to prevent layout shift during innerHTML swap
+      if (isRefresh) detailEl.style.minHeight = detailEl.offsetHeight + 'px';
       var targets = (p.targets || []).map(function(t) {
         return '<tr><td>' + esc(t.platform) + '</td><td><span class="status-badge ' + videoStatusClass(t.target_status) + '">' + esc(t.target_status) + '</span></td>' +
           '<td>' + (t.postiz_post_id ? esc(t.postiz_post_id.substring(0,12)) : '-') + '</td>' +
@@ -1560,15 +1562,17 @@
       // Load metrics async
       loadVideoMetrics(p.id);
 
-      // Restore scroll position on refresh (after DOM paint)
-      if (isRefresh) requestAnimationFrame(function() { detailEl.scrollTop = scrollTop; });
+      // Restore scroll and release height lock
+      if (isRefresh) {
+        detailEl.style.minHeight = '';
+      }
 
       // Auto-poll when status is still processing
       stopDetailPoll();
       if (PROCESSING_STATUSES.includes(p.status)) {
         _detailPollTimer = setTimeout(function() {
           if (_currentDetailId === id) showVideoDetail(id, true);
-        }, 5000);
+        }, 8000);
       }
     } catch (e) {
       if (!isRefresh) {

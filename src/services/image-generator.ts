@@ -25,6 +25,7 @@ export interface ImageGenResult {
   images: GeneratedImage[];
   costs: ImageGenCost[];
   totalCostUsd: number;
+  errors: string[];
 }
 
 /**
@@ -39,14 +40,16 @@ export async function generateSlideImages(
 ): Promise<ImageGenResult> {
   const images: GeneratedImage[] = [];
   const costs: ImageGenCost[] = [];
+  const genErrors: string[] = [];
   let totalCostUsd = 0;
 
   // Generate images only for key slides (hook, chapter_title, emphasis)
-  // to keep total API time within Worker waitUntil limits (~30-60s)
+  // Max 5 to keep total API time within Worker limits (~60s)
   const KEY_TYPES = ['hook', 'chapter_title', 'emphasis'];
   const slidesToGenerate = slides
     .map((slide, i) => ({ slide, index: i }))
-    .filter(({ slide }) => KEY_TYPES.includes(slide.type));
+    .filter(({ slide }) => KEY_TYPES.includes(slide.type))
+    .slice(0, 5);
 
   const batchSize = 3;
   for (let batch = 0; batch < slidesToGenerate.length; batch += batchSize) {
@@ -65,12 +68,14 @@ export async function generateSlideImages(
         costs.push({ slideIndex: result.value.slideIndex, amountUsd: COST_PER_IMAGE, model: IMAGE_MODEL });
         totalCostUsd += COST_PER_IMAGE;
       } else {
-        console.error(`[ImageGen] Failed:`, result.reason);
+        const errMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+        genErrors.push(errMsg);
+        console.error(`[ImageGen] Failed:`, errMsg);
       }
     }
   }
 
-  return { images, costs, totalCostUsd };
+  return { images, costs, totalCostUsd, errors: genErrors };
 }
 
 /**
