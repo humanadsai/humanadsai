@@ -8,7 +8,7 @@
  */
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const LLM_MODEL = 'anthropic/claude-sonnet-4-20250514';
+const LLM_MODEL = 'anthropic/claude-sonnet-4.6';
 
 // OpenRouter pricing for claude-sonnet-4 (approximate)
 const INPUT_COST_PER_TOKEN = 0.000003;  // $3 per 1M input tokens
