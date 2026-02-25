@@ -1115,6 +1115,13 @@
   // VIDEO POSTS (Remotion + Postiz)
   // ════════════════════════════════════════════════
   var videoState = { posts: [], detailId: null };
+  var _detailPollTimer = null;
+  var _currentDetailId = null;
+  var PROCESSING_STATUSES = ['queued','script_rewriting','evaluating_script','script_approved','generating_images','images_ready','queued_render','rendering'];
+
+  function stopDetailPoll() {
+    if (_detailPollTimer) { clearTimeout(_detailPollTimer); _detailPollTimer = null; }
+  }
 
   function loadVideoPanel() {
     var panel = document.getElementById('panel-video');
@@ -1344,13 +1351,17 @@
     btn.disabled = false; btn.textContent = 'Create & Start Pipeline';
   }
 
-  async function showVideoDetail(id) {
-    var listEl = document.getElementById('video-list');
+  async function showVideoDetail(id, isRefresh) {
+    _currentDetailId = id;
     var detailEl = document.getElementById('video-detail');
-    listEl.style.display = 'none';
-    document.getElementById('video-filters').style.display = 'none';
-    detailEl.style.display = 'block';
-    detailEl.innerHTML = '<div class="loading">Loading...</div>';
+    if (!isRefresh) {
+      var listEl = document.getElementById('video-list');
+      listEl.style.display = 'none';
+      document.getElementById('video-filters').style.display = 'none';
+      detailEl.style.display = 'block';
+      detailEl.innerHTML = '<div class="loading">Loading...</div>';
+    }
+    var scrollTop = isRefresh ? detailEl.scrollTop : 0;
     try {
       var res = await HumanAds.fetchApi('/admin/video-posts/' + id);
       if (!res.success) throw new Error(res.error?.message || 'Failed');
@@ -1479,6 +1490,31 @@
         '</div>' +
         '<div id="video-add-metrics-' + p.id + '" style="display:none;"></div>';
 
+      // Generated images section
+      var imagesSection = '';
+      if (p.slides_json) {
+        try {
+          var slidesData = JSON.parse(p.slides_json);
+          var slidesList = slidesData.slides || slidesData;
+          var imageSlides = [];
+          for (var si = 0; si < slidesList.length; si++) {
+            if (slidesList[si].imageUrl) imageSlides.push({ idx: si, url: slidesList[si].imageUrl, text: slidesList[si].text || '', type: slidesList[si].type || '' });
+          }
+          if (imageSlides.length > 0) {
+            imagesSection =
+              '<h4 style="margin:20px 0 8px;">Generated Images (' + imageSlides.length + ')</h4>' +
+              '<div style="display:flex;gap:8px;overflow-x:auto;padding:8px 0;">' +
+              imageSlides.map(function(im) {
+                return '<div style="flex:0 0 auto;width:90px;text-align:center;">' +
+                  '<img src="' + im.url + '" style="width:90px;height:135px;object-fit:cover;border-radius:6px;border:1px solid var(--color-border);" loading="lazy" />' +
+                  '<div style="font-size:0.65rem;color:var(--color-text-muted);margin-top:2px;">S' + (im.idx+1) + ' ' + esc(im.type) + '</div>' +
+                '</div>';
+              }).join('') +
+              '</div>';
+          }
+        } catch(e) {}
+      }
+
       // Rewritten script section
       var rewrittenSection = '';
       if (p.llm_rewritten_script) {
@@ -1505,6 +1541,7 @@
             (p.scheduled_at ? '<div class="summary-card"><div class="label">Scheduled</div><div class="value">' + fmtDt(p.scheduled_at) + '</div></div>' : '') +
           '</div>' +
           evalSection +
+          imagesSection +
           postingPreview +
           variantSection +
           (canRetry ? '<div style="margin:12px 0;"><button class="btn-sm success" onclick="retryVideoPost(\'' + p.id + '\')">Retry</button> <button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button></div>' : '<div style="margin:12px 0;"><button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button></div>') +
@@ -1522,12 +1559,27 @@
 
       // Load metrics async
       loadVideoMetrics(p.id);
+
+      // Restore scroll position on refresh (after DOM paint)
+      if (isRefresh) requestAnimationFrame(function() { detailEl.scrollTop = scrollTop; });
+
+      // Auto-poll when status is still processing
+      stopDetailPoll();
+      if (PROCESSING_STATUSES.includes(p.status)) {
+        _detailPollTimer = setTimeout(function() {
+          if (_currentDetailId === id) showVideoDetail(id, true);
+        }, 5000);
+      }
     } catch (e) {
-      detailEl.innerHTML = '<div class="status-msg error">' + esc(e.message) + '</div><button class="btn-sm" onclick="hideVideoDetail()">← Back</button>';
+      if (!isRefresh) {
+        detailEl.innerHTML = '<div class="status-msg error">' + esc(e.message) + '</div><button class="btn-sm" onclick="hideVideoDetail()">← Back</button>';
+      }
     }
   }
 
   function hideVideoDetail() {
+    stopDetailPoll();
+    _currentDetailId = null;
     document.getElementById('video-list').style.display = '';
     document.getElementById('video-filters').style.display = '';
     document.getElementById('video-detail').style.display = 'none';
@@ -1952,12 +2004,19 @@
             '<div><span style="font-size:0.85rem;color:var(--color-text-muted);">Strong Areas: </span>' + strongBadges + '</div>' +
           '</div>' +
 
-          // PDCA note
-          '<div style="background:rgba(245,158,11,0.1);border-radius:6px;padding:10px 12px;margin-bottom:16px;font-size:0.85rem;">' +
-            '<strong style="color:#f59e0b;">PDCA Feedback Loop Active</strong><br>' +
-            'Past evaluation insights are automatically injected into new script rewrites. ' +
-            'The LLM learns from weak areas and recent feedback to produce higher-scoring scripts over time.' +
-          '</div>' +
+          // Persistent knowhow rules
+          (function() {
+            var pr = res.data.persistent_rules;
+            if (!pr || !pr.rules_text) return '<div style="background:rgba(245,158,11,0.1);border-radius:6px;padding:10px 12px;margin-bottom:16px;font-size:0.85rem;">' +
+              '<strong style="color:#f59e0b;">PDCA Auto-Learning</strong><br>Knowhow rules will be generated after the first evaluation.</div>';
+            return '<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px 16px;margin-bottom:16px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+                '<h4 style="margin:0;color:#10b981;">Knowhow Rules v' + pr.version + '</h4>' +
+                '<span style="font-size:0.75rem;color:var(--color-text-muted);">' + pr.eval_count + ' evals | Updated: ' + (pr.updated_at ? pr.updated_at.substring(0,16) : '-') + '</span>' +
+              '</div>' +
+              '<pre style="background:var(--color-surface);border-radius:6px;padding:10px;font-size:0.8rem;white-space:pre-wrap;max-height:250px;overflow-y:auto;margin:0;">' + esc(pr.rules_text) + '</pre>' +
+            '</div>';
+          })() +
 
           // Recent feedback
           (feedbackHtml ? '<div style="margin-bottom:16px;"><h4 style="margin:0 0 8px;font-size:0.9rem;">Recent Evaluator Feedback</h4>' + feedbackHtml + '</div>' : '') +

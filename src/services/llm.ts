@@ -140,6 +140,71 @@ Output format — write ONLY the rewritten script text:
   };
 }
 
+export interface KnowhowUpdateResult {
+  updatedRules: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+}
+
+/**
+ * Synthesize evaluation feedback into persistent knowhow rules.
+ * Called after each evaluation to update accumulated learnings.
+ *
+ * @param apiKey - OpenRouter API key
+ * @param currentRules - Current knowhow rules (empty string if first time)
+ * @param evalFeedback - Latest evaluation feedback text
+ * @param evalBreakdown - Score breakdown { hook, pacing, clarity, cta, emotion }
+ * @param evalScore - Total score
+ */
+export async function updateKnowhow(
+  apiKey: string,
+  currentRules: string,
+  evalFeedback: string,
+  evalBreakdown: EvalBreakdown,
+  evalScore: number,
+): Promise<KnowhowUpdateResult> {
+  const systemPrompt = `あなたはショート動画スクリプト最適化の専門家です。
+評価フィードバックから具体的な改善ルールを抽出し、ノウハウとして蓄積します。
+
+ルール:
+- 最大15個のルール（1ルール1-2文、日本語で）
+- 各ルールは具体的で実行可能なもの（例: 「CTAは定型文を避け、自分ごと化する問いかけにする」）
+- 既存ルールと新しいフィードバックをマージ
+- 改善された点はルールを更新（「解決済み」は削除）
+- スコアが低い次元のルールを優先
+- 重複は統合、矛盾は最新を優先
+
+出力フォーマット: 番号付きリストのみ（説明不要）
+1. ルール1
+2. ルール2
+...`;
+
+  const weakDims: string[] = [];
+  const dimMax: Record<string, number> = { hook: 30, pacing: 20, clarity: 20, cta: 15, emotion: 15 };
+  for (const [dim, score] of Object.entries(evalBreakdown)) {
+    const max = dimMax[dim] || 20;
+    if ((score / max) < 0.7) weakDims.push(`${dim}: ${score}/${max}`);
+  }
+
+  let userMessage = `【最新評価】スコア: ${evalScore}/100\n弱点: ${weakDims.length > 0 ? weakDims.join(', ') : 'なし'}\nフィードバック: ${evalFeedback}`;
+  if (currentRules) {
+    userMessage = `【現在のノウハウ】\n${currentRules}\n\n${userMessage}`;
+  } else {
+    userMessage = `【現在のノウハウ】\n（初回 — ゼロから構築）\n\n${userMessage}`;
+  }
+
+  const result = await callLLM(apiKey, systemPrompt, userMessage, 1024);
+  const costUsd = result.inputTokens * INPUT_COST_PER_TOKEN + result.outputTokens * OUTPUT_COST_PER_TOKEN;
+
+  return {
+    updatedRules: result.content.trim(),
+    inputTokens: result.inputTokens,
+    outputTokens: result.outputTokens,
+    costUsd,
+  };
+}
+
 /**
  * Evaluate a script with a harsh "辛口" critic.
  * Score 0-100, with breakdown across 5 dimensions.

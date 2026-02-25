@@ -41,10 +41,12 @@ export async function generateSlideImages(
   const costs: ImageGenCost[] = [];
   let totalCostUsd = 0;
 
-  // Generate images in parallel (max 3 concurrent to avoid rate limits)
+  // Generate images only for key slides (hook, chapter_title, emphasis)
+  // to keep total API time within Worker waitUntil limits (~30-60s)
+  const KEY_TYPES = ['hook', 'chapter_title', 'emphasis'];
   const slidesToGenerate = slides
     .map((slide, i) => ({ slide, index: i }))
-    .filter(({ slide }) => slide.type !== 'cta');
+    .filter(({ slide }) => KEY_TYPES.includes(slide.type));
 
   const batchSize = 3;
   for (let batch = 0; batch < slidesToGenerate.length; batch += batchSize) {
