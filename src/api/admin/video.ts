@@ -909,9 +909,15 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     let bestScore = 0;
 
     try {
-      // Step 1: Rewrite
+      // Step 0: Fetch past eval knowhow (PDCA feedback loop)
+      const pastLearnings = await buildEvalKnowhow(env.DB);
+      if (pastLearnings) {
+        await logEvent(env.DB, videoPostId, 'llm_knowhow', 'info', `PDCA knowhow injected: ${pastLearnings.length} chars from past evaluations`);
+      }
+
+      // Step 1: Rewrite (with past learnings from PDCA)
       await logEvent(env.DB, videoPostId, 'llm_rewrite', 'started', 'LLM script rewrite started');
-      const rewriteResult = await rewriteScript(openrouterKey, script_text, targetDuration);
+      const rewriteResult = await rewriteScript(openrouterKey, script_text, targetDuration, undefined, pastLearnings);
       bestScript = rewriteResult.rewrittenScript;
 
       await recordCost(env.DB, videoPostId, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4');
@@ -988,7 +994,7 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
         video_post_id: videoPostId,
         status: renderResult.success ? 'rendering' : 'queued_render',
         llm_eval_score: bestScore,
-        llm_eval_attempts: totalAttempts,
+        llm_eval_attempts: 1,
         slides_count: finalPayload.slides.length,
         estimated_duration_sec: finalPayload.metadata.totalDurationSec,
         slides_preview: finalPayload.slides.map(s => ({ type: s.type, text: s.text.substring(0, 50), durationSec: s.durationSec })),
@@ -1839,6 +1845,172 @@ export async function analyzeVariants(request: Request, env: Env): Promise<Respo
     next_variant_suggestions: nextVariantSpecs,
     variant_analysis: variantAnalysis,
     suggestion_id: suggestionId,
+  }, requestId);
+}
+
+// ============================================
+// Eval Knowhow: PDCA Feedback Aggregation
+// ============================================
+
+/**
+ * Aggregate past eval feedback into learnings for the next rewrite.
+ * Queries recent evaluated video posts and builds a structured summary.
+ */
+async function buildEvalKnowhow(db: D1Database, limit: number = 10): Promise<string | undefined> {
+  const rows = await db.prepare(
+    `SELECT llm_eval_score, llm_eval_feedback
+     FROM video_posts
+     WHERE llm_eval_score IS NOT NULL AND llm_eval_feedback IS NOT NULL AND llm_eval_score > 0
+     ORDER BY created_at DESC LIMIT ?`
+  ).bind(limit).all();
+
+  if (!rows.results || rows.results.length === 0) return undefined;
+
+  // Parse feedback and aggregate dimension scores
+  const dimensionTotals = { hook: 0, pacing: 0, clarity: 0, cta: 0, emotion: 0 };
+  const dimensionMax = { hook: 30, pacing: 20, clarity: 20, cta: 15, emotion: 15 };
+  const feedbackTexts: string[] = [];
+  let count = 0;
+
+  for (const row of rows.results) {
+    try {
+      const evalData = JSON.parse(row.llm_eval_feedback as string);
+      if (evalData.breakdown) {
+        dimensionTotals.hook += evalData.breakdown.hook || 0;
+        dimensionTotals.pacing += evalData.breakdown.pacing || 0;
+        dimensionTotals.clarity += evalData.breakdown.clarity || 0;
+        dimensionTotals.cta += evalData.breakdown.cta || 0;
+        dimensionTotals.emotion += evalData.breakdown.emotion || 0;
+        count++;
+      }
+      if (evalData.feedback) {
+        feedbackTexts.push(evalData.feedback);
+      }
+    } catch { /* skip unparseable */ }
+  }
+
+  if (count === 0) return undefined;
+
+  // Calculate average scores and identify weak dimensions
+  const avgScores = {
+    hook: Math.round(dimensionTotals.hook / count),
+    pacing: Math.round(dimensionTotals.pacing / count),
+    clarity: Math.round(dimensionTotals.clarity / count),
+    cta: Math.round(dimensionTotals.cta / count),
+    emotion: Math.round(dimensionTotals.emotion / count),
+  };
+
+  // Find weak dimensions (below 70% of max)
+  const weakDimensions: string[] = [];
+  for (const [dim, avg] of Object.entries(avgScores)) {
+    const max = dimensionMax[dim as keyof typeof dimensionMax];
+    const pct = (avg / max) * 100;
+    if (pct < 70) {
+      weakDimensions.push(`${dim} (avg ${avg}/${max} = ${Math.round(pct)}%)`);
+    }
+  }
+
+  // Build learnings string
+  const lines: string[] = [];
+  lines.push(`Based on ${count} past evaluations (avg score: ${Math.round(rows.results.reduce((s, r) => s + (r.llm_eval_score as number), 0) / count)}/100):`);
+
+  if (weakDimensions.length > 0) {
+    lines.push(`\nWeak areas to improve: ${weakDimensions.join(', ')}`);
+  }
+
+  // Extract unique feedback patterns (deduplicated, last 5)
+  const recentFeedback = feedbackTexts.slice(0, 5);
+  if (recentFeedback.length > 0) {
+    lines.push('\nRecent evaluator feedback:');
+    recentFeedback.forEach((fb, i) => {
+      // Truncate long feedback to keep prompt size manageable
+      const truncated = fb.length > 200 ? fb.substring(0, 200) + '...' : fb;
+      lines.push(`${i + 1}. ${truncated}`);
+    });
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * GET /api/admin/eval-knowhow — View accumulated evaluation insights
+ */
+export async function getEvalKnowhow(request: Request, env: Env): Promise<Response> {
+  const authResult = await requireAdmin(request, env);
+  if (!authResult.success) return authResult.error!;
+  const requestId = generateRequestId();
+
+  // Get aggregated knowhow
+  const rows = await env.DB.prepare(
+    `SELECT llm_eval_score, llm_eval_feedback, internal_title, created_at
+     FROM video_posts
+     WHERE llm_eval_score IS NOT NULL AND llm_eval_feedback IS NOT NULL AND llm_eval_score > 0
+     ORDER BY created_at DESC LIMIT 20`
+  ).all();
+
+  if (!rows.results || rows.results.length === 0) {
+    return success({ knowhow: null, message: 'No evaluations yet', history: [] }, requestId);
+  }
+
+  // Parse all evaluations
+  const history: any[] = [];
+  const dimensionTotals = { hook: 0, pacing: 0, clarity: 0, cta: 0, emotion: 0 };
+  const dimensionMax = { hook: 30, pacing: 20, clarity: 20, cta: 15, emotion: 15 };
+  let count = 0;
+
+  for (const row of rows.results) {
+    try {
+      const evalData = JSON.parse(row.llm_eval_feedback as string);
+      history.push({
+        title: row.internal_title,
+        score: row.llm_eval_score,
+        feedback: evalData.feedback,
+        breakdown: evalData.breakdown,
+        created_at: row.created_at,
+      });
+      if (evalData.breakdown) {
+        dimensionTotals.hook += evalData.breakdown.hook || 0;
+        dimensionTotals.pacing += evalData.breakdown.pacing || 0;
+        dimensionTotals.clarity += evalData.breakdown.clarity || 0;
+        dimensionTotals.cta += evalData.breakdown.cta || 0;
+        dimensionTotals.emotion += evalData.breakdown.emotion || 0;
+        count++;
+      }
+    } catch { /* skip */ }
+  }
+
+  const avgScores = count > 0 ? {
+    hook: Math.round(dimensionTotals.hook / count * 10) / 10,
+    pacing: Math.round(dimensionTotals.pacing / count * 10) / 10,
+    clarity: Math.round(dimensionTotals.clarity / count * 10) / 10,
+    cta: Math.round(dimensionTotals.cta / count * 10) / 10,
+    emotion: Math.round(dimensionTotals.emotion / count * 10) / 10,
+  } : null;
+
+  const avgTotal = count > 0 ? Math.round(rows.results.reduce((s, r) => s + (r.llm_eval_score as number), 0) / count) : 0;
+
+  // Identify weak/strong areas
+  const weakAreas: string[] = [];
+  const strongAreas: string[] = [];
+  if (avgScores) {
+    for (const [dim, avg] of Object.entries(avgScores)) {
+      const max = dimensionMax[dim as keyof typeof dimensionMax];
+      const pct = (avg / max) * 100;
+      if (pct < 70) weakAreas.push(dim);
+      else if (pct >= 85) strongAreas.push(dim);
+    }
+  }
+
+  return success({
+    knowhow: {
+      total_evaluations: count,
+      avg_score: avgTotal,
+      avg_breakdown: avgScores,
+      weak_areas: weakAreas,
+      strong_areas: strongAreas,
+      dimension_max: dimensionMax,
+    },
+    history,
   }, requestId);
 }
 

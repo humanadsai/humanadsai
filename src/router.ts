@@ -147,6 +147,7 @@ import {
   addVideoMetrics,
   getVideoMetrics,
   analyzeVariants,
+  getEvalKnowhow,
 } from './api/admin/video';
 
 // Config API
@@ -1507,6 +1508,11 @@ async function handleAdminApi(
   // PDCA analysis (must be before :id regex)
   if (path === '/api/admin/video-posts/analyze' && method === 'POST') {
     return analyzeVariants(request, env);
+  }
+
+  // Eval knowhow (PDCA feedback aggregation)
+  if (path === '/api/admin/eval-knowhow' && method === 'GET') {
+    return getEvalKnowhow(request, env);
   }
 
   // Metrics endpoints
