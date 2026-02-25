@@ -524,8 +524,10 @@ async function triggerRemotionRender(
   }
 
   // Remotion Lambda expects this payload shape for renderMediaOnLambda
+  const remotionVersion = (env as any).REMOTION_VERSION || '4.0.242';
   const remotionPayload: Record<string, unknown> = {
     type: 'start',
+    version: remotionVersion,
     serveUrl,
     composition: 'Slideshow',
     codec: 'h264',
