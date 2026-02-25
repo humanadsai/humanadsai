@@ -860,14 +860,10 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     scheduledAtUtc = new Date(body.scheduled_at).toISOString();
   }
 
-  // Determine initial status: if LLM APIs are configured, start with 'queued' for LLM pipeline;
-  // otherwise fall back to 'queued_render' for direct rendering
-  const hasLlmPipeline = !!(env as any).OPENROUTER_API_KEY;
-  const initialStatus = hasLlmPipeline ? 'queued' : 'queued_render';
-
+  const openrouterKey = (env as any).OPENROUTER_API_KEY;
   const videoPostId = generateId('vp_');
 
-  // Insert video_post
+  // Insert video_post (initial status: script_rewriting if LLM available, queued_render otherwise)
   await env.DB.prepare(
     `INSERT INTO video_posts (
       id, internal_title, template_type, script_text, slides_json, slides_count,
@@ -887,7 +883,7 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     body.yt_visibility || 'unlisted',
     body.cta_text || null,
     body.bgm_preset || 'none',
-    initialStatus,
+    openrouterKey ? 'script_rewriting' : 'queued_render',
     publish_mode,
     scheduledAtUtc,
     authResult.context!.operator.id,
@@ -901,55 +897,173 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     ).bind(generateId('vt_'), videoPostId, platform).run();
   }
 
-  // Log event
   await logEvent(env.DB, videoPostId, 'build', 'success',
-    `Slides built: ${slidesPayload.slides.length} slides, ${slidesPayload.metadata.totalDurationSec}s. Pipeline: ${hasLlmPipeline ? 'LLM+ImageGen+Render' : 'Direct Render'}`,
-    { slidesCount: slidesPayload.slides.length, duration: slidesPayload.metadata.totalDurationSec, pipeline: initialStatus }
+    `Slides built: ${slidesPayload.slides.length} slides, ${slidesPayload.metadata.totalDurationSec}s`,
+    { slidesCount: slidesPayload.slides.length, duration: slidesPayload.metadata.totalDurationSec }
   );
 
-  // If no LLM pipeline, create render job and trigger immediately (legacy flow)
-  if (!hasLlmPipeline) {
-    const renderJobId = generateId('vr_');
-    await env.DB.prepare(
-      `INSERT INTO video_render_jobs (
-        id, video_post_id, remotion_composition, input_payload_json,
-        render_status, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-    ).bind(
-      renderJobId,
-      videoPostId,
-      template_type === 'slideshow' ? 'Slideshow' : 'Explainer',
-      JSON.stringify(slidesPayload),
-    ).run();
+  // ── LLM Pipeline: run inline ──
+  if (openrouterKey) {
+    const targetDuration = Math.max(15, Math.min(45, body.duration_target_sec || 30));
+    let currentScript = script_text;
+    let bestScript = script_text;
+    let bestScore = 0;
+    let totalAttempts = 0;
+    const MAX_INLINE_ATTEMPTS = 10;
 
-    const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, slidesPayload);
-    if (renderResult.success && renderResult.renderId) {
+    try {
+      // Step 1: Rewrite
+      await logEvent(env.DB, videoPostId, 'llm_rewrite', 'started', 'LLM script rewrite started');
+      const rewriteResult = await rewriteScript(openrouterKey, script_text, targetDuration);
+      currentScript = rewriteResult.rewrittenScript;
+      bestScript = currentScript;
+
+      await recordCost(env.DB, videoPostId, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4');
+      await logEvent(env.DB, videoPostId, 'llm_rewrite', 'success',
+        `Script rewritten: ${rewriteResult.outputTokens} tokens, $${rewriteResult.costUsd.toFixed(4)}`
+      );
+
       await env.DB.prepare(
-        `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
-      ).bind(renderResult.renderId, renderJobId).run();
+        `UPDATE video_posts SET llm_rewritten_script = ?, status = 'evaluating_script', updated_at = datetime('now') WHERE id = ?`
+      ).bind(currentScript, videoPostId).run();
+
+      // Step 2: Evaluate loop (up to 10 attempts)
+      for (let attempt = 1; attempt <= MAX_INLINE_ATTEMPTS; attempt++) {
+        totalAttempts = attempt;
+        await logEvent(env.DB, videoPostId, 'llm_eval', 'started', `Evaluation attempt #${attempt}`);
+
+        const evalResult = await evaluateScript(openrouterKey, currentScript);
+        await recordCost(env.DB, videoPostId, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4',
+          { attempt, score: evalResult.score }
+        );
+
+        await logEvent(env.DB, videoPostId, 'llm_eval', 'completed',
+          `Score: ${evalResult.score}/100 (#${attempt}). H${evalResult.breakdown.hook}/P${evalResult.breakdown.pacing}/C${evalResult.breakdown.clarity}/CTA${evalResult.breakdown.cta}/E${evalResult.breakdown.emotion}`,
+          { score: evalResult.score, breakdown: evalResult.breakdown }
+        );
+
+        if (evalResult.score > bestScore) {
+          bestScore = evalResult.score;
+          bestScript = currentScript;
+        }
+
+        if (evalResult.score >= 90) {
+          // Passed!
+          await env.DB.prepare(
+            `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
+              llm_rewritten_script = ?, status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
+          ).bind(evalResult.score, attempt, JSON.stringify(evalResult), currentScript, videoPostId).run();
+          await logEvent(env.DB, videoPostId, 'llm_eval', 'success', `Script approved: ${evalResult.score}/100 after ${attempt} attempt(s)`);
+          break;
+        }
+
+        if (attempt >= MAX_INLINE_ATTEMPTS) {
+          // Max attempts — use best version
+          await env.DB.prepare(
+            `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
+              llm_rewritten_script = ?, status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
+          ).bind(bestScore, attempt, JSON.stringify(evalResult), bestScript, videoPostId).run();
+          await logEvent(env.DB, videoPostId, 'llm_eval', 'warning',
+            `Max attempts (10) reached. Using best script with score ${bestScore}/100`
+          );
+          break;
+        }
+
+        // Rewrite with feedback
+        const rewriteRetry = await rewriteScript(openrouterKey, script_text, targetDuration, evalResult.feedback);
+        currentScript = rewriteRetry.rewrittenScript;
+        await recordCost(env.DB, videoPostId, 'llm_rewrite', rewriteRetry.costUsd, rewriteRetry.inputTokens, rewriteRetry.outputTokens, 'claude-sonnet-4',
+          { attempt, rewriteAfterEval: true }
+        );
+
+        await env.DB.prepare(
+          `UPDATE video_posts SET llm_rewritten_script = ?, llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
+            updated_at = datetime('now') WHERE id = ?`
+        ).bind(currentScript, evalResult.score, attempt, JSON.stringify(evalResult), videoPostId).run();
+      }
+
+      // Step 3: Rebuild slides from approved script
+      const finalScript = bestScore >= 90 ? currentScript : bestScript;
+      const finalPayload = buildEnhancedSlidesPayload(
+        finalScript, template_type, internal_title,
+        body.caption_text || '', body.hashtags_text || '', body.bgm_preset || 'none',
+      );
+      const finalDuration = Math.max(15, Math.min(45, finalPayload.metadata.totalDurationSec));
+      finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, finalDuration);
+      finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
+
       await env.DB.prepare(
-        `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+        `UPDATE video_posts SET slides_json = ?, slides_count = ?, updated_at = datetime('now') WHERE id = ?`
+      ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
+
+      // Step 4: Trigger render
+      const renderJobId = generateId('vr_');
+      await env.DB.prepare(
+        `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
+      ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
+
+      await env.DB.prepare(
+        `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
       ).bind(videoPostId).run();
-      await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
-    } else {
-      await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued (Remotion Lambda not configured yet)');
-    }
 
-    return success({
-      video_post_id: videoPostId,
-      status: renderResult.success ? 'rendering' : 'queued_render',
-      render_job_id: renderJobId,
-      slides_count: slidesPayload.slides.length,
-      estimated_duration_sec: slidesPayload.metadata.totalDurationSec,
-      slides_preview: slidesPayload.slides.map(s => ({ type: s.type, text: s.text.substring(0, 50), durationSec: s.durationSec })),
-    }, requestId, 201);
+      const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
+      if (renderResult.success && renderResult.renderId) {
+        await env.DB.prepare(
+          `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+        ).bind(renderResult.renderId, renderJobId).run();
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+        ).bind(videoPostId).run();
+        await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+      } else {
+        await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued');
+      }
+
+      return success({
+        video_post_id: videoPostId,
+        status: renderResult.success ? 'rendering' : 'queued_render',
+        llm_eval_score: bestScore,
+        llm_eval_attempts: totalAttempts,
+        slides_count: finalPayload.slides.length,
+        estimated_duration_sec: finalPayload.metadata.totalDurationSec,
+        slides_preview: finalPayload.slides.map(s => ({ type: s.type, text: s.text.substring(0, 50), durationSec: s.durationSec })),
+      }, requestId, 201);
+
+    } catch (llmErr: any) {
+      // LLM failed — fall through to direct render with original script
+      console.error(`[VideoPost] LLM pipeline error: ${llmErr.message}`);
+      await logEvent(env.DB, videoPostId, 'llm_pipeline', 'failed', `LLM error: ${llmErr.message}. Falling back to direct render.`);
+    }
   }
 
-  // LLM pipeline — cron will pick this up
+  // Direct render flow (no LLM or LLM failed)
+  const renderJobId = generateId('vr_');
+  await env.DB.prepare(
+    `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
+  ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(slidesPayload)).run();
+
+  const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, slidesPayload);
+  if (renderResult.success && renderResult.renderId) {
+    await env.DB.prepare(
+      `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+    ).bind(renderResult.renderId, renderJobId).run();
+    await env.DB.prepare(
+      `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+    ).bind(videoPostId).run();
+    await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+  } else {
+    await env.DB.prepare(
+      `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+    ).bind(videoPostId).run();
+    await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued');
+  }
+
   return success({
     video_post_id: videoPostId,
-    status: 'queued',
-    pipeline: 'llm_rewrite → evaluate → image_gen → render → postiz',
+    status: renderResult.success ? 'rendering' : 'queued_render',
+    render_job_id: renderJobId,
     slides_count: slidesPayload.slides.length,
     estimated_duration_sec: slidesPayload.metadata.totalDurationSec,
     slides_preview: slidesPayload.slides.map(s => ({ type: s.type, text: s.text.substring(0, 50), durationSec: s.durationSec })),
