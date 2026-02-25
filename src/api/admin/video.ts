@@ -14,6 +14,7 @@ import type { Env } from '../../types';
 import { success, error, errors, generateRequestId } from '../../utils/response';
 import { requireAdmin } from '../../middleware/admin';
 import { arrayBufferToHex } from '../../utils/crypto';
+import { invokeLambda } from '../../lib/aws-sigv4';
 
 // ============================================
 // ID Generation
@@ -510,18 +511,64 @@ async function triggerRemotionRender(
   const region = (env as any).REMOTION_AWS_REGION || 'ap-northeast-1';
   const serveUrl = (env as any).REMOTION_SERVE_URL;
   const webhookSecret = (env as any).REMOTION_WEBHOOK_SECRET;
+  const accessKeyId = (env as any).AWS_ACCESS_KEY_ID;
+  const secretAccessKey = (env as any).AWS_SECRET_ACCESS_KEY;
+  const appUrl = (env as any).APP_URL || 'https://humanadsai.com';
 
   if (!functionName || !serveUrl) {
     return { success: false, error: 'Remotion Lambda not configured. Set REMOTION_LAMBDA_FUNCTION and REMOTION_SERVE_URL.' };
   }
 
-  // For MVP: call Remotion Lambda via AWS API Gateway or direct Lambda invoke
-  // This is a placeholder - actual implementation needs AWS SigV4 signing or API Gateway
-  // For now, store the payload and mark as queued for manual/external processing
-  return {
-    success: true,
-    renderId: `render_${generateId('')}`,
+  if (!accessKeyId || !secretAccessKey) {
+    return { success: false, error: 'AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.' };
+  }
+
+  // Remotion Lambda expects this payload shape for renderMediaOnLambda
+  const remotionPayload: Record<string, unknown> = {
+    type: 'start',
+    serveUrl,
+    composition: 'Slideshow',
+    codec: 'h264',
+    imageFormat: 'jpeg',
+    inputProps: payload,
+    maxRetries: 1,
+    privacy: 'public',
+    logLevel: 'warning',
+    timeoutInMilliseconds: 240000,
+    outName: null,
   };
+
+  if (webhookSecret) {
+    remotionPayload.webhook = {
+      url: `${appUrl}/api/webhooks/remotion`,
+      secret: webhookSecret,
+      customData: { videoPostId, renderJobId },
+    };
+  }
+
+  try {
+    const result = await invokeLambda({
+      functionName,
+      region,
+      payload: remotionPayload,
+      invocationType: 'Event', // async — avoids Worker timeout
+      accessKeyId,
+      secretAccessKey,
+    });
+
+    if (result.statusCode === 202) {
+      // Async invoke accepted; actual renderId arrives via webhook
+      return { success: true, renderId: `lambda_${renderJobId}` };
+    }
+
+    return {
+      success: false,
+      error: `Lambda invoke failed: HTTP ${result.statusCode} – ${result.body || 'no body'}`,
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { success: false, error: `Lambda invoke error: ${message}` };
+  }
 }
 
 // ============================================
