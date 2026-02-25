@@ -950,28 +950,7 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
           `Script approved with score ${evalResult.score}/100. Proceeding to render.`
         );
 
-        // Step 2.5: Auto-update PDCA knowhow from eval feedback
-        try {
-          const currentRules = knowhowRow?.rules_text || '';
-          const currentVersion = knowhowRow?.version || 0;
-          const knowhowResult = await updateKnowhow(
-            openrouterKey, currentRules, evalResult.feedback, evalResult.breakdown, evalResult.score
-          );
-          await env.DB.prepare(
-            `INSERT INTO video_knowhow (id, rules_text, version, eval_count, updated_at)
-             VALUES ('global', ?, ?, 1, datetime('now'))
-             ON CONFLICT(id) DO UPDATE SET rules_text = ?, version = ?, eval_count = eval_count + 1, updated_at = datetime('now')`
-          ).bind(knowhowResult.updatedRules, currentVersion + 1, knowhowResult.updatedRules, currentVersion + 1).run();
-          await recordCost(env.DB, videoPostId, 'llm_knowhow', knowhowResult.costUsd, knowhowResult.inputTokens, knowhowResult.outputTokens, 'claude-sonnet-4');
-          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'success',
-            `Knowhow updated to v${currentVersion + 1}: ${knowhowResult.updatedRules.split('\n').length} rules, $${knowhowResult.costUsd.toFixed(4)}`
-          );
-        } catch (knowhowErr: any) {
-          console.error('[Pipeline] Knowhow update failed:', knowhowErr.message);
-          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'failed', knowhowErr.message);
-        }
-
-        // Step 3: Rebuild slides from rewritten script
+        // Step 3: Rebuild slides from rewritten script (knowhow update deferred to after render)
         const finalPayload = buildEnhancedSlidesPayload(
           bestScript, template_type, internal_title,
           body.caption_text || '', body.hashtags_text || '', body.bgm_preset || 'none',
@@ -998,8 +977,9 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
           for (const cost of imageResult.costs) {
             await recordCost(env.DB, videoPostId, 'image_gen', cost.amountUsd, undefined, undefined, cost.model, { slideIndex: cost.slideIndex });
           }
-          await logEvent(env.DB, videoPostId, 'image_gen', 'success',
-            `Generated ${imageResult.images.length} images, $${imageResult.totalCostUsd.toFixed(4)}`
+          const errSuffix = imageResult.errors.length > 0 ? ` (${imageResult.errors.length} failed: ${imageResult.errors[0].substring(0, 100)})` : '';
+          await logEvent(env.DB, videoPostId, 'image_gen', imageResult.images.length > 0 ? 'success' : 'failed',
+            `Generated ${imageResult.images.length} images, $${imageResult.totalCostUsd.toFixed(4)}${errSuffix}`
           );
         }
 
@@ -1025,6 +1005,26 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
           await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
         } else {
           await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued, will retry');
+        }
+
+        // Step 6: Update PDCA knowhow (after render, non-critical)
+        try {
+          const currentRules = knowhowRow?.rules_text || '';
+          const currentVersion = knowhowRow?.version || 0;
+          const knowhowResult = await updateKnowhow(
+            openrouterKey, currentRules, evalResult.feedback, evalResult.breakdown, evalResult.score
+          );
+          await env.DB.prepare(
+            `INSERT INTO video_knowhow (id, rules_text, version, eval_count, updated_at)
+             VALUES ('global', ?, ?, 1, datetime('now'))
+             ON CONFLICT(id) DO UPDATE SET rules_text = ?, version = ?, eval_count = eval_count + 1, updated_at = datetime('now')`
+          ).bind(knowhowResult.updatedRules, currentVersion + 1, knowhowResult.updatedRules, currentVersion + 1).run();
+          await recordCost(env.DB, videoPostId, 'llm_knowhow', knowhowResult.costUsd, knowhowResult.inputTokens, knowhowResult.outputTokens, 'claude-sonnet-4');
+          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'success',
+            `Knowhow updated to v${currentVersion + 1}: ${knowhowResult.updatedRules.split('\n').length} rules, $${knowhowResult.costUsd.toFixed(4)}`
+          );
+        } catch (knowhowErr: any) {
+          console.error('[Pipeline] Knowhow update failed (non-critical):', knowhowErr.message);
         }
       } catch (err: any) {
         console.error(`[VideoPost] Pipeline error: ${err.message}`);
