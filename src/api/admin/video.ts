@@ -1169,7 +1169,7 @@ export async function handleRemotionWebhook(request: Request, env: Env): Promise
     return error('WEBHOOK_INVALID', 'Invalid webhook', requestId, 401);
   }
 
-  // Verify HMAC
+  // Verify HMAC — Remotion signs JSON.stringify(body) and prefixes with "sha512="
   const bodyText = await request.text();
   const key = await crypto.subtle.importKey(
     'raw',
@@ -1179,7 +1179,7 @@ export async function handleRemotionWebhook(request: Request, env: Env): Promise
     ['sign']
   );
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(bodyText));
-  const expectedSig = arrayBufferToHex(sig);
+  const expectedSig = `sha512=${arrayBufferToHex(sig)}`;
 
   if (signature !== expectedSig) {
     console.error('[RemotionWebhook] Signature mismatch');
