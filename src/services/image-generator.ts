@@ -1,14 +1,14 @@
 /**
  * Image Generator Service — OpenAI gpt-image integration for slide images.
  *
- * Generates portrait images (1024x1792) for 9:16 video slides.
- * Returns URLs that Remotion can render during Lambda render.
+ * Generates portrait images (1024x1536) for 9:16 video slides.
+ * Returns base64 data URIs (JPEG) that Remotion can render.
  */
 
 const OPENAI_IMAGES_URL = 'https://api.openai.com/v1/images/generations';
 const IMAGE_MODEL = 'gpt-image-1';
-// gpt-image-1 pricing: ~$0.02 per 1024x1024 low, ~$0.04 per 1024x1792 low
-const COST_PER_IMAGE = 0.04;
+// gpt-image-1 pricing: $0.011 per 1024x1024 low, $0.016 per 1024x1536 low
+const COST_PER_IMAGE = 0.016;
 
 export interface GeneratedImage {
   slideIndex: number;
@@ -87,12 +87,12 @@ function buildImagePrompt(text: string, slideType: string): string {
     style = 'minimal, elegant, soft gradient light, abstract geometric';
   }
 
-  return `Cinematic background image for a vertical video slide about: "${cleanText}". Style: ${style}. No text, no letters, no words, no watermarks. Dark enough that white text overlaid will be readable. Vertical 9:16 aspect ratio.`;
+  return `Cinematic background image for a vertical video slide about: "${cleanText}". Style: ${style}. No text, no letters, no words, no watermarks. Dark enough that white text overlaid will be readable. Vertical portrait orientation.`;
 }
 
 /**
  * Call OpenAI Images API to generate a single image.
- * Returns a temporary URL (valid ~60 min).
+ * Returns a data URI (base64 JPEG) or temporary URL.
  */
 async function generateSingleImage(apiKey: string, prompt: string): Promise<string> {
   const res = await fetch(OPENAI_IMAGES_URL, {
@@ -105,8 +105,9 @@ async function generateSingleImage(apiKey: string, prompt: string): Promise<stri
       model: IMAGE_MODEL,
       prompt,
       n: 1,
-      size: '1024x1792',
+      size: '1024x1536',
       quality: 'low',
+      output_format: 'jpeg',
     }),
   });
 
@@ -122,7 +123,7 @@ async function generateSingleImage(apiKey: string, prompt: string): Promise<stri
     return data.data[0].url;
   }
   if (data.data?.[0]?.b64_json) {
-    return `data:image/png;base64,${data.data[0].b64_json}`;
+    return `data:image/jpeg;base64,${data.data[0].b64_json}`;
   }
 
   throw new Error('No image data in OpenAI response');

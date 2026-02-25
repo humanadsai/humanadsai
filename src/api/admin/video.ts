@@ -2313,7 +2313,7 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
         // Update slides with generated images
         for (const img of imageResult.images) {
           if (slidesPayload.slides[img.slideIndex]) {
-            (slidesPayload.slides[img.slideIndex] as any).imageUrl = img.imageDataUri;
+            (slidesPayload.slides[img.slideIndex] as any).imageUrl = img.imageUrl;
           }
         }
 
