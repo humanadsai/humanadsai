@@ -1259,8 +1259,8 @@
     document.getElementById('vp-mode').addEventListener('change', function() {
       document.getElementById('vp-schedule-group').style.display = this.value === 'scheduled' ? 'block' : 'none';
     });
-    // Set default scheduled date to now + 1 min (JST)
-    var now = new Date(Date.now() + 60000);
+    // Set default scheduled date to now + 3 min (JST)
+    var now = new Date(Date.now() + 180000);
     var jstOffset = 9 * 60 * 60000;
     var jstDate = new Date(now.getTime() + jstOffset);
     document.getElementById('vp-scheduled-at').value = jstDate.toISOString().slice(0, 16);
