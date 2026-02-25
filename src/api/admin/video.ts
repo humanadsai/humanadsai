@@ -778,7 +778,7 @@ async function createPostizPost(
 /**
  * POST /api/admin/video-posts
  */
-export async function createVideoPost(request: Request, env: Env): Promise<Response> {
+export async function createVideoPost(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
   const authResult = await requireAdmin(request, env);
   if (!authResult.success) return authResult.error!;
 
@@ -963,36 +963,46 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
       finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
 
       await env.DB.prepare(
-        `UPDATE video_posts SET slides_json = ?, slides_count = ?, updated_at = datetime('now') WHERE id = ?`
+        `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
       ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
 
-      // Step 4: Trigger render
+      // Step 4: Trigger render via waitUntil (async, avoids 30s timeout)
       const renderJobId = generateId('vr_');
       await env.DB.prepare(
         `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
          VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
       ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
 
-      await env.DB.prepare(
-        `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
-      ).bind(videoPostId).run();
+      // Use waitUntil to trigger render without blocking the response
+      const renderPromise = (async () => {
+        try {
+          const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
+          if (renderResult.success && renderResult.renderId) {
+            await env.DB.prepare(
+              `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+            ).bind(renderResult.renderId, renderJobId).run();
+            await env.DB.prepare(
+              `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+            ).bind(videoPostId).run();
+            await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+          } else {
+            await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued, will retry');
+          }
+        } catch (renderErr: any) {
+          console.error(`[VideoPost] Async render trigger error: ${renderErr.message}`);
+          await logEvent(env.DB, videoPostId, 'render', 'failed', `Render trigger error: ${renderErr.message}. Use Retry button.`);
+        }
+      })();
 
-      const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
-      if (renderResult.success && renderResult.renderId) {
-        await env.DB.prepare(
-          `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
-        ).bind(renderResult.renderId, renderJobId).run();
-        await env.DB.prepare(
-          `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
-        ).bind(videoPostId).run();
-        await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+      if (ctx) {
+        ctx.waitUntil(renderPromise);
       } else {
-        await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued');
+        await renderPromise;
       }
 
       return success({
         video_post_id: videoPostId,
-        status: renderResult.success ? 'rendering' : 'queued_render',
+        status: 'queued_render',
         llm_eval_score: bestScore,
         llm_eval_attempts: 1,
         slides_count: finalPayload.slides.length,
@@ -1139,7 +1149,7 @@ export async function getVideoPost(request: Request, env: Env, videoPostId: stri
 /**
  * POST /api/admin/video-posts/:id/retry
  */
-export async function retryVideoPost(request: Request, env: Env, videoPostId: string): Promise<Response> {
+export async function retryVideoPost(request: Request, env: Env, videoPostId: string, ctx?: ExecutionContext): Promise<Response> {
   const authResult = await requireAdmin(request, env);
   if (!authResult.success) return authResult.error!;
 
@@ -1167,6 +1177,10 @@ export async function retryVideoPost(request: Request, env: Env, videoPostId: st
     if (['render_failed', 'queued_render'].includes(post.status)) retryStage = 'render';
     else if (post.status === 'upload_failed') retryStage = 'postiz_upload';
     else if (['postiz_failed', 'render_succeeded'].includes(post.status)) retryStage = 'postiz_upload';
+    else if (['evaluating_script', 'script_approved', 'generating_images', 'images_ready'].includes(post.status) && post.llm_eval_score > 0 && post.llm_rewritten_script) {
+      // Eval already completed — skip to render with rewritten script
+      retryStage = 'render_from_script';
+    }
     else if (['queued', 'script_rewriting', 'evaluating_script', 'script_approved', 'generating_images', 'images_ready'].includes(post.status)) {
       // Reset to beginning of LLM pipeline
       retryStage = 'llm_pipeline';
@@ -1245,6 +1259,63 @@ export async function retryVideoPost(request: Request, env: Env, videoPostId: st
     await logEvent(env.DB, videoPostId, 'postiz_send', 'retry', `Postiz send retry #${post.retry_count + 1}`);
 
     return success({ status: 'queued_postiz', retry_count: post.retry_count + 1, message: 'Queued for Postiz send on next cron cycle' }, requestId);
+  }
+
+  if (retryStage === 'render_from_script') {
+    // Eval already completed — rebuild slides from rewritten script and go to render
+    const finalPayload = buildEnhancedSlidesPayload(
+      post.llm_rewritten_script, post.template_type, post.internal_title,
+      post.caption_text || '', post.hashtags_text || '', post.bgm_preset || 'none',
+    );
+    const finalDuration = Math.max(15, Math.min(45, finalPayload.metadata.totalDurationSec));
+    finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, finalDuration);
+    finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum: number, s: any) => sum + s.durationSec, 0);
+
+    await env.DB.prepare(
+      `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+    ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
+
+    const renderJobId = generateId('vr_');
+    await env.DB.prepare(
+      `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
+    ).bind(renderJobId, videoPostId, post.template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
+
+    await logEvent(env.DB, videoPostId, 'render', 'retry', `Render from rewritten script (eval ${post.llm_eval_score}/100), retry #${post.retry_count + 1}`);
+
+    // Trigger render async via waitUntil
+    const renderPromise = (async () => {
+      try {
+        const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
+        if (renderResult.success && renderResult.renderId) {
+          await env.DB.prepare(
+            `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+          ).bind(renderResult.renderId, renderJobId).run();
+          await env.DB.prepare(
+            `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+          ).bind(videoPostId).run();
+          await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+        } else {
+          await logEvent(env.DB, videoPostId, 'render', 'failed', renderResult.error || 'Render trigger failed');
+        }
+      } catch (renderErr: any) {
+        await logEvent(env.DB, videoPostId, 'render', 'failed', `Render error: ${renderErr.message}`);
+      }
+    })();
+
+    if (ctx) {
+      ctx.waitUntil(renderPromise);
+    } else {
+      await renderPromise;
+    }
+
+    return success({
+      status: 'queued_render',
+      retry_count: post.retry_count + 1,
+      llm_eval_score: post.llm_eval_score,
+      slides_count: finalPayload.slides.length,
+      message: 'Rebuilding slides from rewritten script and triggering render',
+    }, requestId);
   }
 
   if (retryStage === 'llm_pipeline') {
