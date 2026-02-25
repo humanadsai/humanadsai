@@ -902,151 +902,123 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
     { slidesCount: slidesPayload.slides.length, duration: slidesPayload.metadata.totalDurationSec }
   );
 
-  // ── LLM Pipeline: run inline (1 rewrite + 1 eval, then proceed to render) ──
-  if (openrouterKey) {
+  // ── LLM Pipeline: entire pipeline runs in waitUntil for instant response ──
+  if (openrouterKey && ctx) {
     const targetDuration = Math.max(15, Math.min(45, body.duration_target_sec || 30));
-    let bestScript = script_text;
-    let bestScore = 0;
+    const openaiKey = (env as any).OPENAI_API_KEY;
 
-    try {
-      // Step 0: Fetch past eval knowhow (PDCA feedback loop)
-      const pastLearnings = await buildEvalKnowhow(env.DB);
-      if (pastLearnings) {
-        await logEvent(env.DB, videoPostId, 'llm_knowhow', 'info', `PDCA knowhow injected: ${pastLearnings.length} chars from past evaluations`);
-      }
-
-      // Step 1: Rewrite (with past learnings from PDCA)
-      await logEvent(env.DB, videoPostId, 'llm_rewrite', 'started', 'LLM script rewrite started');
-      const rewriteResult = await rewriteScript(openrouterKey, script_text, targetDuration, undefined, pastLearnings);
-      bestScript = rewriteResult.rewrittenScript;
-
-      await recordCost(env.DB, videoPostId, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4');
-      await logEvent(env.DB, videoPostId, 'llm_rewrite', 'success',
-        `Script rewritten: ${rewriteResult.outputTokens} tokens, $${rewriteResult.costUsd.toFixed(4)}`
-      );
-
-      await env.DB.prepare(
-        `UPDATE video_posts SET llm_rewritten_script = ?, status = 'evaluating_script', updated_at = datetime('now') WHERE id = ?`
-      ).bind(bestScript, videoPostId).run();
-
-      // Step 2: Evaluate once (non-blocking — score is recorded but doesn't gate rendering)
-      await logEvent(env.DB, videoPostId, 'llm_eval', 'started', 'Evaluation attempt #1');
-      const evalResult = await evaluateScript(openrouterKey, bestScript);
-      bestScore = evalResult.score;
-
-      await recordCost(env.DB, videoPostId, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4',
-        { attempt: 1, score: evalResult.score }
-      );
-
-      await logEvent(env.DB, videoPostId, 'llm_eval', 'completed',
-        `Score: ${evalResult.score}/100. H${evalResult.breakdown.hook}/P${evalResult.breakdown.pacing}/C${evalResult.breakdown.clarity}/CTA${evalResult.breakdown.cta}/E${evalResult.breakdown.emotion}`,
-        { score: evalResult.score, breakdown: evalResult.breakdown }
-      );
-
-      await env.DB.prepare(
-        `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = 1, llm_eval_feedback = ?,
-          status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
-      ).bind(evalResult.score, JSON.stringify(evalResult), videoPostId).run();
-
-      await logEvent(env.DB, videoPostId, 'llm_eval', 'success',
-        `Script approved with score ${evalResult.score}/100. Proceeding to render.`
-      );
-
-      // Step 3: Rebuild slides from rewritten script
-      const finalScript = bestScript;
-      const finalPayload = buildEnhancedSlidesPayload(
-        finalScript, template_type, internal_title,
-        body.caption_text || '', body.hashtags_text || '', body.bgm_preset || 'none',
-      );
-      const finalDuration = Math.max(15, Math.min(45, finalPayload.metadata.totalDurationSec));
-      finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, finalDuration);
-      finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
-
-      await env.DB.prepare(
-        `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
-      ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
-
-      // Step 4: Image gen + render via waitUntil (async, avoids 30s timeout)
-      const openaiKey = (env as any).OPENAI_API_KEY;
-      const renderPromise = (async () => {
-        try {
-          // Step 4a: Generate images for slides (if OPENAI_API_KEY set)
-          if (openaiKey) {
-            await logEvent(env.DB, videoPostId, 'image_gen', 'started', `Generating images for ${finalPayload.slides.filter((s: any) => s.type !== 'cta').length} slides`);
-            const imageResult = await generateSlideImages(openaiKey, finalPayload.slides);
-
-            // Attach images to slides
-            for (const img of imageResult.images) {
-              if (finalPayload.slides[img.slideIndex]) {
-                (finalPayload.slides[img.slideIndex] as any).imageUrl = img.imageUrl;
-              }
-            }
-
-            // Record image costs
-            for (const cost of imageResult.costs) {
-              await recordCost(env.DB, videoPostId, 'image_gen', cost.amountUsd, undefined, undefined, cost.model, { slideIndex: cost.slideIndex });
-            }
-
-            await logEvent(env.DB, videoPostId, 'image_gen', 'success',
-              `Generated ${imageResult.images.length} images, $${imageResult.totalCostUsd.toFixed(4)}`
-            );
-
-            // Update slides_json with images
-            await env.DB.prepare(
-              `UPDATE video_posts SET slides_json = ?, status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
-            ).bind(JSON.stringify(finalPayload), videoPostId).run();
-          } else {
-            await env.DB.prepare(
-              `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
-            ).bind(videoPostId).run();
-          }
-
-          // Step 4b: Trigger Remotion render
-          const renderJobId = generateId('vr_');
-          await env.DB.prepare(
-            `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
-             VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-          ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
-
-          const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
-          if (renderResult.success && renderResult.renderId) {
-            await env.DB.prepare(
-              `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
-            ).bind(renderResult.renderId, renderJobId).run();
-            await env.DB.prepare(
-              `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
-            ).bind(videoPostId).run();
-            await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
-          } else {
-            await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued, will retry');
-          }
-        } catch (err: any) {
-          console.error(`[VideoPost] Async pipeline error: ${err.message}`);
-          await logEvent(env.DB, videoPostId, 'pipeline', 'failed', `Async error: ${err.message}. Use Retry button.`);
+    const pipelinePromise = (async () => {
+      try {
+        // Step 0: Fetch past eval knowhow (PDCA feedback loop)
+        const pastLearnings = await buildEvalKnowhow(env.DB);
+        if (pastLearnings) {
+          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'info', `PDCA knowhow injected: ${pastLearnings.length} chars from past evaluations`);
         }
-      })();
 
-      if (ctx) {
-        ctx.waitUntil(renderPromise);
-      } else {
-        await renderPromise;
+        // Step 1: Rewrite (with past learnings from PDCA)
+        await logEvent(env.DB, videoPostId, 'llm_rewrite', 'started', 'LLM script rewrite started');
+        const rewriteResult = await rewriteScript(openrouterKey, script_text, targetDuration, undefined, pastLearnings);
+        const bestScript = rewriteResult.rewrittenScript;
+
+        await recordCost(env.DB, videoPostId, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4');
+        await logEvent(env.DB, videoPostId, 'llm_rewrite', 'success',
+          `Script rewritten: ${rewriteResult.outputTokens} tokens, $${rewriteResult.costUsd.toFixed(4)}`
+        );
+
+        await env.DB.prepare(
+          `UPDATE video_posts SET llm_rewritten_script = ?, status = 'evaluating_script', updated_at = datetime('now') WHERE id = ?`
+        ).bind(bestScript, videoPostId).run();
+
+        // Step 2: Evaluate once
+        await logEvent(env.DB, videoPostId, 'llm_eval', 'started', 'Evaluation attempt #1');
+        const evalResult = await evaluateScript(openrouterKey, bestScript);
+
+        await recordCost(env.DB, videoPostId, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4',
+          { attempt: 1, score: evalResult.score }
+        );
+        await logEvent(env.DB, videoPostId, 'llm_eval', 'completed',
+          `Score: ${evalResult.score}/100. H${evalResult.breakdown.hook}/P${evalResult.breakdown.pacing}/C${evalResult.breakdown.clarity}/CTA${evalResult.breakdown.cta}/E${evalResult.breakdown.emotion}`,
+          { score: evalResult.score, breakdown: evalResult.breakdown }
+        );
+
+        await env.DB.prepare(
+          `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = 1, llm_eval_feedback = ?,
+            status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
+        ).bind(evalResult.score, JSON.stringify(evalResult), videoPostId).run();
+        await logEvent(env.DB, videoPostId, 'llm_eval', 'success',
+          `Script approved with score ${evalResult.score}/100. Proceeding to render.`
+        );
+
+        // Step 3: Rebuild slides from rewritten script
+        const finalPayload = buildEnhancedSlidesPayload(
+          bestScript, template_type, internal_title,
+          body.caption_text || '', body.hashtags_text || '', body.bgm_preset || 'none',
+        );
+        const finalDuration = Math.max(15, Math.min(45, finalPayload.metadata.totalDurationSec));
+        finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, finalDuration);
+        finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
+
+        // Step 4: Generate images (if OPENAI_API_KEY set)
+        if (openaiKey) {
+          await env.DB.prepare(
+            `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
+          ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
+
+          await logEvent(env.DB, videoPostId, 'image_gen', 'started', `Generating images for ${finalPayload.slides.filter((s: any) => s.type !== 'cta').length} slides`);
+          const imageResult = await generateSlideImages(openaiKey, finalPayload.slides);
+
+          for (const img of imageResult.images) {
+            if (finalPayload.slides[img.slideIndex]) {
+              (finalPayload.slides[img.slideIndex] as any).imageUrl = img.imageUrl;
+            }
+          }
+          for (const cost of imageResult.costs) {
+            await recordCost(env.DB, videoPostId, 'image_gen', cost.amountUsd, undefined, undefined, cost.model, { slideIndex: cost.slideIndex });
+          }
+          await logEvent(env.DB, videoPostId, 'image_gen', 'success',
+            `Generated ${imageResult.images.length} images, $${imageResult.totalCostUsd.toFixed(4)}`
+          );
+        }
+
+        // Step 5: Update slides and trigger render
+        await env.DB.prepare(
+          `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+        ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
+
+        const renderJobId = generateId('vr_');
+        await env.DB.prepare(
+          `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
+        ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
+
+        const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
+        if (renderResult.success && renderResult.renderId) {
+          await env.DB.prepare(
+            `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+          ).bind(renderResult.renderId, renderJobId).run();
+          await env.DB.prepare(
+            `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+          ).bind(videoPostId).run();
+          await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+        } else {
+          await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued, will retry');
+        }
+      } catch (err: any) {
+        console.error(`[VideoPost] Pipeline error: ${err.message}`);
+        await logEvent(env.DB, videoPostId, 'pipeline', 'failed', `Error: ${err.message}. Use Retry button.`);
       }
+    })();
 
-      return success({
-        video_post_id: videoPostId,
-        status: 'queued_render',
-        llm_eval_score: bestScore,
-        llm_eval_attempts: 1,
-        slides_count: finalPayload.slides.length,
-        estimated_duration_sec: finalPayload.metadata.totalDurationSec,
-        slides_preview: finalPayload.slides.map(s => ({ type: s.type, text: s.text.substring(0, 50), durationSec: s.durationSec })),
-      }, requestId, 201);
+    ctx.waitUntil(pipelinePromise);
 
-    } catch (llmErr: any) {
-      // LLM failed — fall through to direct render with original script
-      console.error(`[VideoPost] LLM pipeline error: ${llmErr.message}`);
-      await logEvent(env.DB, videoPostId, 'llm_pipeline', 'failed', `LLM error: ${llmErr.message}. Falling back to direct render.`);
-    }
+    // Return immediately — pipeline runs in background
+    return success({
+      video_post_id: videoPostId,
+      status: 'script_rewriting',
+      slides_count: slidesPayload.slides.length,
+      estimated_duration_sec: slidesPayload.metadata.totalDurationSec,
+      message: 'Pipeline started. Refresh to see progress.',
+    }, requestId, 201);
   }
 
   // Direct render flow (no LLM or LLM failed)
