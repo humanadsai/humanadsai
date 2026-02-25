@@ -161,7 +161,7 @@ import {
 /**
  * メインルーター
  */
-export async function handleRequest(request: Request, env: Env): Promise<Response> {
+export async function handleRequest(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
@@ -1493,7 +1493,7 @@ async function handleAdminApi(
   // ============================================
 
   if (path === '/api/admin/video-posts' && method === 'POST') {
-    return createVideoPost(request, env);
+    return createVideoPost(request, env, ctx);
   }
 
   if (path === '/api/admin/video-posts' && method === 'GET') {
@@ -1534,7 +1534,7 @@ async function handleAdminApi(
 
   const videoPostRetryMatch = path.match(/^\/api\/admin\/video-posts\/([a-zA-Z0-9_]+)\/retry$/);
   if (videoPostRetryMatch && method === 'POST') {
-    return retryVideoPost(request, env, videoPostRetryMatch[1]);
+    return retryVideoPost(request, env, videoPostRetryMatch[1], ctx);
   }
 
   // Fallback: serve static assets from /public via env.ASSETS

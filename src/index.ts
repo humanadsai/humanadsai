@@ -49,7 +49,7 @@ export default {
         }
       }
 
-      const response = await handleRequest(request, env);
+      const response = await handleRequest(request, env, ctx);
 
       // CORS ヘッダ - restrict origin to prevent cross-origin API abuse
       const requestOrigin = request.headers.get('Origin') || '';
