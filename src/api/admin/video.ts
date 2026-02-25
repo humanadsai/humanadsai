@@ -1078,13 +1078,33 @@ export async function retryVideoPost(request: Request, env: Env, videoPostId: st
        VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
     ).bind(renderJobId, videoPostId, post.template_type === 'slideshow' ? 'Slideshow' : 'Explainer', post.slides_json).run();
 
+    await logEvent(env.DB, videoPostId, 'render', 'retry', `Render retry #${post.retry_count + 1}`);
+
+    // Trigger Remotion Lambda render
+    const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, slidesPayload);
+
+    if (renderResult.success) {
+      await env.DB.prepare(
+        `UPDATE video_render_jobs SET render_status = 'rendering', remotion_render_id = ?, started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+      ).bind(renderResult.renderId, renderJobId).run();
+
+      await env.DB.prepare(
+        `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+      ).bind(videoPostId).run();
+
+      await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+
+      return success({ status: 'rendering', render_job_id: renderJobId, render_id: renderResult.renderId }, requestId);
+    }
+
+    // Lambda not configured or failed — stay in queued_render
     await env.DB.prepare(
       `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
     ).bind(videoPostId).run();
 
-    await logEvent(env.DB, videoPostId, 'render', 'retry', `Render retry #${post.retry_count + 1}`);
+    await logEvent(env.DB, videoPostId, 'render', 'failed', `Render trigger failed: ${renderResult.error}`);
 
-    return success({ status: 'queued_render', retry_count: post.retry_count + 1 }, requestId);
+    return success({ status: 'queued_render', retry_count: post.retry_count + 1, error: renderResult.error }, requestId);
   }
 
   if (retryStage === 'postiz_upload') {
