@@ -1,11 +1,33 @@
 import { z } from 'zod';
 
+export const sceneTypeEnum = z.enum([
+  'standard',
+  'hook_punch',
+  'reveal_list',
+  'concept_explain',
+  'danger_shift',
+  'cta_tease',
+]);
+
+export const motionPresetEnum = z.enum([
+  'none',
+  'zoom_in',
+  'pulse',
+  'slide_left',
+]);
+
 export const slideSchema = z.object({
   type: z.enum(['hook', 'body', 'chapter_title', 'emphasis', 'cta', 'summary']),
   text: z.string(),
   subtext: z.string().optional(),
   durationSec: z.number().default(3),
   bgPreset: z.string().optional(),
+  // Enhanced fields for variant system
+  sceneType: sceneTypeEnum.default('standard'),
+  listItems: z.array(z.string()).optional(),
+  captionEmphasisWords: z.array(z.string()).optional(),
+  motionPreset: motionPresetEnum.default('none'),
+  visualNotes: z.string().optional(),
 });
 
 export const slideshowSchema = z.object({
@@ -30,5 +52,7 @@ export const slideshowSchema = z.object({
   }),
 });
 
+export type SceneType = z.infer<typeof sceneTypeEnum>;
+export type MotionPreset = z.infer<typeof motionPresetEnum>;
 export type Slide = z.infer<typeof slideSchema>;
 export type SlideshowProps = z.infer<typeof slideshowSchema>;

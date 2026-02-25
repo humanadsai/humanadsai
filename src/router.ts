@@ -143,6 +143,10 @@ import {
   retryVideoPost,
   deleteVideoPost,
   handleRemotionWebhook,
+  generateVariants,
+  addVideoMetrics,
+  getVideoMetrics,
+  analyzeVariants,
 } from './api/admin/video';
 
 // Config API
@@ -1493,6 +1497,25 @@ async function handleAdminApi(
 
   if (path === '/api/admin/video-posts' && method === 'GET') {
     return listVideoPosts(request, env);
+  }
+
+  // Variant generation (must be before :id regex)
+  if (path === '/api/admin/video-posts/generate-variants' && method === 'POST') {
+    return generateVariants(request, env);
+  }
+
+  // PDCA analysis (must be before :id regex)
+  if (path === '/api/admin/video-posts/analyze' && method === 'POST') {
+    return analyzeVariants(request, env);
+  }
+
+  // Metrics endpoints
+  const videoMetricsMatch = path.match(/^\/api\/admin\/video-posts\/([a-zA-Z0-9_]+)\/metrics$/);
+  if (videoMetricsMatch && method === 'POST') {
+    return addVideoMetrics(request, env, videoMetricsMatch[1]);
+  }
+  if (videoMetricsMatch && method === 'GET') {
+    return getVideoMetrics(request, env, videoMetricsMatch[1]);
   }
 
   const videoPostMatch = path.match(/^\/api\/admin\/video-posts\/([a-zA-Z0-9_]+)$/);

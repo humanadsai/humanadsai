@@ -19,6 +19,18 @@ export const bgPresets: Record<string, { background: string; textColor: string }
     background: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)',
     textColor: '#ffffff',
   },
+  danger_red: {
+    background: 'linear-gradient(135deg, #1a0000, #4a0000, #2a0000)',
+    textColor: '#ff4444',
+  },
+  warm_amber: {
+    background: 'linear-gradient(135deg, #1a1000, #3a2800, #2a1a00)',
+    textColor: '#ffb347',
+  },
+  clean_minimal: {
+    background: '#ffffff',
+    textColor: '#1a1a1a',
+  },
 };
 
 export function getPreset(name?: string) {

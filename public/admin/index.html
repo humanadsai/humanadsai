@@ -1122,9 +1122,15 @@
       '<div class="section-card">' +
         '<div class="section-header">' +
           '<h2>Video Posts</h2>' +
-          '<button class="btn-sm primary" onclick="showVideoCreateForm()">+ New Video Post</button>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button class="btn-sm primary" onclick="showVideoCreateForm()">+ New Video Post</button>' +
+            '<button class="btn-sm" style="background:#7c3aed;color:#fff;" onclick="showVariantGenForm()">Generate Variants</button>' +
+            '<button class="btn-sm" style="background:#059669;color:#fff;" onclick="showAnalysisForm()">PDCA Analysis</button>' +
+          '</div>' +
         '</div>' +
         '<div id="video-create-form" style="display:none;"></div>' +
+        '<div id="video-variant-form" style="display:none;"></div>' +
+        '<div id="video-analysis-form" style="display:none;"></div>' +
         '<div id="video-filters" style="padding:0 16px 12px;">' +
           fc(true, 'loadVideoPosts()', 'All') +
           fc(false, "loadVideoPosts('queued_render')", 'Queued') +
@@ -1156,22 +1162,28 @@
       }
       el.innerHTML =
         '<div class="table-container"><table class="data-table"><thead><tr>' +
-          '<th style="width:8%">ID</th><th style="width:20%">Title</th><th style="width:10%">Template</th>' +
-          '<th style="width:10%">Platforms</th><th style="width:10%">Mode</th><th style="width:12%">Status</th>' +
-          '<th style="width:12%">Scheduled</th><th style="width:10%">Created</th><th style="width:8%">Actions</th>' +
+          '<th style="width:6%">ID</th><th style="width:14%">Variant ID</th><th style="width:14%">Title</th>' +
+          '<th style="width:8%">Template</th><th style="width:8%">Platforms</th><th style="width:8%">Mode</th>' +
+          '<th style="width:10%">Status</th><th style="width:6%">Dur</th><th style="width:10%">Scheduled</th>' +
+          '<th style="width:9%">Created</th><th style="width:7%">Actions</th>' +
         '</tr></thead><tbody>' +
         videoState.posts.map(function(p) {
           var platforms = (p.platforms || '').split(',').filter(Boolean);
           var platformIcons = platforms.map(function(pl) {
-            return pl === 'youtube' ? '▶ YT' : (pl === 'instagram' ? '📷 IG' : pl);
+            return pl === 'youtube' ? 'YT' : (pl === 'instagram' ? 'IG' : pl);
           }).join(', ');
+          var variantBadge = p.variant_id
+            ? '<span title="' + esc(p.variant_id) + '" style="font-family:var(--font-mono);font-size:0.7rem;background:rgba(124,58,237,0.15);color:#a78bfa;padding:2px 6px;border-radius:4px;display:inline-block;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(p.variant_id.replace('YTShorts_','')) + '</span>'
+            : '<span style="color:var(--color-text-muted);font-size:0.75rem;">-</span>';
           return '<tr>' +
             '<td class="id-cell">' + esc((p.id||'').substring(0,11)) + '</td>' +
-            '<td title="' + esc(p.internal_title||'') + '">' + esc((p.internal_title||'').substring(0,30)) + '</td>' +
+            '<td>' + variantBadge + '</td>' +
+            '<td title="' + esc(p.internal_title||'') + '">' + esc((p.internal_title||'').substring(0,25)) + '</td>' +
             '<td><span class="type-badge faucet">' + esc(p.template_type||'') + '</span></td>' +
             '<td>' + esc(platformIcons) + '</td>' +
             '<td><span class="status-badge ' + (p.publish_mode==='scheduled'?'pending':'confirmed') + '">' + esc(p.publish_mode||'') + '</span></td>' +
             '<td><span class="status-badge ' + videoStatusClass(p.status) + '">' + esc(p.status||'') + '</span></td>' +
+            '<td>' + (p.duration_target_sec ? p.duration_target_sec + 's' : '-') + '</td>' +
             '<td>' + (p.scheduled_at ? fmtDt(p.scheduled_at) : '-') + '</td>' +
             '<td>' + fmtDt(p.created_at) + '</td>' +
             '<td class="action-btns">' +
@@ -1326,6 +1338,42 @@
 
       var canRetry = ['render_failed','upload_failed','postiz_failed','queued_render','render_succeeded'].includes(p.status);
 
+      // Variant info section
+      var variantSection = '';
+      if (p.variant_id) {
+        var selfScore = '';
+        if (p.self_score_json) {
+          try {
+            var ss = JSON.parse(p.self_score_json);
+            selfScore = Object.keys(ss).map(function(k) {
+              return '<span style="display:inline-block;margin:2px 4px;padding:2px 8px;border-radius:4px;background:rgba(124,58,237,0.1);font-size:0.75rem;">' + esc(k) + ': ' + ss[k] + '/10</span>';
+            }).join('');
+          } catch(e) {}
+        }
+        variantSection =
+          '<div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
+            '<h4 style="margin:0 0 8px;color:#a78bfa;">Variant Info</h4>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:12px;font-size:0.85rem;">' +
+              '<div><strong>Variant ID:</strong> <code style="font-size:0.8rem;">' + esc(p.variant_id) + '</code></div>' +
+              '<div><strong>Topic:</strong> ' + esc(p.topic_id||'-') + '</div>' +
+              '<div><strong>Episode:</strong> ' + (p.episode_number||'-') + '</div>' +
+              '<div><strong>Hook:</strong> ' + esc(p.hook_type||'-') + '</div>' +
+              '<div><strong>CTA:</strong> ' + esc(p.cta_type||'-') + '</div>' +
+              '<div><strong>Target Duration:</strong> ' + (p.duration_target_sec ? p.duration_target_sec + 's' : '-') + '</div>' +
+            '</div>' +
+            (selfScore ? '<div style="margin-top:8px;"><strong>Self Score:</strong> ' + selfScore + '</div>' : '') +
+          '</div>';
+      }
+
+      // Metrics section
+      var metricsSection =
+        '<h4 style="margin:20px 0 8px;">PDCA Metrics</h4>' +
+        '<div id="video-metrics-' + p.id + '"><div class="loading">Loading metrics...</div></div>' +
+        '<div style="margin:8px 0;">' +
+          '<button class="btn-sm" style="background:#059669;color:#fff;" onclick="showAddMetricsForm(\'' + p.id + '\')">+ Add Metrics</button>' +
+        '</div>' +
+        '<div id="video-add-metrics-' + p.id + '" style="display:none;"></div>';
+
       detailEl.innerHTML =
         '<div style="padding:16px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
@@ -1340,7 +1388,9 @@
             '<div class="summary-card"><div class="label">Retries</div><div class="value">' + (p.retry_count||0) + '/3</div></div>' +
             (p.scheduled_at ? '<div class="summary-card"><div class="label">Scheduled</div><div class="value">' + fmtDt(p.scheduled_at) + '</div></div>' : '') +
           '</div>' +
+          variantSection +
           (canRetry ? '<div style="margin:12px 0;"><button class="btn-sm success" onclick="retryVideoPost(\'' + p.id + '\')">Retry</button> <button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button></div>' : '<div style="margin:12px 0;"><button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button></div>') +
+          metricsSection +
           '<h4 style="margin:20px 0 8px;">Platform Targets</h4>' +
           '<div class="table-container"><table class="data-table"><thead><tr><th>Platform</th><th>Status</th><th>Postiz ID</th><th>URL</th><th>Error</th></tr></thead><tbody>' + (targets || '<tr><td colspan="5">No targets</td></tr>') + '</tbody></table></div>' +
           '<h4 style="margin:20px 0 8px;">Render Jobs</h4>' +
@@ -1350,6 +1400,9 @@
           '<h4 style="margin:20px 0 8px;">Script</h4>' +
           '<pre style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">' + esc(p.script_text||'') + '</pre>' +
         '</div>';
+
+      // Load metrics async
+      loadVideoMetrics(p.id);
     } catch (e) {
       detailEl.innerHTML = '<div class="status-msg error">' + esc(e.message) + '</div><button class="btn-sm" onclick="hideVideoDetail()">← Back</button>';
     }
@@ -1386,6 +1439,410 @@
         HumanAds.showAlert(res.error?.message || 'Failed', 'error');
       }
     } catch (e) { HumanAds.showAlert(e.message, 'error'); }
+  }
+
+  // ════════════════════════════════════════════════
+  // VIDEO: Variant Generation Form
+  // ════════════════════════════════════════════════
+
+  var variantHookCount = 2;
+  var variantCtaCount = 2;
+
+  function showVariantGenForm() {
+    var el = document.getElementById('video-variant-form');
+    if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+    document.getElementById('video-create-form').style.display = 'none';
+    document.getElementById('video-analysis-form').style.display = 'none';
+    el.style.display = 'block';
+    variantHookCount = 2; variantCtaCount = 2;
+    el.innerHTML =
+      '<div style="padding:16px;border:1px solid rgba(124,58,237,0.3);border-radius:8px;margin:0 16px 16px;background:rgba(124,58,237,0.04);">' +
+        '<h3 style="margin:0 0 16px;color:#a78bfa;">Generate A/B Test Variants</h3>' +
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
+          '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Topic ID *</label>' +
+            '<input class="form-input" id="vv-topic" placeholder="e.g. husd_intro"></div>' +
+          '<div class="form-group" style="flex:1;min-width:120px;"><label class="form-label">Episode # *</label>' +
+            '<input class="form-input" type="number" id="vv-episode" value="1" min="1"></div>' +
+          '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Template</label>' +
+            '<select class="form-select" id="vv-template"><option value="slideshow">Slideshow</option><option value="explainer">Explainer</option></select></div>' +
+        '</div>' +
+        '<div class="form-group"><label class="form-label">Base Script (台本) *</label>' +
+          '<textarea class="form-input" id="vv-script" rows="6" placeholder="台本を入力...\n空行で段落分割、--- で章区切り" maxlength="10000" style="resize:vertical;font-family:var(--font-mono);font-size:0.85rem;"></textarea></div>' +
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
+          '<div style="flex:1;min-width:300px;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+              '<label class="form-label" style="margin:0;">Hook Variants *</label>' +
+              '<button class="btn-sm" onclick="addVariantInput(\'hook\')" style="font-size:0.75rem;">+ Add Hook</button>' +
+            '</div>' +
+            '<div id="vv-hooks">' +
+              '<div class="form-group" style="margin-bottom:6px;"><input class="form-input" id="vv-hook-0" placeholder="Hook A (e.g. 知らないと損する！)"></div>' +
+              '<div class="form-group" style="margin-bottom:6px;"><input class="form-input" id="vv-hook-1" placeholder="Hook B (e.g. 99%の人が間違えている)"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="flex:1;min-width:300px;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+              '<label class="form-label" style="margin:0;">CTA Variants *</label>' +
+              '<button class="btn-sm" onclick="addVariantInput(\'cta\')" style="font-size:0.75rem;">+ Add CTA</button>' +
+            '</div>' +
+            '<div id="vv-ctas">' +
+              '<div class="form-group" style="margin-bottom:6px;"><input class="form-input" id="vv-cta-0" placeholder="CTA 1 (e.g. フォローで続きを見る)"></div>' +
+              '<div class="form-group" style="margin-bottom:6px;"><input class="form-input" id="vv-cta-1" placeholder="CTA 2 (e.g. コメントで教えて)"></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;">' +
+          '<div class="form-group"><label class="form-label">Target Durations *</label>' +
+            '<div style="display:flex;gap:12px;">' +
+              '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="vv-dur-33" checked> 33s</label>' +
+              '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="vv-dur-39" checked> 39s</label>' +
+              '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="vv-dur-45"> 45s</label>' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-group"><label class="form-label">Platforms</label>' +
+            '<div style="display:flex;gap:12px;">' +
+              '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="vv-yt" checked> YouTube</label>' +
+              '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="vv-ig"> Instagram</label>' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-group"><label class="form-label">Publish Mode</label>' +
+            '<select class="form-select" id="vv-mode"><option value="draft">Draft</option><option value="publish_now">Publish Now</option></select></div>' +
+        '</div>' +
+        '<div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;margin:12px 0;">' +
+          '<h4 style="margin:0 0 8px;font-size:0.85rem;">Self Score (optional, 1-10)</h4>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+            '<div><label style="font-size:0.75rem;">Hook</label><input class="form-input" type="number" id="vv-ss-hook" min="1" max="10" style="width:60px;padding:4px 6px;"></div>' +
+            '<div><label style="font-size:0.75rem;">Visual</label><input class="form-input" type="number" id="vv-ss-visual" min="1" max="10" style="width:60px;padding:4px 6px;"></div>' +
+            '<div><label style="font-size:0.75rem;">Pacing</label><input class="form-input" type="number" id="vv-ss-pacing" min="1" max="10" style="width:60px;padding:4px 6px;"></div>' +
+            '<div><label style="font-size:0.75rem;">CTA</label><input class="form-input" type="number" id="vv-ss-cta" min="1" max="10" style="width:60px;padding:4px 6px;"></div>' +
+            '<div><label style="font-size:0.75rem;">Audio</label><input class="form-input" type="number" id="vv-ss-audio" min="1" max="10" style="width:60px;padding:4px 6px;"></div>' +
+            '<div><label style="font-size:0.75rem;">Surprise</label><input class="form-input" type="number" id="vv-ss-surprise" min="1" max="10" style="width:60px;padding:4px 6px;"></div>' +
+            '<div><label style="font-size:0.75rem;">Overall</label><input class="form-input" type="number" id="vv-ss-overall" min="1" max="10" style="width:60px;padding:4px 6px;"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div id="vv-preview" style="margin:12px 0;font-size:0.85rem;color:var(--color-text-muted);"></div>' +
+        '<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;">' +
+          '<button class="btn-sm" onclick="document.getElementById(\'video-variant-form\').style.display=\'none\'">Cancel</button>' +
+          '<button class="btn-sm" style="background:#7c3aed;color:#fff;" id="vv-submit-btn" onclick="submitVariantGen()">Generate Variants</button>' +
+        '</div>' +
+      '</div>';
+    updateVariantPreview();
+  }
+
+  function addVariantInput(type) {
+    if (type === 'hook') {
+      var container = document.getElementById('vv-hooks');
+      var idx = variantHookCount++;
+      container.innerHTML += '<div class="form-group" style="margin-bottom:6px;"><input class="form-input" id="vv-hook-' + idx + '" placeholder="Hook ' + String.fromCharCode(65+idx) + '"></div>';
+    } else {
+      var container = document.getElementById('vv-ctas');
+      var idx = variantCtaCount++;
+      container.innerHTML += '<div class="form-group" style="margin-bottom:6px;"><input class="form-input" id="vv-cta-' + idx + '" placeholder="CTA ' + (idx+1) + '"></div>';
+    }
+    updateVariantPreview();
+  }
+
+  function updateVariantPreview() {
+    var hooks = 0, ctas = 0, durs = 0;
+    for (var i = 0; i < 10; i++) { var el = document.getElementById('vv-hook-' + i); if (el && el.value.trim()) hooks++; }
+    for (var i = 0; i < 10; i++) { var el = document.getElementById('vv-cta-' + i); if (el && el.value.trim()) ctas++; }
+    if (document.getElementById('vv-dur-33') && document.getElementById('vv-dur-33').checked) durs++;
+    if (document.getElementById('vv-dur-39') && document.getElementById('vv-dur-39').checked) durs++;
+    if (document.getElementById('vv-dur-45') && document.getElementById('vv-dur-45').checked) durs++;
+    hooks = Math.max(hooks, 1); ctas = Math.max(ctas, 1); durs = Math.max(durs, 1);
+    var total = hooks * ctas * durs;
+    var el = document.getElementById('vv-preview');
+    if (el) el.innerHTML = 'Will generate <strong>' + total + '</strong> variant(s): ' + hooks + ' hook(s) × ' + ctas + ' CTA(s) × ' + durs + ' duration(s)';
+  }
+
+  async function submitVariantGen() {
+    var btn = document.getElementById('vv-submit-btn');
+    var topicId = (document.getElementById('vv-topic').value || '').trim();
+    var episode = parseInt(document.getElementById('vv-episode').value);
+    var script = (document.getElementById('vv-script').value || '').trim();
+
+    if (!topicId) { HumanAds.showAlert('Topic ID is required', 'error'); return; }
+    if (!script) { HumanAds.showAlert('Script is required', 'error'); return; }
+
+    var hooks = [];
+    for (var i = 0; i < 10; i++) { var el = document.getElementById('vv-hook-' + i); if (el && el.value.trim()) hooks.push(el.value.trim()); }
+    var ctas = [];
+    for (var i = 0; i < 10; i++) { var el = document.getElementById('vv-cta-' + i); if (el && el.value.trim()) ctas.push(el.value.trim()); }
+    var durations = [];
+    if (document.getElementById('vv-dur-33').checked) durations.push(33);
+    if (document.getElementById('vv-dur-39').checked) durations.push(39);
+    if (document.getElementById('vv-dur-45').checked) durations.push(45);
+
+    if (hooks.length === 0) { HumanAds.showAlert('At least 1 hook variant is required', 'error'); return; }
+    if (ctas.length === 0) { HumanAds.showAlert('At least 1 CTA variant is required', 'error'); return; }
+    if (durations.length === 0) { HumanAds.showAlert('At least 1 duration is required', 'error'); return; }
+
+    var platforms = [];
+    if (document.getElementById('vv-yt').checked) platforms.push('youtube');
+    if (document.getElementById('vv-ig').checked) platforms.push('instagram');
+    if (platforms.length === 0) platforms.push('youtube');
+
+    var selfScore = {};
+    var scoreFields = ['hook','visual','pacing','cta','audio','surprise','overall'];
+    scoreFields.forEach(function(f) {
+      var v = parseInt((document.getElementById('vv-ss-' + f) || {}).value);
+      if (v >= 1 && v <= 10) selfScore[f] = v;
+    });
+
+    btn.disabled = true; btn.textContent = 'Generating...';
+    try {
+      var res = await HumanAds.fetchApi('/admin/video-posts/generate-variants', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          topic_id: topicId,
+          episode_number: episode,
+          script_text: script,
+          hook_variants: hooks,
+          cta_variants: ctas,
+          durations: durations,
+          self_score: Object.keys(selfScore).length > 0 ? selfScore : undefined,
+          platforms: platforms,
+          publish_mode: document.getElementById('vv-mode').value,
+          template_type: document.getElementById('vv-template').value,
+        }),
+      });
+      if (res.success) {
+        HumanAds.showAlert(res.data.variants_created + ' variants generated!');
+        document.getElementById('video-variant-form').style.display = 'none';
+        loadVideoPosts();
+      } else {
+        HumanAds.showAlert(res.error?.details || res.error?.message || 'Failed', 'error');
+      }
+    } catch (e) { HumanAds.showAlert(e.message, 'error'); }
+    btn.disabled = false; btn.textContent = 'Generate Variants';
+  }
+
+  // ════════════════════════════════════════════════
+  // VIDEO: Metrics
+  // ════════════════════════════════════════════════
+
+  async function loadVideoMetrics(videoPostId) {
+    var el = document.getElementById('video-metrics-' + videoPostId);
+    if (!el) return;
+    try {
+      var res = await HumanAds.fetchApi('/admin/video-posts/' + videoPostId + '/metrics');
+      if (!res.success) { el.innerHTML = '<div style="color:var(--color-text-muted);font-size:0.85rem;">No metrics data</div>'; return; }
+      var metrics = res.data.metrics || [];
+      var nextCp = res.data.next_suggested_checkpoint;
+      if (metrics.length === 0) {
+        el.innerHTML = '<div style="color:var(--color-text-muted);font-size:0.85rem;">No metrics recorded yet.' +
+          (nextCp ? ' Next: <strong>' + esc(nextCp) + '</strong>' : '') + '</div>';
+        return;
+      }
+      el.innerHTML =
+        '<div class="table-container"><table class="data-table"><thead><tr>' +
+          '<th>Checkpoint</th><th>Views</th><th>Likes</th><th>Comments</th><th>Shares</th>' +
+          '<th>Ret 3s</th><th>Ret 5s</th><th>Completion</th><th>CTR</th><th>Avg View</th>' +
+        '</tr></thead><tbody>' +
+        metrics.map(function(m) {
+          var ret3Class = m.retention_3s !== null ? (m.retention_3s < 70 ? 'color:#ff3b30;font-weight:700;' : (m.retention_3s >= 85 ? 'color:#34c759;font-weight:700;' : '')) : '';
+          var compClass = m.completion_rate !== null ? (m.completion_rate < 30 ? 'color:#ff3b30;font-weight:700;' : (m.completion_rate >= 50 ? 'color:#34c759;font-weight:700;' : '')) : '';
+          return '<tr>' +
+            '<td><span class="type-badge faucet">' + esc(m.checkpoint) + '</span></td>' +
+            '<td>' + (m.views||0).toLocaleString() + '</td>' +
+            '<td>' + (m.likes||0) + '</td>' +
+            '<td>' + (m.comments||0) + '</td>' +
+            '<td>' + (m.shares||0) + '</td>' +
+            '<td style="' + ret3Class + '">' + (m.retention_3s !== null ? m.retention_3s + '%' : '-') + '</td>' +
+            '<td>' + (m.retention_5s !== null ? m.retention_5s + '%' : '-') + '</td>' +
+            '<td style="' + compClass + '">' + (m.completion_rate !== null ? m.completion_rate + '%' : '-') + '</td>' +
+            '<td>' + (m.ctr !== null ? m.ctr + '%' : '-') + '</td>' +
+            '<td>' + (m.avg_view_duration_sec !== null ? m.avg_view_duration_sec + 's' : '-') + '</td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table></div>' +
+        (nextCp ? '<div style="font-size:0.8rem;color:var(--color-text-muted);margin-top:4px;">Next checkpoint: <strong>' + esc(nextCp) + '</strong></div>' : '');
+    } catch (e) {
+      el.innerHTML = '<div style="color:#ff3b30;font-size:0.85rem;">' + esc(e.message) + '</div>';
+    }
+  }
+
+  function showAddMetricsForm(videoPostId) {
+    var el = document.getElementById('video-add-metrics-' + videoPostId);
+    if (!el) return;
+    if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.innerHTML =
+      '<div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;margin:8px 0;">' +
+        '<h4 style="margin:0 0 8px;font-size:0.9rem;">Add Metrics</h4>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Checkpoint *</label>' +
+            '<select class="form-select" id="vm-checkpoint" style="width:80px;padding:4px 6px;"><option value="1h">1h</option><option value="6h">6h</option><option value="24h">24h</option><option value="72h">72h</option></select></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Views</label><input class="form-input" type="number" id="vm-views" style="width:80px;padding:4px 6px;" min="0"></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Likes</label><input class="form-input" type="number" id="vm-likes" style="width:70px;padding:4px 6px;" min="0"></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Comments</label><input class="form-input" type="number" id="vm-comments" style="width:70px;padding:4px 6px;" min="0"></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Shares</label><input class="form-input" type="number" id="vm-shares" style="width:70px;padding:4px 6px;" min="0"></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Ret 3s %</label><input class="form-input" type="number" id="vm-ret3" style="width:70px;padding:4px 6px;" min="0" max="100" step="0.1"></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Ret 5s %</label><input class="form-input" type="number" id="vm-ret5" style="width:70px;padding:4px 6px;" min="0" max="100" step="0.1"></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Completion %</label><input class="form-input" type="number" id="vm-comp" style="width:70px;padding:4px 6px;" min="0" max="100" step="0.1"></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">CTR %</label><input class="form-input" type="number" id="vm-ctr" style="width:70px;padding:4px 6px;" min="0" max="100" step="0.1"></div>' +
+          '<div><label class="form-label" style="font-size:0.75rem;">Avg View(s)</label><input class="form-input" type="number" id="vm-avgview" style="width:70px;padding:4px 6px;" min="0" step="0.1"></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">' +
+          '<button class="btn-sm" onclick="document.getElementById(\'video-add-metrics-' + videoPostId + '\').style.display=\'none\'">Cancel</button>' +
+          '<button class="btn-sm success" id="vm-submit-' + videoPostId + '" onclick="submitVideoMetrics(\'' + videoPostId + '\')">Save Metrics</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  async function submitVideoMetrics(videoPostId) {
+    var btn = document.getElementById('vm-submit-' + videoPostId);
+    btn.disabled = true; btn.textContent = 'Saving...';
+    try {
+      var body = {
+        checkpoint: document.getElementById('vm-checkpoint').value,
+        views: parseInt(document.getElementById('vm-views').value) || 0,
+        likes: parseInt(document.getElementById('vm-likes').value) || 0,
+        comments: parseInt(document.getElementById('vm-comments').value) || 0,
+        shares: parseInt(document.getElementById('vm-shares').value) || 0,
+      };
+      var ret3 = parseFloat(document.getElementById('vm-ret3').value);
+      if (!isNaN(ret3)) body.retention_3s = ret3;
+      var ret5 = parseFloat(document.getElementById('vm-ret5').value);
+      if (!isNaN(ret5)) body.retention_5s = ret5;
+      var comp = parseFloat(document.getElementById('vm-comp').value);
+      if (!isNaN(comp)) body.completion_rate = comp;
+      var ctr = parseFloat(document.getElementById('vm-ctr').value);
+      if (!isNaN(ctr)) body.ctr = ctr;
+      var avgView = parseFloat(document.getElementById('vm-avgview').value);
+      if (!isNaN(avgView)) body.avg_view_duration_sec = avgView;
+
+      var res = await HumanAds.fetchApi('/admin/video-posts/' + videoPostId + '/metrics', {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body),
+      });
+      if (res.success) {
+        HumanAds.showAlert('Metrics saved for checkpoint ' + body.checkpoint);
+        document.getElementById('video-add-metrics-' + videoPostId).style.display = 'none';
+        loadVideoMetrics(videoPostId);
+      } else {
+        HumanAds.showAlert(res.error?.details || res.error?.message || 'Failed', 'error');
+      }
+    } catch (e) { HumanAds.showAlert(e.message, 'error'); }
+    btn.disabled = false; btn.textContent = 'Save Metrics';
+  }
+
+  // ════════════════════════════════════════════════
+  // VIDEO: PDCA Analysis
+  // ════════════════════════════════════════════════
+
+  function showAnalysisForm() {
+    var el = document.getElementById('video-analysis-form');
+    if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+    document.getElementById('video-create-form').style.display = 'none';
+    document.getElementById('video-variant-form').style.display = 'none';
+    el.style.display = 'block';
+    el.innerHTML =
+      '<div style="padding:16px;border:1px solid rgba(5,150,105,0.3);border-radius:8px;margin:0 16px 16px;background:rgba(5,150,105,0.04);">' +
+        '<h3 style="margin:0 0 16px;color:#34d399;">PDCA Analysis</h3>' +
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
+          '<div class="form-group" style="flex:1;min-width:200px;"><label class="form-label">Topic ID *</label>' +
+            '<input class="form-input" id="va-topic" placeholder="e.g. husd_intro"></div>' +
+          '<div class="form-group" style="flex:1;min-width:120px;"><label class="form-label">Episode # (optional)</label>' +
+            '<input class="form-input" type="number" id="va-episode" min="1"></div>' +
+        '</div>' +
+        '<div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;margin:8px 0;">' +
+          '<h4 style="margin:0 0 8px;font-size:0.85rem;">Thresholds (defaults shown)</h4>' +
+          '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
+            '<div><label style="font-size:0.75rem;">Ret 3s min %</label><input class="form-input" type="number" id="va-th-ret3" value="70" style="width:70px;padding:4px 6px;"></div>' +
+            '<div><label style="font-size:0.75rem;">Completion min %</label><input class="form-input" type="number" id="va-th-comp" value="30" style="width:70px;padding:4px 6px;"></div>' +
+            '<div><label style="font-size:0.75rem;">Comment rate min %</label><input class="form-input" type="number" id="va-th-comment" value="2" style="width:70px;padding:4px 6px;" step="0.1"></div>' +
+            '<div><label style="font-size:0.75rem;">Share rate min %</label><input class="form-input" type="number" id="va-th-share" value="1" style="width:70px;padding:4px 6px;" step="0.1"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px;">' +
+          '<button class="btn-sm" onclick="document.getElementById(\'video-analysis-form\').style.display=\'none\'">Cancel</button>' +
+          '<button class="btn-sm" style="background:#059669;color:#fff;" id="va-submit-btn" onclick="submitAnalysis()">Run Analysis</button>' +
+        '</div>' +
+        '<div id="va-results" style="display:none;margin-top:16px;"></div>' +
+      '</div>';
+  }
+
+  async function submitAnalysis() {
+    var btn = document.getElementById('va-submit-btn');
+    var topicId = (document.getElementById('va-topic').value || '').trim();
+    if (!topicId) { HumanAds.showAlert('Topic ID is required', 'error'); return; }
+
+    var body = {
+      topic_id: topicId,
+      thresholds: {
+        retention_3s_min: parseFloat(document.getElementById('va-th-ret3').value) || 70,
+        completion_rate_min: parseFloat(document.getElementById('va-th-comp').value) || 30,
+        comment_rate_min: parseFloat(document.getElementById('va-th-comment').value) || 2,
+        share_rate_min: parseFloat(document.getElementById('va-th-share').value) || 1,
+      },
+    };
+    var ep = parseInt(document.getElementById('va-episode').value);
+    if (ep > 0) body.episode_number = ep;
+
+    btn.disabled = true; btn.textContent = 'Analyzing...';
+    try {
+      var res = await HumanAds.fetchApi('/admin/video-posts/analyze', {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body),
+      });
+      if (!res.success) { HumanAds.showAlert(res.error?.details || res.error?.message || 'Failed', 'error'); btn.disabled = false; btn.textContent = 'Run Analysis'; return; }
+
+      var d = res.data;
+      var resultsEl = document.getElementById('va-results');
+      resultsEl.style.display = 'block';
+
+      // Build analysis results
+      var weaknessCards = (d.weakness_details || []).map(function(w) {
+        var badgeColor = w.weakness === 'hook_weak' ? '#ff3b30' : (w.weakness === 'too_long_or_boring' ? '#ff9500' : (w.weakness === 'cta_weak' ? '#af52de' : '#ff6b35'));
+        return '<div style="background:rgba(255,59,48,0.08);border-left:3px solid ' + badgeColor + ';padding:8px 12px;border-radius:4px;margin:4px 0;">' +
+          '<div style="font-weight:700;font-size:0.85rem;">' + esc(w.weakness) + ' <span style="font-weight:400;color:var(--color-text-muted);">(' + esc(w.variant_id||'') + ')</span></div>' +
+          '<div style="font-size:0.8rem;color:var(--color-text-muted);margin:2px 0;">' + esc(w.cause) + '</div>' +
+          '<div style="font-size:0.8rem;">' + esc(w.suggestion) + '</div>' +
+        '</div>';
+      }).join('');
+
+      var keepCards = (d.keep_points || []).map(function(kp) {
+        return '<div style="background:rgba(52,199,89,0.08);border-left:3px solid #34c759;padding:6px 12px;border-radius:4px;margin:4px 0;font-size:0.85rem;">' + esc(kp) + '</div>';
+      }).join('');
+
+      var nextCards = (d.next_variant_suggestions || []).map(function(ns) {
+        return '<div style="background:rgba(124,58,237,0.08);border-left:3px solid #7c3aed;padding:6px 12px;border-radius:4px;margin:4px 0;font-size:0.85rem;">' + esc(ns) + '</div>';
+      }).join('');
+
+      // Variant comparison table
+      var variantRows = (d.variant_analysis || []).map(function(v) {
+        var lm = v.latest_metrics || {};
+        return '<tr>' +
+          '<td style="font-family:var(--font-mono);font-size:0.75rem;">' + esc((v.variant_id||'').replace('YTShorts_','')) + '</td>' +
+          '<td>' + esc(v.hook_type||'-') + '</td>' +
+          '<td>' + esc(v.cta_type||'-') + '</td>' +
+          '<td>' + (v.duration_target||'-') + '</td>' +
+          '<td>' + (lm.views||0) + '</td>' +
+          '<td style="' + (lm.retention_3s !== undefined && lm.retention_3s < 70 ? 'color:#ff3b30;font-weight:700;' : '') + '">' + (lm.retention_3s !== undefined ? lm.retention_3s + '%' : '-') + '</td>' +
+          '<td style="' + (lm.completion_rate !== undefined && lm.completion_rate < 30 ? 'color:#ff3b30;font-weight:700;' : '') + '">' + (lm.completion_rate !== undefined ? lm.completion_rate + '%' : '-') + '</td>' +
+          '<td>' + v.weaknesses.length + '</td>' +
+          '<td>' + v.strengths.length + '</td>' +
+        '</tr>';
+      }).join('');
+
+      resultsEl.innerHTML =
+        '<div style="border-top:1px solid var(--color-border);padding-top:16px;">' +
+          '<h4 style="margin:0 0 12px;">Analysis Results</h4>' +
+          '<div class="summary-grid">' +
+            '<div class="summary-card"><div class="label">Variants</div><div class="value">' + d.variants_analyzed + '</div></div>' +
+            '<div class="summary-card"><div class="label">Best Variant</div><div class="value" style="font-size:0.75rem;">' + esc((d.best_variant||'-').replace('YTShorts_','')) + '</div></div>' +
+            '<div class="summary-card"><div class="label">Best Views</div><div class="value">' + (d.best_views||0) + '</div></div>' +
+            '<div class="summary-card"><div class="label">Weaknesses</div><div class="value" style="color:#ff3b30;">' + (d.weaknesses||[]).length + '</div></div>' +
+          '</div>' +
+          (weaknessCards ? '<h4 style="margin:16px 0 8px;color:#ff3b30;">Weaknesses</h4>' + weaknessCards : '') +
+          (keepCards ? '<h4 style="margin:16px 0 8px;color:#34c759;">Keep Points</h4>' + keepCards : '') +
+          (nextCards ? '<h4 style="margin:16px 0 8px;color:#7c3aed;">Next Variant Suggestions</h4>' + nextCards : '') +
+          '<h4 style="margin:16px 0 8px;">Variant Comparison</h4>' +
+          '<div class="table-container"><table class="data-table"><thead><tr>' +
+            '<th>Variant</th><th>Hook</th><th>CTA</th><th>Dur</th><th>Views</th><th>Ret 3s</th><th>Comp</th><th>Weak</th><th>Strong</th>' +
+          '</tr></thead><tbody>' + (variantRows || '<tr><td colspan="9">No data</td></tr>') + '</tbody></table></div>' +
+        '</div>';
+    } catch (e) { HumanAds.showAlert(e.message, 'error'); }
+    btn.disabled = false; btn.textContent = 'Run Analysis';
   }
 
   // ════════════════════════════════════════════════
