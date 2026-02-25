@@ -902,21 +902,17 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
     { slidesCount: slidesPayload.slides.length, duration: slidesPayload.metadata.totalDurationSec }
   );
 
-  // ── LLM Pipeline: run inline ──
+  // ── LLM Pipeline: run inline (1 rewrite + 1 eval, then proceed to render) ──
   if (openrouterKey) {
     const targetDuration = Math.max(15, Math.min(45, body.duration_target_sec || 30));
-    let currentScript = script_text;
     let bestScript = script_text;
     let bestScore = 0;
-    let totalAttempts = 0;
-    const MAX_INLINE_ATTEMPTS = 3;
 
     try {
       // Step 1: Rewrite
       await logEvent(env.DB, videoPostId, 'llm_rewrite', 'started', 'LLM script rewrite started');
       const rewriteResult = await rewriteScript(openrouterKey, script_text, targetDuration);
-      currentScript = rewriteResult.rewrittenScript;
-      bestScript = currentScript;
+      bestScript = rewriteResult.rewrittenScript;
 
       await recordCost(env.DB, videoPostId, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4');
       await logEvent(env.DB, videoPostId, 'llm_rewrite', 'success',
@@ -925,65 +921,33 @@ export async function createVideoPost(request: Request, env: Env): Promise<Respo
 
       await env.DB.prepare(
         `UPDATE video_posts SET llm_rewritten_script = ?, status = 'evaluating_script', updated_at = datetime('now') WHERE id = ?`
-      ).bind(currentScript, videoPostId).run();
+      ).bind(bestScript, videoPostId).run();
 
-      // Step 2: Evaluate loop (up to 10 attempts)
-      for (let attempt = 1; attempt <= MAX_INLINE_ATTEMPTS; attempt++) {
-        totalAttempts = attempt;
-        await logEvent(env.DB, videoPostId, 'llm_eval', 'started', `Evaluation attempt #${attempt}`);
+      // Step 2: Evaluate once (non-blocking — score is recorded but doesn't gate rendering)
+      await logEvent(env.DB, videoPostId, 'llm_eval', 'started', 'Evaluation attempt #1');
+      const evalResult = await evaluateScript(openrouterKey, bestScript);
+      bestScore = evalResult.score;
 
-        const evalResult = await evaluateScript(openrouterKey, currentScript);
-        await recordCost(env.DB, videoPostId, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4',
-          { attempt, score: evalResult.score }
-        );
+      await recordCost(env.DB, videoPostId, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4',
+        { attempt: 1, score: evalResult.score }
+      );
 
-        await logEvent(env.DB, videoPostId, 'llm_eval', 'completed',
-          `Score: ${evalResult.score}/100 (#${attempt}). H${evalResult.breakdown.hook}/P${evalResult.breakdown.pacing}/C${evalResult.breakdown.clarity}/CTA${evalResult.breakdown.cta}/E${evalResult.breakdown.emotion}`,
-          { score: evalResult.score, breakdown: evalResult.breakdown }
-        );
+      await logEvent(env.DB, videoPostId, 'llm_eval', 'completed',
+        `Score: ${evalResult.score}/100. H${evalResult.breakdown.hook}/P${evalResult.breakdown.pacing}/C${evalResult.breakdown.clarity}/CTA${evalResult.breakdown.cta}/E${evalResult.breakdown.emotion}`,
+        { score: evalResult.score, breakdown: evalResult.breakdown }
+      );
 
-        if (evalResult.score > bestScore) {
-          bestScore = evalResult.score;
-          bestScript = currentScript;
-        }
+      await env.DB.prepare(
+        `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = 1, llm_eval_feedback = ?,
+          status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
+      ).bind(evalResult.score, JSON.stringify(evalResult), videoPostId).run();
 
-        if (evalResult.score >= 90) {
-          // Passed!
-          await env.DB.prepare(
-            `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
-              llm_rewritten_script = ?, status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
-          ).bind(evalResult.score, attempt, JSON.stringify(evalResult), currentScript, videoPostId).run();
-          await logEvent(env.DB, videoPostId, 'llm_eval', 'success', `Script approved: ${evalResult.score}/100 after ${attempt} attempt(s)`);
-          break;
-        }
+      await logEvent(env.DB, videoPostId, 'llm_eval', 'success',
+        `Script approved with score ${evalResult.score}/100. Proceeding to render.`
+      );
 
-        if (attempt >= MAX_INLINE_ATTEMPTS) {
-          // Max attempts — use best version
-          await env.DB.prepare(
-            `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
-              llm_rewritten_script = ?, status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
-          ).bind(bestScore, attempt, JSON.stringify(evalResult), bestScript, videoPostId).run();
-          await logEvent(env.DB, videoPostId, 'llm_eval', 'warning',
-            `Max attempts (10) reached. Using best script with score ${bestScore}/100`
-          );
-          break;
-        }
-
-        // Rewrite with feedback
-        const rewriteRetry = await rewriteScript(openrouterKey, script_text, targetDuration, evalResult.feedback);
-        currentScript = rewriteRetry.rewrittenScript;
-        await recordCost(env.DB, videoPostId, 'llm_rewrite', rewriteRetry.costUsd, rewriteRetry.inputTokens, rewriteRetry.outputTokens, 'claude-sonnet-4',
-          { attempt, rewriteAfterEval: true }
-        );
-
-        await env.DB.prepare(
-          `UPDATE video_posts SET llm_rewritten_script = ?, llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
-            updated_at = datetime('now') WHERE id = ?`
-        ).bind(currentScript, evalResult.score, attempt, JSON.stringify(evalResult), videoPostId).run();
-      }
-
-      // Step 3: Rebuild slides from approved script
-      const finalScript = bestScore >= 90 ? currentScript : bestScript;
+      // Step 3: Rebuild slides from rewritten script
+      const finalScript = bestScript;
       const finalPayload = buildEnhancedSlidesPayload(
         finalScript, template_type, internal_title,
         body.caption_text || '', body.hashtags_text || '', body.bgm_preset || 'none',
