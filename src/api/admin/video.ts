@@ -54,7 +54,7 @@ interface SlidesPayload {
   hashtags: string[];
   bgmPreset: string;
   stylePreset: string;
-  outroCta: { text: string; url: string };
+  outroCta?: { text: string; url: string };
   metadata: {
     totalDurationSec: number;
     totalSlides: number;
@@ -66,7 +66,7 @@ interface SlidesPayload {
 }
 
 const MAX_SLIDE_LINES = 2;
-const MAX_LINE_CHARS = 30; // Force-split if a single line exceeds this (JP ~25, EN ~30)
+const MAX_LINE_CHARS = 18; // Strict limit: fits 64px Noto Sans JP on 1080px width without wrapping
 const BG_PRESETS = ['gradient_blue', 'gradient_purple', 'solid_dark', 'solid_white', 'brand'];
 
 /**
@@ -208,7 +208,7 @@ function buildSlidesPayload(
     slides,
     caption,
     hashtags,
-    bgmPreset: bgmPreset || 'none',
+    bgmPreset: bgmPreset || 'uptempo',
     stylePreset: 'dark',
     metadata: {
       totalDurationSec,
@@ -344,16 +344,22 @@ function buildEnhancedSlidesPayload(
         const items = para.split('\n')
           .map(l => l.replace(/^[\s]*(?:[•・\-]\s*|[①②③④⑤⑥⑦⑧⑨⑩]\s*|\d+[\.\)]\s+)/, '').trim())
           .filter(Boolean);
-        slides.push({
-          type: 'body',
-          text: items.join('\n'),
-          durationSec: Math.min(6, Math.max(3, items.length * 1.5)),
-          bgPreset: ENHANCED_BG_PRESETS[bgIdx % ENHANCED_BG_PRESETS.length],
-          sceneType: 'reveal_list',
-          listItems: items.slice(0, 5),
-          motionPreset: 'none',
-        });
-        bgIdx++;
+        // Chunk list items into max 2 per slide (strict 2-line limit)
+        for (let li = 0; li < items.length; li += 2) {
+          const chunk = items.slice(li, li + 2);
+          // Truncate each item to MAX_LINE_CHARS
+          const truncated = chunk.map(item => item.length > MAX_LINE_CHARS ? item.substring(0, MAX_LINE_CHARS - 1) + '…' : item);
+          slides.push({
+            type: 'body',
+            text: truncated.join('\n'),
+            durationSec: Math.min(4, Math.max(3, truncated.length * 1.5)),
+            bgPreset: ENHANCED_BG_PRESETS[bgIdx % ENHANCED_BG_PRESETS.length],
+            sceneType: 'reveal_list',
+            listItems: truncated,
+            motionPreset: 'none',
+          });
+          bgIdx++;
+        }
         continue;
       }
 
@@ -419,7 +425,7 @@ function buildEnhancedSlidesPayload(
     slides,
     caption,
     hashtags,
-    bgmPreset: bgmPreset || 'none',
+    bgmPreset: bgmPreset || 'uptempo',
     stylePreset: 'dark',
     metadata: {
       totalDurationSec,
