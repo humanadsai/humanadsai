@@ -2980,6 +2980,190 @@ body {
 }
 
 /* ============================================
+   Showcase Strip (desktop first-view density)
+   ============================================ */
+
+.showcase-strip {
+  display: none;
+  margin-top: var(--spacing-sm);
+  animation: heroFadeUp 0.6s ease-out 0.75s both;
+}
+
+@media (min-width: 768px) {
+  .showcase-strip {
+    display: block;
+  }
+}
+
+.showcase-strip-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  background: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--border-radius);
+  padding: 10px var(--spacing-md);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.showcase-cluster {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.showcase-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--color-glass-border);
+  flex-shrink: 0;
+}
+
+/* --- Avatars cluster --- */
+.showcase-avatars-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.showcase-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-background);
+  object-fit: cover;
+  margin-left: -8px;
+  transition: transform 0.15s ease;
+  position: relative;
+  background: var(--color-background-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.showcase-avatar:first-child {
+  margin-left: 0;
+}
+
+.showcase-avatar:hover {
+  transform: scale(1.15);
+  z-index: 1;
+}
+
+.showcase-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.showcase-avatar-count {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-background);
+  margin-left: -8px;
+  background: var(--color-background-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.showcase-cluster-label {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+/* --- Badges + Rewards cluster --- */
+.showcase-badges-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.showcase-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.showcase-badge-row .badge {
+  height: 14px;
+  font-size: 8px;
+  padding: 0 4px;
+}
+
+.showcase-reward {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-success);
+  background: rgba(76, 175, 80, 0.12);
+  border-radius: 4px;
+  padding: 1px 5px;
+  line-height: 1.2;
+}
+
+[data-testnet="true"] .showcase-reward {
+  color: var(--color-cyan);
+  background: rgba(0, 212, 255, 0.12);
+}
+
+/* --- Agent chips + compliance cluster --- */
+.showcase-agents-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.showcase-agent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 107, 53, 0.12);
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  border-radius: 10px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-primary-light);
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.showcase-compliance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.showcase-compliance-pill {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ============================================
    Hero Staged Animations
    ============================================ */
 
@@ -3001,7 +3185,8 @@ body {
   .hero .cta-section,
   #hero-cta-logged-out,
   #hero-cta-logged-in,
-  .stats-bar {
+  .stats-bar,
+  .showcase-strip {
     animation: none !important;
   }
 }
