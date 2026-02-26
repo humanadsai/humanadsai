@@ -273,12 +273,15 @@ function extractEmphasisWords(text: string): string[] {
 }
 
 /**
- * Detect if text contains list-like content (numbered items, bullet points).
+ * Detect if text contains list-like content (explicit bullet points or numbered lists).
+ * Only matches explicit list markers (•, ・, -, ①-⑩, or "1." / "1)" style),
+ * NOT plain lines that happen to start with digits (e.g. "500ドル").
  */
 function isListContent(text: string): boolean {
   const lines = text.split('\n').filter(Boolean);
   if (lines.length < 2) return false;
-  const listPatterns = /^[\s]*[•・\-\d①②③④⑤⑥⑦⑧⑨⑩]/;
+  // Only match explicit list markers: bullets, circled numbers, or "digit." / "digit)" patterns
+  const listPatterns = /^[\s]*(?:[•・\-]|[①②③④⑤⑥⑦⑧⑨⑩]|\d+[\.\)]\s)/;
   const matchCount = lines.filter(l => listPatterns.test(l)).length;
   return matchCount >= 2;
 }
@@ -346,10 +349,10 @@ function buildEnhancedSlidesPayload(
 
       const isFirst = slides.length === 0;
 
-      // Check for list content
-      if (isListContent(para)) {
+      // Check for list content (skip for first paragraph — it should be hook)
+      if (!isFirst && isListContent(para)) {
         const items = para.split('\n')
-          .map(l => l.replace(/^[\s]*[•・\-\d①②③④⑤⑥⑦⑧⑨⑩]+[\.\)、\s]*/, '').trim())
+          .map(l => l.replace(/^[\s]*(?:[•・\-]\s*|[①②③④⑤⑥⑦⑧⑨⑩]\s*|\d+[\.\)]\s+)/, '').trim())
           .filter(Boolean);
         slides.push({
           type: 'body',
