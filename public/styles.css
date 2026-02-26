@@ -318,7 +318,7 @@ body {
 
 .hero {
   text-align: center;
-  padding: 24px var(--spacing-lg) 24px;
+  padding: 48px var(--spacing-lg) 24px;
   position: relative;
   overflow: hidden;
   max-width: 800px;
