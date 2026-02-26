@@ -274,9 +274,12 @@ body {
 
 .hero {
   text-align: center;
-  padding: 48px 0 24px;
+  padding: 48px var(--spacing-lg) 24px;
   position: relative;
   overflow: hidden;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero::before {
@@ -604,11 +607,10 @@ body {
     margin-right: auto;
   }
 
-  /* --- Hero section: comfortable reading width --- */
+  /* --- Hero section: wider padding on desktop --- */
   .hero {
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+    padding-left: var(--spacing-xl);
+    padding-right: var(--spacing-xl);
   }
 
   /* --- Form / detail pages: keep comfortable width --- */
