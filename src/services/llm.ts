@@ -129,13 +129,18 @@ Rules:
 - Write in the same language as the input script
 
 CRITICAL — Slide text formatting:
-- Each paragraph = 1 slide. Each slide is 1-2 lines of punchy text (MAX 3 lines)
-- Each line should be a natural phrase that reads well on its own
-- Keep each line under 25 characters (Japanese) or 40 characters (English) for readability on mobile
-- Break lines at natural phrase boundaries — NEVER mid-word or mid-phrase
-- Every slide must end with a hook or cliffhanger that makes the viewer NEED to see the next slide
+- Each paragraph = 1 slide. Each slide is STRICTLY 1-2 lines ONLY. NEVER 3 or more lines
+- Each line must be under 20 characters (Japanese) or 30 characters (English) — short enough to read at a glance
 - One idea per slide. Short, impactful, scroll-stopping
-- Do NOT write long sentences that wrap awkwardly — split into multiple short lines instead
+- Every slide must end with a hook or cliffhanger that makes the viewer NEED to see the next slide
+- Break lines at natural phrase boundaries — NEVER mid-word or mid-phrase
+
+CRITICAL — Language rules (for Japanese scripts):
+- Write in simple, everyday Japanese that anyone can instantly understand
+- NEVER use English words or jargon — always use the Japanese equivalent (例: "スクロール" → "画面を止める", "フォロー" → "チャンネル登録", "CTA" → 使わない)
+- Avoid katakana English loanwords when a common Japanese word exists (例: "コンテンツ" → "動画", "インパクト" → "衝撃")
+- Target reading level: middle school Japanese — if a word requires thinking, simplify it
+- Use short, punchy phrases. 体言止め or 問いかけ are effective
 
 Output format — write ONLY the rewritten script text:
 - Separate slides with blank lines (each paragraph = 1 slide)

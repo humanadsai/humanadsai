@@ -8,6 +8,14 @@ import yaml
 from .blacklist import BlacklistChecker
 from .config import MASTER_TEMPLATE
 
+# Photography style descriptors (deterministic rotation)
+PHOTO_STYLES = [
+    "Professional lifestyle photograph",
+    "High-end magazine cover photograph",
+    "Bright editorial portrait photograph",
+    "Clean commercial photography",
+]
+
 
 class TemplateEngine:
     """Load YAML templates, infer categories, and render prompts."""
@@ -75,22 +83,22 @@ class TemplateEngine:
         cat_data = categories.get(category, categories.get("general", {}))
         type_data = slide_types.get(slide_type, slide_types.get("body", {}))
 
-        # Deterministic camera selection
+        # Deterministic camera & style selection
         camera = cameras[hash(text) % len(cameras)] if cameras else ""
+        style = PHOTO_STYLES[hash(text) % len(PHOTO_STYLES)]
 
         # Context from actual text (truncate for prompt length)
-        context = text[:120].strip()
+        context = text[:80].strip()
 
         return {
+            "style": style,
             "camera": camera,
-            "light": defaults.get("light", ""),
-            "film_stock": defaults.get("film_stock", ""),
-            "subject": cat_data.get("subject", ""),
+            "scene": cat_data.get("scene", ""),
             "context": context,
-            "environment": cat_data.get("environment", ""),
+            "lighting": cat_data.get("lighting", ""),
+            "palette": cat_data.get("palette", ""),
             "composition": type_data.get("composition", ""),
             "anti_ai": defaults.get("anti_ai", ""),
-            "mood": cat_data.get("mood", ""),
             "constraints": defaults.get("constraints", ""),
             "negative_prompt": defaults.get("negative_prompt", ""),
         }

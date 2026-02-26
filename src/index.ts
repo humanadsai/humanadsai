@@ -111,7 +111,11 @@ export default {
         }
       }
 
+      // Preserve explicit Access-Control-Allow-Origin: * from internal endpoints
+      // (e.g., TTS audio proxy needs * for Remotion Lambda cross-origin fetch)
+      const existingAcao = response.headers.get('Access-Control-Allow-Origin');
       Object.entries(corsHeaders).forEach(([key, value]) => {
+        if (key === 'Access-Control-Allow-Origin' && existingAcao === '*') return;
         newHeaders.set(key, value);
       });
 

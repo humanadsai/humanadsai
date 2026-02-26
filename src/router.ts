@@ -144,6 +144,7 @@ import {
   deleteVideoPost,
   handleRemotionWebhook,
   serveSlideImage,
+  serveTtsAudio,
   generateVariants,
   addVideoMetrics,
   getVideoMetrics,
@@ -334,6 +335,14 @@ export async function handleRequest(request: Request, env: Env, execCtx?: Execut
     const slideImageMatch = path.match(/^\/api\/internal\/slide-image\/(vp_[^/]+)\/(\d+)$/);
     if (slideImageMatch && method === 'GET') {
       return serveSlideImage(request, env, slideImageMatch[1], parseInt(slideImageMatch[2], 10));
+    }
+
+    // TTS audio proxy for Remotion Lambda (no auth — Lambda fetches by URL)
+    if (path.startsWith('/api/internal/tts-audio/')) {
+      const vpId = path.replace('/api/internal/tts-audio/', '');
+      if (vpId && (method === 'GET' || method === 'OPTIONS')) {
+        return serveTtsAudio(request, env, vpId);
+      }
     }
 
     // ============================================

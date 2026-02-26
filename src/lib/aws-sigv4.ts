@@ -11,8 +11,9 @@ function toHex(buffer: ArrayBuffer): string {
     .join('');
 }
 
-async function sha256Hex(data: string): Promise<string> {
-  const hash = await crypto.subtle.digest('SHA-256', encoder.encode(data));
+async function sha256Hex(data: string | ArrayBuffer): Promise<string> {
+  const input = typeof data === 'string' ? encoder.encode(data) : data;
+  const hash = await crypto.subtle.digest('SHA-256', input);
   return toHex(hash);
 }
 
@@ -50,7 +51,7 @@ export async function signRequest(params: {
   method: string;
   url: string;
   headers: Record<string, string>;
-  body: string;
+  body: string | ArrayBuffer;
   region: string;
   service: string;
   accessKeyId: string;
@@ -163,4 +164,59 @@ export async function invokeLambda(params: {
       : await response.text();
 
   return { statusCode: response.status, body: responseBody };
+}
+
+/**
+ * Upload a binary object to S3 using SigV4 signed PUT.
+ */
+export async function uploadToS3(params: {
+  bucket: string;
+  key: string;
+  body: ArrayBuffer;
+  contentType: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  acl?: string;
+}): Promise<{ success: boolean; url: string; error?: string }> {
+  const { bucket, key, body, contentType, region, accessKeyId, secretAccessKey, acl } = params;
+
+  // Use virtual-hosted-style URL (same origin as Remotion site for CORS)
+  const url = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+
+  // S3 requires x-amz-content-sha256 header with payload hash
+  const payloadHash = await sha256Hex(body);
+
+  const headers: Record<string, string> = {
+    'content-type': contentType,
+    'content-length': String(body.byteLength),
+    'x-amz-content-sha256': payloadHash,
+  };
+  if (acl) {
+    headers['x-amz-acl'] = acl;
+  }
+
+  const signedHeaders = await signRequest({
+    method: 'PUT',
+    url,
+    headers,
+    body,
+    region,
+    service: 's3',
+    accessKeyId,
+    secretAccessKey,
+  });
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: signedHeaders,
+    body,
+  });
+
+  if (response.ok) {
+    return { success: true, url };
+  }
+
+  const errBody = await response.text();
+  return { success: false, url, error: `S3 PUT failed (${response.status}): ${errBody}` };
 }
