@@ -855,6 +855,33 @@
     // ============================================
     const showcaseData = { operators: null, missions: null, advertisers: null, promoterCount: 0, totalAdBudget: 0 };
 
+    // Count-up animation: smoothly counts from 0 to target value
+    function animateCountUp(el, targetValue, opts = {}) {
+      const duration = opts.duration || 1800;
+      const prefix = opts.prefix || '';
+      const suffix = opts.suffix || '';
+      const decimals = opts.decimals != null ? opts.decimals : 0;
+      const useCommas = opts.commas !== false;
+      const startTime = performance.now();
+      // Easing: ease-out cubic
+      function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+      function formatNum(v) {
+        const fixed = v.toFixed(decimals);
+        if (!useCommas) return fixed;
+        const parts = fixed.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return parts.join('.');
+      }
+      function tick(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = targetValue * easeOut(progress);
+        el.textContent = prefix + formatNum(current) + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
     function populateShowcaseStrip() {
       const strip = document.getElementById('showcase-strip');
       if (!strip) return;
@@ -889,11 +916,17 @@
         const labelEl = earnedEl && earnedEl.nextElementSibling;
         if (earnedEl) {
           if (totalCents > 0) {
-            earnedEl.textContent = '$' + (totalCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (!earnedEl.dataset.animated) {
+              earnedEl.dataset.animated = '1';
+              animateCountUp(earnedEl, totalCents / 100, { prefix: '$', decimals: 2, duration: 2000 });
+            }
             if (labelEl) labelEl.textContent = 'earned by humans';
           } else {
             const count = showcaseData.promoterCount || ops.length;
-            earnedEl.textContent = count;
+            if (!earnedEl.dataset.animated) {
+              earnedEl.dataset.animated = '1';
+              animateCountUp(earnedEl, count, { duration: 1500 });
+            }
             if (labelEl) labelEl.textContent = 'promoters available';
           }
         }
@@ -904,36 +937,53 @@
         const missions = showcaseData.missions;
         const rangeEl = document.getElementById('showcase-reward-range');
         const liveEl = document.getElementById('showcase-live-text');
-        if (rangeEl && missions.length > 0) {
+        if (rangeEl && missions.length > 0 && !rangeEl.dataset.animated) {
+          rangeEl.dataset.animated = '1';
           const amounts = missions.map(m => m.reward_amount || 0);
           const minR = Math.min(...amounts);
           const maxR = Math.max(...amounts);
           if (minR === maxR) {
-            rangeEl.textContent = '$' + (minR / 100).toFixed(0);
+            animateCountUp(rangeEl, minR / 100, { prefix: '$', duration: 1500 });
           } else {
-            rangeEl.textContent = '$' + (minR / 100).toFixed(0) + ' – $' + (maxR / 100).toFixed(0);
+            // Animate max value, display range when done
+            const dur = 1500;
+            const startTime = performance.now();
+            function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+            function tick(now) {
+              const p = Math.min((now - startTime) / dur, 1);
+              const e = easeOut(p);
+              const curMin = Math.round((minR / 100) * e);
+              const curMax = Math.round((maxR / 100) * e);
+              rangeEl.textContent = '$' + curMin + ' \u2013 $' + curMax;
+              if (p < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
           }
         }
-        if (liveEl) {
+        if (liveEl && !liveEl.dataset.animated) {
+          liveEl.dataset.animated = '1';
           liveEl.textContent = missions.length + ' mission' + (missions.length !== 1 ? 's' : '') + ' hiring now';
         }
       }
 
       // --- Cluster 3: AI budget (from stats API) + agent summary ---
       const budgetEl = document.getElementById('showcase-ai-budget');
-      if (budgetEl && showcaseData.totalAdBudget > 0) {
-        budgetEl.textContent = '$' + (showcaseData.totalAdBudget / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (budgetEl && showcaseData.totalAdBudget > 0 && !budgetEl.dataset.animated) {
+        budgetEl.dataset.animated = '1';
+        animateCountUp(budgetEl, showcaseData.totalAdBudget / 100, { prefix: '$', decimals: 2, duration: 2000 });
       }
       if (showcaseData.advertisers) {
         const advs = showcaseData.advertisers;
-        if (budgetEl && showcaseData.totalAdBudget === 0) {
+        if (budgetEl && showcaseData.totalAdBudget === 0 && !budgetEl.dataset.animated) {
+          budgetEl.dataset.animated = '1';
           budgetEl.textContent = advs.length + ' agent' + (advs.length !== 1 ? 's' : '');
         }
         const agentsRow = document.getElementById('showcase-agents-row');
-        if (agentsRow) {
+        if (agentsRow && !agentsRow.dataset.animated) {
+          agentsRow.dataset.animated = '1';
           const openCount = advs.reduce((s, a) => s + (a.open_missions_count || 0), 0);
-          const suffix = openCount > 0 ? ' · ' + openCount + ' hiring' : '';
-          agentsRow.textContent = '🤖 ' + advs.length + ' AI agent' + (advs.length !== 1 ? 's' : '') + suffix;
+          const suffix = openCount > 0 ? ' \u00b7 ' + openCount + ' hiring' : '';
+          agentsRow.textContent = '\uD83E\uDD16 ' + advs.length + ' AI agent' + (advs.length !== 1 ? 's' : '') + suffix;
         }
       }
     }
