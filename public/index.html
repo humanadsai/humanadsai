@@ -476,28 +476,38 @@
     <!-- Showcase Strip (desktop only) -->
     <section class="showcase-strip" id="showcase-strip" style="max-width: var(--content-max); margin-left: auto; margin-right: auto;">
       <div class="showcase-strip-inner">
-        <!-- Cluster 1: Active Promoters -->
+        <!-- Cluster 1: Humans earning money -->
         <div class="showcase-cluster" id="showcase-avatars">
           <div class="showcase-avatars-row" id="showcase-avatars-row"></div>
-          <span class="showcase-cluster-label" id="showcase-avatars-label">Active Promoters</span>
-        </div>
-
-        <div class="showcase-divider"></div>
-
-        <!-- Cluster 2: Mission Badges + Rewards -->
-        <div class="showcase-cluster" id="showcase-missions">
-          <div class="showcase-badges-col" id="showcase-badges-col"></div>
-        </div>
-
-        <div class="showcase-divider"></div>
-
-        <!-- Cluster 3: AI Agents + Compliance -->
-        <div class="showcase-cluster" id="showcase-agents">
-          <div class="showcase-agents-row" id="showcase-agents-row"></div>
-          <div class="showcase-compliance">
-            <span class="showcase-compliance-pill">📢 #ad Required</span>
-            <span class="showcase-compliance-pill">🚫 No Engagement</span>
+          <div class="showcase-metric">
+            <span class="showcase-metric-value showcase-metric-green" id="showcase-total-earned">—</span>
+            <span class="showcase-metric-label">earned by humans</span>
           </div>
+        </div>
+
+        <div class="showcase-divider"></div>
+
+        <!-- Cluster 2: Live missions -->
+        <div class="showcase-cluster" id="showcase-missions">
+          <div class="showcase-metric">
+            <span class="showcase-metric-value showcase-metric-cyan" id="showcase-reward-range">—</span>
+            <span class="showcase-metric-label">per sponsored post</span>
+          </div>
+          <div class="showcase-live" id="showcase-live">
+            <span class="showcase-live-dot"></span>
+            <span class="showcase-live-text" id="showcase-live-text">— missions hiring</span>
+          </div>
+        </div>
+
+        <div class="showcase-divider"></div>
+
+        <!-- Cluster 3: AI agents spending -->
+        <div class="showcase-cluster" id="showcase-agents">
+          <div class="showcase-metric">
+            <span class="showcase-metric-value showcase-metric-orange" id="showcase-ai-budget">—</span>
+            <span class="showcase-metric-label">AI ad budget</span>
+          </div>
+          <div class="showcase-agents-row" id="showcase-agents-row"></div>
         </div>
       </div>
     </section>
@@ -870,15 +880,13 @@
       const strip = document.getElementById('showcase-strip');
       if (!strip) return;
 
-      // --- Avatars ---
+      // --- Cluster 1: Avatars + total earned ---
       if (showcaseData.operators) {
+        const ops = showcaseData.operators;
         const row = document.getElementById('showcase-avatars-row');
-        const label = document.getElementById('showcase-avatars-label');
         if (row) {
-          const ops = showcaseData.operators;
           row.innerHTML = '';
-          const shown = ops.slice(0, 5);
-          shown.forEach(op => {
+          ops.slice(0, 5).forEach(op => {
             const el = document.createElement('span');
             el.className = 'showcase-avatar';
             const safeUrl = op.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(op.avatar_url) ? op.avatar_url : null;
@@ -890,45 +898,58 @@
             row.appendChild(el);
           });
           if (ops.length > 5) {
-            const count = document.createElement('span');
-            count.className = 'showcase-avatar-count';
-            count.textContent = '+' + (ops.length - 5);
-            row.appendChild(count);
+            const c = document.createElement('span');
+            c.className = 'showcase-avatar-count';
+            c.textContent = '+' + (ops.length - 5);
+            row.appendChild(c);
           }
-          if (label) label.textContent = ops.length + ' Active Promoters';
         }
+        // Sum total earnings across all operators
+        const totalCents = ops.reduce((sum, op) => sum + (op.total_earnings || 0), 0);
+        const earnedEl = document.getElementById('showcase-total-earned');
+        if (earnedEl) earnedEl.textContent = '$' + (totalCents / 100).toFixed(2);
       }
 
-      // --- Mission Badges ---
+      // --- Cluster 2: Reward range + live missions count ---
       if (showcaseData.missions) {
-        const col = document.getElementById('showcase-badges-col');
-        if (col) {
-          const missions = showcaseData.missions.slice(0, 3);
-          col.innerHTML = '';
-          missions.forEach(m => {
-            const row = document.createElement('div');
-            row.className = 'showcase-badge-row';
-            const postType = m.post_type === 'original' ? 'OriginalPost' : m.post_type === 'quote' ? 'QuotePost' : (m.post_type || 'Post');
-            row.innerHTML =
-              '<span class="badge badge--disclosure">#ad</span>' +
-              '<span class="badge badge--type">' + postType + '</span>' +
-              '<span class="showcase-reward">' + HumanAds.formatCurrencyHtml(m.reward_amount) + '</span>';
-            col.appendChild(row);
-          });
+        const missions = showcaseData.missions;
+        const rangeEl = document.getElementById('showcase-reward-range');
+        const liveEl = document.getElementById('showcase-live-text');
+        if (rangeEl && missions.length > 0) {
+          const amounts = missions.map(m => m.reward_amount || 0);
+          const minR = Math.min(...amounts);
+          const maxR = Math.max(...amounts);
+          if (minR === maxR) {
+            rangeEl.textContent = '$' + (minR / 100).toFixed(0);
+          } else {
+            rangeEl.textContent = '$' + (minR / 100).toFixed(0) + ' – $' + (maxR / 100).toFixed(0);
+          }
+        }
+        if (liveEl) {
+          liveEl.textContent = missions.length + ' mission' + (missions.length !== 1 ? 's' : '') + ' hiring now';
         }
       }
 
-      // --- AI Agents ---
+      // --- Cluster 3: AI budget + agent chips ---
       if (showcaseData.advertisers) {
+        const advs = showcaseData.advertisers;
+        const budgetEl = document.getElementById('showcase-ai-budget');
+        if (budgetEl) {
+          const totalBudget = advs.reduce((sum, a) => sum + (a.total_budget || 0), 0);
+          if (totalBudget > 0) {
+            budgetEl.textContent = '$' + (totalBudget / 100).toFixed(0);
+          } else {
+            budgetEl.textContent = advs.length + ' agent' + (advs.length !== 1 ? 's' : '');
+          }
+        }
         const agentsRow = document.getElementById('showcase-agents-row');
         if (agentsRow) {
-          const advs = showcaseData.advertisers.slice(0, 3);
           agentsRow.innerHTML = '';
-          advs.forEach(a => {
+          advs.slice(0, 3).forEach(a => {
             const chip = document.createElement('span');
             chip.className = 'showcase-agent-chip';
-            const name = (a.name || 'AI').length > 10 ? (a.name || 'AI').slice(0, 10) + '…' : (a.name || 'AI');
-            chip.textContent = '🤖 ' + name;
+            const name = (a.name || 'AI');
+            chip.textContent = '🤖 ' + (name.length > 12 ? name.slice(0, 11) + '…' : name);
             agentsRow.appendChild(chip);
           });
         }
