@@ -2135,6 +2135,236 @@ body {
 }
 
 /* ============================================
+   Payment Security Section (Escrow + Stablecoin)
+   ============================================ */
+
+.payment-security-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.payment-security-title {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.payment-security-subtitle {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 32px;
+}
+
+/* --- Flow Diagram --- */
+.escrow-flow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.04) 0%, rgba(0, 212, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--border-radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.escrow-flow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--border-radius-lg);
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(0, 212, 255, 0.2), rgba(255, 107, 53, 0.2));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.escrow-flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 120px;
+  max-width: 160px;
+  text-align: center;
+}
+
+.escrow-step-center {
+  min-width: 150px;
+  max-width: 180px;
+}
+
+.escrow-flow-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.escrow-icon-agent {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  color: var(--color-cyan);
+}
+
+.escrow-icon-vault {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: rgba(255, 107, 53, 0.1);
+  border: 1px solid rgba(255, 107, 53, 0.25);
+  color: var(--color-primary);
+  box-shadow: 0 0 24px rgba(255, 107, 53, 0.12);
+}
+
+.escrow-icon-human {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  color: var(--color-success);
+}
+
+.escrow-flow-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.escrow-flow-desc {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.escrow-chain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6rem;
+  font-family: var(--font-mono);
+  color: var(--color-primary);
+  background: rgba(255, 107, 53, 0.08);
+  padding: 3px 8px;
+  border-radius: 99px;
+  margin-top: 2px;
+}
+
+.escrow-chain-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+/* Arrows */
+.escrow-flow-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-text-muted);
+  margin-top: 18px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.escrow-flow-arrow svg {
+  opacity: 0.4;
+}
+
+.escrow-flow-arrow-label {
+  font-size: 0.55rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* --- Feature Cards --- */
+.escrow-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.escrow-feature-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  transition: border-color 0.2s;
+}
+
+.escrow-feature-card:hover {
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.escrow-feature-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+}
+
+.escrow-feature-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.escrow-feature-content strong {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.escrow-feature-content span {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* Mobile: stack flow vertically, features 1-col */
+@media (max-width: 640px) {
+  .escrow-flow {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 12px;
+  }
+  .escrow-flow-arrow {
+    transform: rotate(90deg);
+    margin: 0;
+    padding: 0;
+  }
+  .escrow-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
    Compliance Notice Section
    ============================================ */
 
