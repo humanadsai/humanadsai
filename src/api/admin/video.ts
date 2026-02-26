@@ -190,15 +190,6 @@ function buildSlidesPayload(
     }
   }
 
-  // Add CTA slide
-  slides.push({
-    type: 'cta',
-    text: 'Follow us',
-    subtext: 'humanadsai.com\n@HumanAdsAI',
-    durationSec: 4,
-    bgPreset: 'brand',
-  });
-
   // Build caption
   const caption = captionText || scriptText.substring(0, 200).replace(/\n/g, ' ').trim();
 
@@ -219,7 +210,6 @@ function buildSlidesPayload(
     hashtags,
     bgmPreset: bgmPreset || 'none',
     stylePreset: 'dark',
-    outroCta: { text: 'Follow @HumanAdsAI', url: 'https://humanadsai.com' },
     metadata: {
       totalDurationSec,
       totalSlides: slides.length,
@@ -415,17 +405,6 @@ function buildEnhancedSlidesPayload(
     }
   }
 
-  // CTA slide with cta_tease scene
-  slides.push({
-    type: 'cta',
-    text: 'Follow us',
-    subtext: 'humanadsai.com\n@HumanAdsAI',
-    durationSec: 4,
-    bgPreset: 'brand',
-    sceneType: 'cta_tease',
-    motionPreset: 'none',
-  });
-
   const caption = captionText || scriptText.substring(0, 200).replace(/\n/g, ' ').trim();
   const defaultHashtags = ['#OpenClaw', '#RentAHuman'];
   const userHashtags = hashtagsText
@@ -442,7 +421,6 @@ function buildEnhancedSlidesPayload(
     hashtags,
     bgmPreset: bgmPreset || 'none',
     stylePreset: 'dark',
-    outroCta: { text: 'Follow @HumanAdsAI', url: 'https://humanadsai.com' },
     metadata: {
       totalDurationSec,
       totalSlides: slides.length,
@@ -456,35 +434,26 @@ function buildEnhancedSlidesPayload(
 
 /**
  * Scale slide durations to hit a target total duration.
- * Hook (first) stays 2-3s, CTA (last) stays 3-4s. Body slides scale proportionally.
+ * Hook (first) stays 2-3s. Body slides scale proportionally.
  */
 function scaleSlidesToDuration(slides: Slide[], targetSec: number): Slide[] {
   if (slides.length < 2) return slides;
 
   const result = slides.map(s => ({ ...s }));
-  const hookIdx = 0;
-  const ctaIdx = result.length - 1;
 
-  // Fixed durations for hook and CTA
-  const hookDuration = Math.min(3, Math.max(2, result[hookIdx].durationSec));
-  const ctaDuration = Math.min(4, Math.max(3, result[ctaIdx].durationSec));
-  result[hookIdx].durationSec = hookDuration;
-  result[ctaIdx].durationSec = ctaDuration;
+  // Fixed duration for hook (first slide)
+  const hookDuration = Math.min(3, Math.max(2, result[0].durationSec));
+  result[0].durationSec = hookDuration;
 
-  const fixedDuration = hookDuration + ctaDuration;
-  const remainingTarget = targetSec - fixedDuration;
+  const remainingTarget = targetSec - hookDuration;
+  if (remainingTarget <= 0) return result;
 
-  if (remainingTarget <= 0 || result.length <= 2) return result;
-
-  // Body slides (everything between hook and CTA)
-  const bodySlides = result.slice(1, ctaIdx);
-  const currentBodyTotal = bodySlides.reduce((sum, s) => sum + s.durationSec, 0);
-
+  // Scale body slides (everything after hook) proportionally
+  const currentBodyTotal = result.slice(1).reduce((sum, s) => sum + s.durationSec, 0);
   if (currentBodyTotal <= 0) return result;
 
   const scaleFactor = remainingTarget / currentBodyTotal;
-
-  for (let i = 1; i < ctaIdx; i++) {
+  for (let i = 1; i < result.length; i++) {
     let scaled = Math.round(result[i].durationSec * scaleFactor * 10) / 10;
     scaled = Math.max(2, Math.min(6, scaled)); // enforce min 2s / max 6s
     result[i].durationSec = scaled;
@@ -2325,10 +2294,7 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
         // ── Image Generation (parallel task 1) ──
         const imageGenPromise = (async () => {
           if (!openaiKey) return null;
-          const KEY_TYPES = ['hook', 'chapter_title', 'emphasis'];
-          const keySlideCount = finalPayload.slides.filter((s: any) => KEY_TYPES.includes(s.type)).length;
-          const actualCount = Math.min(keySlideCount, 3);
-          await logEvent(env.DB, post.id, 'image_gen', 'started', `Generating ${actualCount} images (max 3 of ${keySlideCount} key slides)`);
+          await logEvent(env.DB, post.id, 'image_gen', 'started', `Generating up to 6 images for ${finalPayload.slides.length} slides`);
           return generateSlideImages(openaiKey, finalPayload.slides);
         })();
 
