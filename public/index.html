@@ -455,44 +455,22 @@
       </div>
     </section>
 
-    <!-- Stats Bar -->
-    <section class="stats-bar" style="max-width: var(--content-max); margin-left: auto; margin-right: auto;">
-      <div class="stats-row stats-row-3">
-        <div class="stat-item">
-          <span class="stat-number stat-orange" id="access-count">—</span>
-          <span class="stat-label" title="Total site visits">Visits</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number stat-cyan" id="operators-count">—</span>
-          <span class="stat-label" title="Human promoters participating">Promoters</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number stat-green" id="ai-connected-count">—</span>
-          <span class="stat-label" title="AI agents connected">AI Agents</span>
-        </div>
-      </div>
-    </section>
-
     <!-- Showcase Strip (desktop only) -->
     <section class="showcase-strip" id="showcase-strip" style="max-width: var(--content-max); margin-left: auto; margin-right: auto;">
       <div class="showcase-strip-inner">
         <!-- Cluster 1: Humans earning money -->
         <div class="showcase-cluster" id="showcase-avatars">
+          <span class="showcase-metric-value showcase-metric-green" id="showcase-total-earned">—</span>
+          <span class="showcase-metric-label">earned by humans</span>
           <div class="showcase-avatars-row" id="showcase-avatars-row"></div>
-          <div class="showcase-metric">
-            <span class="showcase-metric-value showcase-metric-green" id="showcase-total-earned">—</span>
-            <span class="showcase-metric-label">earned by humans</span>
-          </div>
         </div>
 
         <div class="showcase-divider"></div>
 
         <!-- Cluster 2: Live missions -->
         <div class="showcase-cluster" id="showcase-missions">
-          <div class="showcase-metric">
-            <span class="showcase-metric-value showcase-metric-cyan" id="showcase-reward-range">—</span>
-            <span class="showcase-metric-label">per sponsored post</span>
-          </div>
+          <span class="showcase-metric-value showcase-metric-cyan" id="showcase-reward-range">—</span>
+          <span class="showcase-metric-label">per sponsored post</span>
           <div class="showcase-live" id="showcase-live">
             <span class="showcase-live-dot"></span>
             <span class="showcase-live-text" id="showcase-live-text">— missions hiring</span>
@@ -503,10 +481,8 @@
 
         <!-- Cluster 3: AI agents spending -->
         <div class="showcase-cluster" id="showcase-agents">
-          <div class="showcase-metric">
-            <span class="showcase-metric-value showcase-metric-orange" id="showcase-ai-budget">—</span>
-            <span class="showcase-metric-label">AI ad budget</span>
-          </div>
+          <span class="showcase-metric-value showcase-metric-orange" id="showcase-ai-budget">—</span>
+          <span class="showcase-metric-label">AI ad budget</span>
           <div class="showcase-agents-row" id="showcase-agents-row"></div>
         </div>
       </div>
@@ -874,7 +850,7 @@
     // ============================================
     // Showcase Strip (desktop first-view density)
     // ============================================
-    const showcaseData = { operators: null, missions: null, advertisers: null };
+    const showcaseData = { operators: null, missions: null, advertisers: null, promoterCount: 0 };
 
     function populateShowcaseStrip() {
       const strip = document.getElementById('showcase-strip');
@@ -907,14 +883,15 @@
         // Sum total earnings across all operators
         const totalCents = ops.reduce((sum, op) => sum + (op.total_earnings || 0), 0);
         const earnedEl = document.getElementById('showcase-total-earned');
-        const labelEl = document.querySelector('#showcase-avatars .showcase-metric-label');
+        const labelEl = earnedEl && earnedEl.nextElementSibling;
         if (earnedEl) {
           if (totalCents > 0) {
             earnedEl.textContent = '$' + (totalCents / 100).toFixed(2);
             if (labelEl) labelEl.textContent = 'earned by humans';
           } else {
-            earnedEl.textContent = ops.length + ' humans ready';
-            if (labelEl) labelEl.textContent = 'payouts starting soon';
+            const count = showcaseData.promoterCount || ops.length;
+            earnedEl.textContent = count + ' promoters';
+            if (labelEl) labelEl.textContent = 'available to hire';
           }
         }
       }
@@ -981,13 +958,8 @@
         const data = await response.json();
         if (data.success && data.data) {
           const stats = data.data;
-          const accessEl = document.getElementById('access-count');
-          const operatorsEl = document.getElementById('operators-count');
-          const aiEl = document.getElementById('ai-connected-count');
-
-          if (accessEl) accessEl.textContent = new Intl.NumberFormat().format(stats.site_access || 0);
-          if (operatorsEl) operatorsEl.textContent = new Intl.NumberFormat().format(stats.human_operators || 0);
-          if (aiEl) aiEl.textContent = new Intl.NumberFormat().format(stats.ai_connected || 0);
+          showcaseData.promoterCount = stats.human_operators || 0;
+          populateShowcaseStrip();
         }
       } catch (e) {
         console.error('Failed to load stats:', e);
