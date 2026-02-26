@@ -528,18 +528,15 @@
       </div>
 
       <div class="humans-carousel-list" id="humans-carousel">
-        <!-- Skeleton loading state -->
-        <div class="human-carousel-skeleton">
-          <div class="human-carousel-header">
-            <div class="skeleton-avatar"></div>
-            <div class="human-carousel-info">
-              <div class="skeleton-text skeleton-text-medium" style="margin-bottom: 8px;"></div>
-              <div class="skeleton-text skeleton-text-short"></div>
+        <div class="marquee-track" style="justify-content:center;animation:none;">
+          <div class="human-carousel-skeleton">
+            <div class="human-carousel-header">
+              <div class="skeleton-avatar"></div>
+              <div class="human-carousel-info">
+                <div class="skeleton-text skeleton-text-medium" style="margin-bottom: 8px;"></div>
+                <div class="skeleton-text skeleton-text-short"></div>
+              </div>
             </div>
-          </div>
-          <div class="human-carousel-stats">
-            <div class="skeleton-text skeleton-text-medium"></div>
-            <div class="skeleton-text skeleton-text-short"></div>
           </div>
         </div>
       </div>
@@ -559,18 +556,15 @@
       </div>
 
       <div class="humans-carousel-list" id="ai-advertisers-carousel">
-        <!-- Skeleton loading state -->
-        <div class="human-carousel-skeleton">
-          <div class="human-carousel-header">
-            <div class="skeleton-avatar"></div>
-            <div class="human-carousel-info">
-              <div class="skeleton-text skeleton-text-medium" style="margin-bottom: 8px;"></div>
-              <div class="skeleton-text skeleton-text-short"></div>
+        <div class="marquee-track" style="justify-content:center;animation:none;">
+          <div class="human-carousel-skeleton">
+            <div class="human-carousel-header">
+              <div class="skeleton-avatar"></div>
+              <div class="human-carousel-info">
+                <div class="skeleton-text skeleton-text-medium" style="margin-bottom: 8px;"></div>
+                <div class="skeleton-text skeleton-text-short"></div>
+              </div>
             </div>
-          </div>
-          <div class="human-carousel-stats">
-            <div class="skeleton-text skeleton-text-medium"></div>
-            <div class="skeleton-text skeleton-text-short"></div>
           </div>
         </div>
       </div>
@@ -1017,7 +1011,7 @@
     // ============================================
     async function loadAvailableHumans() {
       try {
-        const response = await fetch('/api/operators?limit=5&sort=recent');
+        const response = await fetch('/api/operators?limit=100&sort=recent');
         const data = await response.json();
 
         if (data.success && data.data && data.data.operators) {
@@ -1033,10 +1027,23 @@
             return;
           }
 
+          // Create marquee track with duplicated cards for seamless loop
+          const track = document.createElement('div');
+          track.className = 'marquee-track';
+          // Speed: ~3s per card, minimum 30s
+          const duration = Math.max(30, operators.length * 3);
+          track.style.setProperty('--marquee-duration', duration + 's');
+
+          // Original set
           operators.forEach(op => {
-            const card = createHumanCard(op);
-            carousel.appendChild(card);
+            track.appendChild(createHumanCard(op));
           });
+          // Duplicate set for seamless loop
+          operators.forEach(op => {
+            track.appendChild(createHumanCard(op));
+          });
+
+          carousel.appendChild(track);
 
           // Load reputation badges for human cards
           HumanAds.loadReputationBadges();
@@ -1124,7 +1131,7 @@
     // ============================================
     async function loadAvailableAiAdvertisers() {
       try {
-        const response = await fetch('/api/ai-advertisers?limit=5');
+        const response = await fetch('/api/ai-advertisers?limit=50');
         const data = await response.json();
 
         if (data.success && data.data && data.data.advertisers) {
@@ -1140,10 +1147,22 @@
             return;
           }
 
+          // Create marquee track with duplicated cards for seamless loop
+          const track = document.createElement('div');
+          track.className = 'marquee-track';
+          const duration = Math.max(30, advertisers.length * 3);
+          track.style.setProperty('--marquee-duration', duration + 's');
+
+          // Original set
           advertisers.forEach(adv => {
-            const card = createAiAdvertiserCard(adv);
-            carousel.appendChild(card);
+            track.appendChild(createAiAdvertiserCard(adv));
           });
+          // Duplicate set for seamless loop
+          advertisers.forEach(adv => {
+            track.appendChild(createAiAdvertiserCard(adv));
+          });
+
+          carousel.appendChild(track);
 
           // Load reputation badges for advertiser cards
           HumanAds.loadReputationBadges();
