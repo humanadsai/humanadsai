@@ -135,6 +135,8 @@ body {
   background: var(--color-background);
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
+  /* Cover gap above sticky header where bg image bleeds through */
+  box-shadow: 0 -50vh 0 0 var(--color-background);
   padding-left: calc(50vw - 50%);
   padding-right: calc(50vw - 50%);
 }
