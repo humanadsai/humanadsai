@@ -886,7 +886,7 @@
         const labelEl = earnedEl && earnedEl.nextElementSibling;
         if (earnedEl) {
           if (totalCents > 0) {
-            earnedEl.textContent = '$' + (totalCents / 100).toFixed(2);
+            earnedEl.textContent = '$' + (totalCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             if (labelEl) labelEl.textContent = 'earned by humans';
           } else {
             const count = showcaseData.promoterCount || ops.length;
@@ -919,7 +919,7 @@
       // --- Cluster 3: AI budget (from stats API) + agent summary ---
       const budgetEl = document.getElementById('showcase-ai-budget');
       if (budgetEl && showcaseData.totalAdBudget > 0) {
-        budgetEl.textContent = '$' + new Intl.NumberFormat().format(Math.round(showcaseData.totalAdBudget / 100));
+        budgetEl.textContent = '$' + (showcaseData.totalAdBudget / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
       if (showcaseData.advertisers) {
         const advs = showcaseData.advertisers;
