@@ -90,6 +90,7 @@ export const CtaTeaseScene: React.FC<Props> = ({
             lineHeight: 1.3,
             letterSpacing: '-0.02em',
             textShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            whiteSpace: 'pre-line',
             transform: `scale(${pulseScale})`,
             opacity: mainTextOpacity,
           }}

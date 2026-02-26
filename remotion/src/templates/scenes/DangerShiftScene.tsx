@@ -88,6 +88,7 @@ export const DangerShiftScene: React.FC<Props> = ({
             textShadow: dangerProgress > 0.5
               ? '0 0 20px rgba(255,68,68,0.4)'
               : '0 2px 12px rgba(0,0,0,0.3)',
+            whiteSpace: 'pre-line',
           }}
         >
           <EmphasisText

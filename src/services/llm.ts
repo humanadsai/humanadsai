@@ -44,35 +44,48 @@ async function callLLM(
   userMessage: string,
   maxTokens: number = 2048,
 ): Promise<{ content: string; inputTokens: number; outputTokens: number }> {
-  const res = await fetch(OPENROUTER_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-      'HTTP-Referer': 'https://humanadsai.com',
-      'X-Title': 'HumanAds Video Pipeline',
-    },
-    body: JSON.stringify({
-      model: LLM_MODEL,
-      max_tokens: maxTokens,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-      ],
-    }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 25000); // 25s timeout
 
-  if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(`OpenRouter API error (${res.status}): ${errBody}`);
+  try {
+    const res = await fetch(OPENROUTER_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://humanadsai.com',
+        'X-Title': 'HumanAds Video Pipeline',
+      },
+      body: JSON.stringify({
+        model: LLM_MODEL,
+        max_tokens: maxTokens,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+      }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      throw new Error(`OpenRouter API error (${res.status}): ${errBody}`);
+    }
+
+    const data = await res.json() as any;
+    const content = data.choices?.[0]?.message?.content || '';
+    const inputTokens = data.usage?.prompt_tokens || 0;
+    const outputTokens = data.usage?.completion_tokens || 0;
+
+    return { content, inputTokens, outputTokens };
+  } catch (e: any) {
+    if (e.name === 'AbortError') {
+      throw new Error('OpenRouter API timeout (25s). Retry with shorter script.');
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
-
-  const data = await res.json() as any;
-  const content = data.choices?.[0]?.message?.content || '';
-  const inputTokens = data.usage?.prompt_tokens || 0;
-  const outputTokens = data.usage?.completion_tokens || 0;
-
-  return { content, inputTokens, outputTokens };
 }
 
 /**
@@ -110,15 +123,23 @@ Rules:
 - Target duration: ${targetDurationSec} seconds (approximately ${minWords}-${maxWords} words)
 - Structure: Hook (first 3 seconds) → Body (key points) → CTA (last 3-4 seconds)
 - Hook MUST grab attention immediately — use a provocative question, surprising fact, or bold claim
-- Each scene should be a short, punchy line (max 80 characters per slide)
 - Use 「」 for emphasis words that should be highlighted visually
-- Use short sentences. One idea per slide.
 - CTA must drive action: follow, visit site, or engage
 - Maintain the core message but make it scroll-stopping
 - Write in the same language as the input script
 
+CRITICAL — Slide text formatting:
+- Each paragraph = 1 slide. Each slide is 1-2 lines of punchy text (MAX 3 lines)
+- Each line should be a natural phrase that reads well on its own
+- Keep each line under 25 characters (Japanese) or 40 characters (English) for readability on mobile
+- Break lines at natural phrase boundaries — NEVER mid-word or mid-phrase
+- Every slide must end with a hook or cliffhanger that makes the viewer NEED to see the next slide
+- One idea per slide. Short, impactful, scroll-stopping
+- Do NOT write long sentences that wrap awkwardly — split into multiple short lines instead
+
 Output format — write ONLY the rewritten script text:
-- Separate paragraphs with blank lines (each paragraph = 1 slide)
+- Separate slides with blank lines (each paragraph = 1 slide)
+- Within a slide, use line breaks (newlines) to control where text wraps on screen
 - Use --- on its own line to separate chapters
 - First paragraph is always the hook
 - Last paragraph is always the CTA

@@ -70,6 +70,7 @@ export const HookPunchScene: React.FC<Props> = ({
             lineHeight: 1.3,
             letterSpacing: '-0.03em',
             textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            whiteSpace: 'pre-line',
           }}
         >
           <EmphasisText

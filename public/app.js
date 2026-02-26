@@ -8,7 +8,7 @@ const API_BASE = '/api';
 // Utility Functions
 // ============================================
 
-async function fetchApi(endpoint, options = {}, timeoutMs = 30000) {
+async function fetchApi(endpoint, options = {}, timeoutMs = 60000) {
   const url = `${API_BASE}${endpoint}`;
   const headers = {
     'Content-Type': 'application/json',

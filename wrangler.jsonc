@@ -66,8 +66,8 @@
   },
 
   // Scheduled triggers (cron jobs)
-  // A-Plan overdue checker runs every 15 minutes
+  // Runs every minute for video pipeline + overdue checks
   "triggers": {
-    "crons": ["*/15 * * * *"]
+    "crons": ["* * * * *"]
   }
 }

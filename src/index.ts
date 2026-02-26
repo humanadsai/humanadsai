@@ -152,7 +152,7 @@ export default {
 
   /**
    * Scheduled Job Handler (Cron Trigger)
-   * Runs every 15 minutes for scheduled checks
+   * Runs every minute for video pipeline + scheduled checks
    */
   async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     await handleScheduled(controller, env, ctx);

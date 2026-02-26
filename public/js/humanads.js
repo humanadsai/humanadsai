@@ -15,10 +15,10 @@
      * Fetch API wrapper with credentials, JSON handling, and timeout
      * @param {string} url - API endpoint (relative to /api)
      * @param {object} options - Fetch options
-     * @param {number} timeout - Timeout in ms (default: 5000)
+     * @param {number} timeout - Timeout in ms (default: 60000)
      * @returns {Promise<object>} - Parsed JSON response
      */
-    async fetchApi(url, options = {}, timeout = 5000) {
+    async fetchApi(url, options = {}, timeout = 60000) {
       const fullUrl = url.startsWith('/api') ? url : `/api${url}`;
 
       const defaultOptions = {

@@ -7,11 +7,12 @@ import { processVideoPostJobs } from '../api/admin/video';
 /**
  * Scheduled Job
  *
- * Runs every 15 minutes to:
+ * Runs every minute to:
  * 1. Check for expired escrow deals and refund remaining funds
  * 2. Auto-publish expired blind reviews (14 days)
+ * 3. Process video pipeline stages (rewrite, eval, images, render, postiz)
  *
- * Cron schedule: every 15 minutes
+ * Cron schedule: every minute
  */
 export async function handleScheduled(
   controller: ScheduledController,
