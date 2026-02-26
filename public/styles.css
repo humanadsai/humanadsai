@@ -2997,7 +2997,7 @@ body {
 
 .showcase-strip-inner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-lg);
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.06) 0%, rgba(0, 212, 255, 0.06) 100%);
