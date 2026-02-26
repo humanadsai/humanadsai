@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "humanads-imggen"
+version = "0.1.0"
+description = "Anti-AI editorial thumbnail generator for YouTube Shorts"
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.1",
+    "pyyaml>=6.0",
+    "openai>=1.0",
+    "Pillow>=10.0",
+    "rich>=13.0",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov"]
+
+[project.scripts]
+imggen = "imggen.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

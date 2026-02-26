@@ -37,6 +37,14 @@ typechain-types/
 # OpenZeppelin upgrade data
 .openzeppelin/
 
+# Python
+humanads-imggen/.venv/
+humanads-imggen/output/
+humanads-imggen/__pycache__/
+humanads-imggen/.pytest_cache/
+humanads-imggen/src/*.egg-info/
+*.pyc
+
 # Sensitive files (private keys, certificates, credentials)
 *.pem
 *.key
