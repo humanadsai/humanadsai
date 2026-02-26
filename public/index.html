@@ -52,16 +52,16 @@
     }
     .platform-badge {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      gap: 6px;
-      padding: 14px 18px;
-      border-radius: 14px;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 10px;
       border: 1px solid var(--color-glass-border);
       background: var(--color-glass-bg);
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
-      min-width: 100px;
+      min-width: 0;
       transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
     }
     .platform-badge:hover {
@@ -79,51 +79,54 @@
       color: var(--color-primary);
     }
     .platform-badge.platform-coming {
-      opacity: 0.45;
+      opacity: 0.7;
       cursor: default;
     }
     .platform-badge.platform-coming:hover {
       transform: none;
     }
     .platform-badge.platform-coming .platform-icon {
-      color: #555;
+      color: #888;
     }
     .platform-icon {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 40px;
-      height: 40px;
-    }
-    .platform-icon svg {
       width: 24px;
       height: 24px;
+      flex-shrink: 0;
+    }
+    .platform-icon svg {
+      width: 20px;
+      height: 20px;
     }
     .platform-name {
       font-family: var(--font-mono);
       font-size: 0.75rem;
       font-weight: 600;
       color: var(--color-text);
+      white-space: nowrap;
     }
     .platform-badge.platform-coming .platform-name {
-      color: #666;
+      color: #999;
     }
     .platform-status {
       font-family: var(--font-mono);
-      font-size: 0.625rem;
+      font-size: 0.6rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       padding: 2px 8px;
       border-radius: 99px;
+      white-space: nowrap;
     }
     .platform-status-live {
       color: #00D4AA;
       background: rgba(0, 212, 170, 0.12);
     }
     .platform-status-soon {
-      color: #666;
-      background: rgba(255, 255, 255, 0.05);
+      color: #999;
+      background: rgba(255, 255, 255, 0.08);
     }
     /* Hamburger Menu styles are in /styles.css */
 
