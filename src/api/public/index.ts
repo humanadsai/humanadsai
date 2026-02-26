@@ -442,6 +442,27 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
       }
     }
 
+    // Total ad budget: SUM(reward_amount * max_participants) across ALL deals
+    let totalAdBudget = 0;
+    try {
+      const budgetResult = await env.DB.prepare(
+        `SELECT COALESCE(SUM(reward_amount * COALESCE(max_participants, 1)), 0) AS total
+         FROM deals
+         WHERE COALESCE(visibility, 'visible') = 'visible'`
+      ).first<{ total: number }>();
+      totalAdBudget = budgetResult?.total || 0;
+      if (debug) {
+        debugInfo.total_ad_budget_query = 'success';
+        debugInfo.total_ad_budget_cents = totalAdBudget;
+      }
+    } catch (e) {
+      console.warn('Total ad budget query failed:', e);
+      if (debug) {
+        debugInfo.total_ad_budget_query = 'failed';
+        debugInfo.total_ad_budget_error = String(e);
+      }
+    }
+
     // Build response with no-cache headers to prevent CDN/browser caching
     // ai_connected includes samples for demo/MVP (use ai_connected_real for production)
     const responseData: Record<string, unknown> = {
@@ -449,6 +470,7 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
       human_operators: operatorsCount,
       ai_connected: aiAdvertisersCount, // Active AI advertisers (shown on KPI card)
       ai_advertisers: aiAdvertisersCount, // Alias for clarity
+      total_ad_budget: totalAdBudget, // Cumulative planned budget in cents
       generated_at: new Date().toISOString(),
       cache: 'miss',
     };
