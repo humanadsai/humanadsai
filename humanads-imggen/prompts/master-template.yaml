@@ -1,71 +1,69 @@
-version: 1
-name: editorial-anti-ai-v1
+version: 2
+name: viral-thumbnail-v2
 
 defaults:
-  light: "Natural available light, slightly underexposed"
-  film_stock: "Subtle film grain, muted color palette, no post-processing filters"
+  light: "Bright, clean, professional lighting. Well-lit face, no dark shadows"
+  film_stock: "Clean sharp image, natural colors, high contrast between subject and background"
   anti_ai: >-
-    Include subtle real-world imperfections: visible skin pores,
-    natural hair flyaways, slightly uneven lighting, cloth wrinkles,
-    matte surfaces not glossy, one element slightly soft-focus.
-    No perfect symmetry.
+    Photorealistic photograph. The image must instantly grab attention
+    when seen as a small thumbnail on a phone screen.
+    One single clear focal point. Clean uncluttered background.
+    The overall feeling should be BRIGHT, POSITIVE, and HIGH-ENERGY.
   constraints: >-
-    No text, no letters, no words, no logos, no watermarks.
-    Dark enough that white text overlaid will be clearly readable.
+    No text, no letters, no words, no logos, no watermarks anywhere.
     Vertical portrait orientation (9:16 aspect ratio).
-    Maximum 3 dominant colors.
+    Bright enough that white text overlaid on the upper half will be readable
+    against the clean background.
   negative_prompt: >-
-    Do NOT include: neon lighting, teal-and-orange color grading,
-    glossy or plastic skin, particle effects, lens flares,
-    volumetric god-rays, cyberpunk aesthetic, gradient backgrounds,
+    Do NOT include: neon lighting, teal-and-orange grading,
+    glossy plastic skin, particle effects, lens flares,
+    god-rays, cyberpunk aesthetic, gradient backgrounds,
     abstract shapes, geometric patterns, robots, cyborgs,
-    AI-generated watermarks, perfect bilateral symmetry,
-    overly saturated colors, HDR look, digital art style,
-    fire, smoke, dramatic clouds, glowing elements, stock photo smile.
+    watermarks, perfect bilateral symmetry,
+    HDR look, digital art style, fire, smoke,
+    glowing elements, dark gloomy atmosphere, desaturated colors,
+    horror aesthetic, stock photo smile.
 
 cameras:
-  - "Shot on Canon EOS R5 with 35mm f/1.4 lens"
-  - "Shot on Sony A7IV with 50mm f/1.8 lens"
-  - "Shot on Nikon Z9 with 24-70mm f/2.8 lens"
-  - "Shot on Fujifilm X-T5 with 23mm f/2 lens"
+  - "Shot on a professional camera with a 50mm lens"
+  - "Shot on a professional camera with a 35mm lens"
+  - "Shot on a professional camera with an 85mm portrait lens"
 
 slide_types:
   hook:
     composition: >-
-      Wide establishing shot. Subject in lower-center, leaving generous
-      clear space in upper 40% for text overlay. Shallow depth of field f/1.4.
-      Rule of thirds.
+      Subject positioned in center-bottom third of frame.
+      Upper 50% is clean negative space for text overlay.
+      Shallow depth of field, background softly blurred.
+      Subject is the single clear focal point.
   chapter_title:
     composition: >-
-      Extreme wide or overhead angle. Subject small in frame.
-      At least 60% of frame is clean negative space for title text.
-      Deep focus f/8.
+      Wide shot with subject small but visible.
+      At least 60% clean negative space.
+      Very simple composition with one focal point.
   emphasis:
     composition: >-
-      Tight crop, slightly low angle. Subject fills lower third intensely.
-      Upper two-thirds has soft out-of-focus background for text overlay.
+      Medium close-up, subject fills bottom half.
+      Upper half has clean soft-focus background.
+      Strong eye contact with camera.
   body:
     composition: >-
-      Medium shot, eye-level. Subject at right-third of frame.
-      Left side has negative space for text. Natural depth of field.
+      Medium shot, subject slightly off-center.
+      One side has clean negative space for text.
+      Simple uncluttered composition.
   cta:
     composition: >-
-      Clean wide shot with subject distant. Large centered negative space.
-      Minimal visual complexity.
+      Clean wide shot, subject centered but small.
+      Maximum negative space. Minimal visual elements.
 
 categories:
   business:
-    subject: >-
-      A real office worker in their 30s, wearing a plain collared shirt,
-      sitting at a cluttered desk. Natural posture, not posed.
-      Subtle micro-expression of concentration.
-    environment: >-
-      A real corporate office — fluorescent overhead lights, beige walls,
-      whiteboard with writing, stacked papers. Nothing futuristic.
-      Practical lighting only.
-    mood: >-
-      Professional unease — conveyed through posture and expression,
-      not through color grading.
+    scene: >-
+      Confident young professional in a clean modern workspace.
+      Sharp outfit, strong posture, looking directly at camera
+      with a determined expression. Minimalist desk with laptop.
+    lighting: "Bright natural window light from the side, clean white walls, soft shadows"
+    palette: "Clean whites, navy blue, warm skin tones"
     keywords:
       - revenue
       - profit
@@ -83,19 +81,17 @@ categories:
       - 経済
       - ビジネス
       - 投資
+      - 億
+      - 万円
+      - 稼
 
   technology:
-    subject: >-
-      Close-up of real hands on a laptop keyboard, screen casting a soft
-      blue-white glow on the face. The person wears a plain t-shirt.
-      Visible veins on hands, natural nail texture.
-    environment: >-
-      A real home office or coworking space at night. Warm desk lamp,
-      coffee mug with stain ring, tangled charging cables.
-      Window shows dark sky.
-    mood: >-
-      Quiet focus — conveyed through stillness and screen glow,
-      not through neon or effects.
+    scene: >-
+      Person with an amazed/excited expression looking at a glowing screen
+      or holding a smartphone. Clean modern setting.
+      The excitement should be genuine and infectious.
+    lighting: "Bright ambient light with soft blue accent from screen. Well-lit face, no dark shadows"
+    palette: "Bright white, electric blue accents, warm skin tones"
     keywords:
       - AI
       - algorithm
@@ -111,17 +107,16 @@ categories:
       - アルゴリズム
       - 自動化
       - プログラム
+      - ChatGPT
+      - ロボット
 
   health:
-    subject: >-
-      A real person outdoors, wearing everyday athletic clothes.
-      Natural body proportions, visible pores, slightly windswept hair.
-    environment: >-
-      A public park at golden hour. Dappled sunlight through actual trees,
-      visible grass texture, park bench in background. Real weather.
-    mood: >-
-      Calm determination — conveyed through relaxed posture
-      and warm natural light.
+    scene: >-
+      Energetic person in bright activewear, mid-action or showing
+      a strong confident pose. Bright outdoor or gym setting.
+      Genuine smile or intense focus.
+    lighting: "Golden hour sunlight or bright gym lighting. Warm, vibrant, energizing"
+    palette: "Vibrant greens, bright oranges, sunny yellows, warm skin tones"
     keywords:
       - health
       - medicine
@@ -137,63 +132,44 @@ categories:
       - 病院
       - 治療
       - 運動
+      - ダイエット
+      - 筋トレ
+      - 睡眠
 
-  environment:
-    subject: >-
-      Wide landscape with tiny human figure for scale.
-      Real terrain textures — cracked earth, wild grass, weathered rocks.
-    environment: >-
-      Raw outdoor location under overcast sky. Muted natural colors,
-      no filters. Visible cloud texture, wind in vegetation.
-    mood: >-
-      Vast unease — conveyed through scale and emptiness,
-      not color grading.
+  money:
+    scene: >-
+      Person with a shocked or excited expression, eyes wide,
+      mouth slightly open — as if they just discovered something incredible.
+      Clean modern background.
+    lighting: "Bright even studio lighting, warm tone. Face fully illuminated, no shadows"
+    palette: "Gold, warm white, rich green accents"
     keywords:
-      - climate
-      - carbon
-      - ocean
-      - forest
-      - pollution
-      - renewable
-      - sustainability
-      - 環境
-      - 気候
-      - 汚染
-      - エネルギー
-
-  social:
-    subject: >-
-      Candid shot of 2-3 real people in conversation. Mixed ages,
-      natural clothing, unposed body language. One person mid-gesture.
-    environment: >-
-      A real cafe or urban sidewalk. Visible menu boards,
-      scratched table surface, mismatched chairs. Background pedestrians.
-    mood: >-
-      Authentic warmth — conveyed through genuine micro-expressions
-      and proximity.
-    keywords:
-      - community
-      - culture
-      - education
-      - family
-      - relationship
-      - social media
-      - コミュニティ
-      - 教育
-      - 文化
-      - SNS
+      - money
+      - rich
+      - wealthy
+      - income
+      - salary
+      - save
+      - debt
+      - loan
+      - tax
+      - お金
+      - 貯金
+      - 節約
+      - 年収
+      - 副業
+      - 借金
+      - 税金
+      - 資産
+      - 不動産
 
   danger:
-    subject: >-
-      Tight close-up of a person with furrowed brow, looking at something
-      off-camera. Visible stubble or tired eyes, slightly disheveled.
-      Not a model.
-    environment: >-
-      A dim room lit by a single overhead fluorescent tube. Stark shadows
-      on one side of face. Plain wall, maybe peeling paint. Sparse furniture.
-    mood: >-
-      Quiet dread — conveyed through tense stillness and sparse lighting,
-      NOT through red filters or fire.
+    scene: >-
+      Person with a shocked/alarmed expression — wide eyes,
+      raised eyebrows, hand near face. Bright clean background
+      with a single bold red accent element.
+    lighting: "Bright, well-lit. The urgency comes from the expression, NOT from dark lighting"
+    palette: "Clean white background, bold red accent, bright overall"
     keywords:
       - risk
       - threat
@@ -211,27 +187,47 @@ categories:
       - 警告
       - 脅威
       - ハッキング
+      - やばい
+      - 注意
+
+  lifestyle:
+    scene: >-
+      Stylish person in an aspirational but relatable setting —
+      beautiful cafe, rooftop, or minimalist apartment.
+      Relaxed confident expression.
+    lighting: "Warm golden light, bright and inviting. Morning or golden hour feel"
+    palette: "Warm earth tones, cream, soft gold, terracotta"
+    keywords:
+      - life
+      - habit
+      - morning
+      - routine
+      - productivity
+      - success
+      - 習慣
+      - 朝活
+      - 生活
+      - ルーティン
+      - 成功
+      - 人生
+      - 時間
 
   general:
-    subject: >-
-      A real person in everyday clothes, in a natural unposed moment.
-      Visible skin texture, natural hair with flyaways,
-      slightly wrinkled clothing.
-    environment: >-
-      An ordinary real-world location — street, office, apartment.
-      Practical mixed lighting. Visible wear-and-tear on surfaces.
-    mood: >-
-      Understated tension — conveyed through environment
-      and expression, not effects.
+    scene: >-
+      A person with a strong clear emotional expression
+      (surprise, excitement, curiosity) against a clean simple background.
+      The expression should make viewers curious about the story.
+    lighting: "Bright, even, professional lighting. Face clearly visible, no harsh shadows"
+    palette: "Clean bright colors, warm skin tones, simple background"
     keywords: []
 
 template: |
-  Editorial photograph. {camera}. {light}. {film_stock}.
-  Subject: {subject}.
-  The image relates to: "{context}".
-  Setting: {environment}.
+  {style}. {camera}. Bright, clean, high-quality image.
+  {scene}.
+  The topic is: "{context}".
+  Lighting: {lighting}.
+  Color palette: {palette}.
   {composition}.
   {anti_ai}
-  {mood}.
   {constraints}
   {negative_prompt}

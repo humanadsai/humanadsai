@@ -32,6 +32,13 @@ export const slideSchema = z.object({
   visualNotes: z.string().optional(),
 });
 
+// Word-level timestamp for karaoke subtitles
+export const wordTimestampSchema = z.object({
+  word: z.string(),
+  start: z.number(), // seconds
+  end: z.number(),   // seconds
+});
+
 export const slideshowSchema = z.object({
   templateType: z.string(),
   title: z.string(),
@@ -44,6 +51,10 @@ export const slideshowSchema = z.object({
     text: z.string(),
     url: z.string(),
   }).optional(),
+  // TTS narration (all optional for backward compatibility)
+  audioSrc: z.string().optional(),           // URL to MP3 audio
+  timestamps: z.array(wordTimestampSchema).optional(), // word-level timestamps
+  subtitleStyle: z.enum(['karaoke', 'fade', 'none']).default('karaoke'),
   metadata: z.object({
     totalDurationSec: z.number(),
     totalSlides: z.number(),
@@ -57,4 +68,5 @@ export const slideshowSchema = z.object({
 export type SceneType = z.infer<typeof sceneTypeEnum>;
 export type MotionPreset = z.infer<typeof motionPresetEnum>;
 export type Slide = z.infer<typeof slideSchema>;
+export type WordTimestamp = z.infer<typeof wordTimestampSchema>;
 export type SlideshowProps = z.infer<typeof slideshowSchema>;

@@ -22,6 +22,12 @@ class TestInferCategory:
     def test_health(self, engine):
         assert engine.infer_category("New medicine treatment") == "health"
 
+    def test_money(self, engine):
+        assert engine.infer_category("お金を貯金する方法") == "money"
+
+    def test_lifestyle(self, engine):
+        assert engine.infer_category("朝活で人生が変わる") == "lifestyle"
+
     def test_general_fallback(self, engine):
         assert engine.infer_category("Random topic about cats") == "general"
 
@@ -36,26 +42,43 @@ class TestRender:
         assert isinstance(result, str)
         assert len(result) > 100
 
-    def test_contains_editorial(self, engine):
+    def test_contains_photo_style(self, engine):
         result = engine.render("startup funding round", "hook")
-        assert "Editorial photograph" in result
+        # Should contain one of the photo styles
+        assert any(s in result for s in [
+            "Professional lifestyle photograph",
+            "High-end magazine cover photograph",
+            "Bright editorial portrait photograph",
+            "Clean commercial photography",
+        ])
+
+    def test_bright_not_dark(self, engine):
+        """Prompts should be bright-oriented, not dark/gloomy."""
+        result = engine.render("startup funding round", "hook")
+        body = result.split("Do NOT include:")[0].lower()
+        assert "bright" in body
+        # Should NOT contain gloomy keywords
+        assert "underexposed" not in body
+        assert "muted color" not in body
+        assert "dim room" not in body
+        assert "quiet dread" not in body
 
     def test_contains_no_blacklisted_words_in_body(self, engine):
         result = engine.render("dramatic cinematic AI cyberpunk", "hook")
-        # Split at the negative prompt boundary
         parts = result.split("Do NOT include:")
         body = parts[0].lower() if parts else result.lower()
-        # Body (before negative prompt) should not have blacklisted words
         assert "cyberpunk" not in body
         assert "cinematic" not in body
 
     def test_hook_composition(self, engine):
         result = engine.render("test theme", "hook")
-        assert "establishing" in result.lower() or "wide" in result.lower()
+        lower = result.lower()
+        assert "negative space" in lower or "focal point" in lower
 
     def test_emphasis_composition(self, engine):
         result = engine.render("test theme", "emphasis")
-        assert "tight" in result.lower() or "crop" in result.lower()
+        lower = result.lower()
+        assert "close-up" in lower or "eye contact" in lower
 
     def test_overrides(self, engine):
         result = engine.render(
@@ -74,8 +97,14 @@ class TestRender:
         """Context from theme should be truncated."""
         long_theme = "word " * 100
         result = engine.render(long_theme, "hook")
-        # Should not include the full 500-char theme verbatim
         assert len(result) < 2000
+
+    def test_danger_is_bright(self, engine):
+        """Even danger category should be bright, not dark."""
+        result = engine.render("詐欺に注意 scam warning", "hook")
+        body = result.split("Do NOT include:")[0].lower()
+        assert "bright" in body
+        assert "dim" not in body
 
 
 class TestListMethods:
@@ -84,6 +113,8 @@ class TestListMethods:
         assert "business" in cats
         assert "technology" in cats
         assert "danger" in cats
+        assert "money" in cats
+        assert "lifestyle" in cats
         assert "general" in cats
 
     def test_list_slide_types(self, engine):

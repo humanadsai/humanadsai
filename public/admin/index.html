@@ -1261,7 +1261,7 @@
         '<div class="form-group"><label class="form-label">Caption (auto-generated if empty)</label>' +
           '<textarea class="form-input" id="vp-caption" rows="3" placeholder="キャプション" style="resize:vertical;"></textarea></div>' +
         '<div class="form-group"><label class="form-label">Hashtags (space-separated)</label>' +
-          '<input class="form-input" id="vp-hashtags" placeholder="#OpenClaw #RentAHuman"></div>' +
+          '<input class="form-input" id="vp-hashtags" placeholder="台本から自動抽出されます"></div>' +
         '<div class="form-group"><label class="form-label">BGM</label>' +
           '<select class="form-select" id="vp-bgm"><option value="none">None</option><option value="upbeat">Upbeat</option><option value="calm">Calm</option><option value="corporate">Corporate</option></select></div>' +
         '<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;">' +
@@ -1292,14 +1292,60 @@
       scriptDebounce = setTimeout(function() {
         var text = scriptVal.trim();
         if (!text) return;
-        var firstLine = text.split('\n')[0].trim();
-        var autoTitle = firstLine.length > 50 ? firstLine.slice(0, 50) + '...' : firstLine;
+        var lines = text.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+        var firstLine = lines[0] || '';
+        // Internal Title: first line, cleaned of emphasis markers
+        var cleanFirst = firstLine.replace(/[「」\*#]/g, '').trim();
+        var autoTitle = cleanFirst.length > 50 ? cleanFirst.slice(0, 50) + '...' : cleanFirst;
         if (!manuallyEdited['vp-title']) document.getElementById('vp-title').value = autoTitle;
-        if (!manuallyEdited['vp-yt-title']) document.getElementById('vp-yt-title').value = autoTitle;
-        if (!manuallyEdited['vp-caption']) document.getElementById('vp-caption').value = text.slice(0, 200);
-        if (!manuallyEdited['vp-hashtags']) document.getElementById('vp-hashtags').value = '#OpenClaw #RentAHuman';
+        // YT Title: hook-style — first line + "..." to create curiosity
+        if (!manuallyEdited['vp-yt-title']) {
+          var ytTitle = cleanFirst.length > 60 ? cleanFirst.slice(0, 60) + '…' : cleanFirst;
+          document.getElementById('vp-yt-title').value = ytTitle;
+        }
+        // Caption: first 2-3 lines as teaser + "続きは動画で"
+        if (!manuallyEdited['vp-caption']) {
+          var captionLines = lines.slice(0, 3).map(function(l){ return l.replace(/[「」\*#]/g, ''); });
+          var caption = captionLines.join('\n');
+          if (lines.length > 3) caption += '\n\n▶ 続きは動画で';
+          document.getElementById('vp-caption').value = caption.slice(0, 300);
+        }
+        // Hashtags: extract keywords from script content
+        if (!manuallyEdited['vp-hashtags']) {
+          var tags = autoExtractHashtags(text);
+          document.getElementById('vp-hashtags').value = tags;
+        }
       }, 300);
     });
+  }
+
+  /** Extract relevant hashtags from script text based on content keywords */
+  function autoExtractHashtags(text) {
+    var tagMap = {
+      'AI': '#AI', '人工知能': '#AI', 'ChatGPT': '#ChatGPT', 'GPT': '#GPT',
+      'OpenAI': '#OpenAI', 'Google': '#Google', 'Apple': '#Apple',
+      'プログラミング': '#プログラミング', 'エンジニア': '#エンジニア',
+      '投資': '#投資', '株': '#株式投資', '仮想通貨': '#仮想通貨', 'ビットコイン': '#ビットコイン',
+      'お金': '#お金の話', '副業': '#副業', '年収': '#年収', '節約': '#節約',
+      '健康': '#健康', 'ダイエット': '#ダイエット', '筋トレ': '#筋トレ', '睡眠': '#睡眠',
+      '詐欺': '#注意喚起', '危険': '#注意喚起', 'やばい': '#やばい',
+      '習慣': '#習慣', 'ルーティン': '#モーニングルーティン', '朝活': '#朝活',
+      'ビジネス': '#ビジネス', '起業': '#起業', 'スタートアップ': '#スタートアップ',
+      'テクノロジー': '#テクノロジー', 'ロボット': '#ロボット',
+      '科学': '#サイエンス', '宇宙': '#宇宙', '歴史': '#歴史',
+      'ゲーム': '#ゲーム', 'チェス': '#チェス',
+    };
+    var found = [];
+    var lower = text.toLowerCase();
+    for (var kw in tagMap) {
+      if (lower.includes(kw.toLowerCase()) && found.indexOf(tagMap[kw]) === -1) {
+        found.push(tagMap[kw]);
+      }
+    }
+    // Always add base tags
+    found.push('#Shorts');
+    // Cap at 8 tags
+    return found.slice(0, 8).join(' ');
   }
 
   async function submitVideoPost() {

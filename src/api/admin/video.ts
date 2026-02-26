@@ -14,9 +14,11 @@ import type { Env } from '../../types';
 import { success, error, errors, generateRequestId } from '../../utils/response';
 import { requireAdmin } from '../../middleware/admin';
 import { arrayBufferToHex } from '../../utils/crypto';
-import { invokeLambda } from '../../lib/aws-sigv4';
+import { invokeLambda, uploadToS3 } from '../../lib/aws-sigv4';
 import { rewriteScript, evaluateScript, updateKnowhow } from '../../services/llm';
-import { generateSlideImages } from '../../services/image-generator';
+import { generateSlideImages, inferCategory } from '../../services/image-generator';
+import { generateTTS, inferVoicePreset, VOICE_PRESETS } from '../../services/tts';
+import { generateTimestamps } from '../../services/whisper';
 
 // ============================================
 // ID Generation
@@ -64,14 +66,14 @@ interface SlidesPayload {
   };
 }
 
-const MAX_SLIDE_LINES = 3;
-const MAX_LINE_CHARS = 40; // Force-split only if a single line exceeds this
+const MAX_SLIDE_LINES = 2;
+const MAX_LINE_CHARS = 30; // Force-split if a single line exceeds this (JP ~25, EN ~30)
 const BG_PRESETS = ['gradient_blue', 'gradient_purple', 'solid_dark', 'solid_white', 'brand'];
 
 /**
  * Split paragraph text into slide-sized chunks.
- * Preserves LLM-authored line breaks. Splits into max 3 lines per slide.
- * Only force-splits if a single line is extremely long.
+ * Preserves LLM-authored line breaks. Max 2 lines per slide.
+ * Force-splits lines exceeding 30 chars at natural break points.
  */
 function splitTextToSlides(text: string): string[] {
   // Split into individual lines (preserving LLM line breaks)
@@ -490,6 +492,67 @@ function scaleSlidesToDuration(slides: Slide[], targetSec: number): Slide[] {
 }
 
 // ============================================
+// Auto-fill Helpers (generate metadata from script)
+// ============================================
+
+// Keyword → hashtag mapping for Japanese content
+const HASHTAG_KEYWORDS: Record<string, string> = {
+  'AI': '#AI', '人工知能': '#AI', 'ChatGPT': '#ChatGPT', 'GPT': '#GPT',
+  'OpenAI': '#OpenAI', 'Google': '#Google', 'Apple': '#Apple',
+  'プログラミング': '#プログラミング', 'エンジニア': '#エンジニア',
+  '投資': '#投資', '株': '#株式投資', '仮想通貨': '#仮想通貨', 'ビットコイン': '#ビットコイン',
+  'お金': '#お金の話', '副業': '#副業', '年収': '#年収', '節約': '#節約',
+  '健康': '#健康', 'ダイエット': '#ダイエット', '筋トレ': '#筋トレ', '睡眠': '#睡眠',
+  '詐欺': '#注意喚起', '危険': '#注意喚起', 'やばい': '#やばい',
+  '習慣': '#習慣', 'ルーティン': '#モーニングルーティン', '朝活': '#朝活',
+  'ビジネス': '#ビジネス', '起業': '#起業', 'スタートアップ': '#スタートアップ',
+  'テクノロジー': '#テクノロジー', 'ロボット': '#ロボット',
+  '科学': '#サイエンス', '宇宙': '#宇宙', '歴史': '#歴史',
+  'ゲーム': '#ゲーム', 'チェス': '#チェス',
+  'マーケティング': '#マーケティング', 'SNS': '#SNS',
+  '英語': '#英語学習', '勉強': '#勉強法',
+};
+
+/**
+ * Generate a caption from the rewritten script.
+ * Uses first 2-3 lines as a teaser + CTA.
+ */
+function generateCaptionFromScript(script: string): string {
+  const lines = script.split('\n').map(l => l.replace(/[「」\*#]/g, '').trim()).filter(Boolean);
+  const teaserLines = lines.slice(0, 3).join('\n');
+  const caption = lines.length > 3
+    ? teaserLines + '\n\n▶ 続きは動画で'
+    : teaserLines;
+  return caption.slice(0, 300);
+}
+
+/**
+ * Generate hashtags from script content using keyword matching.
+ */
+function generateHashtagsFromScript(script: string): string {
+  const lower = script.toLowerCase();
+  const found = new Set<string>();
+  for (const [kw, tag] of Object.entries(HASHTAG_KEYWORDS)) {
+    if (lower.includes(kw.toLowerCase())) {
+      found.add(tag);
+    }
+  }
+  found.add('#Shorts');
+  return [...found].slice(0, 8).join(' ');
+}
+
+/**
+ * Generate a YouTube title from the script's first line (hook).
+ * Adds "…" for curiosity if truncated.
+ */
+function generateYtTitleFromScript(script: string): string {
+  const firstLine = script.split('\n').map(l => l.trim()).filter(Boolean)[0] || '';
+  const clean = firstLine.replace(/[「」\*#]/g, '').trim();
+  if (clean.length > 60) return clean.slice(0, 60) + '…';
+  return clean;
+}
+
+// ============================================
 // Job Event Logging
 // ============================================
 
@@ -601,7 +664,7 @@ async function triggerRemotionRender(
     rendererFunctionName: null,
     framesPerLambda: null,
     bucketName: null,
-    audioCodec: null,
+    audioCodec: 'aac',
     offthreadVideoCacheSizeInBytes: null,
     deleteAfter: null,
     colorSpace: null,
@@ -892,13 +955,19 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
 
   const videoPostId = generateId('vp_');
 
+  // Validate voice_preset if provided
+  const voicePreset = body.voice_preset || null;
+  if (voicePreset && !VOICE_PRESETS[voicePreset]) {
+    return errors.badRequest(requestId, `Invalid voice_preset: ${voicePreset}. Valid: ${Object.keys(VOICE_PRESETS).join(', ')}`);
+  }
+
   // Insert video_post with raw script only (slides built AFTER LLM rewrite in Stage 2)
   await env.DB.prepare(
     `INSERT INTO video_posts (
       id, internal_title, template_type, script_text, slides_json, slides_count,
       caption_text, hashtags_text, yt_title, yt_visibility, cta_text, bgm_preset,
-      status, publish_mode, scheduled_at, created_by, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+      voice_preset, status, publish_mode, scheduled_at, created_by, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
   ).bind(
     videoPostId,
     internal_title,
@@ -912,6 +981,7 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
     body.yt_visibility || 'public',
     body.cta_text || null,
     body.bgm_preset || 'none',
+    voicePreset,
     'script_rewriting',
     publish_mode,
     scheduledAtUtc,
@@ -2042,6 +2112,50 @@ export async function serveSlideImage(request: Request, env: Env, videoPostId: s
   return new Response(bytes, {
     headers: {
       'Content-Type': mimeType,
+      'Content-Length': String(bytes.byteLength),
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'public, max-age=3600',
+    },
+  });
+}
+
+/**
+ * GET /api/internal/tts-audio/:videoPostId
+ * Serves TTS audio as MP3 so Remotion Lambda can fetch it by URL.
+ */
+export async function serveTtsAudio(request: Request, env: Env, videoPostId: string): Promise<Response> {
+  // Handle CORS preflight (Remotion Lambda headless Chrome requires CORS)
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Range',
+        'Access-Control-Max-Age': '86400',
+      },
+    });
+  }
+
+  const post = await env.DB.prepare('SELECT tts_audio_data FROM video_posts WHERE id = ?').bind(videoPostId).first<any>();
+  if (!post?.tts_audio_data) {
+    return new Response('No TTS audio', { status: 404 });
+  }
+
+  // Decode base64 to binary
+  const binaryString = atob(post.tts_audio_data);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  return new Response(bytes, {
+    headers: {
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': String(bytes.byteLength),
+      'Accept-Ranges': 'bytes',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Cache-Control': 'public, max-age=3600',
     },
   });
@@ -2142,11 +2256,31 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
           { score: evalResult.score, breakdown: evalResult.breakdown }
         );
 
+        // Auto-fill caption/hashtags/yt_title from rewritten script if empty
+        const autoFillParts: string[] = [];
+        const autoFillBinds: any[] = [];
+        if (!post.caption_text) {
+          const autoCaption = generateCaptionFromScript(post.llm_rewritten_script);
+          autoFillParts.push('caption_text = ?');
+          autoFillBinds.push(autoCaption);
+        }
+        if (!post.hashtags_text) {
+          const autoHashtags = generateHashtagsFromScript(post.llm_rewritten_script);
+          autoFillParts.push('hashtags_text = ?');
+          autoFillBinds.push(autoHashtags);
+        }
+        if (!post.yt_title || post.yt_title === post.internal_title) {
+          const autoYtTitle = generateYtTitleFromScript(post.llm_rewritten_script);
+          autoFillParts.push('yt_title = ?');
+          autoFillBinds.push(autoYtTitle);
+        }
+        const autoFillSql = autoFillParts.length > 0 ? ', ' + autoFillParts.join(', ') : '';
+
         await env.DB.prepare(
-          `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = 1, llm_eval_feedback = ?,
+          `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = 1, llm_eval_feedback = ?${autoFillSql},
             status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
-        ).bind(evalResult.score, JSON.stringify(evalResult), post.id).run();
-        await logEvent(env.DB, post.id, 'llm_eval', 'success', `Script approved with score ${evalResult.score}/100`);
+        ).bind(evalResult.score, JSON.stringify(evalResult), ...autoFillBinds, post.id).run();
+        await logEvent(env.DB, post.id, 'llm_eval', 'success', `Script approved with score ${evalResult.score}/100${autoFillParts.length > 0 ? ` (auto-filled: ${autoFillParts.length} fields)` : ''}`);
       } catch (e: any) {
         console.error(`[VideoJobs] Stage 2 error for ${post.id}:`, e.message);
         await logEvent(env.DB, post.id, 'pipeline', 'failed', `Cron eval error: ${e.message}. Use Retry.`);
@@ -2175,29 +2309,70 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
         );
         const finalDuration = Math.max(15, Math.min(45, finalPayload.metadata.totalDurationSec));
         finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, finalDuration);
-        finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum: number, s: any) => sum + s.durationSec, 0);
+        finalPayload.metadata.totalDurationSec = Math.round(finalPayload.slides.reduce((sum: number, s: any) => sum + s.durationSec, 0) * 10) / 10;
 
         await logEvent(env.DB, post.id, 'build', 'success',
           `Slides built from rewritten script: ${finalPayload.slides.length} slides, ${finalPayload.metadata.totalDurationSec}s`
         );
 
-        // Generate images with gpt-image-1
-        if (openaiKey) {
-          await env.DB.prepare(
-            `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
-          ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, post.id).run();
+        // Run image generation + TTS in parallel
+        await env.DB.prepare(
+          `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
+        ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, post.id).run();
 
+        // ── Image Generation (parallel task 1) ──
+        const imageGenPromise = (async () => {
+          if (!openaiKey) return null;
           const KEY_TYPES = ['hook', 'chapter_title', 'emphasis'];
           const keySlideCount = finalPayload.slides.filter((s: any) => KEY_TYPES.includes(s.type)).length;
           const actualCount = Math.min(keySlideCount, 3);
           await logEvent(env.DB, post.id, 'image_gen', 'started', `Generating ${actualCount} images (max 3 of ${keySlideCount} key slides)`);
-          const imageResult = await generateSlideImages(openaiKey, finalPayload.slides);
+          return generateSlideImages(openaiKey, finalPayload.slides);
+        })();
 
+        // ── TTS + Whisper (parallel task 2) ──
+        // Use SLIDE texts (already duration-limited to 45s) instead of full script
+        // to keep audio short enough for Shorts and within D1 storage limits.
+        const ttsPromise = (async () => {
+          if (!openaiKey) return null;
+          try {
+            // Build narration text from duration-limited slides (not full script)
+            const slideTexts = finalPayload.slides
+              .map((s: any) => s.text.replace(/[「」\*#]/g, ''))
+              .join('\n');
+            const targetDurationSec = finalPayload.metadata.totalDurationSec;
+
+            const category = inferCategory(slideTexts);
+            const presetName = post.voice_preset || inferVoicePreset(category);
+            await logEvent(env.DB, post.id, 'tts', 'started', `Generating TTS: preset=${presetName}, ${slideTexts.length} chars from ${finalPayload.slides.length} slides (~${targetDurationSec}s target)`);
+            const ttsResult = await generateTTS(openaiKey, slideTexts, presetName, category, targetDurationSec);
+            await recordCost(env.DB, post.id, 'tts', ttsResult.costUsd, undefined, undefined, 'gpt-4o-mini-tts', { preset: ttsResult.preset, charCount: ttsResult.charCount });
+            await logEvent(env.DB, post.id, 'tts', 'success', `TTS generated: ~${ttsResult.durationEstimateSec}s, ${(ttsResult.audioBase64.length / 1024).toFixed(0)}KB base64, $${ttsResult.costUsd.toFixed(4)}`);
+
+            // Run Whisper on the generated audio
+            await logEvent(env.DB, post.id, 'whisper', 'started', 'Generating word timestamps');
+            const whisperResult = await generateTimestamps(openaiKey, ttsResult.audioBase64);
+            await recordCost(env.DB, post.id, 'whisper', whisperResult.costUsd, undefined, undefined, 'whisper-1');
+            await logEvent(env.DB, post.id, 'whisper', 'success', `${whisperResult.words.length} words, ${whisperResult.totalDurationSec.toFixed(1)}s, $${whisperResult.costUsd.toFixed(4)}`);
+
+            return { tts: ttsResult, whisper: whisperResult };
+          } catch (ttsErr: any) {
+            console.error(`[VideoJobs] TTS/Whisper failed (non-blocking):`, ttsErr.message);
+            await logEvent(env.DB, post.id, 'tts', 'failed', `TTS error (non-blocking): ${ttsErr.message}`);
+            return null;
+          }
+        })();
+
+        // Wait for both to complete
+        const [imageResult, ttsWhisperResult] = await Promise.all([imageGenPromise, ttsPromise]);
+
+        // Apply image results
+        if (imageResult) {
           for (const img of imageResult.images) {
             if (finalPayload.slides[img.slideIndex]) {
               (finalPayload.slides[img.slideIndex] as any).imageUrl = img.imageUrl;
             }
-            await logEvent(env.DB, post.id, 'image_gen', 'info', `Image ${imageResult.images.indexOf(img) + 1}/${actualCount} done (slide ${img.slideIndex})`);
+            await logEvent(env.DB, post.id, 'image_gen', 'info', `Image ${imageResult.images.indexOf(img) + 1} done (slide ${img.slideIndex})`);
           }
           for (const err of imageResult.errors) {
             await logEvent(env.DB, post.id, 'image_gen', 'failed', `Image error: ${err.substring(0, 150)}`);
@@ -2206,15 +2381,55 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
             await recordCost(env.DB, post.id, 'image_gen', cost.amountUsd, undefined, undefined, cost.model, { slideIndex: cost.slideIndex });
           }
           await logEvent(env.DB, post.id, 'image_gen', imageResult.images.length > 0 ? 'success' : 'failed',
-            `Generated ${imageResult.images.length}/${actualCount} images, $${imageResult.totalCostUsd.toFixed(4)}`
+            `Generated ${imageResult.images.length} images, $${imageResult.totalCostUsd.toFixed(4)}`
           );
         }
 
-        // Save slides (with images) and advance status
-        await env.DB.prepare(
-          `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
-        ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, post.id).run();
-        await logEvent(env.DB, post.id, 'pipeline', 'info', 'Slides + images ready. Render next.');
+        // If TTS succeeded, rescale slide durations to match audio and save TTS data
+        let ttsAudioBase64: string | null = null;
+        let ttsTimestampsJson: string | null = null;
+        let ttsPreset: string | null = null;
+        if (ttsWhisperResult) {
+          const audioDurationSec = ttsWhisperResult.whisper.totalDurationSec;
+          // Redistribute slide durations proportionally to match audio length
+          finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, audioDurationSec);
+          finalPayload.metadata.totalDurationSec = Math.round(finalPayload.slides.reduce((sum: number, s: any) => sum + s.durationSec, 0) * 10) / 10;
+          await logEvent(env.DB, post.id, 'tts', 'info', `Slides rescaled to ${audioDurationSec.toFixed(1)}s audio duration`);
+
+          ttsAudioBase64 = ttsWhisperResult.tts.audioBase64;
+          ttsTimestampsJson = JSON.stringify(ttsWhisperResult.whisper.words);
+          ttsPreset = ttsWhisperResult.tts.preset;
+        }
+
+        // Save slides (with images) and TTS data, advance status
+        // Try with full TTS audio first; fall back to timestamps-only if D1 rejects the blob size.
+        const slidesJson = JSON.stringify(finalPayload);
+        const slidesCount = finalPayload.slides.length;
+        try {
+          if (ttsAudioBase64) {
+            await env.DB.prepare(
+              `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready',
+               tts_audio_data = ?, tts_timestamps_json = ?, voice_preset = ?, updated_at = datetime('now') WHERE id = ?`
+            ).bind(slidesJson, slidesCount, ttsAudioBase64, ttsTimestampsJson, ttsPreset, post.id).run();
+          } else {
+            await env.DB.prepare(
+              `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
+            ).bind(slidesJson, slidesCount, post.id).run();
+          }
+        } catch (dbErr: any) {
+          // Fallback: if audio blob is too large for D1, save without audio data
+          if (dbErr.message?.includes('TOOBIG') || dbErr.message?.includes('too big')) {
+            console.warn(`[VideoJobs] TTS audio too large for D1 (${(ttsAudioBase64?.length || 0) / 1024}KB), saving timestamps only`);
+            await logEvent(env.DB, post.id, 'tts', 'failed', `Audio base64 too large for D1 (${((ttsAudioBase64?.length || 0) / 1024).toFixed(0)}KB). Saving timestamps only — video will have subtitles but no narration audio.`);
+            await env.DB.prepare(
+              `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready',
+               tts_timestamps_json = ?, voice_preset = ?, updated_at = datetime('now') WHERE id = ?`
+            ).bind(slidesJson, slidesCount, ttsTimestampsJson, ttsPreset, post.id).run();
+          } else {
+            throw dbErr; // Re-throw non-size errors
+          }
+        }
+        await logEvent(env.DB, post.id, 'pipeline', 'info', `Slides + images${ttsWhisperResult ? ' + TTS' : ''} ready. Render next.`);
       } catch (e: any) {
         console.error(`[VideoJobs] Stage 3 error for ${post.id}:`, e.message);
         await logEvent(env.DB, post.id, 'pipeline', 'failed', `Cron images error: ${e.message}. Use Retry.`);
@@ -2237,10 +2452,59 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
         console.log(`[VideoJobs] Stage 4: Rendering post ${post.id}`);
         const slidesPayload = JSON.parse(post.slides_json);
 
+        // Upload TTS audio to S3 so Remotion Lambda can fetch it directly
+        if (post.tts_audio_data) {
+          const awsRegion = (env as any).REMOTION_AWS_REGION || 'ap-northeast-1';
+          const awsAccessKeyId = (env as any).AWS_ACCESS_KEY_ID;
+          const awsSecretAccessKey = (env as any).AWS_SECRET_ACCESS_KEY;
+          const s3Bucket = (env as any).REMOTION_S3_BUCKET || 'remotionlambda-apnortheast1-aam4p56xhk';
+
+          if (awsAccessKeyId && awsSecretAccessKey) {
+            try {
+              // Decode base64 to binary
+              const binaryString = atob(post.tts_audio_data);
+              const audioBytes = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                audioBytes[i] = binaryString.charCodeAt(i);
+              }
+
+              const s3Key = `audio/${post.id}.mp3`;
+              const s3Result = await uploadToS3({
+                bucket: s3Bucket,
+                key: s3Key,
+                body: audioBytes.buffer as ArrayBuffer,
+                contentType: 'audio/mpeg',
+                region: awsRegion,
+                accessKeyId: awsAccessKeyId,
+                secretAccessKey: awsSecretAccessKey,
+                acl: 'public-read',
+              });
+
+              if (s3Result.success) {
+                slidesPayload.audioSrc = s3Result.url;
+                console.log(`[TTS] Audio uploaded to S3: ${s3Result.url} (${audioBytes.length} bytes)`);
+              } else {
+                console.error(`[TTS] S3 upload failed: ${s3Result.error}`);
+                await logEvent(env.DB, post.id, 'tts', 'warning', `S3 audio upload failed: ${s3Result.error}`);
+              }
+            } catch (e: any) {
+              console.error(`[TTS] S3 upload error: ${e.message}`);
+              await logEvent(env.DB, post.id, 'tts', 'warning', `S3 audio upload error: ${e.message}`);
+            }
+          }
+        }
+        if (post.tts_timestamps_json) {
+          try {
+            slidesPayload.timestamps = JSON.parse(post.tts_timestamps_json);
+            slidesPayload.subtitleStyle = 'karaoke';
+          } catch { /* ignore parse errors */ }
+        }
+
         // Diagnostic: count slides with imageUrl
         const slidesWithImage = slidesPayload.slides?.filter((s: any) => s.imageUrl)?.length || 0;
+        const hasTts = !!post.tts_audio_data;
         await logEvent(env.DB, post.id, 'render', 'info',
-          `Render payload: ${slidesPayload.slides?.length} slides, ${slidesWithImage} with imageUrl`
+          `Render payload: ${slidesPayload.slides?.length} slides, ${slidesWithImage} with imageUrl, TTS=${hasTts}`
         );
 
         // Trigger Remotion render
@@ -2252,7 +2516,7 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
         await env.DB.prepare(
           `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
            VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-        ).bind(renderJobId, post.id, post.template_type === 'slideshow' ? 'Slideshow' : 'Explainer', post.slides_json).run();
+        ).bind(renderJobId, post.id, post.template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(slidesPayload)).run();
 
         const renderResult = await triggerRemotionRender(env, post.id, renderJobId, slidesPayload);
         if (renderResult.success && renderResult.renderId) {
