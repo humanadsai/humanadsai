@@ -2160,10 +2160,10 @@ body {
 /* --- Flow Diagram --- */
 .escrow-flow {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
   gap: 0;
-  padding: 24px 16px;
+  padding: 28px 20px;
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.04) 0%, rgba(0, 212, 255, 0.04) 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--border-radius-lg);
@@ -2189,22 +2189,26 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  min-width: 120px;
-  max-width: 160px;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  max-width: 220px;
   text-align: center;
+  padding: 16px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--border-radius);
+  min-height: 180px;
 }
 
 .escrow-step-center {
-  min-width: 150px;
-  max-width: 180px;
+  /* same flex:1, no special sizing needed */
 }
 
 .escrow-flow-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2218,8 +2222,8 @@ body {
 }
 
 .escrow-icon-vault {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: 20px;
   background: rgba(255, 107, 53, 0.1);
   border: 1px solid rgba(255, 107, 53, 0.25);
@@ -2235,22 +2239,22 @@ body {
 
 .escrow-flow-label {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .escrow-flow-desc {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: var(--color-text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .escrow-chain-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-family: var(--font-mono);
   color: var(--color-primary);
   background: rgba(255, 107, 53, 0.08);
@@ -2272,19 +2276,19 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   color: var(--color-text-muted);
-  margin-top: 18px;
+  margin-top: 70px;
   flex-shrink: 0;
-  padding: 0 4px;
+  padding: 0 8px;
 }
 
 .escrow-flow-arrow svg {
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 .escrow-flow-arrow-label {
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -2335,13 +2339,13 @@ body {
 
 .escrow-feature-content strong {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .escrow-feature-content span {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--color-text-muted);
   line-height: 1.5;
 }
