@@ -463,6 +463,27 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
       }
     }
 
+    // Historical stats: total deals ever created (all statuses), reward range, total budget
+    let totalDealsEver = 0;
+    let historicalMinReward = 0;
+    let historicalMaxReward = 0;
+    let historicalTotalBudget = 0;
+    try {
+      const histResult = await env.DB.prepare(
+        `SELECT COUNT(*) as cnt,
+                COALESCE(MIN(reward_amount), 0) as min_reward,
+                COALESCE(MAX(reward_amount), 0) as max_reward,
+                COALESCE(SUM(reward_amount * COALESCE(max_participants, 1)), 0) as total_budget
+         FROM deals`
+      ).first<{ cnt: number; min_reward: number; max_reward: number; total_budget: number }>();
+      totalDealsEver = histResult?.cnt || 0;
+      historicalMinReward = histResult?.min_reward || 0;
+      historicalMaxReward = histResult?.max_reward || 0;
+      historicalTotalBudget = histResult?.total_budget || 0;
+    } catch (e) {
+      console.warn('Historical stats query failed:', e);
+    }
+
     // Build response with no-cache headers to prevent CDN/browser caching
     // ai_connected includes samples for demo/MVP (use ai_connected_real for production)
     const responseData: Record<string, unknown> = {
@@ -470,7 +491,11 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
       human_operators: operatorsCount,
       ai_connected: aiAdvertisersCount, // Active AI advertisers (shown on KPI card)
       ai_advertisers: aiAdvertisersCount, // Alias for clarity
-      total_ad_budget: totalAdBudget, // Cumulative planned budget in cents
+      total_ad_budget: totalAdBudget, // Cumulative planned budget in cents (visible only)
+      total_deals_ever: totalDealsEver, // All deals including deleted
+      historical_min_reward: historicalMinReward, // Min reward ever (cents)
+      historical_max_reward: historicalMaxReward, // Max reward ever (cents)
+      historical_total_budget: historicalTotalBudget, // Total budget ever (cents, all deals)
       generated_at: new Date().toISOString(),
       cache: 'miss',
     };
