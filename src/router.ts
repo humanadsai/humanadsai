@@ -143,6 +143,7 @@ import {
   retryVideoPost,
   deleteVideoPost,
   handleRemotionWebhook,
+  serveSlideImage,
   generateVariants,
   addVideoMetrics,
   getVideoMetrics,
@@ -327,6 +328,12 @@ export async function handleRequest(request: Request, env: Env, execCtx?: Execut
 
     if (path === '/api/webhooks/remotion' && method === 'POST') {
       return handleRemotionWebhook(request, env);
+    }
+
+    // Slide image proxy for Remotion Lambda (no auth — Lambda fetches by URL)
+    const slideImageMatch = path.match(/^\/api\/internal\/slide-image\/(vp_[^/]+)\/(\d+)$/);
+    if (slideImageMatch && method === 'GET') {
+      return serveSlideImage(request, env, slideImageMatch[1], parseInt(slideImageMatch[2], 10));
     }
 
     // ============================================

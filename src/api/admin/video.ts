@@ -64,45 +64,57 @@ interface SlidesPayload {
   };
 }
 
-const MAX_SLIDE_CHARS = 80;
+const MAX_SLIDE_LINES = 3;
+const MAX_LINE_CHARS = 40; // Force-split only if a single line exceeds this
 const BG_PRESETS = ['gradient_blue', 'gradient_purple', 'solid_dark', 'solid_white', 'brand'];
 
-function splitTextToSlides(text: string, maxChars: number): string[] {
-  if (text.length <= maxChars) return [text];
+/**
+ * Split paragraph text into slide-sized chunks.
+ * Preserves LLM-authored line breaks. Splits into max 3 lines per slide.
+ * Only force-splits if a single line is extremely long.
+ */
+function splitTextToSlides(text: string): string[] {
+  // Split into individual lines (preserving LLM line breaks)
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
-  const result: string[] = [];
-  let remaining = text;
+  // Force-split any overly long lines at natural break points
+  const expandedLines: string[] = [];
+  for (const line of lines) {
+    if (line.length <= MAX_LINE_CHARS) {
+      expandedLines.push(line);
+    } else {
+      // Split long line at sentence/phrase boundaries
+      let remaining = line;
+      while (remaining.length > MAX_LINE_CHARS) {
+        // Try splitting at 。
+        let idx = remaining.lastIndexOf('。', MAX_LINE_CHARS);
+        if (idx > 0) { expandedLines.push(remaining.substring(0, idx + 1)); remaining = remaining.substring(idx + 1).trim(); continue; }
+        // Try splitting at 、
+        idx = remaining.lastIndexOf('、', MAX_LINE_CHARS);
+        if (idx > 0) { expandedLines.push(remaining.substring(0, idx + 1)); remaining = remaining.substring(idx + 1).trim(); continue; }
+        // Try splitting at '. ' or ', '
+        idx = remaining.lastIndexOf('. ', MAX_LINE_CHARS);
+        if (idx <= 0) idx = remaining.lastIndexOf(', ', MAX_LINE_CHARS);
+        if (idx > 0) { expandedLines.push(remaining.substring(0, idx + 1)); remaining = remaining.substring(idx + 1).trim(); continue; }
+        // Try splitting at space
+        idx = remaining.lastIndexOf(' ', MAX_LINE_CHARS);
+        if (idx > 0) { expandedLines.push(remaining.substring(0, idx)); remaining = remaining.substring(idx + 1).trim(); continue; }
+        // Force split
+        expandedLines.push(remaining.substring(0, MAX_LINE_CHARS));
+        remaining = remaining.substring(MAX_LINE_CHARS).trim();
+      }
+      if (remaining) expandedLines.push(remaining);
+    }
+  }
 
-  while (remaining.length > maxChars) {
-    // Try splitting at 。
-    let splitIdx = remaining.lastIndexOf('。', maxChars);
-    if (splitIdx > 0) {
-      result.push(remaining.substring(0, splitIdx + 1));
-      remaining = remaining.substring(splitIdx + 1).trim();
-      continue;
-    }
-    // Try splitting at 、
-    splitIdx = remaining.lastIndexOf('、', maxChars);
-    if (splitIdx > 0) {
-      result.push(remaining.substring(0, splitIdx + 1));
-      remaining = remaining.substring(splitIdx + 1).trim();
-      continue;
-    }
-    // Try splitting at '. '
-    splitIdx = remaining.lastIndexOf('. ', maxChars);
-    if (splitIdx > 0) {
-      result.push(remaining.substring(0, splitIdx + 1));
-      remaining = remaining.substring(splitIdx + 1).trim();
-      continue;
-    }
-    // Force split at maxChars
-    result.push(remaining.substring(0, maxChars));
-    remaining = remaining.substring(maxChars).trim();
+  // Group into slides of max MAX_SLIDE_LINES lines
+  const slides: string[] = [];
+  for (let i = 0; i < expandedLines.length; i += MAX_SLIDE_LINES) {
+    const chunk = expandedLines.slice(i, i + MAX_SLIDE_LINES);
+    slides.push(chunk.join('\n'));
   }
-  if (remaining.length > 0) {
-    result.push(remaining);
-  }
-  return result;
+
+  return slides.length > 0 ? slides : [text];
 }
 
 function buildSlidesPayload(
@@ -151,23 +163,25 @@ function buildSlidesPayload(
     }
 
     for (let pi = 0; pi < paragraphs.length; pi++) {
-      const para = paragraphs[pi].replace(/\n/g, ' ').trim();
+      const para = paragraphs[pi].trim();
       if (!para) continue;
 
-      const subSlides = splitTextToSlides(para, MAX_SLIDE_CHARS);
+      const subSlides = splitTextToSlides(para);
 
       for (const text of subSlides) {
         const isFirst = slides.length === 0;
+        const plainText = text.replace(/\n/g, ' ');
         // Detect emphasis: contains numbers, or short impactful sentence
         const isEmphasis = !isFirst && (
-          /\d+[%％万億件]/.test(text) ||
-          (text.length <= 30 && (text.endsWith('！') || text.endsWith('!') || text.endsWith('。')))
+          /\d+[%％万億件]/.test(plainText) ||
+          (plainText.length <= 30 && (plainText.endsWith('！') || plainText.endsWith('!') || plainText.endsWith('。')))
         );
+        const lineCount = text.split('\n').length;
 
         slides.push({
           type: isFirst ? 'hook' : (isEmphasis ? 'emphasis' : 'body'),
           text,
-          durationSec: isFirst ? 3 : (isEmphasis ? 3 : Math.min(5, Math.max(3, Math.ceil(text.length / 20)))),
+          durationSec: isFirst ? 3 : (isEmphasis ? 3 : Math.min(5, Math.max(3, Math.ceil(lineCount * 1.5)))),
           bgPreset: BG_PRESETS[bgIdx % BG_PRESETS.length],
         });
         bgIdx++;
@@ -349,20 +363,20 @@ function buildEnhancedSlidesPayload(
         continue;
       }
 
-      // Single-line processing
-      const cleanPara = para.replace(/\n/g, ' ').trim();
-      const subSlides = splitTextToSlides(cleanPara, MAX_SLIDE_CHARS);
+      // Slide-aware processing (preserve LLM line breaks)
+      const subSlides = splitTextToSlides(para);
 
       for (const text of subSlides) {
         const emphasisWords = extractEmphasisWords(text);
         const cleanText = text.replace(/[「」\*]/g, '');
+        const plainText = cleanText.replace(/\n/g, ' ');
 
         // Detect emphasis: numbers, short impactful
         const isEmphasis = !isFirst && (
-          /\d+[%％万億件]/.test(text) ||
-          (text.length <= 30 && (text.endsWith('！') || text.endsWith('!') || text.endsWith('。')))
+          /\d+[%％万億件]/.test(plainText) ||
+          (plainText.length <= 30 && (plainText.endsWith('！') || plainText.endsWith('!') || plainText.endsWith('。')))
         );
-        const hasDanger = isDangerContent(text);
+        const hasDanger = isDangerContent(plainText);
 
         // Scene type assignment
         let sceneType: Slide['sceneType'] = 'standard';
@@ -382,10 +396,11 @@ function buildEnhancedSlidesPayload(
           sceneType = 'concept_explain';
         }
 
+        const lineCount = cleanText.split('\n').length;
         slides.push({
           type: isFirst ? 'hook' : (isEmphasis ? 'emphasis' : 'body'),
           text: cleanText,
-          durationSec: isFirst ? 3 : (isEmphasis ? 3 : Math.min(5, Math.max(3, Math.ceil(cleanText.length / 20)))),
+          durationSec: isFirst ? 3 : (isEmphasis ? 3 : Math.min(5, Math.max(3, Math.ceil(lineCount * 1.5)))),
           bgPreset,
           sceneType,
           captionEmphasisWords: emphasisWords.length > 0 ? emphasisWords : undefined,
@@ -525,12 +540,27 @@ async function triggerRemotionRender(
     return { success: false, error: 'AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.' };
   }
 
+  // Replace base64 data URIs with proxy URLs to keep Lambda payload under 256KB.
+  // Remotion Lambda fetches images via GET /api/internal/slide-image/:vpId/:idx
+  const lightPayload = JSON.parse(JSON.stringify(payload));
+  let replacedCount = 0;
+  if (lightPayload.slides) {
+    for (let i = 0; i < lightPayload.slides.length; i++) {
+      const slide = lightPayload.slides[i];
+      if (slide.imageUrl && slide.imageUrl.startsWith('data:')) {
+        slide.imageUrl = `${appUrl}/api/internal/slide-image/${videoPostId}/${i}`;
+        replacedCount++;
+      }
+    }
+  }
+  console.log(`[Render] Payload: ${lightPayload.slides?.length} slides, ${replacedCount} base64→URL replaced, videoPostId=${videoPostId}`);
+
   // Remotion Lambda payload — must match SDK's renderMediaOnLambda() format exactly.
   // inputProps are wrapped in { type: 'payload', payload: '<json>' } for inline serialization.
   const remotionVersion = (env as any).REMOTION_VERSION || '4.0.242';
   const serializedInputProps = {
     type: 'payload',
-    payload: JSON.stringify(payload),
+    payload: JSON.stringify(lightPayload),
   };
 
   const remotionPayload: Record<string, unknown> = {
@@ -739,15 +769,22 @@ async function createPostizPost(
     }
   }
 
+  // Postiz API requires `date` (ISO 8601) and `tags` (array) for all post types
+  const postDate = (postizType === 'schedule' && videoPost.scheduled_at)
+    ? new Date(videoPost.scheduled_at).toISOString()
+    : new Date().toISOString();
+
+  const postTags = videoPost.hashtags_text
+    ? videoPost.hashtags_text.split(/[\s,]+/).filter((h: string) => h.startsWith('#')).map((h: string) => ({ value: h.replace('#', ''), label: h.replace('#', '') }))
+    : [];
+
   const body: any = {
     type: postizType,
     shortLink: false,
+    date: postDate,
+    tags: postTags,
     posts,
   };
-
-  if (postizType === 'schedule' && videoPost.scheduled_at) {
-    body.date = videoPost.scheduled_at;
-  }
 
   try {
     const res = await fetch('https://api.postiz.com/public/v1/posts', {
@@ -835,24 +872,10 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
     return errors.badRequest(requestId, 'yt_title must be 100 chars or less');
   }
 
-  // Build slides payload
-  const slidesPayload = buildSlidesPayload(
-    script_text,
-    template_type,
-    internal_title,
-    body.caption_text || '',
-    body.hashtags_text || '',
-    body.bgm_preset || 'none',
-  );
-
-  if (slidesPayload.slides.length <= 1) {
-    return errors.badRequest(requestId, 'Script produced too few slides. Add more content.');
+  // Validate script has enough content (basic check)
+  if (script_text.trim().split('\n').filter(l => l.trim()).length < 2) {
+    return errors.badRequest(requestId, 'Script produced too few lines. Add more content.');
   }
-
-  // Enforce 15-45s duration range
-  const clampedDuration = Math.max(15, Math.min(45, slidesPayload.metadata.totalDurationSec));
-  slidesPayload.slides = scaleSlidesToDuration(slidesPayload.slides, clampedDuration);
-  slidesPayload.metadata.totalDurationSec = slidesPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
 
   // Convert scheduled_at to UTC if provided
   let scheduledAtUtc: string | null = null;
@@ -861,9 +884,15 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
   }
 
   const openrouterKey = (env as any).OPENROUTER_API_KEY;
+
+  // Require LLM pipeline — without OpenRouter key, video creation is not supported
+  if (!openrouterKey) {
+    return error('LLM_NOT_CONFIGURED', 'OPENROUTER_API_KEY is not configured. Video creation requires the LLM pipeline.', requestId, 503);
+  }
+
   const videoPostId = generateId('vp_');
 
-  // Insert video_post (initial status: script_rewriting if LLM available, queued_render otherwise)
+  // Insert video_post with raw script only (slides built AFTER LLM rewrite in Stage 2)
   await env.DB.prepare(
     `INSERT INTO video_posts (
       id, internal_title, template_type, script_text, slides_json, slides_count,
@@ -875,15 +904,15 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
     internal_title,
     template_type,
     script_text,
-    JSON.stringify(slidesPayload),
-    slidesPayload.slides.length,
-    body.caption_text || slidesPayload.caption,
-    body.hashtags_text || slidesPayload.hashtags.join(' '),
+    '{"slides":[],"metadata":{"totalDurationSec":0}}',
+    0,
+    body.caption_text || '',
+    body.hashtags_text || '',
     body.yt_title || internal_title,
-    body.yt_visibility || 'unlisted',
+    body.yt_visibility || 'public',
     body.cta_text || null,
     body.bgm_preset || 'none',
-    openrouterKey ? 'script_rewriting' : 'queued_render',
+    'script_rewriting',
     publish_mode,
     scheduledAtUtc,
     authResult.context!.operator.id,
@@ -897,17 +926,14 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
     ).bind(generateId('vt_'), videoPostId, platform).run();
   }
 
-  await logEvent(env.DB, videoPostId, 'build', 'success',
-    `Slides built: ${slidesPayload.slides.length} slides, ${slidesPayload.metadata.totalDurationSec}s`,
-    { slidesCount: slidesPayload.slides.length, duration: slidesPayload.metadata.totalDurationSec }
-  );
+  await logEvent(env.DB, videoPostId, 'pipeline', 'started', 'LLM pipeline started (rewrite → eval → images → render)');
 
-  // ── LLM Pipeline: entire pipeline runs in waitUntil for instant response ──
-  if (openrouterKey && ctx) {
+  // ── LLM Pipeline: Rewrite + Eval (runs in waitUntil, ~25s) ──
+  // After completion, cron picks up `script_approved` → images → render.
+  {
     const targetDuration = Math.max(15, Math.min(45, body.duration_target_sec || 30));
-    const openaiKey = (env as any).OPENAI_API_KEY;
 
-    const pipelinePromise = (async () => {
+    const inlinePromise = (async () => {
       try {
         // Step 0: Fetch persistent knowhow rules (PDCA)
         const knowhowRow = await env.DB.prepare('SELECT rules_text, version FROM video_knowhow WHERE id = ?').bind('global').first<any>();
@@ -916,10 +942,9 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
           await logEvent(env.DB, videoPostId, 'llm_knowhow', 'info', `PDCA knowhow v${knowhowRow?.version || 0} injected: ${pastLearnings.length} chars`);
         }
 
-        // Step 1: Rewrite (with past learnings from PDCA)
+        // Rewrite script (~15s)
         await logEvent(env.DB, videoPostId, 'llm_rewrite', 'started', 'LLM script rewrite started');
         const rewriteResult = await rewriteScript(openrouterKey, script_text, targetDuration, undefined, pastLearnings);
-        const bestScript = rewriteResult.rewrittenScript;
 
         await recordCost(env.DB, videoPostId, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4');
         await logEvent(env.DB, videoPostId, 'llm_rewrite', 'success',
@@ -928,11 +953,11 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
 
         await env.DB.prepare(
           `UPDATE video_posts SET llm_rewritten_script = ?, status = 'evaluating_script', updated_at = datetime('now') WHERE id = ?`
-        ).bind(bestScript, videoPostId).run();
+        ).bind(rewriteResult.rewrittenScript, videoPostId).run();
 
-        // Step 2: Evaluate once
+        // Evaluate script (~10s)
         await logEvent(env.DB, videoPostId, 'llm_eval', 'started', 'Evaluation attempt #1');
-        const evalResult = await evaluateScript(openrouterKey, bestScript);
+        const evalResult = await evaluateScript(openrouterKey, rewriteResult.rewrittenScript);
 
         await recordCost(env.DB, videoPostId, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4',
           { attempt: 1, score: evalResult.score }
@@ -947,134 +972,24 @@ export async function createVideoPost(request: Request, env: Env, ctx?: Executio
             status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
         ).bind(evalResult.score, JSON.stringify(evalResult), videoPostId).run();
         await logEvent(env.DB, videoPostId, 'llm_eval', 'success',
-          `Script approved with score ${evalResult.score}/100. Proceeding to render.`
+          `Script approved with score ${evalResult.score}/100. Cron will pick up images → render.`
         );
-
-        // Step 3: Rebuild slides from rewritten script (knowhow update deferred to after render)
-        const finalPayload = buildEnhancedSlidesPayload(
-          bestScript, template_type, internal_title,
-          body.caption_text || '', body.hashtags_text || '', body.bgm_preset || 'none',
-        );
-        const finalDuration = Math.max(15, Math.min(45, finalPayload.metadata.totalDurationSec));
-        finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, finalDuration);
-        finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
-
-        // Step 4: Generate images (if OPENAI_API_KEY set)
-        if (openaiKey) {
-          await env.DB.prepare(
-            `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
-          ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
-
-          const keySlideCount = finalPayload.slides.filter((s: any) => ['hook', 'chapter_title', 'emphasis'].includes(s.type)).length;
-          await logEvent(env.DB, videoPostId, 'image_gen', 'started', `Generating images for ${keySlideCount} key slides (hook/chapter/emphasis)`);
-          const imageResult = await generateSlideImages(openaiKey, finalPayload.slides);
-
-          for (const img of imageResult.images) {
-            if (finalPayload.slides[img.slideIndex]) {
-              (finalPayload.slides[img.slideIndex] as any).imageUrl = img.imageUrl;
-            }
-          }
-          for (const cost of imageResult.costs) {
-            await recordCost(env.DB, videoPostId, 'image_gen', cost.amountUsd, undefined, undefined, cost.model, { slideIndex: cost.slideIndex });
-          }
-          const errSuffix = imageResult.errors.length > 0 ? ` (${imageResult.errors.length} failed: ${imageResult.errors[0].substring(0, 100)})` : '';
-          await logEvent(env.DB, videoPostId, 'image_gen', imageResult.images.length > 0 ? 'success' : 'failed',
-            `Generated ${imageResult.images.length} images, $${imageResult.totalCostUsd.toFixed(4)}${errSuffix}`
-          );
-        }
-
-        // Step 5: Update slides and trigger render
-        await env.DB.prepare(
-          `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
-        ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
-
-        const renderJobId = generateId('vr_');
-        await env.DB.prepare(
-          `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
-           VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-        ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
-
-        const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
-        if (renderResult.success && renderResult.renderId) {
-          await env.DB.prepare(
-            `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
-          ).bind(renderResult.renderId, renderJobId).run();
-          await env.DB.prepare(
-            `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
-          ).bind(videoPostId).run();
-          await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
-        } else {
-          await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued, will retry');
-        }
-
-        // Step 6: Update PDCA knowhow (after render, non-critical)
-        try {
-          const currentRules = knowhowRow?.rules_text || '';
-          const currentVersion = knowhowRow?.version || 0;
-          const knowhowResult = await updateKnowhow(
-            openrouterKey, currentRules, evalResult.feedback, evalResult.breakdown, evalResult.score
-          );
-          await env.DB.prepare(
-            `INSERT INTO video_knowhow (id, rules_text, version, eval_count, updated_at)
-             VALUES ('global', ?, ?, 1, datetime('now'))
-             ON CONFLICT(id) DO UPDATE SET rules_text = ?, version = ?, eval_count = eval_count + 1, updated_at = datetime('now')`
-          ).bind(knowhowResult.updatedRules, currentVersion + 1, knowhowResult.updatedRules, currentVersion + 1).run();
-          await recordCost(env.DB, videoPostId, 'llm_knowhow', knowhowResult.costUsd, knowhowResult.inputTokens, knowhowResult.outputTokens, 'claude-sonnet-4');
-          await logEvent(env.DB, videoPostId, 'llm_knowhow', 'success',
-            `Knowhow updated to v${currentVersion + 1}: ${knowhowResult.updatedRules.split('\n').length} rules, $${knowhowResult.costUsd.toFixed(4)}`
-          );
-        } catch (knowhowErr: any) {
-          console.error('[Pipeline] Knowhow update failed (non-critical):', knowhowErr.message);
-        }
       } catch (err: any) {
-        console.error(`[VideoPost] Pipeline error: ${err.message}`);
-        await logEvent(env.DB, videoPostId, 'pipeline', 'failed', `Error: ${err.message}. Use Retry button.`);
+        console.error(`[VideoPost] Inline pipeline error: ${err.message}`);
+        await logEvent(env.DB, videoPostId, 'pipeline', 'failed', `Rewrite/eval error: ${err.message}. Use Retry button.`);
       }
     })();
 
-    ctx.waitUntil(pipelinePromise);
+    if (ctx) {
+      ctx.waitUntil(inlinePromise);
+    }
 
-    // Return immediately — pipeline runs in background
     return success({
       video_post_id: videoPostId,
       status: 'script_rewriting',
-      slides_count: slidesPayload.slides.length,
-      estimated_duration_sec: slidesPayload.metadata.totalDurationSec,
-      message: 'Pipeline started. Refresh to see progress.',
+      message: 'Pipeline started: rewrite → eval → images → render. Refresh to see progress.',
     }, requestId, 201);
   }
-
-  // Direct render flow (no LLM or LLM failed)
-  const renderJobId = generateId('vr_');
-  await env.DB.prepare(
-    `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-  ).bind(renderJobId, videoPostId, template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(slidesPayload)).run();
-
-  const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, slidesPayload);
-  if (renderResult.success && renderResult.renderId) {
-    await env.DB.prepare(
-      `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
-    ).bind(renderResult.renderId, renderJobId).run();
-    await env.DB.prepare(
-      `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
-    ).bind(videoPostId).run();
-    await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
-  } else {
-    await env.DB.prepare(
-      `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
-    ).bind(videoPostId).run();
-    await logEvent(env.DB, videoPostId, 'render', 'queued', renderResult.error || 'Render queued');
-  }
-
-  return success({
-    video_post_id: videoPostId,
-    status: renderResult.success ? 'rendering' : 'queued_render',
-    render_job_id: renderJobId,
-    slides_count: slidesPayload.slides.length,
-    estimated_duration_sec: slidesPayload.metadata.totalDurationSec,
-    slides_preview: slidesPayload.slides.map(s => ({ type: s.type, text: s.text.substring(0, 50), durationSec: s.durationSec })),
-  }, requestId, 201);
 }
 
 /**
@@ -1289,71 +1204,30 @@ export async function retryVideoPost(request: Request, env: Env, videoPostId: st
   }
 
   if (retryStage === 'render_from_script') {
-    // Eval already completed — rebuild slides from rewritten script and go to render
-    const finalPayload = buildEnhancedSlidesPayload(
-      post.llm_rewritten_script, post.template_type, post.internal_title,
-      post.caption_text || '', post.hashtags_text || '', post.bgm_preset || 'none',
-    );
-    const finalDuration = Math.max(15, Math.min(45, finalPayload.metadata.totalDurationSec));
-    finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, finalDuration);
-    finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum: number, s: any) => sum + s.durationSec, 0);
-
+    // Eval already completed — set status for cron to pick up images → render
     await env.DB.prepare(
-      `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
-    ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, videoPostId).run();
+      `UPDATE video_posts SET status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
+    ).bind(videoPostId).run();
 
-    const renderJobId = generateId('vr_');
-    await env.DB.prepare(
-      `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-    ).bind(renderJobId, videoPostId, post.template_type === 'slideshow' ? 'Slideshow' : 'Explainer', JSON.stringify(finalPayload)).run();
-
-    await logEvent(env.DB, videoPostId, 'render', 'retry', `Render from rewritten script (eval ${post.llm_eval_score}/100), retry #${post.retry_count + 1}`);
-
-    // Trigger render async via waitUntil
-    const renderPromise = (async () => {
-      try {
-        const renderResult = await triggerRemotionRender(env, videoPostId, renderJobId, finalPayload);
-        if (renderResult.success && renderResult.renderId) {
-          await env.DB.prepare(
-            `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
-          ).bind(renderResult.renderId, renderJobId).run();
-          await env.DB.prepare(
-            `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
-          ).bind(videoPostId).run();
-          await logEvent(env.DB, videoPostId, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
-        } else {
-          await logEvent(env.DB, videoPostId, 'render', 'failed', renderResult.error || 'Render trigger failed');
-        }
-      } catch (renderErr: any) {
-        await logEvent(env.DB, videoPostId, 'render', 'failed', `Render error: ${renderErr.message}`);
-      }
-    })();
-
-    if (ctx) {
-      ctx.waitUntil(renderPromise);
-    } else {
-      await renderPromise;
-    }
+    await logEvent(env.DB, videoPostId, 'pipeline', 'retry', `Retry from rewritten script (eval ${post.llm_eval_score}/100), retry #${post.retry_count + 1}. Cron will pick up.`);
 
     return success({
-      status: 'queued_render',
+      status: 'script_approved',
       retry_count: post.retry_count + 1,
       llm_eval_score: post.llm_eval_score,
-      slides_count: finalPayload.slides.length,
-      message: 'Rebuilding slides from rewritten script and triggering render',
+      message: 'Queued for images → render on next cron cycle (~1 min)',
     }, requestId);
   }
 
   if (retryStage === 'llm_pipeline') {
-    // Reset to beginning of LLM pipeline
+    // Reset — cron will pick up script_rewriting → rewrite + eval
     await env.DB.prepare(
-      `UPDATE video_posts SET status = 'queued', llm_eval_attempts = 0, llm_eval_score = NULL, llm_eval_feedback = NULL, llm_rewritten_script = NULL, updated_at = datetime('now') WHERE id = ?`
+      `UPDATE video_posts SET status = 'script_rewriting', llm_eval_attempts = 0, llm_eval_score = NULL, llm_eval_feedback = NULL, llm_rewritten_script = NULL, updated_at = datetime('now') WHERE id = ?`
     ).bind(videoPostId).run();
 
-    await logEvent(env.DB, videoPostId, 'llm_pipeline', 'retry', `LLM pipeline retry #${post.retry_count + 1}`);
+    await logEvent(env.DB, videoPostId, 'llm_pipeline', 'retry', `LLM pipeline retry #${post.retry_count + 1}. Cron will pick up.`);
 
-    return success({ status: 'queued', retry_count: post.retry_count + 1, message: 'Queued for LLM pipeline on next cron cycle' }, requestId);
+    return success({ status: 'script_rewriting', retry_count: post.retry_count + 1, message: 'Queued for rewrite + eval on next cron cycle (~1 min)' }, requestId);
   }
 
   return errors.badRequest(requestId, `Unknown retry stage: ${retryStage}`);
@@ -2122,6 +1996,58 @@ export async function getEvalKnowhow(request: Request, env: Env): Promise<Respon
 }
 
 // ============================================
+// Slide Image Proxy (serves base64 images via URL for Remotion Lambda)
+// ============================================
+
+/**
+ * GET /api/internal/slide-image/:videoPostId/:slideIndex
+ * Serves a slide's generated image as JPEG so Remotion Lambda can fetch it by URL.
+ */
+export async function serveSlideImage(request: Request, env: Env, videoPostId: string, slideIndex: number): Promise<Response> {
+  const post = await env.DB.prepare('SELECT slides_json FROM video_posts WHERE id = ?').bind(videoPostId).first<any>();
+  if (!post?.slides_json) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  let slides: any[];
+  try {
+    const parsed = JSON.parse(post.slides_json);
+    slides = parsed.slides || [];
+  } catch {
+    return new Response('Invalid slides', { status: 500 });
+  }
+
+  const slide = slides[slideIndex];
+  if (!slide?.imageUrl) {
+    return new Response('No image for this slide', { status: 404 });
+  }
+
+  // Parse data URI: data:image/jpeg;base64,<data>
+  const match = slide.imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
+  if (!match) {
+    // If it's already a URL, redirect
+    return Response.redirect(slide.imageUrl, 302);
+  }
+
+  const mimeType = `image/${match[1]}`;
+  const base64Data = match[2];
+
+  // Decode base64 to binary
+  const binaryString = atob(base64Data);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  return new Response(bytes, {
+    headers: {
+      'Content-Type': mimeType,
+      'Cache-Control': 'public, max-age=3600',
+    },
+  });
+}
+
+// ============================================
 // Cost Recording Helper
 // ============================================
 
@@ -2157,279 +2083,241 @@ async function recordCost(
 export async function processVideoPostJobs(env: Env): Promise<void> {
   console.log('[VideoJobs] Starting video post job processing');
 
-  const anthropicKey = (env as any).OPENROUTER_API_KEY;
-  const stabilityKey = (env as any).STABILITY_API_KEY;
+  const openrouterKey = (env as any).OPENROUTER_API_KEY;
+  const openaiKey = (env as any).OPENAI_API_KEY;
 
-  // ── Stage 1: queued → script_rewriting (LLM rewrite) ──
-  if (anthropicKey) {
-    const queuedPosts = await env.DB.prepare(
-      `SELECT vp.* FROM video_posts vp WHERE vp.status = 'queued' AND vp.visibility = 'visible' LIMIT 1`
+  // ── Stage 1: script_rewriting → rewrite + eval (for retry path) ──
+  if (openrouterKey) {
+    const rewritePosts = await env.DB.prepare(
+      `SELECT vp.* FROM video_posts vp WHERE vp.status = 'script_rewriting' AND vp.visibility = 'visible' LIMIT 1`
     ).all<any>();
 
-    for (const post of queuedPosts.results || []) {
+    for (const post of rewritePosts.results || []) {
       try {
-        await env.DB.prepare(
-          `UPDATE video_posts SET status = 'script_rewriting', updated_at = datetime('now') WHERE id = ?`
-        ).bind(post.id).run();
+        console.log(`[VideoJobs] Stage 1: Rewriting post ${post.id}`);
+        const targetDuration = Math.max(15, Math.min(45, post.duration_target_sec || 30));
 
-        await logEvent(env.DB, post.id, 'llm_rewrite', 'started', 'LLM script rewrite started');
+        const knowhowRow = await env.DB.prepare('SELECT rules_text, version FROM video_knowhow WHERE id = ?').bind('global').first<any>();
+        const pastLearnings = knowhowRow?.rules_text || await buildEvalKnowhow(env.DB);
 
-        const targetDuration = Math.max(15, Math.min(45,
-          post.duration_target_sec || 30
-        ));
+        await logEvent(env.DB, post.id, 'llm_rewrite', 'started', 'LLM script rewrite started (cron)');
+        const rewriteResult = await rewriteScript(openrouterKey, post.script_text, targetDuration, undefined, pastLearnings);
 
-        const result = await rewriteScript(anthropicKey, post.script_text, targetDuration);
+        await recordCost(env.DB, post.id, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4');
+        await logEvent(env.DB, post.id, 'llm_rewrite', 'success',
+          `Script rewritten: ${rewriteResult.outputTokens} tokens, $${rewriteResult.costUsd.toFixed(4)}`
+        );
 
-        // Save rewritten script
         await env.DB.prepare(
           `UPDATE video_posts SET llm_rewritten_script = ?, status = 'evaluating_script', updated_at = datetime('now') WHERE id = ?`
-        ).bind(result.rewrittenScript, post.id).run();
-
-        // Rebuild slides from rewritten script
-        const slidesPayload = buildEnhancedSlidesPayload(
-          result.rewrittenScript,
-          post.template_type,
-          post.internal_title,
-          post.caption_text || '',
-          post.hashtags_text || '',
-          post.bgm_preset || 'none',
-        );
-
-        // Enforce 15-45s duration
-        const clampedDuration = Math.max(15, Math.min(45, slidesPayload.metadata.totalDurationSec));
-        slidesPayload.slides = scaleSlidesToDuration(slidesPayload.slides, clampedDuration);
-        slidesPayload.metadata.totalDurationSec = slidesPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
-
-        await env.DB.prepare(
-          `UPDATE video_posts SET slides_json = ?, slides_count = ?, updated_at = datetime('now') WHERE id = ?`
-        ).bind(JSON.stringify(slidesPayload), slidesPayload.slides.length, post.id).run();
-
-        await recordCost(env.DB, post.id, 'llm_rewrite', result.costUsd, result.inputTokens, result.outputTokens, 'claude-sonnet-4-6');
-
-        await logEvent(env.DB, post.id, 'llm_rewrite', 'success',
-          `Script rewritten: ${result.outputTokens} output tokens, $${result.costUsd.toFixed(4)}`,
-          { inputTokens: result.inputTokens, outputTokens: result.outputTokens, cost: result.costUsd }
-        );
+        ).bind(rewriteResult.rewrittenScript, post.id).run();
       } catch (e: any) {
-        console.error(`[VideoJobs] LLM rewrite error for post ${post.id}:`, e);
-        // Stay in queued state for retry on next cycle
-        await env.DB.prepare(
-          `UPDATE video_posts SET status = 'queued', updated_at = datetime('now') WHERE id = ?`
-        ).bind(post.id).run();
-        await logEvent(env.DB, post.id, 'llm_rewrite', 'failed', e.message);
+        console.error(`[VideoJobs] Stage 1 error for ${post.id}:`, e.message);
+        await logEvent(env.DB, post.id, 'pipeline', 'failed', `Cron rewrite error: ${e.message}. Use Retry.`);
       }
     }
   }
 
-  // ── Stage 2: evaluating_script → score loop ──
-  if (anthropicKey) {
+  // ── Stage 2: evaluating_script → eval → script_approved ──
+  if (openrouterKey) {
     const evalPosts = await env.DB.prepare(
       `SELECT vp.* FROM video_posts vp WHERE vp.status = 'evaluating_script' AND vp.visibility = 'visible' LIMIT 1`
     ).all<any>();
 
     for (const post of evalPosts.results || []) {
       try {
-        const scriptToEval = post.llm_rewritten_script || post.script_text;
-        const attempts = (post.llm_eval_attempts || 0) + 1;
-
-        await logEvent(env.DB, post.id, 'llm_eval', 'started', `Evaluation attempt #${attempts}`);
-
-        const evalResult = await evaluateScript(anthropicKey, scriptToEval);
-
-        await recordCost(env.DB, post.id, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4-6',
-          { attempt: attempts, score: evalResult.score }
-        );
-
-        await logEvent(env.DB, post.id, 'llm_eval', 'completed',
-          `Score: ${evalResult.score}/100 (attempt #${attempts}). Breakdown: H${evalResult.breakdown.hook}/P${evalResult.breakdown.pacing}/C${evalResult.breakdown.clarity}/CTA${evalResult.breakdown.cta}/E${evalResult.breakdown.emotion}`,
-          { score: evalResult.score, breakdown: evalResult.breakdown, attempt: attempts }
-        );
-
-        if (evalResult.score >= 90) {
-          // Passed! Move to image generation
-          await env.DB.prepare(
-            `UPDATE video_posts SET
-              llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
-              status = 'script_approved', updated_at = datetime('now')
-             WHERE id = ?`
-          ).bind(evalResult.score, attempts, JSON.stringify(evalResult), post.id).run();
-
-          await logEvent(env.DB, post.id, 'llm_eval', 'success',
-            `Script approved with score ${evalResult.score}/100 after ${attempts} attempt(s)`
-          );
-        } else if (attempts >= 10) {
-          // Max attempts reached — use current version anyway
-          await env.DB.prepare(
-            `UPDATE video_posts SET
-              llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
-              status = 'script_approved', updated_at = datetime('now')
-             WHERE id = ?`
-          ).bind(evalResult.score, attempts, JSON.stringify(evalResult), post.id).run();
-
-          await logEvent(env.DB, post.id, 'llm_eval', 'warning',
-            `Max attempts (10) reached. Using script with score ${evalResult.score}/100`,
-            { score: evalResult.score, maxAttemptsReached: true }
-          );
-        } else {
-          // Score too low — rewrite with feedback and stay in evaluating_script
-          const rewriteResult = await rewriteScript(
-            anthropicKey,
-            post.script_text,
-            Math.max(15, Math.min(45, post.duration_target_sec || 30)),
-            evalResult.feedback,
-          );
-
-          await recordCost(env.DB, post.id, 'llm_rewrite', rewriteResult.costUsd, rewriteResult.inputTokens, rewriteResult.outputTokens, 'claude-sonnet-4-6',
-            { attempt: attempts, rewriteAfterEval: true }
-          );
-
-          // Rebuild slides
-          const slidesPayload = buildEnhancedSlidesPayload(
-            rewriteResult.rewrittenScript,
-            post.template_type,
-            post.internal_title,
-            post.caption_text || '',
-            post.hashtags_text || '',
-            post.bgm_preset || 'none',
-          );
-          const clampedDuration = Math.max(15, Math.min(45, slidesPayload.metadata.totalDurationSec));
-          slidesPayload.slides = scaleSlidesToDuration(slidesPayload.slides, clampedDuration);
-          slidesPayload.metadata.totalDurationSec = slidesPayload.slides.reduce((sum, s) => sum + s.durationSec, 0);
-
-          await env.DB.prepare(
-            `UPDATE video_posts SET
-              llm_rewritten_script = ?, llm_eval_score = ?, llm_eval_attempts = ?, llm_eval_feedback = ?,
-              slides_json = ?, slides_count = ?,
-              status = 'evaluating_script', updated_at = datetime('now')
-             WHERE id = ?`
-          ).bind(
-            rewriteResult.rewrittenScript,
-            evalResult.score,
-            attempts,
-            JSON.stringify(evalResult),
-            JSON.stringify(slidesPayload),
-            slidesPayload.slides.length,
-            post.id,
-          ).run();
-
-          await logEvent(env.DB, post.id, 'llm_eval', 'retry',
-            `Score ${evalResult.score}/100 < 90. Rewriting with feedback (attempt #${attempts})`,
-            { score: evalResult.score, feedback: evalResult.feedback }
-          );
+        if (!post.llm_rewritten_script) {
+          await logEvent(env.DB, post.id, 'pipeline', 'failed', 'No rewritten script found for eval');
+          continue;
         }
+        console.log(`[VideoJobs] Stage 2: Evaluating post ${post.id}`);
+        await logEvent(env.DB, post.id, 'llm_eval', 'started', 'Evaluation attempt #1 (cron)');
+        const evalResult = await evaluateScript(openrouterKey, post.llm_rewritten_script);
+
+        await recordCost(env.DB, post.id, 'llm_eval', evalResult.costUsd, evalResult.inputTokens, evalResult.outputTokens, 'claude-sonnet-4',
+          { attempt: 1, score: evalResult.score }
+        );
+        await logEvent(env.DB, post.id, 'llm_eval', 'completed',
+          `Score: ${evalResult.score}/100. H${evalResult.breakdown.hook}/P${evalResult.breakdown.pacing}/C${evalResult.breakdown.clarity}/CTA${evalResult.breakdown.cta}/E${evalResult.breakdown.emotion}`,
+          { score: evalResult.score, breakdown: evalResult.breakdown }
+        );
+
+        await env.DB.prepare(
+          `UPDATE video_posts SET llm_eval_score = ?, llm_eval_attempts = 1, llm_eval_feedback = ?,
+            status = 'script_approved', updated_at = datetime('now') WHERE id = ?`
+        ).bind(evalResult.score, JSON.stringify(evalResult), post.id).run();
+        await logEvent(env.DB, post.id, 'llm_eval', 'success', `Script approved with score ${evalResult.score}/100`);
       } catch (e: any) {
-        console.error(`[VideoJobs] LLM eval error for post ${post.id}:`, e);
-        await logEvent(env.DB, post.id, 'llm_eval', 'failed', e.message);
-        // Stay in evaluating_script for retry next cycle
+        console.error(`[VideoJobs] Stage 2 error for ${post.id}:`, e.message);
+        await logEvent(env.DB, post.id, 'pipeline', 'failed', `Cron eval error: ${e.message}. Use Retry.`);
       }
     }
   }
 
-  // ── Stage 3: script_approved → generating_images ──
-  if (stabilityKey) {
+  // ── Stage 3: script_approved → build slides + generate images → images_ready ──
+  {
     const approvedPosts = await env.DB.prepare(
       `SELECT vp.* FROM video_posts vp WHERE vp.status = 'script_approved' AND vp.visibility = 'visible' LIMIT 1`
     ).all<any>();
 
     for (const post of approvedPosts.results || []) {
       try {
-        await env.DB.prepare(
-          `UPDATE video_posts SET status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
-        ).bind(post.id).run();
-
-        await logEvent(env.DB, post.id, 'image_gen', 'started', 'Generating slide images');
-
-        const slidesPayload: SlidesPayload = JSON.parse(post.slides_json);
-        const imageResult = await generateSlideImages(stabilityKey, slidesPayload.slides);
-
-        // Update slides with generated images
-        for (const img of imageResult.images) {
-          if (slidesPayload.slides[img.slideIndex]) {
-            (slidesPayload.slides[img.slideIndex] as any).imageUrl = img.imageUrl;
-          }
+        if (!post.llm_rewritten_script) {
+          await logEvent(env.DB, post.id, 'pipeline', 'failed', 'No rewritten script found for slide build');
+          continue;
         }
+        console.log(`[VideoJobs] Stage 3: Building slides + images for post ${post.id}`);
 
-        await env.DB.prepare(
-          `UPDATE video_posts SET slides_json = ?, status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
-        ).bind(JSON.stringify(slidesPayload), post.id).run();
+        // Build slides from rewritten script
+        const finalPayload = buildEnhancedSlidesPayload(
+          post.llm_rewritten_script, post.template_type, post.internal_title,
+          post.caption_text || '', post.hashtags_text || '', post.bgm_preset || 'none',
+        );
+        const finalDuration = Math.max(15, Math.min(45, finalPayload.metadata.totalDurationSec));
+        finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, finalDuration);
+        finalPayload.metadata.totalDurationSec = finalPayload.slides.reduce((sum: number, s: any) => sum + s.durationSec, 0);
 
-        // Record costs per image
-        for (const cost of imageResult.costs) {
-          await recordCost(env.DB, post.id, 'image_gen', cost.amountUsd, undefined, undefined, cost.model,
-            { slideIndex: cost.slideIndex }
+        await logEvent(env.DB, post.id, 'build', 'success',
+          `Slides built from rewritten script: ${finalPayload.slides.length} slides, ${finalPayload.metadata.totalDurationSec}s`
+        );
+
+        // Generate images with gpt-image-1
+        if (openaiKey) {
+          await env.DB.prepare(
+            `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'generating_images', updated_at = datetime('now') WHERE id = ?`
+          ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, post.id).run();
+
+          const KEY_TYPES = ['hook', 'chapter_title', 'emphasis'];
+          const keySlideCount = finalPayload.slides.filter((s: any) => KEY_TYPES.includes(s.type)).length;
+          const actualCount = Math.min(keySlideCount, 3);
+          await logEvent(env.DB, post.id, 'image_gen', 'started', `Generating ${actualCount} images (max 3 of ${keySlideCount} key slides)`);
+          const imageResult = await generateSlideImages(openaiKey, finalPayload.slides);
+
+          for (const img of imageResult.images) {
+            if (finalPayload.slides[img.slideIndex]) {
+              (finalPayload.slides[img.slideIndex] as any).imageUrl = img.imageUrl;
+            }
+            await logEvent(env.DB, post.id, 'image_gen', 'info', `Image ${imageResult.images.indexOf(img) + 1}/${actualCount} done (slide ${img.slideIndex})`);
+          }
+          for (const err of imageResult.errors) {
+            await logEvent(env.DB, post.id, 'image_gen', 'failed', `Image error: ${err.substring(0, 150)}`);
+          }
+          for (const cost of imageResult.costs) {
+            await recordCost(env.DB, post.id, 'image_gen', cost.amountUsd, undefined, undefined, cost.model, { slideIndex: cost.slideIndex });
+          }
+          await logEvent(env.DB, post.id, 'image_gen', imageResult.images.length > 0 ? 'success' : 'failed',
+            `Generated ${imageResult.images.length}/${actualCount} images, $${imageResult.totalCostUsd.toFixed(4)}`
           );
         }
 
-        await logEvent(env.DB, post.id, 'image_gen', 'success',
-          `Generated ${imageResult.images.length} images, total cost: $${imageResult.totalCostUsd.toFixed(4)}`,
-          { imageCount: imageResult.images.length, totalCost: imageResult.totalCostUsd }
-        );
-      } catch (e: any) {
-        console.error(`[VideoJobs] Image gen error for post ${post.id}:`, e);
-        // Fall back to script_approved so it can retry or proceed without images
+        // Save slides (with images) and advance status
         await env.DB.prepare(
-          `UPDATE video_posts SET status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
-        ).bind(post.id).run();
-        await logEvent(env.DB, post.id, 'image_gen', 'failed', `Image gen failed, proceeding without images: ${e.message}`);
+          `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
+        ).bind(JSON.stringify(finalPayload), finalPayload.slides.length, post.id).run();
+        await logEvent(env.DB, post.id, 'pipeline', 'info', 'Slides + images ready. Render next.');
+      } catch (e: any) {
+        console.error(`[VideoJobs] Stage 3 error for ${post.id}:`, e.message);
+        await logEvent(env.DB, post.id, 'pipeline', 'failed', `Cron images error: ${e.message}. Use Retry.`);
       }
-    }
-  } else {
-    // No Stability key — skip image generation, move script_approved → images_ready
-    const approvedPosts = await env.DB.prepare(
-      `SELECT id FROM video_posts WHERE status = 'script_approved' AND visibility = 'visible' LIMIT 3`
-    ).all<any>();
-    for (const post of approvedPosts.results || []) {
-      await env.DB.prepare(
-        `UPDATE video_posts SET status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
-      ).bind(post.id).run();
-      await logEvent(env.DB, post.id, 'image_gen', 'skipped', 'STABILITY_API_KEY not configured, skipping image generation');
     }
   }
 
-  // ── Stage 4: images_ready → queued_render (trigger Remotion) ──
-  const readyToRender = await env.DB.prepare(
-    `SELECT vp.* FROM video_posts vp WHERE vp.status = 'images_ready' AND vp.visibility = 'visible' LIMIT 1`
-  ).all<any>();
+  // ── Stage 4: images_ready → render + PDCA knowhow ──
+  {
+    const readyPosts = await env.DB.prepare(
+      `SELECT vp.* FROM video_posts vp WHERE vp.status = 'images_ready' AND vp.visibility = 'visible' LIMIT 1`
+    ).all<any>();
 
-  for (const post of readyToRender.results || []) {
-    try {
-      const slidesPayload: SlidesPayload = JSON.parse(post.slides_json);
-      const renderJobId = generateId('vr_');
+    for (const post of readyPosts.results || []) {
+      try {
+        if (!post.slides_json) {
+          await logEvent(env.DB, post.id, 'pipeline', 'failed', 'No slides found for render');
+          continue;
+        }
+        console.log(`[VideoJobs] Stage 4: Rendering post ${post.id}`);
+        const slidesPayload = JSON.parse(post.slides_json);
 
-      await env.DB.prepare(
-        `INSERT INTO video_render_jobs (
-          id, video_post_id, remotion_composition, input_payload_json,
-          render_status, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
-      ).bind(
-        renderJobId,
-        post.id,
-        post.template_type === 'slideshow' ? 'Slideshow' : 'Explainer',
-        post.slides_json,
-      ).run();
+        // Diagnostic: count slides with imageUrl
+        const slidesWithImage = slidesPayload.slides?.filter((s: any) => s.imageUrl)?.length || 0;
+        await logEvent(env.DB, post.id, 'render', 'info',
+          `Render payload: ${slidesPayload.slides?.length} slides, ${slidesWithImage} with imageUrl`
+        );
 
-      const renderResult = await triggerRemotionRender(env, post.id, renderJobId, slidesPayload);
-
-      if (renderResult.success && renderResult.renderId) {
-        await env.DB.prepare(
-          `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
-        ).bind(renderResult.renderId, renderJobId).run();
-        await env.DB.prepare(
-          `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
-        ).bind(post.id).run();
-        await logEvent(env.DB, post.id, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
-      } else {
+        // Trigger Remotion render
         await env.DB.prepare(
           `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
         ).bind(post.id).run();
-        await logEvent(env.DB, post.id, 'render', 'queued', renderResult.error || 'Render queued (Remotion Lambda not configured yet)');
+
+        const renderJobId = generateId('vr_');
+        await env.DB.prepare(
+          `INSERT INTO video_render_jobs (id, video_post_id, remotion_composition, input_payload_json, render_status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, 'queued', datetime('now'), datetime('now'))`
+        ).bind(renderJobId, post.id, post.template_type === 'slideshow' ? 'Slideshow' : 'Explainer', post.slides_json).run();
+
+        const renderResult = await triggerRemotionRender(env, post.id, renderJobId, slidesPayload);
+        if (renderResult.success && renderResult.renderId) {
+          await env.DB.prepare(
+            `UPDATE video_render_jobs SET remotion_render_id = ?, render_status = 'rendering', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
+          ).bind(renderResult.renderId, renderJobId).run();
+          await env.DB.prepare(
+            `UPDATE video_posts SET status = 'rendering', updated_at = datetime('now') WHERE id = ?`
+          ).bind(post.id).run();
+          await logEvent(env.DB, post.id, 'render', 'started', `Remotion render triggered: ${renderResult.renderId}`);
+        } else {
+          await logEvent(env.DB, post.id, 'render', 'queued', renderResult.error || 'Render queued, will retry');
+        }
+
+        // PDCA knowhow update (non-critical)
+        if (openrouterKey && post.llm_eval_feedback) {
+          try {
+            const knowhowRow = await env.DB.prepare('SELECT rules_text, version FROM video_knowhow WHERE id = ?').bind('global').first<any>();
+            const currentRules = knowhowRow?.rules_text || '';
+            const currentVersion = knowhowRow?.version || 0;
+            const evalData = JSON.parse(post.llm_eval_feedback);
+            const knowhowResult = await updateKnowhow(
+              openrouterKey, currentRules, evalData.feedback, evalData.breakdown, evalData.score
+            );
+            await env.DB.prepare(
+              `INSERT INTO video_knowhow (id, rules_text, version, eval_count, updated_at)
+               VALUES ('global', ?, ?, 1, datetime('now'))
+               ON CONFLICT(id) DO UPDATE SET rules_text = ?, version = ?, eval_count = eval_count + 1, updated_at = datetime('now')`
+            ).bind(knowhowResult.updatedRules, currentVersion + 1, knowhowResult.updatedRules, currentVersion + 1).run();
+            await recordCost(env.DB, post.id, 'llm_knowhow', knowhowResult.costUsd, knowhowResult.inputTokens, knowhowResult.outputTokens, 'claude-sonnet-4');
+            await logEvent(env.DB, post.id, 'llm_knowhow', 'success',
+              `Knowhow updated to v${currentVersion + 1}: ${knowhowResult.updatedRules.split('\n').length} rules, $${knowhowResult.costUsd.toFixed(4)}`
+            );
+          } catch (knowhowErr: any) {
+            console.error('[VideoJobs] Knowhow update failed (non-critical):', knowhowErr.message);
+          }
+        }
+
+        await logEvent(env.DB, post.id, 'pipeline', 'success', 'Pipeline stages 1-4 complete.');
+      } catch (e: any) {
+        console.error(`[VideoJobs] Stage 4 error for ${post.id}:`, e.message);
+        await logEvent(env.DB, post.id, 'pipeline', 'failed', `Cron render error: ${e.message}. Use Retry.`);
       }
-    } catch (e: any) {
-      console.error(`[VideoJobs] Render trigger error for post ${post.id}:`, e);
+    }
+  }
+
+  // ── Stage 4b: Detect stuck renders (rendering > 10 min → render_failed) ──
+  {
+    const stuckPosts = await env.DB.prepare(
+      `SELECT vp.id FROM video_posts vp
+       WHERE vp.status = 'rendering' AND vp.visibility = 'visible'
+         AND vp.updated_at < datetime('now', '-10 minutes')
+       LIMIT 3`
+    ).all<any>();
+
+    for (const post of stuckPosts.results || []) {
+      console.log(`[VideoJobs] Render timeout: post ${post.id} stuck > 10 min`);
       await env.DB.prepare(
-        `UPDATE video_posts SET status = 'queued_render', updated_at = datetime('now') WHERE id = ?`
+        `UPDATE video_posts SET status = 'render_failed', updated_at = datetime('now') WHERE id = ?`
       ).bind(post.id).run();
-      await logEvent(env.DB, post.id, 'render', 'failed', e.message);
+      await env.DB.prepare(
+        `UPDATE video_render_jobs SET render_status = 'failed', error_message = 'Render timeout (>10 min, no webhook received)', updated_at = datetime('now')
+         WHERE video_post_id = ? AND render_status = 'rendering'`
+      ).bind(post.id).run();
+      await logEvent(env.DB, post.id, 'render', 'failed', 'Render timeout: no webhook received after 10 minutes. Use Retry.');
     }
   }
 
@@ -2524,10 +2412,11 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
 
       if (result.success && result.results) {
         for (const r of result.results) {
+          const targetStatus = post.publish_mode === 'draft' ? 'draft_created' : (post.publish_mode === 'scheduled' ? 'scheduled' : 'publishing');
           await env.DB.prepare(
-            `UPDATE video_post_targets SET postiz_post_id = ?, target_status = ?, updated_at = datetime('now')
+            `UPDATE video_post_targets SET postiz_post_id = ?, target_status = ?, error_code = NULL, error_message = NULL, updated_at = datetime('now')
              WHERE video_post_id = ? AND postiz_integration_id = ?`
-          ).bind(r.postId, post.publish_mode === 'draft' ? 'draft_created' : (post.publish_mode === 'scheduled' ? 'scheduled' : 'publishing'), post.id, r.integration).run();
+          ).bind(r.postId, targetStatus, post.id, r.integration).run();
 
           if (r.integration) {
             const ytId = (env as any).POSTIZ_YOUTUBE_INTEGRATION_ID;
@@ -2535,9 +2424,9 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
             const platform = r.integration === ytId ? 'youtube' : (r.integration === igId ? 'instagram' : null);
             if (platform) {
               await env.DB.prepare(
-                `UPDATE video_post_targets SET postiz_post_id = ?, postiz_integration_id = ?, target_status = ?, updated_at = datetime('now')
+                `UPDATE video_post_targets SET postiz_post_id = ?, postiz_integration_id = ?, target_status = ?, error_code = NULL, error_message = NULL, updated_at = datetime('now')
                  WHERE video_post_id = ? AND platform = ?`
-              ).bind(r.postId, r.integration, post.publish_mode === 'draft' ? 'draft_created' : (post.publish_mode === 'scheduled' ? 'scheduled' : 'publishing'), post.id, platform).run();
+              ).bind(r.postId, r.integration, targetStatus, post.id, platform).run();
             }
           }
         }
@@ -2576,6 +2465,96 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
         `UPDATE video_posts SET status = 'postiz_failed', updated_at = datetime('now') WHERE id = ?`
       ).bind(post.id).run();
       await logEvent(env.DB, post.id, 'postiz_send', 'failed', e.message);
+    }
+  }
+
+  // ── Stage 7: publishing → poll Postiz for confirmation ──
+  const awaitingPublish = await env.DB.prepare(
+    `SELECT vp.id, vp.publish_mode, vp.updated_at FROM video_posts vp
+     WHERE vp.status = 'publishing' AND vp.visibility = 'visible'
+     AND vp.updated_at < datetime('now', '-1 minute')
+     LIMIT 3`
+  ).all<any>();
+
+  for (const post of awaitingPublish.results || []) {
+    try {
+      const targets = await env.DB.prepare(
+        `SELECT postiz_post_id, platform FROM video_post_targets WHERE video_post_id = ? AND postiz_post_id IS NOT NULL`
+      ).bind(post.id).all<any>();
+
+      if (!targets.results?.length) continue;
+
+      const apiKey = (env as any).POSTIZ_API_KEY;
+      if (!apiKey) continue;
+
+      // Query Postiz for posts around the updated_at time
+      const start = new Date(new Date(post.updated_at).getTime() - 60 * 60 * 1000).toISOString();
+      const end = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+      const res = await fetch(`https://api.postiz.com/public/v1/posts?startDate=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}`, {
+        headers: { 'Authorization': apiKey },
+      });
+
+      if (!res.ok) {
+        console.log(`[VideoJobs] Postiz poll failed (${res.status}) for post ${post.id}`);
+        continue;
+      }
+
+      const rawBody = await res.json() as any;
+      // Postiz may return an array or { data: [...] } or { posts: [...] }
+      const postizPosts: Array<{ id: string; state: string; releaseURL?: string }> =
+        Array.isArray(rawBody) ? rawBody :
+        Array.isArray(rawBody?.data) ? rawBody.data :
+        Array.isArray(rawBody?.posts) ? rawBody.posts : [];
+      console.log(`[VideoJobs] Postiz poll for ${post.id}: got ${postizPosts.length} posts (raw keys: ${Object.keys(rawBody || {}).join(',')})`);
+
+      for (const target of targets.results) {
+        const match = postizPosts.find((p: any) => p.id === target.postiz_post_id);
+        if (!match) continue;
+
+        if (match.state === 'PUBLISHED') {
+          await env.DB.prepare(
+            `UPDATE video_post_targets SET target_status = 'published', published_url = ?, error_code = NULL, error_message = NULL, updated_at = datetime('now')
+             WHERE video_post_id = ? AND postiz_post_id = ?`
+          ).bind(match.releaseURL || null, post.id, target.postiz_post_id).run();
+          await logEvent(env.DB, post.id, 'publish', 'success', `Published on ${target.platform}: ${match.releaseURL || 'URL pending'}`);
+        } else if (match.state === 'ERROR') {
+          await env.DB.prepare(
+            `UPDATE video_post_targets SET target_status = 'publish_failed', error_code = 'POSTIZ_PUBLISH_ERROR', updated_at = datetime('now')
+             WHERE video_post_id = ? AND postiz_post_id = ?`
+          ).bind(post.id, target.postiz_post_id).run();
+          await logEvent(env.DB, post.id, 'publish', 'failed', `Postiz publish error on ${target.platform}`);
+        }
+        // state === 'QUEUE' → still waiting, do nothing
+      }
+
+      // Check if all targets are resolved
+      const allTargets = await env.DB.prepare(
+        `SELECT target_status FROM video_post_targets WHERE video_post_id = ?`
+      ).bind(post.id).all<any>();
+
+      const allResolved = (allTargets.results || []).every(
+        (t: any) => t.target_status === 'published' || t.target_status === 'publish_failed'
+      );
+
+      if (allResolved) {
+        const allPublished = (allTargets.results || []).every((t: any) => t.target_status === 'published');
+        const newStatus = allPublished ? 'published' : 'publish_failed';
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = ?, updated_at = datetime('now') WHERE id = ?`
+        ).bind(newStatus, post.id).run();
+        await logEvent(env.DB, post.id, 'status', 'success', `Final status: ${newStatus}`);
+      }
+
+      // Timeout: if still publishing after 30 minutes, mark as publish_timeout
+      const updatedAt = new Date(post.updated_at).getTime();
+      if (Date.now() - updatedAt > 30 * 60 * 1000) {
+        await env.DB.prepare(
+          `UPDATE video_posts SET status = 'publish_timeout', updated_at = datetime('now') WHERE id = ?`
+        ).bind(post.id).run();
+        await logEvent(env.DB, post.id, 'publish', 'failed', 'Publish timeout: no confirmation from Postiz after 30 minutes');
+      }
+    } catch (e: any) {
+      console.error(`[VideoJobs] Postiz poll error for post ${post.id}:`, e);
     }
   }
 

@@ -1161,7 +1161,8 @@
 
   async function loadVideoPosts(statusFilter) {
     var el = document.getElementById('video-list');
-    el.innerHTML = '<div class="loading">Loading...</div>';
+    el.style.minHeight = el.offsetHeight + 'px';
+    el.style.opacity = '0.6';
     try {
       var url = '/admin/video-posts';
       if (statusFilter) url += '?status=' + statusFilter;
@@ -1211,6 +1212,9 @@
         '</tbody></table></div>';
     } catch (e) {
       el.innerHTML = '<div class="status-msg error">' + esc(e.message) + '</div>';
+    } finally {
+      el.style.minHeight = '';
+      el.style.opacity = '';
     }
   }
 
@@ -1351,220 +1355,251 @@
     btn.disabled = false; btn.textContent = 'Create & Start Pipeline';
   }
 
+  // ── Section builders for video detail ──
+  function _bdTargets(p) {
+    return (p.targets || []).map(function(t) {
+      return '<tr><td>' + esc(t.platform) + '</td><td><span class="status-badge ' + videoStatusClass(t.target_status) + '">' + esc(t.target_status) + '</span></td>' +
+        '<td>' + (t.postiz_post_id ? esc(t.postiz_post_id.substring(0,12)) : '-') + '</td>' +
+        '<td>' + (t.published_url ? '<a href="' + esc(t.published_url) + '" target="_blank" style="color:var(--color-primary);">View</a>' : '-') + '</td>' +
+        '<td style="color:#ff3b30;">' + (t.error_message ? esc(t.error_message.substring(0,60)) : '-') + '</td></tr>';
+    }).join('') || '<tr><td colspan="5">No targets</td></tr>';
+  }
+  function _bdRenderJobs(p) {
+    return (p.render_jobs || []).map(function(r) {
+      return '<tr><td class="id-cell">' + esc((r.id||'').substring(0,11)) + '</td>' +
+        '<td><span class="status-badge ' + videoStatusClass(r.render_status) + '">' + esc(r.render_status) + '</span></td>' +
+        '<td>' + (r.output_video_url ? '<a href="' + esc(r.output_video_url) + '" target="_blank" style="color:var(--color-primary);">Preview</a>' : '-') + '</td>' +
+        '<td>' + (r.render_cost_usd ? '$' + Number(r.render_cost_usd).toFixed(4) : '-') + '</td>' +
+        '<td style="color:#ff3b30;">' + (r.error_message ? esc(r.error_message.substring(0,80)) : '-') + '</td></tr>';
+    }).join('') || '<tr><td colspan="5">No render jobs</td></tr>';
+  }
+  function _bdEvents(p) {
+    return (p.events || []).slice(0,20).map(function(e) {
+      return '<tr><td style="font-size:0.75rem;">' + fmtDt(e.created_at) + '</td>' +
+        '<td><span class="type-badge ' + (e.event_type==='failed'?'transfer':'faucet') + '">' + esc(e.job_type) + '</span></td>' +
+        '<td><span class="status-badge ' + (e.event_type==='failed'?'rejected':(e.event_type==='success'?'confirmed':'pending')) + '">' + esc(e.event_type) + '</span></td>' +
+        '<td>' + esc(e.message||'') + '</td></tr>';
+    }).join('') || '<tr><td colspan="4">No events</td></tr>';
+  }
+  function _bdEvalSection(p) {
+    if (p.llm_eval_score == null && !(p.llm_eval_attempts > 0)) return '';
+    var scoreColor = p.llm_eval_score >= 90 ? '#34d399' : (p.llm_eval_score >= 70 ? '#fbbf24' : '#f87171');
+    var feedbackDetail = '';
+    if (p.llm_eval_feedback) {
+      try {
+        var ef = JSON.parse(p.llm_eval_feedback);
+        feedbackDetail =
+          '<div style="margin-top:8px;font-size:0.8rem;">' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">' +
+              '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Hook: ' + (ef.breakdown?.hook||0) + '/30</span>' +
+              '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Pacing: ' + (ef.breakdown?.pacing||0) + '/20</span>' +
+              '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Clarity: ' + (ef.breakdown?.clarity||0) + '/20</span>' +
+              '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">CTA: ' + (ef.breakdown?.cta||0) + '/15</span>' +
+              '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Emotion: ' + (ef.breakdown?.emotion||0) + '/15</span>' +
+            '</div>' +
+            '<div style="color:var(--color-text-muted);">' + esc(ef.feedback||'') + '</div>' +
+          '</div>';
+      } catch(e) {}
+    }
+    return '<div style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
+      '<h4 style="margin:0 0 8px;color:#34d399;">LLM Evaluation</h4>' +
+      '<div style="display:flex;align-items:center;gap:16px;">' +
+        '<div style="font-size:2rem;font-weight:700;color:' + scoreColor + ';">' + (p.llm_eval_score != null ? p.llm_eval_score : '?') + '<span style="font-size:1rem;color:var(--color-text-muted);">/100</span></div>' +
+        '<div style="font-size:0.85rem;"><div>Attempts: <strong>' + (p.llm_eval_attempts||0) + '</strong>/10</div>' +
+        '<div>Status: <span class="status-badge ' + (p.llm_eval_score >= 90 ? 'confirmed' : 'pending') + '">' + (p.llm_eval_score >= 90 ? 'Passed' : 'In Progress') + '</span></div></div>' +
+      '</div>' +
+      feedbackDetail +
+    '</div>';
+  }
+  function _bdCosts(p) {
+    if (!p.generation_costs || p.generation_costs.length === 0) return '';
+    var costRows = p.generation_costs.map(function(c) {
+      return '<tr><td>' + esc(c.cost_type) + '</td><td>$' + Number(c.amount_usd).toFixed(4) + '</td><td>' + esc(c.model||'-') + '</td>' +
+        '<td style="font-size:0.75rem;">' + (c.input_tokens ? c.input_tokens + ' in / ' + (c.output_tokens||0) + ' out' : '-') + '</td>' +
+        '<td style="font-size:0.75rem;">' + fmtDt(c.created_at) + '</td></tr>';
+    }).join('');
+    return '<h4 style="margin:20px 0 8px;">Generation Costs</h4>' +
+      '<div class="table-container"><table class="data-table"><thead><tr>' +
+        '<th>Type</th><th>Amount</th><th>Model</th><th>Tokens</th><th>Time</th>' +
+      '</tr></thead><tbody>' + costRows +
+      '<tr style="font-weight:600;border-top:2px solid var(--color-border);"><td>Total</td><td>$' + Number(p.costs_summary?.total_usd||0).toFixed(4) + '</td><td colspan="3"></td></tr>' +
+      '</tbody></table></div>';
+  }
+  function _bdImages(p) {
+    if (!p.slides_json) return '';
+    try {
+      var slidesData = JSON.parse(p.slides_json);
+      var slidesList = slidesData.slides || slidesData;
+      var imageSlides = [];
+      for (var si = 0; si < slidesList.length; si++) {
+        if (slidesList[si].imageUrl) imageSlides.push({ idx: si, url: slidesList[si].imageUrl, type: slidesList[si].type || '' });
+      }
+      if (imageSlides.length === 0) return '';
+      return '<h4 style="margin:20px 0 8px;">Generated Images (' + imageSlides.length + ')</h4>' +
+        '<div style="display:flex;gap:8px;overflow-x:auto;padding:8px 0;">' +
+        imageSlides.map(function(im) {
+          return '<div style="flex:0 0 auto;width:90px;text-align:center;">' +
+            '<img src="' + im.url + '" style="width:90px;height:135px;object-fit:cover;border-radius:6px;border:1px solid var(--color-border);" loading="lazy" />' +
+            '<div style="font-size:0.65rem;color:var(--color-text-muted);margin-top:2px;">S' + (im.idx+1) + ' ' + esc(im.type) + '</div>' +
+          '</div>';
+        }).join('') +
+        '</div>';
+    } catch(e) { return ''; }
+  }
+  function _bdScript(p) {
+    if (p.llm_rewritten_script) {
+      return '<h4 style="margin:20px 0 8px;">Rewritten Script (LLM)</h4>' +
+        '<details style="margin-bottom:8px;"><summary style="cursor:pointer;font-size:0.8rem;color:var(--color-text-muted);">Show original script for comparison</summary>' +
+        '<pre style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:8px;opacity:0.7;">' + esc(p.script_text||'') + '</pre></details>' +
+        '<pre style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">' + esc(p.llm_rewritten_script) + '</pre>';
+    }
+    return '<h4 style="margin:20px 0 8px;">Script</h4>' +
+      '<pre style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">' + esc(p.script_text||'') + '</pre>';
+  }
+  function _bdActions(p) {
+    var canRetry = ['render_failed','upload_failed','postiz_failed','queued_render','render_succeeded','queued','script_rewriting','evaluating_script','script_approved','generating_images','images_ready'].includes(p.status);
+    return (canRetry ? '<button class="btn-sm success" onclick="retryVideoPost(\'' + p.id + '\')">Retry</button> ' : '') +
+      '<button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button>';
+  }
+  function _bdEvalScore(p) {
+    if (p.llm_eval_score != null) {
+      return '<span style="color:' + (p.llm_eval_score >= 90 ? '#34d399' : '#fbbf24') + ';font-weight:700;">' + p.llm_eval_score + '</span>/100';
+    }
+    return '-';
+  }
+
+  // ── Posting preview (static, doesn't change during processing) ──
+  function _bdPostingPreview(p) {
+    return '<div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
+      '<h4 style="margin:0 0 8px;color:#60a5fa;">Posting Preview</h4>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:0.85rem;">' +
+        '<div><strong>YT Title:</strong> ' + esc(p.yt_title||p.internal_title||'-') + '</div>' +
+        '<div><strong>YT Visibility:</strong> ' + esc(p.yt_visibility||'unlisted') + '</div>' +
+        '<div><strong>Publish Mode:</strong> ' + esc(p.publish_mode||'-') + '</div>' +
+        '<div><strong>Scheduled:</strong> ' + (p.scheduled_at ? fmtDt(p.scheduled_at) : 'Not scheduled') + '</div>' +
+        '<div style="grid-column:1/-1;"><strong>Caption:</strong> ' + esc((p.caption_text||'').substring(0,200)) + '</div>' +
+        '<div style="grid-column:1/-1;"><strong>Hashtags:</strong> ' + esc(p.hashtags_text||'#HumanAds') + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+  function _bdVariant(p) {
+    if (!p.variant_id) return '';
+    var selfScore = '';
+    if (p.self_score_json) {
+      try {
+        var ss = JSON.parse(p.self_score_json);
+        selfScore = Object.keys(ss).map(function(k) {
+          return '<span style="display:inline-block;margin:2px 4px;padding:2px 8px;border-radius:4px;background:rgba(124,58,237,0.1);font-size:0.75rem;">' + esc(k) + ': ' + ss[k] + '/10</span>';
+        }).join('');
+      } catch(e) {}
+    }
+    return '<div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
+      '<h4 style="margin:0 0 8px;color:#a78bfa;">Variant Info</h4>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:12px;font-size:0.85rem;">' +
+        '<div><strong>Variant ID:</strong> <code style="font-size:0.8rem;">' + esc(p.variant_id) + '</code></div>' +
+        '<div><strong>Topic:</strong> ' + esc(p.topic_id||'-') + '</div>' +
+        '<div><strong>Episode:</strong> ' + (p.episode_number||'-') + '</div>' +
+        '<div><strong>Hook:</strong> ' + esc(p.hook_type||'-') + '</div>' +
+        '<div><strong>CTA:</strong> ' + esc(p.cta_type||'-') + '</div>' +
+        '<div><strong>Target Duration:</strong> ' + (p.duration_target_sec ? p.duration_target_sec + 's' : '-') + '</div>' +
+      '</div>' +
+      (selfScore ? '<div style="margin-top:8px;"><strong>Self Score:</strong> ' + selfScore + '</div>' : '') +
+    '</div>';
+  }
+
+  // ── Detail: full render (initial load only) ──
+  function renderDetailFull(p) {
+    return '<div style="padding:16px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+        '<h3 style="margin:0;">' + esc(p.internal_title) + '</h3>' +
+        '<button class="btn-sm" onclick="hideVideoDetail()">← Back to List</button>' +
+      '</div>' +
+      '<div class="summary-grid">' +
+        '<div class="summary-card"><div class="label">Status</div><div class="value" id="vd-status"><span class="status-badge ' + videoStatusClass(p.status) + '">' + esc(p.status) + '</span></div></div>' +
+        '<div class="summary-card"><div class="label">Template</div><div class="value">' + esc(p.template_type) + '</div></div>' +
+        '<div class="summary-card"><div class="label">Slides</div><div class="value" id="vd-slides">' + (p.slides_count||0) + '</div></div>' +
+        '<div class="summary-card"><div class="label">Mode</div><div class="value">' + esc(p.publish_mode) + '</div></div>' +
+        '<div class="summary-card"><div class="label">Retries</div><div class="value" id="vd-retries">' + (p.retry_count||0) + '/3</div></div>' +
+        '<div class="summary-card"><div class="label">Eval Score</div><div class="value" id="vd-eval-score">' + _bdEvalScore(p) + '</div></div>' +
+        (p.scheduled_at ? '<div class="summary-card"><div class="label">Scheduled</div><div class="value">' + fmtDt(p.scheduled_at) + '</div></div>' : '') +
+      '</div>' +
+      '<div id="vd-eval">' + _bdEvalSection(p) + '</div>' +
+      '<div id="vd-images">' + _bdImages(p) + '</div>' +
+      _bdPostingPreview(p) +
+      _bdVariant(p) +
+      '<div id="vd-actions" style="margin:12px 0;">' + _bdActions(p) + '</div>' +
+      '<div id="vd-costs">' + _bdCosts(p) + '</div>' +
+      '<h4 style="margin:20px 0 8px;">PDCA Metrics</h4>' +
+      '<div id="video-metrics-' + p.id + '"><div class="loading">Loading metrics...</div></div>' +
+      '<div style="margin:8px 0;">' +
+        '<button class="btn-sm" style="background:#059669;color:#fff;" onclick="showAddMetricsForm(\'' + p.id + '\')">+ Add Metrics</button>' +
+      '</div>' +
+      '<div id="video-add-metrics-' + p.id + '" style="display:none;"></div>' +
+      '<h4 style="margin:20px 0 8px;">Platform Targets</h4>' +
+      '<div class="table-container"><table class="data-table"><thead><tr><th>Platform</th><th>Status</th><th>Postiz ID</th><th>URL</th><th>Error</th></tr></thead><tbody id="vd-targets">' + _bdTargets(p) + '</tbody></table></div>' +
+      '<h4 style="margin:20px 0 8px;">Render Jobs</h4>' +
+      '<div class="table-container"><table class="data-table"><thead><tr><th>ID</th><th>Status</th><th>Output</th><th>Cost</th><th>Error</th></tr></thead><tbody id="vd-render">' + _bdRenderJobs(p) + '</tbody></table></div>' +
+      '<h4 style="margin:20px 0 8px;">Event Log</h4>' +
+      '<div class="table-container"><table class="data-table"><thead><tr><th style="width:15%">Time</th><th style="width:12%">Job</th><th style="width:10%">Event</th><th>Message</th></tr></thead><tbody id="vd-events">' + _bdEvents(p) + '</tbody></table></div>' +
+      '<div id="vd-script">' + _bdScript(p) + '</div>' +
+    '</div>';
+  }
+
+  // ── Detail: surgical update (poll refresh — no innerHTML replace, no image reload) ──
+  function updateDetailDynamic(p) {
+    var el;
+    el = document.getElementById('vd-status');
+    if (el) el.innerHTML = '<span class="status-badge ' + videoStatusClass(p.status) + '">' + esc(p.status) + '</span>';
+    el = document.getElementById('vd-eval-score');
+    if (el) el.innerHTML = _bdEvalScore(p);
+    el = document.getElementById('vd-slides');
+    if (el) el.textContent = (p.slides_count||0);
+    el = document.getElementById('vd-retries');
+    if (el) el.textContent = (p.retry_count||0) + '/3';
+    el = document.getElementById('vd-eval');
+    if (el) el.innerHTML = _bdEvalSection(p);
+    // Images: only update if new images appeared (don't touch existing imgs)
+    el = document.getElementById('vd-images');
+    if (el && !el.querySelector('img')) el.innerHTML = _bdImages(p);
+    el = document.getElementById('vd-actions');
+    if (el) el.innerHTML = _bdActions(p);
+    el = document.getElementById('vd-costs');
+    if (el) el.innerHTML = _bdCosts(p);
+    el = document.getElementById('vd-targets');
+    if (el) el.innerHTML = _bdTargets(p);
+    el = document.getElementById('vd-render');
+    if (el) el.innerHTML = _bdRenderJobs(p);
+    el = document.getElementById('vd-events');
+    if (el) el.innerHTML = _bdEvents(p);
+    // Script: only update if rewritten script newly appeared
+    el = document.getElementById('vd-script');
+    if (el && p.llm_rewritten_script && !el.querySelector('details')) el.innerHTML = _bdScript(p);
+    // Metrics
+    loadVideoMetrics(p.id);
+  }
+
   async function showVideoDetail(id, isRefresh) {
     _currentDetailId = id;
     var detailEl = document.getElementById('video-detail');
     if (!isRefresh) {
-      var listEl = document.getElementById('video-list');
-      listEl.style.display = 'none';
+      document.getElementById('video-list').style.display = 'none';
       document.getElementById('video-filters').style.display = 'none';
       detailEl.style.display = 'block';
       detailEl.innerHTML = '<div class="loading">Loading...</div>';
     }
     try {
       var res = await HumanAds.fetchApi('/admin/video-posts/' + id);
-      if (_currentDetailId !== id) return; // navigated away during fetch
+      if (_currentDetailId !== id) return;
       if (!res.success) throw new Error(res.error?.message || 'Failed');
       var p = res.data;
-      // Lock height to prevent layout shift during innerHTML swap
-      if (isRefresh) detailEl.style.minHeight = detailEl.offsetHeight + 'px';
-      var targets = (p.targets || []).map(function(t) {
-        return '<tr><td>' + esc(t.platform) + '</td><td><span class="status-badge ' + videoStatusClass(t.target_status) + '">' + esc(t.target_status) + '</span></td>' +
-          '<td>' + (t.postiz_post_id ? esc(t.postiz_post_id.substring(0,12)) : '-') + '</td>' +
-          '<td>' + (t.published_url ? '<a href="' + esc(t.published_url) + '" target="_blank" style="color:var(--color-primary);">View</a>' : '-') + '</td>' +
-          '<td style="color:#ff3b30;">' + (t.error_message ? esc(t.error_message.substring(0,60)) : '-') + '</td></tr>';
-      }).join('');
 
-      var renderJobs = (p.render_jobs || []).map(function(r) {
-        return '<tr><td class="id-cell">' + esc((r.id||'').substring(0,11)) + '</td>' +
-          '<td><span class="status-badge ' + videoStatusClass(r.render_status) + '">' + esc(r.render_status) + '</span></td>' +
-          '<td>' + (r.output_video_url ? '<a href="' + esc(r.output_video_url) + '" target="_blank" style="color:var(--color-primary);">Preview</a>' : '-') + '</td>' +
-          '<td>' + (r.render_cost_usd ? '$' + Number(r.render_cost_usd).toFixed(4) : '-') + '</td>' +
-          '<td style="color:#ff3b30;">' + (r.error_message ? esc(r.error_message.substring(0,80)) : '-') + '</td></tr>';
-      }).join('');
-
-      var events = (p.events || []).slice(0,20).map(function(e) {
-        return '<tr><td style="font-size:0.75rem;">' + fmtDt(e.created_at) + '</td>' +
-          '<td><span class="type-badge ' + (e.event_type==='failed'?'transfer':'faucet') + '">' + esc(e.job_type) + '</span></td>' +
-          '<td><span class="status-badge ' + (e.event_type==='failed'?'rejected':(e.event_type==='success'?'confirmed':'pending')) + '">' + esc(e.event_type) + '</span></td>' +
-          '<td>' + esc(e.message||'') + '</td></tr>';
-      }).join('');
-
-      var canRetry = ['render_failed','upload_failed','postiz_failed','queued_render','render_succeeded','queued','script_rewriting','evaluating_script','script_approved','generating_images','images_ready'].includes(p.status);
-
-      // LLM Eval Score section
-      var evalSection = '';
-      if (p.llm_eval_score != null || p.llm_eval_attempts > 0) {
-        var scoreColor = p.llm_eval_score >= 90 ? '#34d399' : (p.llm_eval_score >= 70 ? '#fbbf24' : '#f87171');
-        var feedbackDetail = '';
-        if (p.llm_eval_feedback) {
-          try {
-            var ef = JSON.parse(p.llm_eval_feedback);
-            feedbackDetail =
-              '<div style="margin-top:8px;font-size:0.8rem;">' +
-                '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">' +
-                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Hook: ' + (ef.breakdown?.hook||0) + '/30</span>' +
-                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Pacing: ' + (ef.breakdown?.pacing||0) + '/20</span>' +
-                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Clarity: ' + (ef.breakdown?.clarity||0) + '/20</span>' +
-                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">CTA: ' + (ef.breakdown?.cta||0) + '/15</span>' +
-                  '<span style="padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.15);">Emotion: ' + (ef.breakdown?.emotion||0) + '/15</span>' +
-                '</div>' +
-                '<div style="color:var(--color-text-muted);">' + esc(ef.feedback||'') + '</div>' +
-              '</div>';
-          } catch(e) {}
-        }
-        evalSection =
-          '<div style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
-            '<h4 style="margin:0 0 8px;color:#34d399;">LLM Evaluation</h4>' +
-            '<div style="display:flex;align-items:center;gap:16px;">' +
-              '<div style="font-size:2rem;font-weight:700;color:' + scoreColor + ';">' + (p.llm_eval_score != null ? p.llm_eval_score : '?') + '<span style="font-size:1rem;color:var(--color-text-muted);">/100</span></div>' +
-              '<div style="font-size:0.85rem;"><div>Attempts: <strong>' + (p.llm_eval_attempts||0) + '</strong>/10</div>' +
-              '<div>Status: <span class="status-badge ' + (p.llm_eval_score >= 90 ? 'confirmed' : 'pending') + '">' + (p.llm_eval_score >= 90 ? 'Passed' : 'In Progress') + '</span></div></div>' +
-            '</div>' +
-            feedbackDetail +
-          '</div>';
-      }
-
-      // Generation costs section
-      var costsSection = '';
-      if (p.generation_costs && p.generation_costs.length > 0) {
-        var costRows = p.generation_costs.map(function(c) {
-          return '<tr><td>' + esc(c.cost_type) + '</td><td>$' + Number(c.amount_usd).toFixed(4) + '</td><td>' + esc(c.model||'-') + '</td>' +
-            '<td style="font-size:0.75rem;">' + (c.input_tokens ? c.input_tokens + ' in / ' + (c.output_tokens||0) + ' out' : '-') + '</td>' +
-            '<td style="font-size:0.75rem;">' + fmtDt(c.created_at) + '</td></tr>';
-        }).join('');
-        costsSection =
-          '<h4 style="margin:20px 0 8px;">Generation Costs</h4>' +
-          '<div class="table-container"><table class="data-table"><thead><tr>' +
-            '<th>Type</th><th>Amount</th><th>Model</th><th>Tokens</th><th>Time</th>' +
-          '</tr></thead><tbody>' + costRows +
-          '<tr style="font-weight:600;border-top:2px solid var(--color-border);"><td>Total</td><td>$' + Number(p.costs_summary?.total_usd||0).toFixed(4) + '</td><td colspan="3"></td></tr>' +
-          '</tbody></table></div>';
-      }
-
-      // Posting preview section
-      var postingPreview =
-        '<div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
-          '<h4 style="margin:0 0 8px;color:#60a5fa;">Posting Preview</h4>' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:0.85rem;">' +
-            '<div><strong>YT Title:</strong> ' + esc(p.yt_title||p.internal_title||'-') + '</div>' +
-            '<div><strong>YT Visibility:</strong> ' + esc(p.yt_visibility||'unlisted') + '</div>' +
-            '<div><strong>Publish Mode:</strong> ' + esc(p.publish_mode||'-') + '</div>' +
-            '<div><strong>Scheduled:</strong> ' + (p.scheduled_at ? fmtDt(p.scheduled_at) : 'Not scheduled') + '</div>' +
-            '<div style="grid-column:1/-1;"><strong>Caption:</strong> ' + esc((p.caption_text||'').substring(0,200)) + '</div>' +
-            '<div style="grid-column:1/-1;"><strong>Hashtags:</strong> ' + esc(p.hashtags_text||'#HumanAds') + '</div>' +
-          '</div>' +
-        '</div>';
-
-      // Variant info section
-      var variantSection = '';
-      if (p.variant_id) {
-        var selfScore = '';
-        if (p.self_score_json) {
-          try {
-            var ss = JSON.parse(p.self_score_json);
-            selfScore = Object.keys(ss).map(function(k) {
-              return '<span style="display:inline-block;margin:2px 4px;padding:2px 8px;border-radius:4px;background:rgba(124,58,237,0.1);font-size:0.75rem;">' + esc(k) + ': ' + ss[k] + '/10</span>';
-            }).join('');
-          } catch(e) {}
-        }
-        variantSection =
-          '<div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:12px 16px;margin:12px 0;">' +
-            '<h4 style="margin:0 0 8px;color:#a78bfa;">Variant Info</h4>' +
-            '<div style="display:flex;flex-wrap:wrap;gap:12px;font-size:0.85rem;">' +
-              '<div><strong>Variant ID:</strong> <code style="font-size:0.8rem;">' + esc(p.variant_id) + '</code></div>' +
-              '<div><strong>Topic:</strong> ' + esc(p.topic_id||'-') + '</div>' +
-              '<div><strong>Episode:</strong> ' + (p.episode_number||'-') + '</div>' +
-              '<div><strong>Hook:</strong> ' + esc(p.hook_type||'-') + '</div>' +
-              '<div><strong>CTA:</strong> ' + esc(p.cta_type||'-') + '</div>' +
-              '<div><strong>Target Duration:</strong> ' + (p.duration_target_sec ? p.duration_target_sec + 's' : '-') + '</div>' +
-            '</div>' +
-            (selfScore ? '<div style="margin-top:8px;"><strong>Self Score:</strong> ' + selfScore + '</div>' : '') +
-          '</div>';
-      }
-
-      // Metrics section
-      var metricsSection =
-        '<h4 style="margin:20px 0 8px;">PDCA Metrics</h4>' +
-        '<div id="video-metrics-' + p.id + '"><div class="loading">Loading metrics...</div></div>' +
-        '<div style="margin:8px 0;">' +
-          '<button class="btn-sm" style="background:#059669;color:#fff;" onclick="showAddMetricsForm(\'' + p.id + '\')">+ Add Metrics</button>' +
-        '</div>' +
-        '<div id="video-add-metrics-' + p.id + '" style="display:none;"></div>';
-
-      // Generated images section
-      var imagesSection = '';
-      if (p.slides_json) {
-        try {
-          var slidesData = JSON.parse(p.slides_json);
-          var slidesList = slidesData.slides || slidesData;
-          var imageSlides = [];
-          for (var si = 0; si < slidesList.length; si++) {
-            if (slidesList[si].imageUrl) imageSlides.push({ idx: si, url: slidesList[si].imageUrl, text: slidesList[si].text || '', type: slidesList[si].type || '' });
-          }
-          if (imageSlides.length > 0) {
-            imagesSection =
-              '<h4 style="margin:20px 0 8px;">Generated Images (' + imageSlides.length + ')</h4>' +
-              '<div style="display:flex;gap:8px;overflow-x:auto;padding:8px 0;">' +
-              imageSlides.map(function(im) {
-                return '<div style="flex:0 0 auto;width:90px;text-align:center;">' +
-                  '<img src="' + im.url + '" style="width:90px;height:135px;object-fit:cover;border-radius:6px;border:1px solid var(--color-border);" loading="lazy" />' +
-                  '<div style="font-size:0.65rem;color:var(--color-text-muted);margin-top:2px;">S' + (im.idx+1) + ' ' + esc(im.type) + '</div>' +
-                '</div>';
-              }).join('') +
-              '</div>';
-          }
-        } catch(e) {}
-      }
-
-      // Rewritten script section
-      var rewrittenSection = '';
-      if (p.llm_rewritten_script) {
-        rewrittenSection =
-          '<h4 style="margin:20px 0 8px;">Rewritten Script (LLM)</h4>' +
-          '<details style="margin-bottom:8px;"><summary style="cursor:pointer;font-size:0.8rem;color:var(--color-text-muted);">Show original script for comparison</summary>' +
-          '<pre style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:8px;opacity:0.7;">' + esc(p.script_text||'') + '</pre></details>' +
-          '<pre style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">' + esc(p.llm_rewritten_script) + '</pre>';
-      }
-
-      detailEl.innerHTML =
-        '<div style="padding:16px;">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
-            '<h3 style="margin:0;">' + esc(p.internal_title) + '</h3>' +
-            '<button class="btn-sm" onclick="hideVideoDetail()">← Back to List</button>' +
-          '</div>' +
-          '<div class="summary-grid">' +
-            '<div class="summary-card"><div class="label">Status</div><div class="value"><span class="status-badge ' + videoStatusClass(p.status) + '">' + esc(p.status) + '</span></div></div>' +
-            '<div class="summary-card"><div class="label">Template</div><div class="value">' + esc(p.template_type) + '</div></div>' +
-            '<div class="summary-card"><div class="label">Slides</div><div class="value">' + (p.slides_count||0) + '</div></div>' +
-            '<div class="summary-card"><div class="label">Mode</div><div class="value">' + esc(p.publish_mode) + '</div></div>' +
-            '<div class="summary-card"><div class="label">Retries</div><div class="value">' + (p.retry_count||0) + '/3</div></div>' +
-            '<div class="summary-card"><div class="label">Eval Score</div><div class="value">' + (p.llm_eval_score != null ? '<span style="color:' + (p.llm_eval_score >= 90 ? '#34d399' : '#fbbf24') + ';font-weight:700;">' + p.llm_eval_score + '</span>/100' : '-') + '</div></div>' +
-            (p.scheduled_at ? '<div class="summary-card"><div class="label">Scheduled</div><div class="value">' + fmtDt(p.scheduled_at) + '</div></div>' : '') +
-          '</div>' +
-          evalSection +
-          imagesSection +
-          postingPreview +
-          variantSection +
-          (canRetry ? '<div style="margin:12px 0;"><button class="btn-sm success" onclick="retryVideoPost(\'' + p.id + '\')">Retry</button> <button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button></div>' : '<div style="margin:12px 0;"><button class="btn-sm danger" onclick="deleteVideoPost(\'' + p.id + '\')">Delete</button></div>') +
-          costsSection +
-          metricsSection +
-          '<h4 style="margin:20px 0 8px;">Platform Targets</h4>' +
-          '<div class="table-container"><table class="data-table"><thead><tr><th>Platform</th><th>Status</th><th>Postiz ID</th><th>URL</th><th>Error</th></tr></thead><tbody>' + (targets || '<tr><td colspan="5">No targets</td></tr>') + '</tbody></table></div>' +
-          '<h4 style="margin:20px 0 8px;">Render Jobs</h4>' +
-          '<div class="table-container"><table class="data-table"><thead><tr><th>ID</th><th>Status</th><th>Output</th><th>Cost</th><th>Error</th></tr></thead><tbody>' + (renderJobs || '<tr><td colspan="5">No render jobs</td></tr>') + '</tbody></table></div>' +
-          '<h4 style="margin:20px 0 8px;">Event Log</h4>' +
-          '<div class="table-container"><table class="data-table"><thead><tr><th style="width:15%">Time</th><th style="width:12%">Job</th><th style="width:10%">Event</th><th>Message</th></tr></thead><tbody>' + (events || '<tr><td colspan="4">No events</td></tr>') + '</tbody></table></div>' +
-          (rewrittenSection || '<h4 style="margin:20px 0 8px;">Script</h4>') +
-          (rewrittenSection ? '' : '<pre style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:8px;padding:12px;font-size:0.8rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">' + esc(p.script_text||'') + '</pre>') +
-        '</div>';
-
-      // Load metrics async
-      loadVideoMetrics(p.id);
-
-      // Restore scroll and release height lock
       if (isRefresh) {
-        detailEl.style.minHeight = '';
+        // Surgical update — no full DOM replace, no jitter
+        updateDetailDynamic(p);
+      } else {
+        // First render — full HTML
+        detailEl.innerHTML = renderDetailFull(p);
+        loadVideoMetrics(p.id);
       }
 
       // Auto-poll when status is still processing
