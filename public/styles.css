@@ -3164,30 +3164,13 @@ body {
   font-weight: 500;
 }
 
-/* --- Agent chips --- */
-.showcase-agents-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  flex-wrap: nowrap;
-  margin-top: 2px;
-}
-
-.showcase-agent-chip {
-  display: inline-flex;
-  align-items: center;
-  background: rgba(255, 107, 53, 0.1);
-  border: 1px solid rgba(255, 107, 53, 0.18);
-  border-radius: 8px;
-  padding: 1px 6px;
-  font-size: 9px;
-  font-weight: 500;
+/* --- Agent summary --- */
+.showcase-agents-summary {
+  font-size: 0.7rem;
   color: var(--color-primary-light);
-  max-width: 85px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 500;
   white-space: nowrap;
+  margin-top: 2px;
 }
 
 /* ============================================
