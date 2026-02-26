@@ -907,7 +907,16 @@
         // Sum total earnings across all operators
         const totalCents = ops.reduce((sum, op) => sum + (op.total_earnings || 0), 0);
         const earnedEl = document.getElementById('showcase-total-earned');
-        if (earnedEl) earnedEl.textContent = '$' + (totalCents / 100).toFixed(2);
+        const labelEl = document.querySelector('#showcase-avatars .showcase-metric-label');
+        if (earnedEl) {
+          if (totalCents > 0) {
+            earnedEl.textContent = '$' + (totalCents / 100).toFixed(2);
+            if (labelEl) labelEl.textContent = 'earned by humans';
+          } else {
+            earnedEl.textContent = ops.length + ' humans ready';
+            if (labelEl) labelEl.textContent = 'payouts starting soon';
+          }
+        }
       }
 
       // --- Cluster 2: Reward range + live missions count ---
