@@ -204,7 +204,7 @@ const CATEGORY_DEFAULTS: Record<string, CategoryDefaults> = {
 };
 
 // =============================================
-// (A-3) Slide Type Variants (A/B/C)
+// (A-3) Slide Type Variants — Person slides
 // =============================================
 
 interface SlideVariant {
@@ -218,24 +218,138 @@ const SLIDE_VARIANTS: Record<string, SlideVariant> = {
     composition: 'Subject centered in the lower 55-60% of the frame, chest-up framing. Upper 40% has REAL blurred background content (wall, shelf, ceiling) — NOT an empty void. This space will receive text overlay. The subject is the single undeniable focal point. Framing feels like someone across the table pointed their phone camera at this person',
     intensityNote: 'This is the HOOK frame — the expression should be at the stronger end of the emotion range (but still Japanese-understated). The viewer should feel "I need to know what they just saw."',
   },
-  // B) Emphasis — strong subject presence, medium framing
   emphasis: {
     composition: 'Medium close-up, subject fills lower 60%. Upper 40% has real blurred background for text overlay. Eye line is natural — looking slightly off-camera at a phone or screen, NOT staring dead-center into camera. The emphasis is on the subject\'s face and reaction',
     intensityNote: 'This is the EMPHASIS frame — the emotion is clear but not extreme. The expression reinforces whatever the narration is saying at this point.',
   },
-  // C) Chapter Title — wider context, more environment
   chapter_title: {
     composition: 'Wider shot showing more environment (60% background, 40% subject). Subject is visible but not dominating. Multiple background elements identifiable. Good space for text in upper 50%. Feels like a scene-setting shot from a vlog',
     intensityNote: 'This is a CONTEXT frame — the emotion is neutral or mildly curious. The setting matters as much as the person here.',
   },
-  // Defaults for body/cta
   body: {
     composition: 'Medium shot showing subject and surroundings. Natural phone-camera framing — slightly off-center, not perfectly composed. One side has more background space. Candid, unposed feel',
     intensityNote: 'Natural, neutral expression. This frame supports the narration without competing for attention.',
   },
-  cta: {
-    composition: 'Slightly wider shot with subject centered, more background visible. The composition feels like a paused video — natural and unstaged. Space for text overlay in both upper and lower areas',
-    intensityNote: 'Calm, approachable expression. A slight smile or neutral face. Inviting, not intense.',
+};
+
+// =============================================
+// (A-4) Content Scene Defaults — Object/scene images (no people)
+// =============================================
+
+interface ContentSceneVars {
+  SCENE_DESCRIPTION: string;
+  SCENE_DETAILS: string;
+  LIGHTING: string;
+  PALETTE: string;
+  CAMERA_FEEL: string;
+}
+
+const CONTENT_SCENE_DEFAULTS: Record<string, ContentSceneVars> = {
+  business: {
+    SCENE_DESCRIPTION: 'A workspace — laptop open with charts/data on screen, documents and a notebook with handwritten notes on a real wooden desk, coffee mug nearby',
+    SCENE_DETAILS: 'Items are slightly messy — papers not perfectly aligned, pen cap off, sticky notes with Japanese text. Real office texture: wood grain desk, fabric chair edge visible.',
+    LIGHTING: 'Mixed office light — overhead fluorescent plus window daylight from one side. Screen glow adding blue tint to nearby objects',
+    PALETTE: 'Warm wood tones, white papers, blue-gray screen glow, natural indoor colors',
+    CAMERA_FEEL: 'Subtle sensor noise in shadow areas, faint JPEG compression on background, typical phone camera indoor quality',
+  },
+  technology: {
+    SCENE_DESCRIPTION: 'Close-up of technology — a smartphone screen showing an app interface, a laptop keyboard, earbuds, or gadgets arranged on a desk. Focus on the devices themselves',
+    SCENE_DETAILS: 'Devices show fingerprints and minor scratches (real usage signs). Cables slightly tangled. The setup is functional, not aesthetic — a real person\'s tech workspace.',
+    LIGHTING: 'Screen glow as primary light source, warm room ambient from the side. Cool-warm contrast on object surfaces',
+    PALETTE: 'Cool screen blues, warm ambient highlights, matte black device surfaces, natural reflections',
+    CAMERA_FEEL: 'Subtle sensor noise, slight motion softness, natural phone camera quality with screen glow flare',
+  },
+  health: {
+    SCENE_DESCRIPTION: 'A health/wellness scene — fresh vegetables and fruits on a cutting board, a water bottle and workout towel, or a yoga mat with morning light through a window',
+    SCENE_DETAILS: 'Items are real and imperfect — a slightly bruised apple, uneven cuts on vegetables, water droplets on the counter. Natural, not food-styled or magazine-perfect.',
+    LIGHTING: 'Warm morning sunlight streaming through a window, soft and directional. Natural shadows on surfaces',
+    PALETTE: 'Fresh greens, warm oranges, clean whites, natural wood tones, morning golden light',
+    CAMERA_FEEL: 'Subtle sensor noise, warm light slight overexposure on window side, natural phone camera daylight quality',
+  },
+  money: {
+    SCENE_DESCRIPTION: 'A financial scene — a calculator or banking app on a phone screen, Japanese yen bills and coins, a wallet, receipts, or a passbook spread on a table',
+    SCENE_DETAILS: 'Items show real use — wallet has wear marks, bills slightly crumpled, receipts folded. The table surface has natural scratches and texture.',
+    LIGHTING: 'Warm evening room light from above, phone screen adding cool glow. Slightly dim, intimate atmosphere',
+    PALETTE: 'Warm browns, currency tones, cool screen blues, muted wood surface',
+    CAMERA_FEEL: 'Subtle sensor noise especially in dim areas, faint JPEG compression, evening indoor phone camera quality',
+  },
+  danger: {
+    SCENE_DESCRIPTION: 'A warning scene — a phone screen showing a suspicious email or security alert, a padlock, a shredded document, or a "注意" warning label in a dim room',
+    SCENE_DETAILS: 'The scene feels unsettling but real — dim room, phone screen is the brightest element. Shadows create unease. Not dramatic horror — just genuinely uneasy.',
+    LIGHTING: 'Low room lighting, phone/laptop screen as primary light source. Cool blue-white screen glow in a dim warm room',
+    PALETTE: 'Cool blues from screen, dim warm ambient, muted colors overall, slight red accent from alert elements',
+    CAMERA_FEEL: 'More visible sensor noise (low-light phone camera), faint compression, natural low-light quality',
+  },
+  lifestyle: {
+    SCENE_DESCRIPTION: 'A cozy lifestyle scene — a coffee mug with steam on a table by a window, an open notebook with a pen, a small plant, morning routine items arranged naturally',
+    SCENE_DETAILS: 'The scene feels personal — mug has a small chip, notebook has dog-eared pages, the table surface has natural wear. Lived-in comfort, not Instagram staging.',
+    LIGHTING: 'Soft window light, warm and gentle. A table lamp adding secondary warmth. Natural, not styled',
+    PALETTE: 'Warm creams, coffee browns, soft greens from a plant, morning golden tones',
+    CAMERA_FEEL: 'Subtle sensor noise, warm light quality, slight overexposure near window, cozy phone camera feel',
+  },
+  general: {
+    SCENE_DESCRIPTION: 'An everyday Japanese scene matching the topic — a city street corner, a train station detail, a convenience store shelf, or items on a table in a normal apartment',
+    SCENE_DETAILS: 'The scene is mundane but authentic — real textures, slight wear, normal Japanese daily life. Not beautified, not ugly — just real.',
+    LIGHTING: 'Natural ambient light for the setting — daylight for outdoor, mixed ceiling/window for indoor',
+    PALETTE: 'Natural, unstyled colors matching the environment. Muted Japanese urban tones',
+    CAMERA_FEEL: 'Subtle sensor noise, typical phone camera auto-mode quality, natural compression',
+  },
+};
+
+// ── Content Scene Master Template (no people) ──
+const CONTENT_TEMPLATE = [
+  'A single photorealistic smartphone photo (iPhone 15 / Pixel 8 rear camera, auto mode).',
+  'Photorealistic. 9:16 vertical portrait, 1080x1920.',
+  'This is NOT a professional photo, NOT an ad, NOT a stock image.',
+  'It looks like a real photo someone casually took on their phone.',
+  '',
+  'The photo shows: {SCENE_DESCRIPTION}.',
+  '{SCENE_DETAILS}',
+  '',
+  'This scene relates to the topic: "{TOPIC}".',
+  '',
+  'Lighting: {LIGHTING}.',
+  'Light is natural and slightly uneven. No studio lighting.',
+  '',
+  'Color palette: {PALETTE}.',
+  'Colors are natural and ungraded. No cinematic LUT, no filters.',
+  '',
+  '{COMPOSITION}.',
+  '',
+  'IMPORTANT: There are NO people, NO human figures, NO hands, NO faces in this image.',
+  'The focus is entirely on objects, the scene, and the environment.',
+  'No text, no letters, no words, no logos, no watermarks, no UI elements anywhere in the image.',
+  '',
+].join('\n');
+
+// ── Content Realism Block (for object/scene images) ──
+const CONTENT_REALISM_BLOCK = [
+  '=== CRITICAL: ANTI-AI REALISM (must follow ALL) ===',
+  'TEXTURES: All surfaces have visible real-world texture — wood grain, fabric weave, paper fiber, metal scratches, glass fingerprints. Nothing is perfectly smooth or CGI-clean.',
+  'OBJECTS: Items show signs of real use — minor scuffs, dust, fingerprints, slight discoloration. Not brand-new showroom items.',
+  'DEPTH: Background is slightly softer but objects are identifiable. No fake bokeh — natural phone camera depth of field.',
+  'CAMERA TEXTURE: {CAMERA_FEEL}. The image has typical phone camera quality — detailed but not over-sharpened.',
+  'Apply very subtle sensor noise across the image, especially in shadow areas. This is the "phone camera" signature.',
+  'No text, no letters, no words, no logos, no watermarks, no UI elements.',
+].join('\n');
+
+// ── Content Slide Variants (composition for scene/object images) ──
+const CONTENT_SLIDE_VARIANTS: Record<string, SlideVariant> = {
+  hook: {
+    composition: 'Tight close-up of the most eye-catching element in the scene, filling 70% of the frame. The most interesting object or detail is front and center. Upper 30% has real background for text overlay',
+    intensityNote: 'This is the HOOK frame — the visual should be immediately attention-grabbing. Show the most striking, curious, or dramatic element of the topic.',
+  },
+  emphasis: {
+    composition: 'Medium close-up of key scene elements. Main objects fill the lower 60%. Upper 40% has real background for text overlay. Strong visual focus on what matters most',
+    intensityNote: 'This is the EMPHASIS frame — the visual reinforces the key message. The object/scene should feel significant and noteworthy.',
+  },
+  body: {
+    composition: 'Medium shot showing the scene with context. Natural phone camera framing — slightly off-center, not perfectly composed. Candid, natural feel. Good space for text overlay in upper portion',
+    intensityNote: 'Natural scene shot. The image supports the narration with relevant visual context.',
+  },
+  chapter_title: {
+    composition: 'Wider establishing shot of the environment. Multiple objects visible. Good space for text in upper 50%. Scene-setting feel that gives context to the topic',
+    intensityNote: 'Context frame — the environment and setting matter here. Show the bigger picture.',
   },
 };
 
@@ -326,12 +440,13 @@ export interface ImageGenResult {
 }
 
 /**
- * Generate images for key slides (hook, chapter_title, emphasis).
- * Max 3 images per video to stay within Worker time limits.
+ * Generate images for slides. Picks up to 6 evenly spaced slides.
+ * Priority: hook first, then evenly distributed across remaining slides.
  */
 export async function generateSlideImages(
   apiKey: string,
   slides: Array<{ type: string; text: string; subtext?: string }>,
+  maxImages: number = 6,
 ): Promise<ImageGenResult> {
   const images: GeneratedImage[] = [];
   const costs: ImageGenCost[] = [];
@@ -342,11 +457,25 @@ export async function generateSlideImages(
   const fullScript = slides.map(s => s.text).join(' ');
   const globalCategory = inferCategory(fullScript);
 
-  const KEY_TYPES = ['hook', 'chapter_title', 'emphasis'];
-  const slidesToGenerate = slides
-    .map((slide, i) => ({ slide, index: i }))
-    .filter(({ slide }) => KEY_TYPES.includes(slide.type))
-    .slice(0, 3);
+  // Select slides for image generation: hook + evenly spaced body slides
+  const selectedIndices: number[] = [];
+  // Always include hook (first slide)
+  const hookIdx = slides.findIndex(s => s.type === 'hook');
+  if (hookIdx >= 0) selectedIndices.push(hookIdx);
+  // Fill remaining slots with evenly distributed slides (skip CTA)
+  const contentSlides = slides
+    .map((s, i) => ({ index: i, type: s.type }))
+    .filter(s => s.type !== 'cta' && !selectedIndices.includes(s.index));
+  const remaining = maxImages - selectedIndices.length;
+  if (remaining > 0 && contentSlides.length > 0) {
+    const step = Math.max(1, Math.floor(contentSlides.length / remaining));
+    for (let i = 0; i < contentSlides.length && selectedIndices.length < maxImages; i += step) {
+      if (!selectedIndices.includes(contentSlides[i].index)) {
+        selectedIndices.push(contentSlides[i].index);
+      }
+    }
+  }
+  const slidesToGenerate = selectedIndices.map(i => ({ slide: slides[i], index: i }));
 
   const results = await Promise.allSettled(
     slidesToGenerate.map(async ({ slide, index }) => {
@@ -408,13 +537,15 @@ export function sanitizePrompt(prompt: string): string {
 /**
  * Build a complete image prompt using the variable-template system.
  *
+ * Hook slides use person-based templates (face grabs attention).
+ * All other slides use content-scene templates (objects, scenes — no people).
+ *
  * Flow:
  *   1. Resolve category from text (or use provided override)
- *   2. Load category defaults for all variables
- *   3. Override COMPOSITION from slide type variant
- *   4. Fill MASTER_TEMPLATE with resolved variables
- *   5. Append REALISM_BLOCK and NEGATIVE_PROMPT
- *   6. Sanitize to strip any AI-smell words
+ *   2. Choose person vs content template based on slide type
+ *   3. Load appropriate defaults and fill template
+ *   4. Append realism block and negative prompt
+ *   5. Sanitize to strip any AI-smell words
  */
 export function buildImagePrompt(
   text: string,
@@ -423,16 +554,25 @@ export function buildImagePrompt(
 ): string {
   const cleanText = text.replace(/[「」\*#\n]/g, ' ').replace(/\s+/g, ' ').trim();
   const category = categoryOverride || inferCategory(cleanText);
+  const topic = cleanText.substring(0, 100);
 
-  // 1. Load category defaults
+  // Hook slides: person-based (face draws clicks on social media)
+  // All other slides: content/scene-based (match the actual topic)
+  const usePerson = slideType === 'hook';
+
+  if (usePerson) {
+    return buildPersonPrompt(topic, slideType, category);
+  }
+  return buildContentPrompt(topic, slideType, category);
+}
+
+/** Person-based prompt (for hook slides) */
+function buildPersonPrompt(topic: string, slideType: string, category: string): string {
   const defaults = CATEGORY_DEFAULTS[category] || CATEGORY_DEFAULTS.general;
-
-  // 2. Load slide type variant
   const variant = SLIDE_VARIANTS[slideType] || SLIDE_VARIANTS.body;
 
-  // 3. Build final variable set
   const vars: PromptVars = {
-    TOPIC: cleanText.substring(0, 100),
+    TOPIC: topic,
     SUBJECT: defaults.SUBJECT,
     SCENE: defaults.SCENE,
     EMOTION: defaults.EMOTION,
@@ -443,14 +583,11 @@ export function buildImagePrompt(
     COMPOSITION: variant.composition,
   };
 
-  // 4. Fill template
   let prompt = MASTER_TEMPLATE;
   for (const [key, value] of Object.entries(vars)) {
     prompt = prompt.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
   }
 
-  // 5. Append variant intensity note + realism block + negative
-  // Replace {CAMERA_FEEL} in REALISM_BLOCK too
   const realismWithCamera = REALISM_BLOCK.replace('{CAMERA_FEEL}', vars.CAMERA_FEEL);
 
   const fullPrompt = [
@@ -460,7 +597,31 @@ export function buildImagePrompt(
     NEGATIVE_PROMPT,
   ].join('\n\n');
 
-  // 6. Sanitize and return
+  return sanitizePrompt(fullPrompt);
+}
+
+/** Content/scene-based prompt (for body/emphasis/chapter slides) */
+function buildContentPrompt(topic: string, slideType: string, category: string): string {
+  const sceneDefaults = CONTENT_SCENE_DEFAULTS[category] || CONTENT_SCENE_DEFAULTS.general;
+  const variant = CONTENT_SLIDE_VARIANTS[slideType] || CONTENT_SLIDE_VARIANTS.body;
+
+  let prompt = CONTENT_TEMPLATE;
+  prompt = prompt.replace(/\{SCENE_DESCRIPTION\}/g, sceneDefaults.SCENE_DESCRIPTION);
+  prompt = prompt.replace(/\{SCENE_DETAILS\}/g, sceneDefaults.SCENE_DETAILS);
+  prompt = prompt.replace(/\{LIGHTING\}/g, sceneDefaults.LIGHTING);
+  prompt = prompt.replace(/\{PALETTE\}/g, sceneDefaults.PALETTE);
+  prompt = prompt.replace(/\{TOPIC\}/g, topic);
+  prompt = prompt.replace(/\{COMPOSITION\}/g, variant.composition);
+
+  const realismWithCamera = CONTENT_REALISM_BLOCK.replace('{CAMERA_FEEL}', sceneDefaults.CAMERA_FEEL);
+
+  const fullPrompt = [
+    prompt.trim(),
+    variant.intensityNote,
+    realismWithCamera,
+    NEGATIVE_PROMPT,
+  ].join('\n\n');
+
   return sanitizePrompt(fullPrompt);
 }
 
