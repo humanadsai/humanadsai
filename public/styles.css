@@ -57,8 +57,8 @@ body {
   overflow-x: clip;
 }
 
-/* Subtle animated gradient background */
-.hero-bg-gradient {
+/* Hero background slideshow — first view only */
+.hero-bg-slideshow {
   position: fixed;
   top: 0;
   left: 0;
@@ -66,10 +66,38 @@ body {
   height: 100vh;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(ellipse at 30% 20%, rgba(255, 107, 53, 0.08) 0%, transparent 50%),
-              radial-gradient(ellipse at 70% 60%, rgba(0, 212, 255, 0.06) 0%, transparent 50%);
-  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+}
+
+.hero-bg-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  animation: heroBgFade 24s ease-in-out infinite;
+}
+
+.hero-bg-slide:nth-child(1) { animation-delay: 0s; }
+.hero-bg-slide:nth-child(2) { animation-delay: 8s; }
+.hero-bg-slide:nth-child(3) { animation-delay: 16s; }
+
+@keyframes heroBgFade {
+  0%      { opacity: 0; }
+  4.17%   { opacity: 0.22; }
+  33.33%  { opacity: 0.22; }
+  37.5%   { opacity: 0; }
+  100%    { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-slide {
+    animation: none !important;
+  }
+  .hero-bg-slide:first-child {
+    opacity: 0.2;
+  }
 }
 
 /* --- Hero Social Proof Counter --- */
