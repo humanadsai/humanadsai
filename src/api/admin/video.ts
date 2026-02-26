@@ -18,7 +18,6 @@ import { invokeLambda, uploadToS3 } from '../../lib/aws-sigv4';
 import { rewriteScript, evaluateScript, updateKnowhow } from '../../services/llm';
 import { generateSlideImages, inferCategory } from '../../services/image-generator';
 import { generateTTS, inferVoicePreset, VOICE_PRESETS } from '../../services/tts';
-import { generateTimestamps } from '../../services/whisper';
 
 // ============================================
 // ID Generation
@@ -2336,10 +2335,10 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
         const ttsPromise = (async () => {
           if (!openaiKey) return null;
           try {
-            // Build narration text from duration-limited slides (not full script)
+            // Build narration text: exactly the slide center text, separated by pauses
             const slideTexts = finalPayload.slides
-              .map((s: any) => s.text.replace(/[「」\*#]/g, ''))
-              .join('\n');
+              .map((s: any) => s.text.replace(/[「」\*#]/g, '').replace(/\n/g, ''))
+              .join('。');
             const targetDurationSec = finalPayload.metadata.totalDurationSec;
 
             const category = inferCategory(slideTexts);
@@ -2349,13 +2348,7 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
             await recordCost(env.DB, post.id, 'tts', ttsResult.costUsd, undefined, undefined, 'gpt-4o-mini-tts', { preset: ttsResult.preset, charCount: ttsResult.charCount });
             await logEvent(env.DB, post.id, 'tts', 'success', `TTS generated: ~${ttsResult.durationEstimateSec}s, ${(ttsResult.audioBase64.length / 1024).toFixed(0)}KB base64, $${ttsResult.costUsd.toFixed(4)}`);
 
-            // Run Whisper on the generated audio
-            await logEvent(env.DB, post.id, 'whisper', 'started', 'Generating word timestamps');
-            const whisperResult = await generateTimestamps(openaiKey, ttsResult.audioBase64);
-            await recordCost(env.DB, post.id, 'whisper', whisperResult.costUsd, undefined, undefined, 'whisper-1');
-            await logEvent(env.DB, post.id, 'whisper', 'success', `${whisperResult.words.length} words, ${whisperResult.totalDurationSec.toFixed(1)}s, $${whisperResult.costUsd.toFixed(4)}`);
-
-            return { tts: ttsResult, whisper: whisperResult };
+            return { tts: ttsResult };
           } catch (ttsErr: any) {
             console.error(`[VideoJobs] TTS/Whisper failed (non-blocking):`, ttsErr.message);
             await logEvent(env.DB, post.id, 'tts', 'failed', `TTS error (non-blocking): ${ttsErr.message}`);
@@ -2364,7 +2357,7 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
         })();
 
         // Wait for both to complete
-        const [imageResult, ttsWhisperResult] = await Promise.all([imageGenPromise, ttsPromise]);
+        const [imageResult, ttsResult] = await Promise.all([imageGenPromise, ttsPromise]);
 
         // Apply image results
         if (imageResult) {
@@ -2387,18 +2380,10 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
 
         // If TTS succeeded, rescale slide durations to match audio and save TTS data
         let ttsAudioBase64: string | null = null;
-        let ttsTimestampsJson: string | null = null;
         let ttsPreset: string | null = null;
-        if (ttsWhisperResult) {
-          const audioDurationSec = ttsWhisperResult.whisper.totalDurationSec;
-          // Redistribute slide durations proportionally to match audio length
-          finalPayload.slides = scaleSlidesToDuration(finalPayload.slides, audioDurationSec);
-          finalPayload.metadata.totalDurationSec = Math.round(finalPayload.slides.reduce((sum: number, s: any) => sum + s.durationSec, 0) * 10) / 10;
-          await logEvent(env.DB, post.id, 'tts', 'info', `Slides rescaled to ${audioDurationSec.toFixed(1)}s audio duration`);
-
-          ttsAudioBase64 = ttsWhisperResult.tts.audioBase64;
-          ttsTimestampsJson = JSON.stringify(ttsWhisperResult.whisper.words);
-          ttsPreset = ttsWhisperResult.tts.preset;
+        if (ttsResult) {
+          ttsAudioBase64 = ttsResult.tts.audioBase64;
+          ttsPreset = ttsResult.tts.preset;
         }
 
         // Save slides (with images) and TTS data, advance status
@@ -2409,27 +2394,26 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
           if (ttsAudioBase64) {
             await env.DB.prepare(
               `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready',
-               tts_audio_data = ?, tts_timestamps_json = ?, voice_preset = ?, updated_at = datetime('now') WHERE id = ?`
-            ).bind(slidesJson, slidesCount, ttsAudioBase64, ttsTimestampsJson, ttsPreset, post.id).run();
+               tts_audio_data = ?, voice_preset = ?, updated_at = datetime('now') WHERE id = ?`
+            ).bind(slidesJson, slidesCount, ttsAudioBase64, ttsPreset, post.id).run();
           } else {
             await env.DB.prepare(
               `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
             ).bind(slidesJson, slidesCount, post.id).run();
           }
         } catch (dbErr: any) {
-          // Fallback: if audio blob is too large for D1, save without audio data
+          // Fallback: if audio blob is too large for D1, save without audio
           if (dbErr.message?.includes('TOOBIG') || dbErr.message?.includes('too big')) {
-            console.warn(`[VideoJobs] TTS audio too large for D1 (${(ttsAudioBase64?.length || 0) / 1024}KB), saving timestamps only`);
-            await logEvent(env.DB, post.id, 'tts', 'failed', `Audio base64 too large for D1 (${((ttsAudioBase64?.length || 0) / 1024).toFixed(0)}KB). Saving timestamps only — video will have subtitles but no narration audio.`);
+            console.warn(`[VideoJobs] TTS audio too large for D1 (${(ttsAudioBase64?.length || 0) / 1024}KB), saving without audio`);
+            await logEvent(env.DB, post.id, 'tts', 'failed', `Audio base64 too large for D1 (${((ttsAudioBase64?.length || 0) / 1024).toFixed(0)}KB). Video will render without narration.`);
             await env.DB.prepare(
-              `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready',
-               tts_timestamps_json = ?, voice_preset = ?, updated_at = datetime('now') WHERE id = ?`
-            ).bind(slidesJson, slidesCount, ttsTimestampsJson, ttsPreset, post.id).run();
+              `UPDATE video_posts SET slides_json = ?, slides_count = ?, status = 'images_ready', updated_at = datetime('now') WHERE id = ?`
+            ).bind(slidesJson, slidesCount, post.id).run();
           } else {
             throw dbErr; // Re-throw non-size errors
           }
         }
-        await logEvent(env.DB, post.id, 'pipeline', 'info', `Slides + images${ttsWhisperResult ? ' + TTS' : ''} ready. Render next.`);
+        await logEvent(env.DB, post.id, 'pipeline', 'info', `Slides + images${ttsResult ? ' + TTS' : ''} ready. Render next.`);
       } catch (e: any) {
         console.error(`[VideoJobs] Stage 3 error for ${post.id}:`, e.message);
         await logEvent(env.DB, post.id, 'pipeline', 'failed', `Cron images error: ${e.message}. Use Retry.`);
@@ -2493,12 +2477,7 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
             }
           }
         }
-        if (post.tts_timestamps_json) {
-          try {
-            slidesPayload.timestamps = JSON.parse(post.tts_timestamps_json);
-            slidesPayload.subtitleStyle = 'karaoke';
-          } catch { /* ignore parse errors */ }
-        }
+        // Subtitle layer removed — slide center text is the single source of truth
 
         // Diagnostic: count slides with imageUrl
         const slidesWithImage = slidesPayload.slides?.filter((s: any) => s.imageUrl)?.length || 0;

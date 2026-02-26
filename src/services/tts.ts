@@ -89,11 +89,9 @@ export async function generateTTS(
 
   const voiceConfig = VOICE_PRESETS[preset];
 
-  // Clean script text for narration (remove formatting markers)
+  // Clean text: remove formatting markers, keep slide text readable as-is
   const cleanText = text
     .replace(/[「」\*#]/g, '')
-    .replace(/\n{2,}/g, '。\n')
-    .replace(/\n/g, '、')
     .trim();
 
   const charCount = cleanText.length;
