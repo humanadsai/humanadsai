@@ -4,15 +4,12 @@ import { loadFont } from '@remotion/google-fonts/NotoSansJP';
 import type { SlideshowProps } from '../schemas';
 import { SlideView } from './components/SlideView';
 import { ProgressBar } from './components/ProgressBar';
-import { SubtitleLayer } from './components/SubtitleLayer';
 
 const { fontFamily } = loadFont();
 
 export const Slideshow: React.FC<SlideshowProps> = ({
   slides,
   audioSrc,
-  timestamps,
-  subtitleStyle = 'karaoke',
 }) => {
   let currentFrame = 0;
 
@@ -34,9 +31,6 @@ export const Slideshow: React.FC<SlideshowProps> = ({
         );
       })}
       {audioSrc && <Audio src={audioSrc} />}
-      {timestamps && timestamps.length > 0 && (
-        <SubtitleLayer timestamps={timestamps} style={subtitleStyle} />
-      )}
       <ProgressBar />
     </AbsoluteFill>
   );

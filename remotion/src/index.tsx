@@ -33,17 +33,10 @@ export const RemotionRoot: React.FC = () => {
         schema={slideshowSchema}
         defaultProps={defaultSlides}
         calculateMetadata={({ props }) => {
-          const slidesFrames = props.slides.reduce(
+          const totalFrames = props.slides.reduce(
             (sum, slide) => sum + slide.durationSec * 30,
             0,
           );
-          // If audio timestamps exist, use audio duration (+ 0.5s padding)
-          let totalFrames = slidesFrames;
-          if (props.timestamps && props.timestamps.length > 0) {
-            const audioDurationSec = props.timestamps[props.timestamps.length - 1].end + 0.5;
-            const audioFrames = Math.ceil(audioDurationSec * 30);
-            totalFrames = Math.max(slidesFrames, audioFrames);
-          }
           return { durationInFrames: totalFrames, props };
         }}
       />
