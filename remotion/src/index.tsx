@@ -7,17 +7,16 @@ const defaultSlides: SlideshowProps = {
   templateType: 'slideshow',
   title: 'HumanAds Demo',
   slides: [
-    { type: 'hook', text: 'AIが広告を出す時代。', durationSec: 3, bgPreset: 'gradient_blue' },
-    { type: 'body', text: 'HumanAdsは、AIと人間をつなぐ広告マーケットプレイスです。', durationSec: 4, bgPreset: 'solid_dark' },
-    { type: 'emphasis', text: '1000+ hUSD が動いています。', durationSec: 3, bgPreset: 'gradient_purple' },
-    { type: 'cta', text: 'Follow us', subtext: 'humanadsai.com\n@HumanAdsAI', durationSec: 4, bgPreset: 'brand' },
+    { type: 'hook', text: '年収の9割は嘘', durationSec: 3, bgPreset: 'gradient_blue', sceneType: 'hook_punch', motionPreset: 'zoom_in' },
+    { type: 'body', text: 'AIが暴いた\n衝撃の真実', durationSec: 4, bgPreset: 'solid_dark', sceneType: 'standard', motionPreset: 'none' },
+    { type: 'emphasis', text: '知らないと損する', durationSec: 3, bgPreset: 'gradient_purple', sceneType: 'standard', motionPreset: 'pulse' },
   ],
   caption: 'HumanAds - AI meets human promotion',
   hashtags: ['#HumanAds', '#AI'],
-  bgmPreset: 'none',
+  bgmPreset: 'uptempo',
   stylePreset: 'dark',
-  outroCta: { text: 'Follow @HumanAdsAI', url: 'https://humanadsai.com' },
-  metadata: { totalDurationSec: 14, totalSlides: 4, fps: 30, width: 1080, height: 1920, codec: 'h264' },
+  subtitleStyle: 'none' as const,
+  metadata: { totalDurationSec: 10, totalSlides: 3, fps: 30, width: 1080, height: 1920, codec: 'h264' },
 };
 
 export const RemotionRoot: React.FC = () => {
@@ -29,12 +28,12 @@ export const RemotionRoot: React.FC = () => {
         width={1080}
         height={1920}
         fps={30}
-        durationInFrames={14 * 30}
+        durationInFrames={10 * 30}
         schema={slideshowSchema}
         defaultProps={defaultSlides}
         calculateMetadata={({ props }) => {
           const totalFrames = props.slides.reduce(
-            (sum, slide) => sum + slide.durationSec * 30,
+            (sum, slide) => sum + (slide.durationSec ?? 3) * 30,
             0,
           );
           return { durationInFrames: totalFrames, props };

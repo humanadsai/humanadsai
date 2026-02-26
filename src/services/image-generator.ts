@@ -233,7 +233,8 @@ const SLIDE_VARIANTS: Record<string, SlideVariant> = {
 };
 
 // =============================================
-// (A-4) Content Scene Defaults — Object/scene images (no people)
+// (A-4) Content Scene Variants — Object/scene images (no people)
+// Each category has multiple variants for visual diversity across slides.
 // =============================================
 
 interface ContentSceneVars {
@@ -244,57 +245,49 @@ interface ContentSceneVars {
   CAMERA_FEEL: string;
 }
 
-const CONTENT_SCENE_DEFAULTS: Record<string, ContentSceneVars> = {
-  business: {
-    SCENE_DESCRIPTION: 'A workspace — laptop open with charts/data on screen, documents and a notebook with handwritten notes on a real wooden desk, coffee mug nearby',
-    SCENE_DETAILS: 'Items are slightly messy — papers not perfectly aligned, pen cap off, sticky notes with Japanese text. Real office texture: wood grain desk, fabric chair edge visible.',
-    LIGHTING: 'Mixed office light — overhead fluorescent plus window daylight from one side. Screen glow adding blue tint to nearby objects',
-    PALETTE: 'Warm wood tones, white papers, blue-gray screen glow, natural indoor colors',
-    CAMERA_FEEL: 'Subtle sensor noise in shadow areas, faint JPEG compression on background, typical phone camera indoor quality',
-  },
-  technology: {
-    SCENE_DESCRIPTION: 'Close-up of technology — a smartphone screen showing an app interface, a laptop keyboard, earbuds, or gadgets arranged on a desk. Focus on the devices themselves',
-    SCENE_DETAILS: 'Devices show fingerprints and minor scratches (real usage signs). Cables slightly tangled. The setup is functional, not aesthetic — a real person\'s tech workspace.',
-    LIGHTING: 'Screen glow as primary light source, warm room ambient from the side. Cool-warm contrast on object surfaces',
-    PALETTE: 'Cool screen blues, warm ambient highlights, matte black device surfaces, natural reflections',
-    CAMERA_FEEL: 'Subtle sensor noise, slight motion softness, natural phone camera quality with screen glow flare',
-  },
-  health: {
-    SCENE_DESCRIPTION: 'A health/wellness scene — fresh vegetables and fruits on a cutting board, a water bottle and workout towel, or a yoga mat with morning light through a window',
-    SCENE_DETAILS: 'Items are real and imperfect — a slightly bruised apple, uneven cuts on vegetables, water droplets on the counter. Natural, not food-styled or magazine-perfect.',
-    LIGHTING: 'Warm morning sunlight streaming through a window, soft and directional. Natural shadows on surfaces',
-    PALETTE: 'Fresh greens, warm oranges, clean whites, natural wood tones, morning golden light',
-    CAMERA_FEEL: 'Subtle sensor noise, warm light slight overexposure on window side, natural phone camera daylight quality',
-  },
-  money: {
-    SCENE_DESCRIPTION: 'A financial scene — a calculator or banking app on a phone screen, Japanese yen bills and coins, a wallet, receipts, or a passbook spread on a table',
-    SCENE_DETAILS: 'Items show real use — wallet has wear marks, bills slightly crumpled, receipts folded. The table surface has natural scratches and texture.',
-    LIGHTING: 'Warm evening room light from above, phone screen adding cool glow. Slightly dim, intimate atmosphere',
-    PALETTE: 'Warm browns, currency tones, cool screen blues, muted wood surface',
-    CAMERA_FEEL: 'Subtle sensor noise especially in dim areas, faint JPEG compression, evening indoor phone camera quality',
-  },
-  danger: {
-    SCENE_DESCRIPTION: 'A warning scene — a phone screen showing a suspicious email or security alert, a padlock, a shredded document, or a "注意" warning label in a dim room',
-    SCENE_DETAILS: 'The scene feels unsettling but real — dim room, phone screen is the brightest element. Shadows create unease. Not dramatic horror — just genuinely uneasy.',
-    LIGHTING: 'Low room lighting, phone/laptop screen as primary light source. Cool blue-white screen glow in a dim warm room',
-    PALETTE: 'Cool blues from screen, dim warm ambient, muted colors overall, slight red accent from alert elements',
-    CAMERA_FEEL: 'More visible sensor noise (low-light phone camera), faint compression, natural low-light quality',
-  },
-  lifestyle: {
-    SCENE_DESCRIPTION: 'A cozy lifestyle scene — a coffee mug with steam on a table by a window, an open notebook with a pen, a small plant, morning routine items arranged naturally',
-    SCENE_DETAILS: 'The scene feels personal — mug has a small chip, notebook has dog-eared pages, the table surface has natural wear. Lived-in comfort, not Instagram staging.',
-    LIGHTING: 'Soft window light, warm and gentle. A table lamp adding secondary warmth. Natural, not styled',
-    PALETTE: 'Warm creams, coffee browns, soft greens from a plant, morning golden tones',
-    CAMERA_FEEL: 'Subtle sensor noise, warm light quality, slight overexposure near window, cozy phone camera feel',
-  },
-  general: {
-    SCENE_DESCRIPTION: 'An everyday Japanese scene matching the topic — a city street corner, a train station detail, a convenience store shelf, or items on a table in a normal apartment',
-    SCENE_DETAILS: 'The scene is mundane but authentic — real textures, slight wear, normal Japanese daily life. Not beautified, not ugly — just real.',
-    LIGHTING: 'Natural ambient light for the setting — daylight for outdoor, mixed ceiling/window for indoor',
-    PALETTE: 'Natural, unstyled colors matching the environment. Muted Japanese urban tones',
-    CAMERA_FEEL: 'Subtle sensor noise, typical phone camera auto-mode quality, natural compression',
-  },
+const CONTENT_SCENE_VARIANTS: Record<string, ContentSceneVars[]> = {
+  business: [
+    { SCENE_DESCRIPTION: 'A workspace — laptop open with charts/data on screen, documents and a notebook with handwritten notes on a real wooden desk, coffee mug nearby', SCENE_DETAILS: 'Items are slightly messy — papers not perfectly aligned, pen cap off, sticky notes with Japanese text. Real office texture: wood grain desk.', LIGHTING: 'Mixed office light — overhead fluorescent plus window daylight from one side. Screen glow adding blue tint to nearby objects', PALETTE: 'Warm wood tones, white papers, blue-gray screen glow, natural indoor colors', CAMERA_FEEL: 'Subtle sensor noise in shadow areas, faint JPEG compression, typical phone camera indoor quality' },
+    { SCENE_DESCRIPTION: 'A conference table with a whiteboard showing handwritten diagrams and sticky notes, markers scattered, empty coffee cups', SCENE_DETAILS: 'Whiteboard has real marker smudges and partially erased old notes. Table has water rings from cups. Professional but lived-in.', LIGHTING: 'Bright overhead office lighting with natural window light from the side', PALETTE: 'White board, colorful markers, warm wood table, neutral office tones', CAMERA_FEEL: 'Clean indoor phone camera quality, slight fluorescent texture, natural sharpness' },
+    { SCENE_DESCRIPTION: 'Close-up of a printed spreadsheet with highlighted rows and handwritten margin notes, a calculator and pen on a desk', SCENE_DETAILS: 'Paper has fold creases, highlighter marks slightly uneven. Real ballpoint pen with cap off. Natural desk clutter around edges.', LIGHTING: 'Desk lamp casting warm directional light with overhead ambient', PALETTE: 'White paper, yellow highlights, blue pen ink, warm desk lamp glow', CAMERA_FEEL: 'Macro-ish phone camera focus on papers, background slightly soft' },
+  ],
+  technology: [
+    { SCENE_DESCRIPTION: 'Close-up of a smartphone screen showing an app interface, with earbuds and a charging cable on a desk', SCENE_DETAILS: 'Phone screen has fingerprints visible. Earbuds case slightly scratched. Cable loosely coiled. Functional, not aesthetic.', LIGHTING: 'Screen glow as primary light source, warm room ambient from the side', PALETTE: 'Cool screen blues, warm ambient highlights, matte black device surfaces', CAMERA_FEEL: 'Subtle sensor noise, slight screen glow flare, natural phone camera quality' },
+    { SCENE_DESCRIPTION: 'A laptop keyboard and trackpad in close-up, with code visible on screen edge, a mouse and USB hub nearby', SCENE_DETAILS: 'Keys show slight wear and finger oils. Desk has a mousepad with curled edges. Real developer workspace feel.', LIGHTING: 'Cool monitor light illuminating keyboard from above, warm room light from behind', PALETTE: 'Dark keyboard grays, cool screen light, warm ambient accents', CAMERA_FEEL: 'Slight motion blur on screen content, natural indoor tech lighting' },
+    { SCENE_DESCRIPTION: 'Multiple screens showing data dashboards and graphs, mechanical keyboard, coffee mug on a standing desk', SCENE_DETAILS: 'Screens show real-looking UI. Desk has cable management clips. Mug has a tech company logo. Authentic workspace.', LIGHTING: 'Multi-monitor glow creating blue-white ambient. Overhead warm room light balancing', PALETTE: 'Cool monitor blues and greens, warm wood desk, black peripherals', CAMERA_FEEL: 'Slight screen moire pattern, natural office tech environment' },
+  ],
+  health: [
+    { SCENE_DESCRIPTION: 'Fresh vegetables and fruits on a wooden cutting board — colorful bell peppers, leafy greens, tomatoes. A knife and glass of water nearby', SCENE_DETAILS: 'Slightly bruised tomato, water droplets on veggies. Cutting board has knife marks. Natural, not food-styled.', LIGHTING: 'Warm morning sunlight through a window, soft and directional', PALETTE: 'Fresh greens, warm reds and oranges, natural wood tones, morning golden light', CAMERA_FEEL: 'Warm light slight overexposure near window, natural food photo quality' },
+    { SCENE_DESCRIPTION: 'A yoga mat on a wooden floor with a water bottle, a towel, and wireless earbuds. Morning light casting long shadows', SCENE_DETAILS: 'Mat has subtle use marks. Towel slightly rumpled. Floor shows natural wood grain. Lived-in fitness space.', LIGHTING: 'Strong morning sidelight from a large window. Long shadows across the floor', PALETTE: 'Yoga mat purple/blue, warm wood floor, white towel, morning golden highlights', CAMERA_FEEL: 'Clean daylight phone quality, slight lens flare from window' },
+    { SCENE_DESCRIPTION: 'A bathroom counter with supplements, vitamins, a glass of water, and a small towel. Mirror edge visible', SCENE_DETAILS: 'Supplement bottles with labels partially visible. Water glass has condensation. Counter has minor water splashes.', LIGHTING: 'Bright bathroom vanity light from above, slightly cool. Mirror reflection adds depth', PALETTE: 'Clean whites, clear glass, colorful supplement labels, chrome fixtures', CAMERA_FEEL: 'Bright indoor phone camera, slight mirror reflection' },
+  ],
+  money: [
+    { SCENE_DESCRIPTION: 'Japanese yen bills and coins spread on a table, with a calculator showing numbers, a receipt, and a wallet', SCENE_DETAILS: 'Bills slightly crumpled, coins stacked unevenly. Wallet has wear marks. Calculator shows realistic numbers.', LIGHTING: 'Warm evening room light from above, slightly dim and intimate', PALETTE: 'Warm browns, currency greens and silvers, calculator gray, muted wood', CAMERA_FEEL: 'Subtle sensor noise in dim areas, evening indoor phone quality' },
+    { SCENE_DESCRIPTION: 'A phone screen showing a banking or investment app with a graph, placed on a table next to a notebook with calculations', SCENE_DETAILS: 'Phone screen shows realistic app UI. Notebook has handwritten numbers and arrows. Pen beside it.', LIGHTING: 'Phone screen glow as accent light, warm overhead room light', PALETTE: 'Cool screen blues and greens, warm paper tones, dark table', CAMERA_FEEL: 'Screen glow creating slight flare, indoor evening quality' },
+    { SCENE_DESCRIPTION: 'A piggy bank or savings jar with coins, next to a calendar and some bills on a kitchen counter', SCENE_DETAILS: 'Jar has accumulated coins visibly. Calendar has dates circled. Bills are folded. Kitchen counter texture visible.', LIGHTING: 'Kitchen ceiling light, warm and slightly yellow', PALETTE: 'Warm kitchen tones, metallic coin shimmer, white calendar', CAMERA_FEEL: 'Typical kitchen phone photo, subtle noise, natural sharpness' },
+  ],
+  danger: [
+    { SCENE_DESCRIPTION: 'A phone screen showing a suspicious phishing email with a red warning icon, in a dim room', SCENE_DETAILS: 'Phone screen is the brightest element. The email looks realistic but suspicious. Surrounding darkness creates tension.', LIGHTING: 'Low room lighting, phone screen as primary light', PALETTE: 'Cool blues from screen, dim warm ambient, red warning accent', CAMERA_FEEL: 'More visible sensor noise (low-light), natural low-light quality' },
+    { SCENE_DESCRIPTION: 'A padlock and chain on a dark surface, with a key nearby and scratches on the lock. Dim red light in background', SCENE_DETAILS: 'Padlock shows wear — scratched metal, slightly rusted chain links. Key has worn edge. Surface has real texture.', LIGHTING: 'Dim ambient with slight red cast. Low-key dramatic shadows', PALETTE: 'Dark grays, metallic silver, slight red accent, muted warm background', CAMERA_FEEL: 'Low-light sensor noise, slight grain in shadows' },
+    { SCENE_DESCRIPTION: 'A laptop screen showing a security alert notification, with cold half-empty coffee and crumpled paper nearby', SCENE_DETAILS: 'Screen shows realistic-looking alert. Coffee is cold with skin on top. Paper crumpled as if frustrated. Late-night desk.', LIGHTING: 'Laptop screen as main light in dark room. Cool glow on all objects', PALETTE: 'Cool blue-white screen, dark room, muted objects, slight red from alerts', CAMERA_FEEL: 'Night-time phone quality, visible noise, screen glow dominating' },
+  ],
+  lifestyle: [
+    { SCENE_DESCRIPTION: 'A coffee mug with steam on a table by a window, an open notebook with a pen, a small plant nearby', SCENE_DETAILS: 'Mug has a small chip. Notebook has dog-eared pages. Plant has some yellowing leaves. Lived-in comfort.', LIGHTING: 'Soft window light, warm and gentle. Natural, not styled', PALETTE: 'Warm creams, coffee browns, soft greens, morning golden tones', CAMERA_FEEL: 'Warm light quality, slight overexposure near window, cozy phone feel' },
+    { SCENE_DESCRIPTION: 'A neatly made bed with a book face-down on pillow, morning light through curtains, bedside table with clock and water', SCENE_DETAILS: 'Sheets wrinkled from sleep. Book has bookmark. Curtains filter soft light. Personal and restful room.', LIGHTING: 'Diffused morning light through curtains, soft warm glow', PALETTE: 'Soft whites and creams, warm wood bedside table, golden morning light', CAMERA_FEEL: 'Soft morning phone photo, gentle warmth, slightly dreamy' },
+    { SCENE_DESCRIPTION: 'A cafe table from above — a latte with foam art, a croissant on a plate, a magazine, and sunglasses', SCENE_DETAILS: 'Latte foam slightly asymmetric. Croissant has flaky crumbs. Magazine open to random page. Table has natural cafe wear.', LIGHTING: 'Bright outdoor/window light, sharp but pleasant shadows', PALETTE: 'Coffee browns, golden croissant, white plate, warm wood, bright daylight', CAMERA_FEEL: 'Clean daylight phone photo, slight harsh shadows, natural outdoor quality' },
+  ],
+  general: [
+    { SCENE_DESCRIPTION: 'An everyday Japanese scene — items on a table in a normal apartment with a window view', SCENE_DETAILS: 'Mundane but authentic — real textures, slight wear, normal Japanese daily life.', LIGHTING: 'Mixed ceiling and window light for indoor', PALETTE: 'Natural unstyled colors, muted Japanese apartment tones', CAMERA_FEEL: 'Subtle sensor noise, typical phone auto-mode quality' },
+    { SCENE_DESCRIPTION: 'A Japanese convenience store shelf with colorful products, snacks, and drinks arranged neatly', SCENE_DETAILS: 'Products have real Japanese labels. Some items slightly askew. Shelf has price tags. Fluorescent-lit konbini beauty.', LIGHTING: 'Bright fluorescent store lighting from above, slightly cool', PALETTE: 'Colorful product packaging, white shelf, cool fluorescent tones', CAMERA_FEEL: 'Clean indoor phone photo, fluorescent light quality' },
+    { SCENE_DESCRIPTION: 'A quiet Japanese neighborhood street with power lines, a vending machine, and a bicycle parked against a wall', SCENE_DETAILS: 'Vending machine glows in afternoon light. Bicycle slightly rusty. Wall has natural weathering. Quintessential daily scene.', LIGHTING: 'Afternoon outdoor light, warm and slightly golden', PALETTE: 'Warm afternoon tones, blue sky, gray concrete, red vending machine accent', CAMERA_FEEL: 'Natural outdoor phone photo, slight distance haze, warm afternoon quality' },
+  ],
 };
+
+/** Pick a scene variant by slide index for visual diversity */
+function getContentScene(category: string, slideIndex: number): ContentSceneVars {
+  const variants = CONTENT_SCENE_VARIANTS[category] || CONTENT_SCENE_VARIANTS.general;
+  return variants[slideIndex % variants.length];
+}
 
 // ── Content Scene Master Template (no people) ──
 const CONTENT_TEMPLATE = [
@@ -479,7 +472,7 @@ export async function generateSlideImages(
 
   const results = await Promise.allSettled(
     slidesToGenerate.map(async ({ slide, index }) => {
-      const prompt = buildImagePrompt(slide.text, slide.type, globalCategory);
+      const prompt = buildImagePrompt(slide.text, slide.type, globalCategory, index);
       console.log(`[ImageGen] Slide ${index} (${slide.type}): prompt length=${prompt.length}, category=${globalCategory}`);
       const imageUrl = await generateSingleImage(apiKey, prompt);
       return { slideIndex: index, imageUrl };
@@ -551,6 +544,7 @@ export function buildImagePrompt(
   text: string,
   slideType: string,
   categoryOverride?: string,
+  slideIndex: number = 0,
 ): string {
   const cleanText = text.replace(/[「」\*#\n]/g, ' ').replace(/\s+/g, ' ').trim();
   const category = categoryOverride || inferCategory(cleanText);
@@ -563,7 +557,7 @@ export function buildImagePrompt(
   if (usePerson) {
     return buildPersonPrompt(topic, slideType, category);
   }
-  return buildContentPrompt(topic, slideType, category);
+  return buildContentPrompt(topic, slideType, category, slideIndex);
 }
 
 /** Person-based prompt (for hook slides) */
@@ -601,8 +595,8 @@ function buildPersonPrompt(topic: string, slideType: string, category: string): 
 }
 
 /** Content/scene-based prompt (for body/emphasis/chapter slides) */
-function buildContentPrompt(topic: string, slideType: string, category: string): string {
-  const sceneDefaults = CONTENT_SCENE_DEFAULTS[category] || CONTENT_SCENE_DEFAULTS.general;
+function buildContentPrompt(topic: string, slideType: string, category: string, slideIndex: number = 0): string {
+  const sceneDefaults = getContentScene(category, slideIndex);
   const variant = CONTENT_SLIDE_VARIANTS[slideType] || CONTENT_SLIDE_VARIANTS.body;
 
   let prompt = CONTENT_TEMPLATE;

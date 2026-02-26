@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, Audio, Sequence } from 'remotion';
+import { AbsoluteFill, Audio, Sequence, staticFile } from 'remotion';
 import { loadFont } from '@remotion/google-fonts/NotoSansJP';
 import type { SlideshowProps } from '../schemas';
 import { SlideView } from './components/SlideView';
@@ -7,11 +7,23 @@ import { ProgressBar } from './components/ProgressBar';
 
 const { fontFamily } = loadFont();
 
+// BGM preset → audio file mapping
+const BGM_FILES: Record<string, string> = {
+  uptempo: staticFile('audio/uptempo.wav'),
+  calm: staticFile('audio/calm.wav'),
+  corporate: staticFile('audio/corporate.wav'),
+};
+
+// BGM volume: quiet enough to not overpower TTS narration
+const BGM_VOLUME = 0.12;
+
 export const Slideshow: React.FC<SlideshowProps> = ({
   slides,
   audioSrc,
+  bgmPreset,
 }) => {
   let currentFrame = 0;
+  const bgmSrc = bgmPreset && bgmPreset !== 'none' ? BGM_FILES[bgmPreset] : undefined;
 
   return (
     <AbsoluteFill style={{ fontFamily, backgroundColor: '#0a0a0a' }}>
@@ -31,6 +43,7 @@ export const Slideshow: React.FC<SlideshowProps> = ({
         );
       })}
       {audioSrc && <Audio src={audioSrc} />}
+      {bgmSrc && <Audio src={bgmSrc} volume={BGM_VOLUME} />}
       <ProgressBar />
     </AbsoluteFill>
   );
