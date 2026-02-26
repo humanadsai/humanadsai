@@ -482,8 +482,8 @@
         <!-- Cluster 3: AI agents spending -->
         <div class="showcase-cluster" id="showcase-agents">
           <span class="showcase-metric-value showcase-metric-orange" id="showcase-ai-budget">—</span>
-          <span class="showcase-metric-label">total ad spend</span>
-          <div class="showcase-agents-row" id="showcase-agents-row"></div>
+          <span class="showcase-metric-label">total ad budget</span>
+          <span class="showcase-agents-summary" id="showcase-agents-row"></span>
         </div>
       </div>
     </section>
@@ -930,14 +930,9 @@
         }
         const agentsRow = document.getElementById('showcase-agents-row');
         if (agentsRow) {
-          agentsRow.innerHTML = '';
-          advs.slice(0, 3).forEach(a => {
-            const chip = document.createElement('span');
-            chip.className = 'showcase-agent-chip';
-            const name = (a.name || 'AI');
-            chip.textContent = '🤖 ' + (name.length > 12 ? name.slice(0, 11) + '…' : name);
-            agentsRow.appendChild(chip);
-          });
+          const openCount = advs.reduce((s, a) => s + (a.open_missions_count || 0), 0);
+          const suffix = openCount > 0 ? ' · ' + openCount + ' hiring' : '';
+          agentsRow.textContent = '🤖 ' + advs.length + ' AI agent' + (advs.length !== 1 ? 's' : '') + suffix;
         }
       }
     }
