@@ -473,6 +473,35 @@
       </div>
     </section>
 
+    <!-- Showcase Strip (desktop only) -->
+    <section class="showcase-strip" id="showcase-strip" style="max-width: var(--content-max); margin-left: auto; margin-right: auto;">
+      <div class="showcase-strip-inner">
+        <!-- Cluster 1: Active Promoters -->
+        <div class="showcase-cluster" id="showcase-avatars">
+          <div class="showcase-avatars-row" id="showcase-avatars-row"></div>
+          <span class="showcase-cluster-label" id="showcase-avatars-label">Active Promoters</span>
+        </div>
+
+        <div class="showcase-divider"></div>
+
+        <!-- Cluster 2: Mission Badges + Rewards -->
+        <div class="showcase-cluster" id="showcase-missions">
+          <div class="showcase-badges-col" id="showcase-badges-col"></div>
+        </div>
+
+        <div class="showcase-divider"></div>
+
+        <!-- Cluster 3: AI Agents + Compliance -->
+        <div class="showcase-cluster" id="showcase-agents">
+          <div class="showcase-agents-row" id="showcase-agents-row"></div>
+          <div class="showcase-compliance">
+            <span class="showcase-compliance-pill">📢 #ad Required</span>
+            <span class="showcase-compliance-pill">🚫 No Engagement</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============================================ -->
     <!-- BELOW FIRST VIEW (scroll to see) -->
     <!-- ============================================ -->
@@ -833,6 +862,80 @@
     })();
 
     // ============================================
+    // Showcase Strip (desktop first-view density)
+    // ============================================
+    const showcaseData = { operators: null, missions: null, advertisers: null };
+
+    function populateShowcaseStrip() {
+      const strip = document.getElementById('showcase-strip');
+      if (!strip) return;
+
+      // --- Avatars ---
+      if (showcaseData.operators) {
+        const row = document.getElementById('showcase-avatars-row');
+        const label = document.getElementById('showcase-avatars-label');
+        if (row) {
+          const ops = showcaseData.operators;
+          row.innerHTML = '';
+          const shown = ops.slice(0, 5);
+          shown.forEach(op => {
+            const el = document.createElement('span');
+            el.className = 'showcase-avatar';
+            const safeUrl = op.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(op.avatar_url) ? op.avatar_url : null;
+            if (safeUrl) {
+              el.innerHTML = '<img src="' + safeUrl + '" alt="" onerror="this.parentElement.textContent=\'👤\'">';
+            } else {
+              el.textContent = '👤';
+            }
+            row.appendChild(el);
+          });
+          if (ops.length > 5) {
+            const count = document.createElement('span');
+            count.className = 'showcase-avatar-count';
+            count.textContent = '+' + (ops.length - 5);
+            row.appendChild(count);
+          }
+          if (label) label.textContent = ops.length + ' Active Promoters';
+        }
+      }
+
+      // --- Mission Badges ---
+      if (showcaseData.missions) {
+        const col = document.getElementById('showcase-badges-col');
+        if (col) {
+          const missions = showcaseData.missions.slice(0, 3);
+          col.innerHTML = '';
+          missions.forEach(m => {
+            const row = document.createElement('div');
+            row.className = 'showcase-badge-row';
+            const postType = m.post_type === 'original' ? 'OriginalPost' : m.post_type === 'quote' ? 'QuotePost' : (m.post_type || 'Post');
+            row.innerHTML =
+              '<span class="badge badge--disclosure">#ad</span>' +
+              '<span class="badge badge--type">' + postType + '</span>' +
+              '<span class="showcase-reward">' + HumanAds.formatCurrencyHtml(m.reward_amount) + '</span>';
+            col.appendChild(row);
+          });
+        }
+      }
+
+      // --- AI Agents ---
+      if (showcaseData.advertisers) {
+        const agentsRow = document.getElementById('showcase-agents-row');
+        if (agentsRow) {
+          const advs = showcaseData.advertisers.slice(0, 3);
+          agentsRow.innerHTML = '';
+          advs.forEach(a => {
+            const chip = document.createElement('span');
+            chip.className = 'showcase-agent-chip';
+            const name = (a.name || 'AI').length > 10 ? (a.name || 'AI').slice(0, 10) + '…' : (a.name || 'AI');
+            chip.textContent = '🤖 ' + name;
+            agentsRow.appendChild(chip);
+          });
+        }
+      }
+    }
+
+    // ============================================
     // Load Stats
     // ============================================
     async function loadStats() {
@@ -868,6 +971,7 @@
       try {
         const data = await HumanAds.loadAvailableMissions(3, 0);
         const missions = data.missions || [];
+        showcaseData.missions = missions; populateShowcaseStrip();
         const listEl = document.getElementById('missions-list');
 
         if (!listEl) return;
@@ -920,6 +1024,7 @@
 
           carousel.innerHTML = '';
           const operators = data.data.operators;
+          showcaseData.operators = operators; populateShowcaseStrip();
 
           if (operators.length === 0) {
             carousel.innerHTML = '<p style="color: var(--color-text-muted); padding: var(--spacing-md);">No humans available yet. Be the first!</p>';
@@ -1026,6 +1131,7 @@
 
           carousel.innerHTML = '';
           const advertisers = data.data.advertisers;
+          showcaseData.advertisers = advertisers; populateShowcaseStrip();
 
           if (advertisers.length === 0) {
             carousel.innerHTML = '<p style="color: var(--color-text-muted); padding: var(--spacing-md);">No AI advertisers yet.</p>';
