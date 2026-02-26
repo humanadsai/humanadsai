@@ -239,7 +239,8 @@ export function buildImagePrompt(text: string, slideType: string): string {
   const camera = CAMERA_OPTIONS[hashCode(cleanText) % CAMERA_OPTIONS.length];
   const composition = COMPOSITION_BY_TYPE[slideType] || COMPOSITION_BY_TYPE.body;
 
-  const prompt = [
+  // Build prompt body (sanitized to remove any accidental blacklisted words)
+  const body = sanitizePrompt([
     // STYLE
     `Editorial photograph. ${camera}. Natural available light, slightly underexposed. Subtle film grain, muted color palette, no post-processing filters.`,
     // SUBJECT
@@ -256,11 +257,10 @@ export function buildImagePrompt(text: string, slideType: string): string {
     visuals.mood + '.',
     // Technical constraints for video overlay
     'No text, no letters, no words, no logos, no watermarks. Dark enough that white text overlaid will be clearly readable. Vertical portrait orientation (9:16 aspect ratio). Maximum 3 dominant colors.',
-    // NEGATIVE PROMPT
-    NEGATIVE_PROMPT,
-  ].join(' ');
+  ].join(' '));
 
-  return sanitizePrompt(prompt);
+  // Append negative prompt verbatim (it intentionally names blacklisted words)
+  return body + ' ' + NEGATIVE_PROMPT;
 }
 
 // ============================================

@@ -1,0 +1,237 @@
+version: 1
+name: editorial-anti-ai-v1
+
+defaults:
+  light: "Natural available light, slightly underexposed"
+  film_stock: "Subtle film grain, muted color palette, no post-processing filters"
+  anti_ai: >-
+    Include subtle real-world imperfections: visible skin pores,
+    natural hair flyaways, slightly uneven lighting, cloth wrinkles,
+    matte surfaces not glossy, one element slightly soft-focus.
+    No perfect symmetry.
+  constraints: >-
+    No text, no letters, no words, no logos, no watermarks.
+    Dark enough that white text overlaid will be clearly readable.
+    Vertical portrait orientation (9:16 aspect ratio).
+    Maximum 3 dominant colors.
+  negative_prompt: >-
+    Do NOT include: neon lighting, teal-and-orange color grading,
+    glossy or plastic skin, particle effects, lens flares,
+    volumetric god-rays, cyberpunk aesthetic, gradient backgrounds,
+    abstract shapes, geometric patterns, robots, cyborgs,
+    AI-generated watermarks, perfect bilateral symmetry,
+    overly saturated colors, HDR look, digital art style,
+    fire, smoke, dramatic clouds, glowing elements, stock photo smile.
+
+cameras:
+  - "Shot on Canon EOS R5 with 35mm f/1.4 lens"
+  - "Shot on Sony A7IV with 50mm f/1.8 lens"
+  - "Shot on Nikon Z9 with 24-70mm f/2.8 lens"
+  - "Shot on Fujifilm X-T5 with 23mm f/2 lens"
+
+slide_types:
+  hook:
+    composition: >-
+      Wide establishing shot. Subject in lower-center, leaving generous
+      clear space in upper 40% for text overlay. Shallow depth of field f/1.4.
+      Rule of thirds.
+  chapter_title:
+    composition: >-
+      Extreme wide or overhead angle. Subject small in frame.
+      At least 60% of frame is clean negative space for title text.
+      Deep focus f/8.
+  emphasis:
+    composition: >-
+      Tight crop, slightly low angle. Subject fills lower third intensely.
+      Upper two-thirds has soft out-of-focus background for text overlay.
+  body:
+    composition: >-
+      Medium shot, eye-level. Subject at right-third of frame.
+      Left side has negative space for text. Natural depth of field.
+  cta:
+    composition: >-
+      Clean wide shot with subject distant. Large centered negative space.
+      Minimal visual complexity.
+
+categories:
+  business:
+    subject: >-
+      A real office worker in their 30s, wearing a plain collared shirt,
+      sitting at a cluttered desk. Natural posture, not posed.
+      Subtle micro-expression of concentration.
+    environment: >-
+      A real corporate office — fluorescent overhead lights, beige walls,
+      whiteboard with writing, stacked papers. Nothing futuristic.
+      Practical lighting only.
+    mood: >-
+      Professional unease — conveyed through posture and expression,
+      not through color grading.
+    keywords:
+      - revenue
+      - profit
+      - company
+      - startup
+      - market
+      - invest
+      - economy
+      - CEO
+      - billion
+      - growth
+      - 企業
+      - 売上
+      - 利益
+      - 経済
+      - ビジネス
+      - 投資
+
+  technology:
+    subject: >-
+      Close-up of real hands on a laptop keyboard, screen casting a soft
+      blue-white glow on the face. The person wears a plain t-shirt.
+      Visible veins on hands, natural nail texture.
+    environment: >-
+      A real home office or coworking space at night. Warm desk lamp,
+      coffee mug with stain ring, tangled charging cables.
+      Window shows dark sky.
+    mood: >-
+      Quiet focus — conveyed through stillness and screen glow,
+      not through neon or effects.
+    keywords:
+      - AI
+      - algorithm
+      - data
+      - software
+      - app
+      - machine learning
+      - automation
+      - code
+      - API
+      - テクノロジー
+      - 技術
+      - アルゴリズム
+      - 自動化
+      - プログラム
+
+  health:
+    subject: >-
+      A real person outdoors, wearing everyday athletic clothes.
+      Natural body proportions, visible pores, slightly windswept hair.
+    environment: >-
+      A public park at golden hour. Dappled sunlight through actual trees,
+      visible grass texture, park bench in background. Real weather.
+    mood: >-
+      Calm determination — conveyed through relaxed posture
+      and warm natural light.
+    keywords:
+      - health
+      - medicine
+      - doctor
+      - hospital
+      - disease
+      - treatment
+      - diet
+      - exercise
+      - mental
+      - 健康
+      - 医療
+      - 病院
+      - 治療
+      - 運動
+
+  environment:
+    subject: >-
+      Wide landscape with tiny human figure for scale.
+      Real terrain textures — cracked earth, wild grass, weathered rocks.
+    environment: >-
+      Raw outdoor location under overcast sky. Muted natural colors,
+      no filters. Visible cloud texture, wind in vegetation.
+    mood: >-
+      Vast unease — conveyed through scale and emptiness,
+      not color grading.
+    keywords:
+      - climate
+      - carbon
+      - ocean
+      - forest
+      - pollution
+      - renewable
+      - sustainability
+      - 環境
+      - 気候
+      - 汚染
+      - エネルギー
+
+  social:
+    subject: >-
+      Candid shot of 2-3 real people in conversation. Mixed ages,
+      natural clothing, unposed body language. One person mid-gesture.
+    environment: >-
+      A real cafe or urban sidewalk. Visible menu boards,
+      scratched table surface, mismatched chairs. Background pedestrians.
+    mood: >-
+      Authentic warmth — conveyed through genuine micro-expressions
+      and proximity.
+    keywords:
+      - community
+      - culture
+      - education
+      - family
+      - relationship
+      - social media
+      - コミュニティ
+      - 教育
+      - 文化
+      - SNS
+
+  danger:
+    subject: >-
+      Tight close-up of a person with furrowed brow, looking at something
+      off-camera. Visible stubble or tired eyes, slightly disheveled.
+      Not a model.
+    environment: >-
+      A dim room lit by a single overhead fluorescent tube. Stark shadows
+      on one side of face. Plain wall, maybe peeling paint. Sparse furniture.
+    mood: >-
+      Quiet dread — conveyed through tense stillness and sparse lighting,
+      NOT through red filters or fire.
+    keywords:
+      - risk
+      - threat
+      - crisis
+      - warning
+      - danger
+      - collapse
+      - fraud
+      - scam
+      - hack
+      - 危険
+      - 詐欺
+      - リスク
+      - 崩壊
+      - 警告
+      - 脅威
+      - ハッキング
+
+  general:
+    subject: >-
+      A real person in everyday clothes, in a natural unposed moment.
+      Visible skin texture, natural hair with flyaways,
+      slightly wrinkled clothing.
+    environment: >-
+      An ordinary real-world location — street, office, apartment.
+      Practical mixed lighting. Visible wear-and-tear on surfaces.
+    mood: >-
+      Understated tension — conveyed through environment
+      and expression, not effects.
+    keywords: []
+
+template: |
+  Editorial photograph. {camera}. {light}. {film_stock}.
+  Subject: {subject}.
+  The image relates to: "{context}".
+  Setting: {environment}.
+  {composition}.
+  {anti_ai}
+  {mood}.
+  {constraints}
+  {negative_prompt}
