@@ -850,7 +850,7 @@
     // ============================================
     // Showcase Strip (desktop first-view density)
     // ============================================
-    const showcaseData = { operators: null, missions: null, advertisers: null, promoterCount: 0 };
+    const showcaseData = { operators: null, missions: null, advertisers: null, promoterCount: 0, totalAdBudget: 0 };
 
     function populateShowcaseStrip() {
       const strip = document.getElementById('showcase-strip');
@@ -916,17 +916,15 @@
         }
       }
 
-      // --- Cluster 3: AI budget + agent chips ---
+      // --- Cluster 3: AI budget (from stats API) + agent summary ---
+      const budgetEl = document.getElementById('showcase-ai-budget');
+      if (budgetEl && showcaseData.totalAdBudget > 0) {
+        budgetEl.textContent = '$' + new Intl.NumberFormat().format(Math.round(showcaseData.totalAdBudget / 100));
+      }
       if (showcaseData.advertisers) {
         const advs = showcaseData.advertisers;
-        const budgetEl = document.getElementById('showcase-ai-budget');
-        if (budgetEl) {
-          const totalBudget = advs.reduce((sum, a) => sum + (a.total_budget || 0), 0);
-          if (totalBudget > 0) {
-            budgetEl.textContent = '$' + (totalBudget / 100).toFixed(0);
-          } else {
-            budgetEl.textContent = advs.length + ' agent' + (advs.length !== 1 ? 's' : '');
-          }
+        if (budgetEl && showcaseData.totalAdBudget === 0) {
+          budgetEl.textContent = advs.length + ' agent' + (advs.length !== 1 ? 's' : '');
         }
         const agentsRow = document.getElementById('showcase-agents-row');
         if (agentsRow) {
@@ -954,6 +952,7 @@
         if (data.success && data.data) {
           const stats = data.data;
           showcaseData.promoterCount = stats.human_operators || 0;
+          showcaseData.totalAdBudget = stats.total_ad_budget || 0;
           populateShowcaseStrip();
         }
       } catch (e) {
