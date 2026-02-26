@@ -3003,7 +3003,7 @@ body {
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.06) 0%, rgba(0, 212, 255, 0.06) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius);
-  padding: 14px var(--spacing-lg);
+  padding: 20px var(--spacing-xl);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   position: relative;
@@ -3032,7 +3032,7 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 2px;
+  gap: 4px;
 }
 
 .showcase-divider {
@@ -3072,7 +3072,7 @@ body {
 }
 
 .showcase-metric-label {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -3087,21 +3087,21 @@ body {
 }
 
 .showcase-avatar {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 2px solid rgba(255, 107, 53, 0.3);
   object-fit: cover;
-  margin-left: -10px;
+  margin-left: -12px;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   position: relative;
   background: var(--color-background-card);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
-  box-shadow: 0 0 8px rgba(255, 107, 53, 0.15);
+  box-shadow: 0 0 10px rgba(255, 107, 53, 0.2);
 }
 
 .showcase-avatar:first-child {
@@ -3123,11 +3123,11 @@ body {
 }
 
 .showcase-avatar-count {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 2px solid rgba(255, 107, 53, 0.2);
-  margin-left: -10px;
+  margin-left: -12px;
   background: var(--color-background-card);
   display: flex;
   align-items: center;
@@ -3142,12 +3142,13 @@ body {
 .showcase-live {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .showcase-live-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--color-success);
   box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
@@ -3160,18 +3161,18 @@ body {
 }
 
 .showcase-live-text {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.6);
   font-weight: 500;
 }
 
 /* --- Agent summary --- */
 .showcase-agents-summary {
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   color: var(--color-primary-light);
   font-weight: 500;
   white-space: nowrap;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 /* ============================================
