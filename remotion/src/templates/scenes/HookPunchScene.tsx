@@ -69,7 +69,7 @@ export const HookPunchScene: React.FC<Props> = ({
             fontWeight: 900,
             lineHeight: 1.3,
             letterSpacing: '-0.03em',
-            textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 4px 24px rgba(0,0,0,0.6)',
             whiteSpace: 'pre-line',
           }}
         >
