@@ -58,7 +58,7 @@ export const RevealListScene: React.FC<Props> = ({
             fontWeight: 700,
             marginBottom: 40,
             textAlign: 'center',
-            textShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.5)',
             position: 'relative',
             zIndex: 1,
           }}
@@ -109,7 +109,7 @@ export const RevealListScene: React.FC<Props> = ({
                   fontSize: 36,
                   fontWeight: 600,
                   lineHeight: 1.5,
-                  textShadow: '0 2px 12px rgba(0,0,0,0.3)',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.5)',
                 }}
               >
                 {item}

@@ -148,7 +148,7 @@ const StandardSlide: React.FC<SlideViewProps> = ({
             fontWeight,
             lineHeight: 1.4,
             letterSpacing: '-0.02em',
-            textShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.5)',
             whiteSpace: 'pre-line',
           }}
         >

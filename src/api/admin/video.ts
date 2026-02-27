@@ -2353,12 +2353,37 @@ export async function processVideoPostJobs(env: Env): Promise<void> {
           );
         }
 
-        // If TTS succeeded, rescale slide durations to match audio and save TTS data
+        // If TTS succeeded, redistribute slide durations proportionally to text length
+        // so audio stays in sync (longer text = more time on that slide)
         let ttsAudioBase64: string | null = null;
         let ttsPreset: string | null = null;
         if (ttsResult) {
           ttsAudioBase64 = ttsResult.tts.audioBase64;
           ttsPreset = ttsResult.tts.preset;
+
+          // Redistribute: each slide gets time proportional to its text character count
+          const totalDuration = finalPayload.metadata.totalDurationSec;
+          const charCounts = finalPayload.slides.map((s: any) => {
+            const clean = s.text.replace(/[「」\*#\n]/g, '').trim();
+            return Math.max(clean.length, 3); // min 3 chars to avoid zero-duration
+          });
+          const totalChars = charCounts.reduce((sum: number, c: number) => sum + c, 0);
+
+          if (totalChars > 0) {
+            for (let i = 0; i < finalPayload.slides.length; i++) {
+              const ratio = charCounts[i] / totalChars;
+              let newDur = Math.round(totalDuration * ratio * 10) / 10;
+              newDur = Math.max(2, Math.min(6, newDur)); // enforce 2-6s bounds
+              finalPayload.slides[i].durationSec = newDur;
+            }
+            // Recalculate total
+            finalPayload.metadata.totalDurationSec = Math.round(
+              finalPayload.slides.reduce((sum: number, s: any) => sum + s.durationSec, 0) * 10
+            ) / 10;
+            await logEvent(env.DB, post.id, 'tts', 'info',
+              `Slide durations redistributed by text length: ${finalPayload.slides.map((s: any) => s.durationSec + 's').join(', ')}`
+            );
+          }
         }
 
         // Save slides (with images) and TTS data, advance status
