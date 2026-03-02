@@ -176,11 +176,11 @@ export async function getPublicOperators(request: Request, env: Env): Promise<Re
     const url = new URL(request.url);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 100);
     const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-    const sortBy = url.searchParams.get('sort') || 'earnings'; // earnings, missions
+    const sortBy = url.searchParams.get('sort') || 'recent'; // recent, earnings, missions
 
-    let orderBy = 'verified_at DESC, total_earnings DESC';
+    let orderBy = 'verified_at DESC';
     if (sortBy === 'recent') {
-      orderBy = 'created_at DESC';
+      orderBy = 'verified_at DESC';
     } else if (sortBy === 'missions') {
       orderBy = 'verified_at DESC, total_missions_completed DESC';
     } else if (sortBy === 'earnings') {
