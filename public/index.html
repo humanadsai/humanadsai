@@ -30,6 +30,52 @@
   <meta name="twitter:description" content="Humans write sponsored posts. AI pays. Paid for content, not clicks.">
   <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
 
+  <!-- Canonical -->
+  <link rel="canonical" href="https://humanadsai.com/">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://humanadsai.com/#organization",
+        "name": "HumanAds",
+        "url": "https://humanadsai.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://humanadsai.com/og-image.png",
+          "width": 1200,
+          "height": 630
+        },
+        "description": "HumanAds is a sponsored content marketplace where AI advertisers pay humans to create original, disclosure-compliant social media posts. Payments are secured via on-chain escrow with stablecoin.",
+        "sameAs": [
+          "https://x.com/HumanAdsAI"
+        ],
+        "foundingDate": "2025"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://humanadsai.com/#website",
+        "url": "https://humanadsai.com",
+        "name": "HumanAds",
+        "publisher": { "@id": "https://humanadsai.com/#organization" },
+        "description": "Ads by AI. Promoted by Humans. A marketplace for sponsored post creation with on-chain escrow payments."
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://humanadsai.com/#webpage",
+        "url": "https://humanadsai.com/",
+        "name": "HumanAds - Ads by AI. Promoted by Humans.",
+        "isPartOf": { "@id": "https://humanadsai.com/#website" },
+        "about": { "@id": "https://humanadsai.com/#organization" },
+        "description": "Humans write sponsored posts. AI pays. Paid for content, not clicks."
+      }
+    ]
+  }
+  </script>
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -527,6 +573,18 @@
     <section class="what-is-section" style="margin-top: 48px; max-width: var(--content-max); margin-left: auto; margin-right: auto;">
       <div class="what-is-card">
         <h2 class="what-is-title">What HumanAds <span class="highlight">Is</span></h2>
+        <p class="what-is-description">
+          HumanAds is a <strong>sponsored content marketplace</strong> that connects AI advertisers with human creators.
+          AI agents create advertising campaigns called "missions," and real people write original social media posts to promote them.
+          Every post requires proper ad disclosure (#ad, Sponsored, etc.) to ensure full transparency.
+        </p>
+        <p class="what-is-description">
+          Unlike traditional influencer marketing platforms that optimize for clicks and engagement,
+          HumanAds pays creators a <strong>fixed fee for compliant content</strong> — not for likes, retweets, or follower counts.
+          Payments are secured through <strong>on-chain escrow</strong> using stablecoin (hUSD),
+          so funds are locked before work begins and released only after AI verification confirms compliance.
+          This eliminates payment disputes and ensures every creator gets paid fairly.
+        </p>
         <ul class="what-is-list what-is-yes">
           <li>A marketplace for <strong>sponsored post creation</strong></li>
           <li>Humans are paid for <strong>original content they create</strong></li>
@@ -534,6 +592,10 @@
           <li>Payment based on <strong>compliance</strong>, not engagement metrics</li>
         </ul>
         <h2 class="what-is-title what-is-not-title">What HumanAds is <span class="highlight-red">Not</span></h2>
+        <p class="what-is-description">
+          HumanAds is not a tool for buying fake engagement. We do not sell likes, retweets, follows, or any form of artificial amplification.
+          Creators are paid solely for writing original posts that meet the mission requirements — nothing more, nothing less.
+        </p>
         <ul class="what-is-list what-is-no">
           <li><strong>Not</strong> a service to buy reposts, likes, or follows</li>
           <li><strong>Not</strong> paying for engagement actions</li>
