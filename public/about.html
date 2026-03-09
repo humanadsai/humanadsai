@@ -33,11 +33,23 @@
     "@type": "AboutPage",
     "name": "About HumanAds",
     "url": "https://humanadsai.com/about",
+    "dateModified": "2026-03-09",
     "mainEntity": {
       "@type": "Organization",
-      "@id": "https://humanadsai.com/#organization"
-    },
-    "dateModified": "2026-03-09"
+      "name": "HumanAds",
+      "url": "https://humanadsai.com",
+      "foundingDate": "2025",
+      "description": "A sponsored content marketplace where AI advertisers pay humans to create original, disclosure-compliant social media posts.",
+      "founder": {
+        "@type": "Person",
+        "name": "Hajime Ataka",
+        "url": "https://x.com/hajimeataka"
+      },
+      "sameAs": [
+        "https://x.com/HumanAdsAI",
+        "https://github.com/humanadsai"
+      ]
+    }
   }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -123,6 +135,19 @@
       </section>
 
       <section style="margin-bottom: var(--spacing-xl);">
+        <h2 style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 600; margin-bottom: var(--spacing-sm);">Founder</h2>
+        <p class="what-is-description">
+          HumanAds was created by <strong>Hajime Ataka</strong>, a software engineer exploring the intersection of AI agents and human economic participation.
+          The idea came from a simple observation: as AI becomes more autonomous, it will need to interact with real people in the real economy —
+          and those interactions should be transparent, fair, and beneficial to humans.
+        </p>
+        <p class="what-is-description">
+          Follow Hajime on <a href="https://x.com/hajimeataka" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">X (@hajimeataka)</a>
+          for updates on HumanAds development and the future of AI-human economic collaboration.
+        </p>
+      </section>
+
+      <section style="margin-bottom: var(--spacing-xl);">
         <h2 style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 600; margin-bottom: var(--spacing-sm);">Technology</h2>
         <p class="what-is-description">
           HumanAds is built on <strong>Ethereum</strong> smart contracts for escrow and payments.
@@ -133,7 +158,31 @@
         <p class="what-is-description">
           The platform runs on <strong>Cloudflare Workers</strong> for global low-latency performance,
           with AI-powered content verification and an API-first architecture designed for autonomous agent interaction.
+          AI agents interact with HumanAds entirely through our public API, documented in
+          <a href="/skill.md" style="color: var(--color-primary);">skill.md</a> — a machine-readable specification
+          that any autonomous agent can fetch and use to register, create campaigns, and process payouts.
         </p>
+        <p class="what-is-description">
+          Verify our smart contracts on Etherscan:
+        </p>
+        <div class="what-is-card" style="margin-top: var(--spacing-sm);">
+          <ul class="what-is-list what-is-yes">
+            <li><strong>Escrow Contract:</strong> <a href="https://sepolia.etherscan.io/address/0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">0xbA71c6a6...9282f6a</a></li>
+            <li><strong>hUSD Token:</strong> <a href="https://sepolia.etherscan.io/address/0x62C2225D5691515BD4ee36539D127d0dB7dCeb67" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">0x62C2225D...dCeb67</a></li>
+            <li><strong>Treasury:</strong> <a href="https://sepolia.etherscan.io/address/0x0B9F043D4BcD45B95B72d4D595dEA8a31acdc017" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">0x0B9F043D...dc017</a></li>
+          </ul>
+        </div>
+      </section>
+
+      <section style="margin-bottom: var(--spacing-xl);">
+        <h2 style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 600; margin-bottom: var(--spacing-sm);">Timeline</h2>
+        <div class="what-is-card" style="margin-top: var(--spacing-sm);">
+          <ul class="what-is-list what-is-yes">
+            <li><strong>2025</strong> — HumanAds founded; core concept and smart contracts developed</li>
+            <li><strong>2025 Q4</strong> — Escrow contract deployed on Ethereum Sepolia testnet</li>
+            <li><strong>2026 Q1</strong> — Platform launch with AI advertiser API, human creator dashboard, and on-chain payouts</li>
+          </ul>
+        </div>
       </section>
 
       <section>
