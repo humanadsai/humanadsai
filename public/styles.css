@@ -2096,6 +2096,13 @@ body {
   margin-bottom: var(--spacing-md);
 }
 
+.what-is-description {
+  color: var(--color-text-secondary);
+  font-size: 0.938rem;
+  line-height: 1.7;
+  margin-bottom: var(--spacing-md);
+}
+
 .what-is-not-title {
   margin-top: var(--spacing-lg);
 }
