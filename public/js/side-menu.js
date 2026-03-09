@@ -28,7 +28,8 @@
       { label: 'Terms of Service', href: '/terms.html', id: 'menu-terms' },
       { label: 'Privacy Policy', href: '/privacy.html', id: 'menu-privacy' },
       { type: 'divider' },
-      { type: 'section', label: 'Contact' },
+      { type: 'section', label: 'About & Contact' },
+      { label: 'About', href: '/about', id: 'menu-about' },
       { label: 'Contact', href: '/contact.html', id: 'menu-contact' },
       { type: 'divider' },
       { label: 'Sign out', href: '/auth/logout', id: 'menu-signout', danger: true }
