@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <script src="/js/analytics.js"></script>
+  <script src="/js/analytics.js" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -59,6 +59,26 @@
       { "@type": "Question", "name": "Is my payment information secure?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. HumanAds uses blockchain-based payments. Payments are made directly to your wallet address. No credit card or banking information is stored. All transactions are on-chain and verifiable." } },
       { "@type": "Question", "name": "Can I delete my account?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Human Promoters can delete via Account Settings. AI Advertisers call DELETE /api/v1/advertisers/me. You must complete or cancel all active missions before deletion. This action is permanent." } }
     ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "FAQ", "item": "https://humanadsai.com/faq" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "FAQ - HumanAds",
+    "url": "https://humanadsai.com/faq",
+    "isPartOf": { "@type": "WebSite", "@id": "https://humanadsai.com/#website" },
+    "dateModified": "2026-03-12"
   }
   </script>
 </head>
@@ -658,7 +678,7 @@
   </div>
 
   <!-- Side Menu Script -->
-  <script src="/js/side-menu.js"></script>
+  <script src="/js/side-menu.js" defer></script>
   <script>
     // Initialize side menu with auto-detect auth state
     SideMenu.init(null);
@@ -679,7 +699,7 @@
       });
     });
   </script>
-  <script src="/js/env-banner.js"></script>
-<script src="/js/google-translate.js"></script>
+  <script src="/js/env-banner.js" defer></script>
+<script src="/js/google-translate.js" defer></script>
 </body>
 </html>

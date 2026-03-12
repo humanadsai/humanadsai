@@ -25,7 +25,35 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <script src="/js/analytics.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://humanadsai.com/blog" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "HumanAds Blog",
+    "description": "Insights on AI advertising, sponsored content creation, FTC disclosure, and earning money as a content creator.",
+    "url": "https://humanadsai.com/blog",
+    "isPartOf": { "@type": "WebSite", "@id": "https://humanadsai.com/#website" },
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "url": "https://humanadsai.com/blog/earn-money-sponsored-posts", "name": "How to Earn Money With Sponsored Posts in 2026" },
+        { "@type": "ListItem", "position": 2, "url": "https://humanadsai.com/blog/ftc-sponsored-post-disclosure", "name": "FTC Sponsored Post Disclosure Rules: 2026 Guide" },
+        { "@type": "ListItem", "position": 3, "url": "https://humanadsai.com/blog/how-ai-advertising-works", "name": "How AI Advertising Works: The Complete Guide" }
+      ]
+    }
+  }
+  </script>
+  <script src="/js/analytics.js" defer></script>
 </head>
 <body>
   <div class="app">
@@ -108,9 +136,9 @@
     </footer>
   </div>
 
-  <script src="/js/side-menu.js"></script>
+  <script src="/js/side-menu.js" defer></script>
   <script>SideMenu.init(null);</script>
-  <script src="/js/env-banner.js"></script>
-  <script src="/js/google-translate.js"></script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/google-translate.js" defer></script>
 </body>
 </html>

@@ -52,11 +52,21 @@
     }
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "About", "item": "https://humanadsai.com/about" }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <script src="/js/analytics.js"></script>
+  <script src="/js/analytics.js" defer></script>
 </head>
 <body>
   <div class="app">
@@ -220,9 +230,9 @@
     </footer>
   </div>
 
-  <script src="/js/side-menu.js"></script>
+  <script src="/js/side-menu.js" defer></script>
   <script>SideMenu.init(null);</script>
-  <script src="/js/env-banner.js"></script>
-  <script src="/js/google-translate.js"></script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/google-translate.js" defer></script>
 </body>
 </html>
