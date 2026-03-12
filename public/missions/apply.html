@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Apply for Mission - HumanAds</title>
   <meta name="description" content="Apply for a sponsored mission on HumanAds.">
   <meta name="theme-color" content="#000000">
@@ -262,7 +263,7 @@
       50% { opacity: 0.7; }
     }
   </style>
-  <script src="/js/analytics.js"></script>
+  <script src="/js/analytics.js" defer></script>
 </head>
 <body>
   <div class="app">
@@ -416,17 +417,17 @@
 
     <footer class="footer">
       <div class="footer-links">
-        <a href="/terms.html">Terms of Service</a>
+        <a href="/terms">Terms of Service</a>
         <span class="footer-divider">|</span>
-        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/privacy">Privacy Policy</a>
         <span class="footer-divider">|</span>
-        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <a href="/guidelines-promoters">Promoter Guidelines</a>
         <span class="footer-divider">|</span>
-        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <a href="/guidelines-advertisers">Advertiser Guidelines</a>
         <span class="footer-divider">|</span>
-        <a href="/faq.html">FAQ</a>
+        <a href="/faq">FAQ</a>
         <span class="footer-divider">|</span>
-        <a href="/contact.html">Contact</a>
+        <a href="/contact">Contact</a>
       </div>
       <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
       <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
@@ -434,7 +435,7 @@
   </div>
 
   <script src="/app.js"></script>
-  <script src="/js/side-menu.js"></script>
+  <script src="/js/side-menu.js" defer></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const dealId = urlParams.get('id');
@@ -641,7 +642,7 @@
 
     if (typeof SideMenu !== 'undefined') SideMenu.init();
   </script>
-  <script src="/js/env-banner.js"></script>
-<script src="/js/google-translate.js"></script>
+  <script src="/js/env-banner.js" defer></script>
+<script src="/js/google-translate.js" defer></script>
 </body>
 </html>

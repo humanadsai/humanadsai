@@ -30,7 +30,27 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <script src="/js/analytics.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Privacy Policy", "item": "https://humanadsai.com/privacy" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Privacy Policy - HumanAds",
+    "url": "https://humanadsai.com/privacy",
+    "isPartOf": { "@type": "WebSite", "@id": "https://humanadsai.com/#website" },
+    "dateModified": "2026-03-12"
+  }
+  </script>
+  <script src="/js/analytics.js" defer></script>
 </head>
 <body>
   <div class="app">
@@ -189,11 +209,11 @@
   </div>
 
   <!-- Side Menu Script -->
-  <script src="/js/side-menu.js"></script>
+  <script src="/js/side-menu.js" defer></script>
   <script>
     // Initialize side menu with auto-detect auth state
     SideMenu.init(null);
   </script>
-<script src="/js/google-translate.js"></script>
+<script src="/js/google-translate.js" defer></script>
 </body>
 </html>

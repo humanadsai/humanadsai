@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Create Post - HumanAds</title>
   <meta name="description" content="Create your sponsored post for a HumanAds mission.">
   <meta name="theme-color" content="#000000">
@@ -564,7 +565,7 @@
       }
     }
   </style>
-  <script src="/js/analytics.js"></script>
+  <script src="/js/analytics.js" defer></script>
 </head>
 <body>
   <div class="app">
@@ -799,18 +800,18 @@
     <!-- Footer -->
     <footer class="footer">
       <div class="footer-links">
-        <a href="/terms.html">Terms of Service</a>
+        <a href="/terms">Terms of Service</a>
         <span class="footer-divider">|</span>
-        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/privacy">Privacy Policy</a>
         <span class="footer-divider">|</span>
-        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <a href="/guidelines-promoters">Promoter Guidelines</a>
       </div>
       <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
     </footer>
   </div>
 
   <script src="/app.js"></script>
-  <script src="/js/side-menu.js"></script>
+  <script src="/js/side-menu.js" defer></script>
   <script src="/js/wallet-alert.js"></script>
   <script>
     let missionData = null;
@@ -1504,7 +1505,7 @@
               <li>Required link (${escapeHtml(getRequiredLink())})</li>
               <li>Content that matches your submitted draft</li>
             </ul>
-            <a href="/guidelines-promoters.html" style="color: var(--color-primary); font-size: 0.85rem;">View Guidelines</a>
+            <a href="/guidelines-promoters" style="color: var(--color-primary); font-size: 0.85rem;">View Guidelines</a>
           </div>
         `;
       }
@@ -1725,7 +1726,7 @@
       loadMission();
     });
   </script>
-  <script src="/js/env-banner.js"></script>
-<script src="/js/google-translate.js"></script>
+  <script src="/js/env-banner.js" defer></script>
+<script src="/js/google-translate.js" defer></script>
 </body>
 </html>

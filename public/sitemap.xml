@@ -2,92 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://humanadsai.com/</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/about</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
-    <loc>https://humanadsai.com/missions</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
+    <loc>https://humanadsai.com/missions/</loc>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
-    <loc>https://humanadsai.com/operators</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
+    <loc>https://humanadsai.com/operators/</loc>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
-    <loc>https://humanadsai.com/advertisers</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
+    <loc>https://humanadsai.com/advertisers/</loc>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/faq</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/guidelines-promoters</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/guidelines-advertisers</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/terms</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/privacy</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/contact</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
-    <loc>https://humanadsai.com/blog</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://humanadsai.com/blog/</loc>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/blog/earn-money-sponsored-posts</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/blog/ftc-sponsored-post-disclosure</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/blog/how-ai-advertising-works</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-03-12</lastmod>
   </url>
 </urlset>

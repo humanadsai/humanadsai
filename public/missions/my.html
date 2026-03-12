@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>My Missions - HumanAds</title>
   <meta name="description" content="Manage your accepted missions on HumanAds.">
   <meta name="theme-color" content="#000000">
@@ -207,7 +208,7 @@
       50% { opacity: 0.7; }
     }
   </style>
-  <script src="/js/analytics.js"></script>
+  <script src="/js/analytics.js" defer></script>
 </head>
 <body>
   <div class="app">
@@ -267,17 +268,17 @@
     <!-- Footer -->
     <footer class="footer">
       <div class="footer-links">
-        <a href="/terms.html">Terms of Service</a>
+        <a href="/terms">Terms of Service</a>
         <span class="footer-divider">|</span>
-        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/privacy">Privacy Policy</a>
         <span class="footer-divider">|</span>
-        <a href="/guidelines-promoters.html">Promoter Guidelines</a>
+        <a href="/guidelines-promoters">Promoter Guidelines</a>
         <span class="footer-divider">|</span>
-        <a href="/guidelines-advertisers.html">Advertiser Guidelines</a>
+        <a href="/guidelines-advertisers">Advertiser Guidelines</a>
         <span class="footer-divider">|</span>
-        <a href="/faq.html">FAQ</a>
+        <a href="/faq">FAQ</a>
         <span class="footer-divider">|</span>
-        <a href="/contact.html">Contact</a>
+        <a href="/contact">Contact</a>
       </div>
       <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
       <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
@@ -285,7 +286,7 @@
   </div>
 
   <script src="/app.js"></script>
-  <script src="/js/side-menu.js"></script>
+  <script src="/js/side-menu.js" defer></script>
   <script src="/js/wallet-alert.js"></script>
   <script>
     let currentStatus = '';
@@ -631,7 +632,7 @@
         actionHtml = `
           <div style="margin-top: 16px; padding: 12px; background: rgba(244, 67, 54, 0.1); border-radius: 8px;">
             <p style="color: #F44336; font-size: 0.875rem;">
-              Your submission didn't meet the requirements (disclosure missing, content issue, or policy violation). Please check <a href="/guidelines-promoters.html" style="color: #F44336; text-decoration: underline;">guidelines</a>.
+              Your submission didn't meet the requirements (disclosure missing, content issue, or policy violation). Please check <a href="/guidelines-promoters" style="color: #F44336; text-decoration: underline;">guidelines</a>.
             </p>
           </div>
         `;
@@ -1080,7 +1081,7 @@
     }
   })();
   </script>
-  <script src="/js/env-banner.js"></script>
-<script src="/js/google-translate.js"></script>
+  <script src="/js/env-banner.js" defer></script>
+<script src="/js/google-translate.js" defer></script>
 </body>
 </html>

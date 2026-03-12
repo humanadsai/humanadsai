@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Admin Console | HumanAds</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -228,7 +229,7 @@
       .tab-btn { padding: 10px 10px; font-size: 0.7rem; }
     }
   </style>
-  <script src="/js/analytics.js"></script>
+  <script src="/js/analytics.js" defer></script>
 </head>
 <body>
   <div class="app">
@@ -296,7 +297,7 @@
     </div>
   </div>
 
-  <script src="/js/side-menu.js"></script>
+  <script src="/js/side-menu.js" defer></script>
   <script src="/js/humanads.js"></script>
   <script>
   'use strict';
@@ -2343,6 +2344,6 @@
     } catch (e) { document.querySelector('.admin-page').innerHTML = '<div class="section-card"><div class="empty-state"><h3 style="color:#ff3b30;">Error</h3><p>' + esc(e.message) + '</p></div></div>'; }
   })();
   </script>
-  <script src="/js/env-banner.js"></script>
+  <script src="/js/env-banner.js" defer></script>
 </body>
 </html>
