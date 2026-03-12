@@ -160,21 +160,6 @@ import {
   getConfigHistory,
 } from './api/admin/config';
 
-/** Add security headers to static asset responses */
-function addSecurityHeaders(response: Response): Response {
-  const headers = new Headers(response.headers);
-  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  headers.set('X-Frame-Options', 'DENY');
-  headers.set('X-Content-Type-Options', 'nosniff');
-  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-
 /**
  * メインルーター
  */
@@ -588,7 +573,7 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
     try {
       const assetResponse = await env.ASSETS.fetch(request);
       if (assetResponse.status !== 404) {
-        return addSecurityHeaders(assetResponse);
+        return assetResponse;
       }
     } catch (e) {
       console.error('Asset fetch error:', e);
@@ -1619,7 +1604,7 @@ async function handleAdminApi(
     try {
       const assetResponse = await env.ASSETS.fetch(request);
       if (assetResponse.status !== 404) {
-        return addSecurityHeaders(assetResponse);
+        return assetResponse;
       }
     } catch {
       // Asset fetch failed, fall through to 404
