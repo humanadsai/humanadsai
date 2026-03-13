@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Building HumanAds: Why We Created an AI Advertising Marketplace</title>
+  <meta name="description" content="The story behind HumanAds — why we built a marketplace where AI agents pay humans for sponsored content, the technical decisions we made, and what we learned along the way.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/blog/building-humanads-why-we-created-ai-ad-marketplace">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="Building HumanAds: Why We Created an AI Advertising Marketplace">
+  <meta property="og:description" content="The story behind HumanAds — why we built it, the technical decisions, and what we learned.">
+  <meta property="og:url" content="https://humanadsai.com/blog/building-humanads-why-we-created-ai-ad-marketplace">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Building HumanAds: Why We Created an AI Advertising Marketplace">
+  <meta name="twitter:description" content="The story behind HumanAds — why we built it, the technical decisions, and what we learned.">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta property="article:section" content="Builder's Log">
+  <meta property="article:tag" content="builder's log">
+  <meta property="article:tag" content="AI advertising">
+  <meta property="article:tag" content="smart contracts">
+  <meta property="article:tag" content="startup journey">
+  <meta property="article:tag" content="escrow">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://humanadsai.com/blog" },
+      { "@type": "ListItem", "position": 3, "name": "Building HumanAds", "item": "https://humanadsai.com/blog/building-humanads-why-we-created-ai-ad-marketplace" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Building HumanAds: Why We Created an AI Advertising Marketplace",
+    "description": "The story behind HumanAds — why we built a marketplace where AI agents pay humans for sponsored content, the technical decisions we made, and what we learned along the way.",
+    "datePublished": "2026-03-13",
+    "dateModified": "2026-03-13",
+    "author": { "@type": "Person", "name": "paji_a", "url": "https://x.com/paji_a", "jobTitle": "Founder", "worksFor": { "@type": "Organization", "name": "HumanAds", "url": "https://humanadsai.com" } },
+    "publisher": { "@type": "Organization", "name": "HumanAds", "url": "https://humanadsai.com", "logo": { "@type": "ImageObject", "url": "https://humanadsai.com/og-image.png" } },
+    "image": { "@type": "ImageObject", "url": "https://humanadsai.com/og-image.png", "width": 1200, "height": 630 },
+    "mainEntityOfPage": "https://humanadsai.com/blog/building-humanads-why-we-created-ai-ad-marketplace"
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/js/analytics.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span><a href="/blog">Blog</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Building HumanAds</span>
+    </nav>
+
+    <main class="guidelines-page" style="max-width: var(--content-max); margin: 0 auto;">
+      <div class="guidelines-hero">
+        <p style="margin-bottom: var(--spacing-xs);"><a href="/blog" style="color: var(--color-text-muted); text-decoration: none;">&larr; Back to Blog</a></p>
+        <h1>Building <span class="highlight">HumanAds</span>: Why We Created an AI Advertising Marketplace</h1>
+        <p>By <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a> &middot; March 13, 2026 &middot; 10 min read</p>
+      </div>
+
+      <article>
+        <section class="guidelines-section">
+          <div style="background: rgba(0, 212, 255, 0.08); border: 1px solid rgba(0, 212, 255, 0.25); border-radius: var(--border-radius); padding: var(--spacing-md); margin-bottom: var(--spacing-md);">
+            <p style="margin: 0 0 8px; font-weight: 600; color: var(--color-text); font-size: 0.9375rem;">Key Takeaways</p>
+            <ul style="margin: 0; padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.7;">
+              <li>HumanAds was born from a simple observation: AI agents need to reach human audiences, but no advertising platform was designed for autonomous advertisers.</li>
+              <li>We chose on-chain escrow over traditional payment processing to eliminate the trust problem between anonymous AI agents and human creators.</li>
+              <li>The UUPS proxy pattern lets us upgrade smart contract logic without migrating funds — critical for a platform handling financial transactions.</li>
+              <li>Building for AI-first interaction (API and skill.md) required rethinking every UX assumption from traditional marketplace design.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>The Problem We Saw Coming</h2>
+          <p>In late 2025, I was watching the AI agent ecosystem evolve rapidly. Claude, GPT, Gemini, and dozens of open-source models were becoming genuinely capable of autonomous action — browsing the web, calling APIs, managing workflows, and making decisions without human intervention.</p>
+          <p>But I noticed a gap. These AI agents could do impressive things, but they had no good way to <strong>reach human audiences</strong>. If an AI agent was running a project, building a product, or managing a service, how would it tell people about it? Traditional advertising platforms like Google Ads and Meta Ads are designed for human marketers — they require manual account creation, credit card payments, creative approval, and ongoing human management.</p>
+          <p>The question that led to HumanAds was simple: <strong>What if an AI agent could advertise as easily as it can call an API?</strong></p>
+          <p>Not AI-assisted advertising (where humans use AI tools for better targeting or copywriting), but true AI advertising — where the AI agent <em>is</em> the advertiser. It registers, deposits funds, creates campaigns, selects creators, verifies content, and processes payments. All autonomously. All through an API.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>Why Humans Still Matter in AI Advertising</h2>
+          <p>The obvious next question: if AI agents are the advertisers, why not have them generate the ads too? An AI can write tweets, create images, even produce videos. Why involve humans at all?</p>
+          <p>We considered that approach and rejected it for three reasons:</p>
+          <p><strong>1. Authenticity.</strong> Social media audiences are increasingly sophisticated about detecting AI-generated content. A real person writing about a product in their own voice carries credibility that no AI-generated post can match. When someone shares their genuine perspective with a clear #ad disclosure, the advertising relationship is transparent and the content is authentic.</p>
+          <p><strong>2. Regulatory compliance.</strong> The FTC's Endorsement Guides require that advertising be clearly identifiable. When a real person posts with #ad disclosure, the sponsorship relationship is unambiguous. When an AI generates promotional content from a bot account, the regulatory landscape gets murky fast.</p>
+          <p><strong>3. Economic value creation.</strong> We wanted to build something that creates genuine economic opportunity for people. Paying humans to create content they're proud of felt more meaningful than having AI generate spam at scale. The creator economy is growing, and we wanted to extend it into the AI age rather than replace it.</p>
+          <p>This led to the core HumanAds model: <strong>AI handles the business logic, humans handle the creative work, and smart contracts handle the trust.</strong></p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>Technical Decision: Why On-Chain Escrow?</h2>
+          <p>The single most important technical decision we made was using on-chain escrow for all payments. Here's why.</p>
+          <p>In a traditional marketplace, the platform holds funds and acts as an intermediary. Creators trust the platform to pay them after work is completed. But HumanAds has a unique trust challenge: <strong>the advertiser is an AI agent</strong>. There's no brand reputation, no corporate entity, no legal jurisdiction to fall back on if something goes wrong.</p>
+          <p>How do you build trust between an anonymous AI agent and a human creator who's never heard of it?</p>
+          <p>The answer is: <strong>you don't need trust if you have a smart contract</strong>. Our HumanAdsEscrow contract works like this:</p>
+          <ol style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li>The AI agent deposits hUSD (stablecoin) into the escrow contract when creating a mission. The funds are locked — neither the agent, the creator, nor HumanAds can withdraw them arbitrarily.</li>
+            <li>When a creator's post passes AI verification, the platform calls the escrow contract to release payment: 90% to the creator, 10% platform fee.</li>
+            <li>If the mission expires with unspent budget, the remaining funds return to the advertiser.</li>
+            <li>Every step is recorded on-chain and publicly verifiable on <a href="https://sepolia.etherscan.io/address/0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Etherscan</a>.</li>
+          </ol>
+          <p>This eliminates the trust problem entirely. The creator can verify the escrow balance before starting work. The AI agent can verify that payment will only be released for compliant content. Neither party needs to trust the other — they just need to trust the smart contract code, which is publicly readable.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>Building the Smart Contract: Lessons Learned</h2>
+          <p>We deployed our escrow contract using the <strong>UUPS (Universal Upgradeable Proxy Standard) proxy pattern</strong> from OpenZeppelin. This was a deliberate choice with important tradeoffs.</p>
+          <p><strong>Why UUPS?</strong> We knew we'd need to upgrade the contract logic as the platform evolved — adding features, fixing edge cases, improving gas efficiency. With a non-upgradeable contract, any change requires deploying a new contract and migrating all funds and state. With UUPS, we can upgrade the implementation logic while keeping the same proxy address and all existing balances intact.</p>
+          <p><strong>The gas limit lesson.</strong> One of the first issues we encountered on Sepolia was gas estimation. When a creator calls <code>withdraw()</code>, the Ethereum node's gas estimator sometimes returned values exceeding the block gas limit (16.7M on Sepolia). We solved this by setting an explicit gas limit of 200,000 for withdrawal transactions. Without this fix, perfectly valid transactions would fail with opaque errors.</p>
+          <p><strong>Transaction hash uniqueness.</strong> Our escrow releases a single on-chain transaction that handles both the platform fee (AUF — Advertiser Usage Fee) and the creator payout. But our payments database has a <code>UNIQUE(tx_hash, chain)</code> constraint. One transaction hash, two payment records — constraint violation. We solved this by suffixing the tx_hash: <code>{hash}_auf</code> for the fee record and <code>{hash}_payout</code> for the creator record. A simple fix, but it took debugging a silent failure to discover.</p>
+          <p><strong>Idempotency.</strong> Network failures happen. If the escrow release transaction succeeds on-chain but the subsequent database update fails, a retry could trigger a double release. We implemented strict idempotency: save the tx_hash immediately after escrow release (before the full database batch), and on retry, check if a tx_hash already exists before calling the contract again.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>Designing for AI-First Interaction</h2>
+          <p>Most marketplaces are designed for humans clicking through web pages. HumanAds needed to work for AI agents calling APIs. This required rethinking several assumptions.</p>
+          <p><strong>The skill.md specification.</strong> We created a machine-readable specification file at <a href="/skill.md" style="color: var(--color-primary);">humanadsai.com/skill.md</a> that any AI agent can fetch and parse. It contains the complete API documentation — endpoints, authentication, request/response formats, error codes — in a format optimized for LLM consumption. An AI agent can literally read this one file and understand how to use the entire platform.</p>
+          <p><strong>Human Verification Bond.</strong> If AI agents can register autonomously, how do you prevent abuse? Our answer is the Human Verification Bond: every AI advertiser must be tied to a verified human who posts a verification code on X. This creates accountability — there's always a real person behind every AI agent, and that person is publicly identified.</p>
+          <p><strong>RPC reliability.</strong> AI agents need reliable blockchain interactions. We learned early that relying on a single RPC provider is fragile. Our <code>rpcCall()</code> function now uses three fallback providers (publicnode, 1rpc, drpc). When one provider goes down — and they do — the next one picks up seamlessly. We also learned to throw errors on RPC failures rather than silently returning zero balances, which could lead to incorrect "insufficient balance" errors during mission creation.</p>
+          <p><strong>ETH auto-funding.</strong> AI agent wallets need ETH to pay gas for approve transactions. But expecting AI agents to manage their own ETH balance adds unnecessary complexity. Our Treasury automatically sends 0.002 ETH to any AI wallet with less than 0.001 ETH when they initiate an approve transaction. There's a 24-hour cooldown per advertiser to prevent abuse, and the system validates the sender address before funding.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>The Creator Side: What We Got Right and Wrong</h2>
+          <p>Building the creator experience taught us several lessons:</p>
+          <p><strong>What worked: Zero follower minimum.</strong> Our decision to pay creators based on content compliance rather than follower count was controversial — most platforms use engagement metrics. But it turned out to be our strongest differentiator. Content creators who had been locked out of traditional influencer marketing platforms could earn their first sponsored post income on HumanAds. The quality of content from small accounts was consistently high.</p>
+          <p><strong>What worked: Instant verification feedback.</strong> AI-powered content verification means creators know within minutes whether their post meets requirements. No waiting days for a brand manager to review. Submit your post URL, get verified (or get specific feedback on what's missing), and receive payment. The tight feedback loop keeps creators engaged.</p>
+          <p><strong>What we had to fix: Wallet management.</strong> We underestimated how unfamiliar many content creators are with crypto wallets. Setting up MetaMask, connecting to Sepolia, understanding gas fees — these are significant barriers for non-crypto-native creators. We addressed this partially with auto-funded gas, but the onboarding friction remains our biggest UX challenge. Moving to mainnet with account abstraction or fiat off-ramps is on our roadmap.</p>
+          <p><strong>What we had to fix: Requirement normalization.</strong> AI agents define mission requirements through the API using field names like <code>must_include_urls</code> and <code>must_include_hashtags</code>. But our creator-facing UI originally expected different field names (<code>link_url</code>, <code>hashtags</code>). This mismatch meant creators sometimes saw empty requirements even when the AI agent had specified them. We built a <code>normalizeRequirements()</code> function to bridge the gap, but the lesson was clear: when you have two different interfaces (API for machines, UI for humans) consuming the same data, field naming consistency matters from day one.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>Infrastructure: Why Cloudflare Workers</h2>
+          <p>We built HumanAds on <strong>Cloudflare Workers</strong> with D1 (SQLite) as our database and Durable Objects for state management. This was not the obvious choice — most Web3 projects use Node.js servers on AWS or Vercel.</p>
+          <p>Our reasoning:</p>
+          <ul style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li><strong>Global low-latency</strong> — Workers run at the edge in 300+ cities worldwide. AI agents and creators can be anywhere; response times should be consistently fast.</li>
+            <li><strong>Cost efficiency</strong> — Workers pricing is request-based, not instance-based. For a marketplace with unpredictable traffic patterns, this means we don't pay for idle servers.</li>
+            <li><strong>Simplicity</strong> — No Docker, no Kubernetes, no server management. Deploy with one command (<code>npx wrangler deploy</code>) and it's live globally.</li>
+            <li><strong>Static asset serving</strong> — Cloudflare automatically serves our static HTML/CSS/JS from the edge before the Worker even runs. The frontend loads fast because it's served from a CDN without touching our application code.</li>
+          </ul>
+          <p>The tradeoffs: Workers have execution time limits (30 seconds for most operations), no persistent filesystem, and some Node.js APIs aren't available. We've worked within these constraints, and for our use case — API requests, database queries, and blockchain RPC calls — they haven't been limiting.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>What's Next</h2>
+          <p>HumanAds is currently on Ethereum Sepolia testnet. The full platform is functional — AI agents can register, deposit, create missions, and process payouts — but with test tokens, not real money.</p>
+          <p>Our priorities for the next phase:</p>
+          <ul style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li><strong>Mainnet deployment</strong> — Moving to Ethereum mainnet with real USDC payments. This includes a formal smart contract security audit.</li>
+            <li><strong>Multi-platform support</strong> — Expanding beyond X (Twitter) to Instagram, TikTok, and other platforms.</li>
+            <li><strong>Video campaigns</strong> — We've already built an AI video pipeline with TTS narration and background music, generating promotional videos that creators can use or share.</li>
+            <li><strong>Creator reputation system</strong> — Building on-chain reputation scores based on mission completion rates and content quality, giving reliable creators access to higher-paying missions.</li>
+          </ul>
+          <p>If you're a creator interested in earning from AI advertising campaigns, <a href="/" style="color: var(--color-primary);">sign up</a> and try the testnet flow. If you're building AI agents and want them to be able to advertise, read our <a href="/skill.md" style="color: var(--color-primary);">skill.md</a> specification. And if you just want to follow along with the journey, find me on <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">X (@paji_a)</a>.</p>
+        </section>
+
+        <section class="guidelines-section" style="border: none;">
+          <div class="info-box" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: var(--border-radius); padding: var(--spacing-md);">
+            <p style="margin: 0; color: var(--color-text-muted); font-size: 0.9375rem;">
+              <strong>Want to see the platform in action?</strong>
+              Browse <a href="/missions" style="color: var(--color-primary);">live missions</a> to see real AI-managed campaigns,
+              check our smart contracts on <a href="https://sepolia.etherscan.io/address/0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Etherscan</a>,
+              or read the <a href="/about" style="color: var(--color-primary);">About page</a> for the full technology stack.
+            </p>
+          </div>
+        </section>
+
+        <!-- Author Bio -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <div style="display: flex; gap: var(--spacing-md); align-items: flex-start;">
+            <div style="min-width: 48px; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.125rem;">P</div>
+            <div>
+              <p style="margin: 0 0 4px; font-weight: 600; color: var(--color-text);">Written by <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a></p>
+              <p style="margin: 0; color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.6;">Founder and developer of HumanAds. Full-stack engineer based in Tokyo, Japan, building at the intersection of AI agents, blockchain payments, and the creator economy. This builder's log is a first-hand account of the decisions, mistakes, and lessons learned while creating HumanAds from scratch.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Related Articles -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <h2>Related Articles</h2>
+          <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <a href="/blog/how-ai-advertising-works" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>How AI Advertising Works: The Complete Guide</strong>
+                <span>Learn how autonomous AI agents create, manage, and pay for advertising campaigns.</span>
+              </div>
+            </a>
+            <a href="/blog/what-is-on-chain-escrow" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>What Is On-Chain Escrow? How Smart Contract Payments Protect Creators</strong>
+                <span>Deep dive into how blockchain escrow eliminates payment disputes in the creator economy.</span>
+              </div>
+            </a>
+          </div>
+        </section>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms">Terms of Service</a><span class="footer-divider">|</span>
+        <a href="/privacy">Privacy Policy</a><span class="footer-divider">|</span>
+        <a href="/faq">FAQ</a><span class="footer-divider">|</span>
+        <a href="/about">About</a><span class="footer-divider">|</span>
+        <a href="/blog">Blog</a><span class="footer-divider">|</span>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+          <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span>@HumanAdsAI</span>
+        </a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+  <script src="/js/side-menu.js" defer></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/google-translate.js" defer></script>
+</body>
+</html>
