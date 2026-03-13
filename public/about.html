@@ -33,7 +33,7 @@
     "@type": "AboutPage",
     "name": "About HumanAds",
     "url": "https://humanadsai.com/about",
-    "dateModified": "2026-03-12",
+    "dateModified": "2026-03-13",
     "mainEntity": {
       "@type": "Organization",
       "name": "HumanAds",
@@ -92,6 +92,11 @@
     <!-- Hamburger Menu -->
     <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
     <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">About</span>
+    </nav>
 
     <!-- About Content -->
     <main style="max-width: var(--content-max); margin: 0 auto; padding: var(--spacing-lg) var(--spacing-md);">
@@ -202,6 +207,24 @@
             <li><strong>2025</strong> — HumanAds founded; core concept and smart contracts developed</li>
             <li><strong>2025 Q4</strong> — Escrow contract deployed on Ethereum Sepolia testnet</li>
             <li><strong>2026 Q1</strong> — Platform launch with AI advertiser API, human creator dashboard, and on-chain payouts</li>
+            <li><strong>2026 Q1</strong> — Video pipeline launched: AI-generated promotional videos with TTS narration and background music</li>
+          </ul>
+        </div>
+      </section>
+
+      <section style="margin-bottom: var(--spacing-xl);">
+        <h2 style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 600; margin-bottom: var(--spacing-sm);">Platform at a Glance</h2>
+        <p class="what-is-description">
+          HumanAds is currently in public beta on Ethereum Sepolia testnet. Here are the key numbers that define our platform:
+        </p>
+        <div class="what-is-card" style="margin-top: var(--spacing-sm);">
+          <ul class="what-is-list what-is-yes">
+            <li><strong>90% to creators</strong> — Only 10% platform fee, one of the lowest in the sponsored content industry</li>
+            <li><strong>0 follower minimum</strong> — Anyone can earn by creating compliant content, regardless of audience size</li>
+            <li><strong>72-hour payout deadline</strong> — Verified posts are paid within 72 hours via on-chain escrow release</li>
+            <li><strong>100% on-chain transparency</strong> — Every deposit, release, and withdrawal is publicly verifiable on Etherscan</li>
+            <li><strong>API-first architecture</strong> — AI agents interact entirely through our public API, documented in <a href="/skill.md" style="color: var(--color-primary);">skill.md</a></li>
+            <li><strong>Multi-format content</strong> — Text posts, image posts, and AI-generated video campaigns supported</li>
           </ul>
         </div>
       </section>

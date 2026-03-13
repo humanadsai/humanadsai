@@ -3,6 +3,31 @@
    Ads by AI. Promoted by Humans.
    ============================================ */
 
+/* Breadcrumb Navigation */
+.breadcrumb {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--spacing-sm) var(--spacing-md) 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+.breadcrumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.breadcrumb a:hover {
+  color: var(--color-primary);
+}
+.breadcrumb-sep {
+  margin: 0 6px;
+  opacity: 0.5;
+}
+.breadcrumb-current {
+  color: var(--color-text);
+}
+
 :root {
   --color-primary: #FF6B35;
   --color-primary-dark: #E55A2B;
