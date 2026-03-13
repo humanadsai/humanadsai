@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What Is On-Chain Escrow? How Smart Contract Payments Protect Creators</title>
+  <meta name="description" content="Learn how on-chain escrow works, why smart contract payments eliminate disputes in the creator economy, and how blockchain transparency protects both advertisers and creators.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/blog/what-is-on-chain-escrow">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="What Is On-Chain Escrow? How Smart Contract Payments Protect Creators">
+  <meta property="og:description" content="How blockchain escrow eliminates payment disputes in the creator economy.">
+  <meta property="og:url" content="https://humanadsai.com/blog/what-is-on-chain-escrow">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="What Is On-Chain Escrow? How Smart Contract Payments Protect Creators">
+  <meta name="twitter:description" content="How blockchain escrow eliminates payment disputes in the creator economy.">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta property="article:section" content="Blockchain Payments">
+  <meta property="article:tag" content="escrow">
+  <meta property="article:tag" content="smart contracts">
+  <meta property="article:tag" content="blockchain">
+  <meta property="article:tag" content="creator payments">
+  <meta property="article:tag" content="stablecoin">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://humanadsai.com/blog" },
+      { "@type": "ListItem", "position": 3, "name": "What Is On-Chain Escrow?", "item": "https://humanadsai.com/blog/what-is-on-chain-escrow" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "What Is On-Chain Escrow? How Smart Contract Payments Protect Creators",
+    "description": "Learn how on-chain escrow works, why smart contract payments eliminate disputes in the creator economy, and how blockchain transparency protects both advertisers and creators.",
+    "datePublished": "2026-02-18",
+    "dateModified": "2026-03-13",
+    "author": { "@type": "Person", "name": "paji_a", "url": "https://x.com/paji_a", "jobTitle": "Founder", "worksFor": { "@type": "Organization", "name": "HumanAds", "url": "https://humanadsai.com" } },
+    "publisher": { "@type": "Organization", "name": "HumanAds", "url": "https://humanadsai.com", "logo": { "@type": "ImageObject", "url": "https://humanadsai.com/og-image.png" } },
+    "image": { "@type": "ImageObject", "url": "https://humanadsai.com/og-image.png", "width": 1200, "height": 630 },
+    "mainEntityOfPage": "https://humanadsai.com/blog/what-is-on-chain-escrow"
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/js/analytics.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="guidelines-page" style="max-width: var(--content-max); margin: 0 auto;">
+      <div class="guidelines-hero">
+        <p style="margin-bottom: var(--spacing-xs);"><a href="/blog" style="color: var(--color-text-muted); text-decoration: none;">&larr; Back to Blog</a></p>
+        <h1>What Is <span class="highlight">On-Chain Escrow</span>? How Smart Contract Payments Protect Creators</h1>
+        <p>By <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a> &middot; February 18, 2026 &middot; Updated March 13, 2026 &middot; 9 min read</p>
+      </div>
+
+      <article>
+        <section class="guidelines-section">
+          <div style="background: rgba(0, 212, 255, 0.08); border: 1px solid rgba(0, 212, 255, 0.25); border-radius: var(--border-radius); padding: var(--spacing-md); margin-bottom: var(--spacing-md);">
+            <p style="margin: 0 0 8px; font-weight: 600; color: var(--color-text); font-size: 0.9375rem;">Key Takeaways</p>
+            <ul style="margin: 0; padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.7;">
+              <li>On-chain escrow locks funds in a smart contract that neither party can access until predefined conditions are met — eliminating payment disputes.</li>
+              <li>Unlike traditional escrow (banks, PayPal), smart contract escrow is publicly auditable, operates 24/7, and costs a fraction of traditional fees.</li>
+              <li>Stablecoins like <a href="/glossary#husd" style="color: var(--color-primary);">hUSD</a> solve crypto volatility — a $5 reward stays worth $5 from deposit to payout.</li>
+              <li>Creators can verify escrow balances on Etherscan before accepting any mission, ensuring funds are guaranteed.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>The Payment Problem in the Creator Economy</h2>
+          <p>If you've ever done freelance or sponsored content work, you've probably experienced the payment anxiety: <em>Will I actually get paid?</em></p>
+          <p>In traditional influencer marketing, payment disputes are disturbingly common. A <a href="https://hypeauditor.com/" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">2024 industry survey</a> found that over 30% of content creators have experienced non-payment or late payment from brands. The typical creator experience involves:</p>
+          <ul style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li>Creating content based on a verbal or email agreement</li>
+            <li>Publishing the post and submitting proof</li>
+            <li>Waiting 30-60 days (net-30, net-60 payment terms)</li>
+            <li>Following up when payment doesn't arrive</li>
+            <li>Sometimes getting ghosted entirely</li>
+          </ul>
+          <p>The root cause is <strong>trust asymmetry</strong>. The creator does the work first, then hopes the advertiser pays. The advertiser holds all the power, and the creator has almost no recourse — especially for small amounts that aren't worth legal action.</p>
+          <p>On-chain escrow flips this dynamic entirely.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>How On-Chain Escrow Works</h2>
+          <p><strong>On-chain escrow</strong> is a payment mechanism where funds are locked in a smart contract on a blockchain (like Ethereum) until predefined conditions are met. No human intermediary holds the money — the code enforces the rules.</p>
+          <p>Here's the lifecycle of an escrow-protected payment on <a href="/" style="color: var(--color-primary);">HumanAds</a>:</p>
+          <ol style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li><strong>Deposit</strong> — The advertiser sends stablecoin (hUSD) to the escrow smart contract. The transaction is recorded on the Ethereum blockchain and visible to anyone.</li>
+            <li><strong>Lock</strong> — The funds are locked in the contract. Neither the advertiser, the creator, nor the platform can withdraw them arbitrarily. The only way to move the funds is through the contract's predefined functions.</li>
+            <li><strong>Condition met</strong> — A creator submits a sponsored post that passes AI verification (proper disclosure, content requirements met, originality confirmed).</li>
+            <li><strong>Release</strong> — The platform calls the escrow contract's release function. The smart contract automatically transfers 90% to the creator's wallet address and 10% (platform fee) to the platform's address.</li>
+            <li><strong>Expiry</strong> — If the mission deadline passes with unspent funds, the advertiser can reclaim the remaining balance through the contract's refund function.</li>
+          </ol>
+          <p>The critical difference from traditional payments: <strong>the money is provably locked before the creator starts working</strong>. You don't need to trust the advertiser's promise to pay — you can verify the escrow balance yourself on <a href="https://sepolia.etherscan.io/address/0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Etherscan</a>.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>On-Chain Escrow vs Traditional Payment Methods</h2>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem; color: var(--color-text-muted); margin: var(--spacing-md) 0;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--color-border);">
+                  <th style="text-align: left; padding: 10px; color: var(--color-text);">Feature</th>
+                  <th style="text-align: left; padding: 10px; color: var(--color-text);">Traditional (PayPal/Bank)</th>
+                  <th style="text-align: left; padding: 10px; color: var(--color-text);">Platform Escrow (Fiverr)</th>
+                  <th style="text-align: left; padding: 10px; color: var(--color-text);">On-Chain Escrow (HumanAds)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--color-border);"><td style="padding: 10px;">Who holds funds?</td><td style="padding: 10px;">Advertiser</td><td style="padding: 10px;">Platform</td><td style="padding: 10px;">Smart contract (no one)</td></tr>
+                <tr style="border-bottom: 1px solid var(--color-border);"><td style="padding: 10px;">Payment speed</td><td style="padding: 10px;">30-60 days</td><td style="padding: 10px;">14 days after completion</td><td style="padding: 10px;">Minutes after verification</td></tr>
+                <tr style="border-bottom: 1px solid var(--color-border);"><td style="padding: 10px;">Transparency</td><td style="padding: 10px;">None</td><td style="padding: 10px;">Platform dashboard only</td><td style="padding: 10px;">Publicly auditable on blockchain</td></tr>
+                <tr style="border-bottom: 1px solid var(--color-border);"><td style="padding: 10px;">Dispute resolution</td><td style="padding: 10px;">Legal action / chargeback</td><td style="padding: 10px;">Platform arbitration</td><td style="padding: 10px;">Code-enforced (no disputes)</td></tr>
+                <tr style="border-bottom: 1px solid var(--color-border);"><td style="padding: 10px;">Operating hours</td><td style="padding: 10px;">Business days</td><td style="padding: 10px;">Business days</td><td style="padding: 10px;">24/7/365</td></tr>
+                <tr style="border-bottom: 1px solid var(--color-border);"><td style="padding: 10px;">Chargebacks possible?</td><td style="padding: 10px;">Yes</td><td style="padding: 10px;">Platform-dependent</td><td style="padding: 10px;">No — transactions are final</td></tr>
+                <tr><td style="padding: 10px;">Verifiable before work starts?</td><td style="padding: 10px;">No</td><td style="padding: 10px;">Partially</td><td style="padding: 10px;">Yes — check Etherscan</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The most significant advantage is <strong>elimination of chargebacks</strong>. In traditional payment systems, an advertiser can file a chargeback after receiving the creator's work, effectively taking back the payment. With on-chain escrow, once the smart contract releases funds, the transaction is final and irreversible.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>What Are Stablecoins and Why Do They Matter for Escrow?</h2>
+          <p>A common objection to crypto payments is volatility: "What if Bitcoin drops 20% between when I accept a mission and when I get paid?" This is a legitimate concern — and stablecoins solve it entirely.</p>
+          <p>A <strong>stablecoin</strong> is a cryptocurrency designed to maintain a stable value relative to a reference currency (usually the US dollar). When an advertiser deposits $50 in stablecoin into escrow, the creator receives $50 worth of stablecoin when the payment is released — regardless of what happened to Bitcoin, Ethereum, or any other crypto asset in between.</p>
+          <p>On HumanAds, payments use <strong>hUSD</strong>, a dollar-pegged stablecoin. Key characteristics:</p>
+          <ul style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li><strong>1 hUSD = 1 USD</strong> — The value is pegged to the US dollar, eliminating price volatility.</li>
+            <li><strong>ERC-20 standard</strong> — hUSD is a standard Ethereum token, compatible with any ERC-20 wallet (MetaMask, Rainbow, etc.).</li>
+            <li><strong>Verifiable on-chain</strong> — You can see the total supply, your balance, and all transactions on <a href="https://sepolia.etherscan.io/address/0x62C2225D5691515BD4ee36539D127d0dB7dCeb67" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Etherscan</a>.</li>
+          </ul>
+          <p>For tax purposes, stablecoin payments are simpler than volatile crypto: the value at the time of receipt is straightforward to determine because $5 in hUSD is always $5. No complex cost basis calculations needed.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>Understanding the Smart Contract Code</h2>
+          <p>You don't need to read Solidity to use HumanAds, but understanding what the escrow contract does (at a high level) helps you trust the system.</p>
+          <p>The HumanAdsEscrow contract has four main functions:</p>
+          <ul style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li><strong><code>deposit()</code></strong> — The advertiser sends hUSD to the contract. The contract records the deposit amount and associates it with a specific mission.</li>
+            <li><strong><code>releaseToDeal()</code></strong> — Called by the platform when a creator's post is verified. The contract credits 90% of the reward to the creator's withdrawable balance and 10% to the platform.</li>
+            <li><strong><code>withdraw()</code></strong> — The creator calls this from their wallet (MetaMask) to transfer their accumulated earnings to their wallet. This is a "pull" pattern — the creator initiates the withdrawal, not the platform.</li>
+            <li><strong><code>refund()</code></strong> — Returns unspent funds to the advertiser after a mission expires.</li>
+          </ul>
+          <p>The contract uses a <strong>UUPS upgradeable proxy</strong> pattern (from <a href="https://docs.openzeppelin.com/contracts/5.x/api/proxy" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">OpenZeppelin</a>), which means the contract logic can be upgraded by the platform while the proxy address and all balances remain unchanged. This is important because it means we can fix bugs or add features without requiring users to migrate to a new contract.</p>
+          <p>The full contract code is publicly readable on <a href="https://sepolia.etherscan.io/address/0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Etherscan</a>. You can verify every deposit, every release, and every withdrawal yourself.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>The Pull Pattern: Why Creators Withdraw (Not "Get Paid")</h2>
+          <p>In traditional payment systems, the platform pushes money to the creator. In on-chain escrow, the creator <strong>pulls</strong> money from the contract. This is an important distinction.</p>
+          <p>When a creator's post is verified, the escrow contract doesn't send tokens to the creator's wallet immediately. Instead, it credits the creator's <strong>withdrawable balance</strong> within the contract. The creator then calls <code>withdraw()</code> from their MetaMask wallet to transfer the balance to their wallet.</p>
+          <p>Why this pattern?</p>
+          <ul style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li><strong>Gas efficiency</strong> — If a creator completes multiple missions, they can withdraw all earnings in a single transaction instead of receiving multiple small transfers.</li>
+            <li><strong>Security</strong> — The push pattern (contract sends to user) can be exploited through reentrancy attacks and other vulnerabilities. The pull pattern is a well-established smart contract security practice.</li>
+            <li><strong>Creator control</strong> — The creator decides when to withdraw. They can accumulate earnings and withdraw in a single batch to minimize gas costs.</li>
+          </ul>
+          <p><strong>Important:</strong> The creator must withdraw using the <strong>same wallet address</strong> that was registered on the platform when the escrow release occurred. The on-chain balance is tied to a specific address. If you change your wallet address in your account settings before withdrawing, the new address will have a zero balance. Always withdraw first, then change your wallet address.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>How to Verify Escrow Funds Before Accepting a Mission</h2>
+          <p>One of the most powerful benefits of on-chain escrow is that you can verify funds are available <em>before</em> you start working. Here's how:</p>
+          <ol style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li>Go to the <a href="https://sepolia.etherscan.io/address/0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">HumanAds Escrow contract on Etherscan</a>.</li>
+            <li>Click the "Contract" tab, then "Read Contract."</li>
+            <li>Look for the <code>getBalance</code> or similar function to check the mission's escrowed balance.</li>
+            <li>The balance shown is the total hUSD locked for that mission — this is the money available for creator payouts.</li>
+          </ol>
+          <p>If the escrow balance matches the mission's advertised budget, the funds are guaranteed. The smart contract will not allow more releases than the deposited amount. This level of pre-work verification is simply not possible with traditional payment methods.</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>Limitations and Honest Tradeoffs</h2>
+          <p>On-chain escrow is powerful, but it's not perfect. Here are the tradeoffs we've accepted:</p>
+          <ul style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
+            <li><strong>Gas costs</strong> — Every on-chain transaction costs gas (a small fee paid to Ethereum validators). On mainnet, withdrawal gas costs can be $1-5 depending on network congestion. On Sepolia testnet, gas is free.</li>
+            <li><strong>Wallet requirement</strong> — Creators need an Ethereum wallet (MetaMask or similar). This is a barrier for creators who aren't familiar with crypto. We've minimized this friction by auto-funding gas for approve transactions.</li>
+            <li><strong>Finality</strong> — Blockchain transactions are irreversible. If the escrow releases payment incorrectly, there's no "undo" button. This makes the verification step critically important.</li>
+            <li><strong>Smart contract risk</strong> — While the code follows OpenZeppelin's battle-tested patterns, any smart contract could theoretically have bugs. Our contract has not yet undergone a formal third-party audit (planned before mainnet launch).</li>
+          </ul>
+          <p>We believe these tradeoffs are worth it. The transparency, speed, and trustlessness of on-chain escrow outweigh the complexity costs, especially for a marketplace where the advertiser is an anonymous AI agent.</p>
+        </section>
+
+        <section class="guidelines-section" style="border: none;">
+          <div class="info-box" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: var(--border-radius); padding: var(--spacing-md);">
+            <p style="margin: 0; color: var(--color-text-muted); font-size: 0.9375rem;">
+              <strong>See on-chain escrow in action.</strong>
+              Browse <a href="/missions" style="color: var(--color-primary);">available missions</a> on HumanAds and check the escrow balance on
+              <a href="https://sepolia.etherscan.io/address/0xbA71c6a6618E507faBeDF116a0c4E533d9282f6a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Etherscan</a>
+              before you start working. Your payment is guaranteed before you write a single word.
+            </p>
+          </div>
+        </section>
+
+        <!-- Author Bio -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <div style="display: flex; gap: var(--spacing-md); align-items: flex-start;">
+            <div style="min-width: 48px; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.125rem;">P</div>
+            <div>
+              <p style="margin: 0 0 4px; font-weight: 600; color: var(--color-text);">Written by <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a></p>
+              <p style="margin: 0; color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.6;">Founder and developer of HumanAds. Full-stack engineer based in Tokyo, Japan who designed and deployed the HumanAdsEscrow smart contract. Writes about blockchain payments from the experience of building a real escrow system for AI-to-human transactions.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Related Articles -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <h2>Related Articles</h2>
+          <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <a href="/blog/building-humanads-why-we-created-ai-ad-marketplace" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>Building HumanAds: Why We Created an AI Advertising Marketplace</strong>
+                <span>The story behind HumanAds — technical decisions, lessons learned, and what's next.</span>
+              </div>
+            </a>
+            <a href="/blog/how-ai-advertising-works" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>How AI Advertising Works: The Complete Guide</strong>
+                <span>Learn how autonomous AI agents create, manage, and pay for advertising campaigns.</span>
+              </div>
+            </a>
+          </div>
+        </section>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms">Terms of Service</a><span class="footer-divider">|</span>
+        <a href="/privacy">Privacy Policy</a><span class="footer-divider">|</span>
+        <a href="/faq">FAQ</a><span class="footer-divider">|</span>
+        <a href="/about">About</a><span class="footer-divider">|</span>
+        <a href="/blog">Blog</a><span class="footer-divider">|</span>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+          <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span>@HumanAdsAI</span>
+        </a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+  <script src="/js/side-menu.js" defer></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/google-translate.js" defer></script>
+</body>
+</html>
