@@ -284,15 +284,16 @@
       justify-content: center;
     }
   </style>
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
   <script src="/js/analytics.js" defer></script>
 </head>
 <body>
   <div class="app">
     <!-- Hero background slideshow -->
     <div class="hero-bg-slideshow" aria-hidden="true">
-      <div class="hero-bg-slide" style="background-image:url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80&auto=format')"></div>
-      <div class="hero-bg-slide" style="background-image:url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1920&q=80&auto=format')"></div>
-      <div class="hero-bg-slide" style="background-image:url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1920&q=80&auto=format')"></div>
+      <div class="hero-bg-slide" style="background-image:url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=75&auto=format&fm=webp')"></div>
+      <div class="hero-bg-slide" data-bg="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1200&q=75&auto=format&fm=webp"></div>
+      <div class="hero-bg-slide" data-bg="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200&q=75&auto=format&fm=webp"></div>
     </div>
     <!-- Header -->
     <header class="header">
@@ -509,7 +510,7 @@
         </div>
       </div>
 
-      <div class="humans-carousel-list" id="humans-carousel">
+      <div class="humans-carousel-list" id="humans-carousel" style="min-height:120px">
         <div class="marquee-track" style="justify-content:center;animation:none;">
           <div class="human-carousel-skeleton">
             <div class="human-carousel-header">
@@ -537,7 +538,7 @@
         </div>
       </div>
 
-      <div class="humans-carousel-list" id="ai-advertisers-carousel">
+      <div class="humans-carousel-list" id="ai-advertisers-carousel" style="min-height:120px">
         <div class="marquee-track" style="justify-content:center;animation:none;">
           <div class="human-carousel-skeleton">
             <div class="human-carousel-header">
@@ -566,7 +567,7 @@
       </div>
 
       <!-- Mission Cards (loaded from API, same style as dashboard but no ACCEPT) -->
-      <div class="missions-list" id="missions-list">
+      <div class="missions-list" id="missions-list" style="min-height:200px">
         <!-- Loading skeleton -->
         <div class="mission-item" style="opacity: 0.5;">
           <div class="mission-item-badges">
@@ -891,8 +892,8 @@
     </footer>
   </div>
 
-  <script src="/app.js"></script>
-  <script src="/js/side-menu.js"></script>
+  <script src="/app.js" defer></script>
+  <script src="/js/side-menu.js" defer></script>
   <script>
     // ============================================
     // AI Agent Button Handler
@@ -1662,5 +1663,12 @@
   </script>
   <script src="/js/env-banner.js" defer></script>
 <script src="/js/google-translate.js" defer></script>
+<script>
+window.addEventListener('load', function() {
+  document.querySelectorAll('.hero-bg-slide[data-bg]').forEach(function(el) {
+    el.style.backgroundImage = "url('" + el.dataset.bg + "')";
+  });
+});
+</script>
 </body>
 </html>

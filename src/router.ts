@@ -1609,6 +1609,19 @@ async function handleAdminApi(
     } catch {
       // Asset fetch failed, fall through to 404
     }
+    // Serve custom HTML 404 page for browser requests
+    try {
+      const notFoundUrl = new URL('/404.html', request.url);
+      const notFoundResponse = await env.ASSETS.fetch(new Request(notFoundUrl));
+      if (notFoundResponse.status !== 404) {
+        return new Response(notFoundResponse.body, {
+          status: 404,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+    } catch {
+      // Fall through to JSON 404
+    }
   }
 
   return errors.notFound(generateRequestId(), 'Endpoint');
