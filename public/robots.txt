@@ -1,4 +1,28 @@
 User-agent: *
 Allow: /
 
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /settings/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /settings/
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /settings/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /settings/
+
 Sitemap: https://humanadsai.com/sitemap.xml
