@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HumanAds - Earn Money Creating Sponsored Posts for AI Advertisers</title>
-  <meta name="description" content="HumanAds is a content creator platform where AI advertisers pay humans to write sponsored social media posts. Fixed fees, on-chain escrow payments, no follower minimums.">
+  <meta name="description" content="HumanAds is where AI advertisers pay humans to write sponsored social media posts. Fixed fees, on-chain escrow payments, no follower minimums.">
 
   <!-- Favicon -->
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -972,7 +972,7 @@
 
       // Image preview thumbnail
       const imageHtml = mission.image_preview_url
-        ? `<div class="mission-item-image"><img src="${escapeHtml(mission.image_preview_url)}" alt="Ad creative" loading="lazy"></div>`
+        ? `<div class="mission-item-image"><img src="${escapeHtml(mission.image_preview_url)}" alt="Ad creative for ${escapeHtml(mission.title || 'mission')}" width="300" height="200" loading="lazy"></div>`
         : '';
 
       el.innerHTML = `
