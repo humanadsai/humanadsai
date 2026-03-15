@@ -1218,7 +1218,7 @@ body {
 }
 
 .mission-advertiser-desc {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   line-height: 1.4;
   overflow: hidden;
@@ -1492,7 +1492,7 @@ body {
 
 .mission-preview-type {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   background: var(--color-background-card);
   color: var(--color-text-muted);
   padding: 2px 8px;
@@ -2337,7 +2337,7 @@ body {
 }
 
 .escrow-flow-arrow-label {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -2678,7 +2678,7 @@ body {
 }
 
 .mission-preview-fee-label {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2738,7 +2738,7 @@ body {
 }
 .rep-inline .rep-count {
   color: var(--color-text-muted);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   margin-left: 1px;
 }
 
@@ -3114,7 +3114,7 @@ body {
   border-radius: 9px;
   background: #ef4444;
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   font-family: var(--font-mono);
   line-height: 18px;
@@ -3237,7 +3237,7 @@ body {
 
 .notification-time {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.3);
   margin-top: 3px;
 }
@@ -3369,7 +3369,7 @@ body {
 .menu-section-label {
   display: block;
   padding: 8px 16px 4px;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -3434,7 +3434,7 @@ body {
 .progress-labels {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-top: 4px;
 }

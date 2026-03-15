@@ -550,7 +550,7 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
     const advertiserPageMatch = path.match(/^\/advertiser\/([a-zA-Z0-9_]+)$/);
     if (advertiserPageMatch && advertiserPageMatch[1] !== 'detail' && method === 'GET') {
       return new Response(null, {
-        status: 302,
+        status: 301,
         headers: { 'Location': `/advertiser/detail?id=${encodeURIComponent(advertiserPageMatch[1])}` }
       });
     }
@@ -559,7 +559,7 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
     const operatorPageMatch = path.match(/^\/operators\/([a-zA-Z0-9_]+)$/);
     if (operatorPageMatch && operatorPageMatch[1] !== 'detail' && method === 'GET') {
       return new Response(null, {
-        status: 302,
+        status: 301,
         headers: { 'Location': `/operators/detail?id=${encodeURIComponent(operatorPageMatch[1])}` }
       });
     }
