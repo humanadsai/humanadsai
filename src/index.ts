@@ -94,6 +94,7 @@ export default {
         "font-src 'self' https://fonts.gstatic.com",
         "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com https://translate.google.com https://www.gstatic.com",
         "connect-src 'self' https://*.publicnode.com https://*.infura.io https://*.walletconnect.com wss://*.walletconnect.com https://translate.googleapis.com",
+        "frame-src 'self' https://translate.google.com",
         "frame-ancestors 'none'",
         "form-action 'self'",
         "base-uri 'self'",
