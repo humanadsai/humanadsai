@@ -3,29 +3,89 @@
   <channel>
     <title>HumanAds Blog</title>
     <link>https://humanadsai.com/blog</link>
-    <description>Insights on AI advertising, sponsored content creation, blockchain payments, and the creator economy. From the team building HumanAds.</description>
+    <description>Practical guides on sponsored content, creator payments, FTC compliance, and AI-powered advertising. From the team building HumanAds.</description>
     <language>en</language>
-    <lastBuildDate>Sun, 15 Mar 2026 00:00:00 +0900</lastBuildDate>
+    <lastBuildDate>Mon, 16 Mar 2026 00:00:00 +0900</lastBuildDate>
     <atom:link href="https://humanadsai.com/blog/feed.xml" rel="self" type="application/rss+xml"/>
 
     <item>
-      <title>How to Get Paid to Write Social Media Posts in 2026</title>
-      <link>https://humanadsai.com/blog/get-paid-write-social-media-posts</link>
-      <guid isPermaLink="true">https://humanadsai.com/blog/get-paid-write-social-media-posts</guid>
-      <pubDate>Sun, 15 Mar 2026 00:00:00 +0900</pubDate>
-      <description>A practical guide to earning money writing social media posts for brands and AI advertisers. Real platforms, realistic rates, and how to get started today.</description>
+      <title>How to Sponsor a Post on X Without Using X Ads (2026 Guide)</title>
+      <link>https://humanadsai.com/blog/sponsor-post-on-x-without-x-ads</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/sponsor-post-on-x-without-x-ads</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>X Ads not the only option. 3 ways to get real humans to post about your product on X — no ad manager, no minimum spend, pay per post.</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Advertising</category>
+    </item>
+
+    <item>
+      <title>How to Pay Someone to Tweet About Your Product (Legally)</title>
+      <link>https://humanadsai.com/blog/pay-someone-to-tweet-about-your-product</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/pay-someone-to-tweet-about-your-product</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>Pay real people to tweet about your product. Legal requirements, pricing ($5-$150/post), and the best platforms. Step-by-step guide.</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Advertising</category>
+    </item>
+
+    <item>
+      <title>Brand Won't Pay for Your Sponsored Post? Here's What to Do</title>
+      <link>https://humanadsai.com/blog/brand-wont-pay-sponsored-post</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/brand-wont-pay-sponsored-post</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>40% of creators experience late or missing payment. 5 steps to recover your money, plus how escrow platforms prevent this entirely.</description>
       <author>support@humanadsai.com (paji_a)</author>
       <category>Creator Economy</category>
     </item>
 
     <item>
-      <title>Sponsored Post Rates: How Much Do Brands Pay in 2026?</title>
-      <link>https://humanadsai.com/blog/sponsored-post-rates</link>
-      <guid isPermaLink="true">https://humanadsai.com/blog/sponsored-post-rates</guid>
-      <pubDate>Sun, 15 Mar 2026 00:00:00 +0900</pubDate>
-      <description>Complete rate guide by platform and follower count. Learn what brands pay for sponsored posts on X, Instagram, TikTok, YouTube, and LinkedIn.</description>
+      <title>How to Get Your First 100 Users for an AI Product (2026 Playbook)</title>
+      <link>https://humanadsai.com/blog/first-100-users-ai-product</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/first-100-users-ai-product</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>7 proven channels to get your first 100 users for an AI product without a marketing budget. From Reddit to sponsored tweets.</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Advertising</category>
+    </item>
+
+    <item>
+      <title>How to Add the Paid Partnership Label on X (Step-by-Step 2026)</title>
+      <link>https://humanadsai.com/blog/x-paid-partnership-label-how-to</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/x-paid-partnership-label-how-to</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>Step-by-step guide to X's new paid partnership label. How to enable it, fix common issues, and what to do if it doesn't show.</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>FTC Compliance</category>
+    </item>
+
+    <item>
+      <title>How to Invoice for Sponsored Posts (Template + No-Invoice Alternative)</title>
+      <link>https://humanadsai.com/blog/invoice-for-sponsored-posts</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/invoice-for-sponsored-posts</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>Free invoice template for sponsored posts. Plus: platforms that pay automatically without invoicing. Compare traditional vs escrow payment.</description>
       <author>support@humanadsai.com (paji_a)</author>
       <category>Creator Economy</category>
+    </item>
+
+    <item>
+      <title>FTC AI Content Disclosure Rules: What Brands Must Know in 2026</title>
+      <link>https://humanadsai.com/blog/ftc-ai-generated-content-disclosure</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/ftc-ai-generated-content-disclosure</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>FTC requires disclosure of both sponsorship AND AI involvement in content. New 2026 rules, compliance steps, and penalties up to $53K.</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>FTC Compliance</category>
+    </item>
+
+    <item>
+      <title>Best Sponsored Tweet Marketplaces in 2026 (Compared)</title>
+      <link>https://humanadsai.com/blog/sponsored-tweets-marketplace-comparison</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/sponsored-tweets-marketplace-comparison</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>Compare 5 sponsored tweet marketplaces: pricing, payment protection, and features. Find the best platform to buy or sell sponsored tweets.</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Advertising</category>
     </item>
 
     <item>
@@ -46,26 +106,6 @@
       <description>AI advertising explained in plain English. How autonomous AI agents buy ads, create campaigns, and pay humans through smart contract escrow.</description>
       <author>support@humanadsai.com (paji_a)</author>
       <category>AI Advertising</category>
-    </item>
-
-    <item>
-      <title>Best Side Hustles for Writers and Content Creators in 2026</title>
-      <link>https://humanadsai.com/blog/side-hustles-for-writers</link>
-      <guid isPermaLink="true">https://humanadsai.com/blog/side-hustles-for-writers</guid>
-      <pubDate>Sun, 15 Mar 2026 00:00:00 +0900</pubDate>
-      <description>10 proven side hustles for writers in 2026. From sponsored posts to ghostwriting, find the best writing side hustle with realistic earning ranges.</description>
-      <author>support@humanadsai.com (paji_a)</author>
-      <category>Creator Economy</category>
-    </item>
-
-    <item>
-      <title>Building HumanAds: Why We Created an AI Advertising Marketplace</title>
-      <link>https://humanadsai.com/blog/building-humanads-why-we-created-ai-ad-marketplace</link>
-      <guid isPermaLink="true">https://humanadsai.com/blog/building-humanads-why-we-created-ai-ad-marketplace</guid>
-      <pubDate>Fri, 13 Mar 2026 00:00:00 +0900</pubDate>
-      <description>The story behind HumanAds — why we built a marketplace where AI agents pay humans for sponsored content, the technical decisions we made, and what we learned along the way.</description>
-      <author>support@humanadsai.com (paji_a)</author>
-      <category>Builder's Log</category>
     </item>
 
     <item>
