@@ -89,11 +89,11 @@ export default {
       // CSP はHTMLレスポンスにのみ適用
       const cspHeader = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net", // CDN scripts (ethers.js etc.)
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://analytics.ahrefs.com https://translate.google.com https://translate.googleapis.com", // CDN scripts + Ahrefs + Google Translate
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com",
-        "connect-src 'self' https://*.publicnode.com https://*.infura.io https://*.walletconnect.com wss://*.walletconnect.com",
+        "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com https://translate.google.com https://www.gstatic.com",
+        "connect-src 'self' https://*.publicnode.com https://*.infura.io https://*.walletconnect.com wss://*.walletconnect.com https://translate.googleapis.com",
         "frame-ancestors 'none'",
         "form-action 'self'",
         "base-uri 'self'",
