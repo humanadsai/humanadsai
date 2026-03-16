@@ -89,11 +89,11 @@ export default {
       // CSP はHTMLレスポンスにのみ適用
       const cspHeader = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://analytics.ahrefs.com https://translate.google.com https://translate.googleapis.com", // CDN scripts + Ahrefs + Google Translate
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://analytics.ahrefs.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com https://www.gstatic.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com https://translate.google.com https://www.gstatic.com",
-        "connect-src 'self' https://*.publicnode.com https://*.infura.io https://*.walletconnect.com wss://*.walletconnect.com https://translate.googleapis.com",
+        "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com https://translate.google.com https://www.gstatic.com https://fonts.gstatic.com",
+        "connect-src 'self' https://*.publicnode.com https://*.infura.io https://*.walletconnect.com wss://*.walletconnect.com https://translate.googleapis.com https://translate-pa.googleapis.com",
         "frame-src 'self' https://translate.google.com",
         "frame-ancestors 'none'",
         "form-action 'self'",

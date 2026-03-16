@@ -287,15 +287,12 @@
   </div>
 
   <script src="/app.js"></script>
-  <script src="/js/side-menu.js" defer></script>
+  <script src="/js/side-menu.js"></script>
   <script src="/js/wallet-alert.js"></script>
   <script>
     let currentStatus = '';
     let currentType = 'all';
     let isAuthenticated = false;
-
-    // Initialize side menu (logged-in page)
-    SideMenu.init(true);
 
     async function loadData(status = '', type = 'all') {
       const listEl = document.getElementById('missions-list');
@@ -928,6 +925,7 @@
 
     // Initialize - load all data
     document.addEventListener('DOMContentLoaded', () => {
+      if (typeof SideMenu !== 'undefined') SideMenu.init(true);
       loadData();
       loadUserAvatar();
     });

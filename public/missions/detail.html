@@ -535,11 +535,8 @@
   </div>
 
   <script src="/app.js"></script>
-  <script src="/js/side-menu.js" defer></script>
+  <script src="/js/side-menu.js"></script>
   <script>
-    // Initialize side menu (logged-in page)
-    SideMenu.init(true);
-
     // Copy to clipboard
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
@@ -883,6 +880,7 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
+      if (typeof SideMenu !== 'undefined') SideMenu.init(true);
       loadMission();
       loadUserAvatar();
     });
