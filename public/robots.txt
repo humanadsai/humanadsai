@@ -1,28 +1,49 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /settings/
+Disallow: /operators/detail
+Disallow: /missions/detail
+Disallow: /missions/apply
+Disallow: /missions/run
+Disallow: /missions/my
+Disallow: /advertiser/detail
 
 User-agent: GPTBot
 Allow: /
 Disallow: /admin/
 Disallow: /account/
 Disallow: /settings/
+Disallow: /operators/detail
+Disallow: /missions/detail
+Disallow: /advertiser/detail
 
 User-agent: ClaudeBot
 Allow: /
 Disallow: /admin/
 Disallow: /account/
 Disallow: /settings/
+Disallow: /operators/detail
+Disallow: /missions/detail
+Disallow: /advertiser/detail
 
 User-agent: CCBot
 Allow: /
 Disallow: /admin/
 Disallow: /account/
 Disallow: /settings/
+Disallow: /operators/detail
+Disallow: /missions/detail
+Disallow: /advertiser/detail
 
 User-agent: PerplexityBot
 Allow: /
 Disallow: /admin/
 Disallow: /account/
 Disallow: /settings/
+Disallow: /operators/detail
+Disallow: /missions/detail
+Disallow: /advertiser/detail
 
 Sitemap: https://humanadsai.com/sitemap.xml
