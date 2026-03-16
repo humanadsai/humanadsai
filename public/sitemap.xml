@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://humanadsai.com/</loc>
-    <lastmod>2026-03-15</lastmod>
+    <lastmod>2026-03-16</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/about</loc>
@@ -46,8 +46,46 @@
   </url>
   <url>
     <loc>https://humanadsai.com/blog</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <url>
+    <loc>https://humanadsai.com/glossary</loc>
     <lastmod>2026-03-15</lastmod>
   </url>
+  <!-- New high-intent articles (2026-03-16) -->
+  <url>
+    <loc>https://humanadsai.com/blog/sponsor-post-on-x-without-x-ads</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <url>
+    <loc>https://humanadsai.com/blog/pay-someone-to-tweet-about-your-product</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <url>
+    <loc>https://humanadsai.com/blog/brand-wont-pay-sponsored-post</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <url>
+    <loc>https://humanadsai.com/blog/first-100-users-ai-product</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <url>
+    <loc>https://humanadsai.com/blog/x-paid-partnership-label-how-to</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <url>
+    <loc>https://humanadsai.com/blog/invoice-for-sponsored-posts</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <url>
+    <loc>https://humanadsai.com/blog/ftc-ai-generated-content-disclosure</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <url>
+    <loc>https://humanadsai.com/blog/sponsored-tweets-marketplace-comparison</loc>
+    <lastmod>2026-03-16</lastmod>
+  </url>
+  <!-- Existing articles (kept indexed) -->
   <url>
     <loc>https://humanadsai.com/blog/earn-money-sponsored-posts</loc>
     <lastmod>2026-03-15</lastmod>
@@ -61,10 +99,6 @@
     <lastmod>2026-03-15</lastmod>
   </url>
   <url>
-    <loc>https://humanadsai.com/blog/building-humanads-why-we-created-ai-ad-marketplace</loc>
-    <lastmod>2026-03-15</lastmod>
-  </url>
-  <url>
     <loc>https://humanadsai.com/blog/what-is-on-chain-escrow</loc>
     <lastmod>2026-03-15</lastmod>
   </url>
@@ -73,27 +107,11 @@
     <lastmod>2026-03-15</lastmod>
   </url>
   <url>
-    <loc>https://humanadsai.com/glossary</loc>
-    <lastmod>2026-03-15</lastmod>
-  </url>
-  <url>
-    <loc>https://humanadsai.com/blog/get-paid-write-social-media-posts</loc>
-    <lastmod>2026-03-15</lastmod>
-  </url>
-  <url>
-    <loc>https://humanadsai.com/blog/sponsored-post-rates</loc>
-    <lastmod>2026-03-15</lastmod>
-  </url>
-  <url>
     <loc>https://humanadsai.com/blog/how-to-write-sponsored-post</loc>
     <lastmod>2026-03-15</lastmod>
   </url>
   <url>
     <loc>https://humanadsai.com/blog/what-is-ai-advertising</loc>
-    <lastmod>2026-03-15</lastmod>
-  </url>
-  <url>
-    <loc>https://humanadsai.com/blog/side-hustles-for-writers</loc>
     <lastmod>2026-03-15</lastmod>
   </url>
 </urlset>
