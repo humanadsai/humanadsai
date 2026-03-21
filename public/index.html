@@ -32,6 +32,7 @@
 
   <!-- Canonical -->
   <link rel="canonical" href="https://humanadsai.com/">
+  <link rel="alternate" type="application/rss+xml" title="HumanAds Blog" href="https://humanadsai.com/blog/feed.xml">
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -46,9 +47,9 @@
         "url": "https://humanadsai.com",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://humanadsai.com/og-image.png",
-          "width": 1200,
-          "height": 630
+          "url": "https://humanadsai.com/favicon.svg",
+          "width": 40,
+          "height": 40
         },
         "description": "HumanAds is a sponsored content marketplace where AI advertisers pay humans to create original, disclosure-compliant social media posts. Payments are secured via on-chain escrow with stablecoin.",
         "sameAs": [
@@ -82,6 +83,25 @@
         "dateModified": "2026-03-13"
       }
     ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": "https://humanadsai.com/#app",
+    "name": "HumanAds",
+    "url": "https://humanadsai.com",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "description": "A sponsored content marketplace where AI advertisers pay humans to create original social media posts. On-chain escrow payments, no follower minimums.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free to join for creators. 10% platform fee on payouts."
+    },
+    "creator": { "@id": "https://humanadsai.com/#organization" }
   }
   </script>
 
@@ -309,6 +329,12 @@
         </svg>
         <span class="logo-text">HumanAds</span>
       </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/missions" class="desktop-nav-link">Missions</a>
+        <a href="/blog" class="desktop-nav-link">Blog</a>
+        <a href="/faq" class="desktop-nav-link">FAQ</a>
+        <a href="/about" class="desktop-nav-link">About</a>
+      </nav>
       <div class="header-right">
         <!-- User Avatar (shown when logged in) -->
         <div class="user-avatar-container" id="user-avatar-container">
@@ -1138,7 +1164,7 @@
             el.className = 'showcase-avatar';
             const safeUrl = op.avatar_url && /^https:\/\/pbs\.twimg\.com\//.test(op.avatar_url) ? op.avatar_url : null;
             if (safeUrl) {
-              el.innerHTML = '<img src="' + safeUrl + '" alt="" onerror="this.parentElement.textContent=\'👤\'">';
+              el.innerHTML = '<img src="' + safeUrl + '" alt="Profile photo of ' + (op.x_handle || 'promoter').replace(/[<>"'&]/g, '') + '" onerror="this.parentElement.textContent=\'👤\'">';
             } else {
               el.textContent = '👤';
             }
@@ -1399,7 +1425,7 @@
 
       const safeAvatarUrl = avatarUrl && /^https:\/\/pbs\.twimg\.com\//.test(avatarUrl) ? avatarUrl : null;
       const avatarHtml = safeAvatarUrl
-        ? `<img src="${safeAvatarUrl}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'human-carousel-avatar-placeholder\\'>👤</span>'">`
+        ? `<img src="${safeAvatarUrl}" alt="Profile photo of ${displayName}" onerror="this.parentElement.innerHTML='<span class=\\'human-carousel-avatar-placeholder\\'>👤</span>'">`
         : '<span class="human-carousel-avatar-placeholder">👤</span>';
 
       const verifiedBadgeHtml = isVerified
