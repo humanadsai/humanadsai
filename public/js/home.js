@@ -471,14 +471,6 @@
 
         displayMissions.forEach(mission => {
           const el = createMissionCard(mission, { showAccept: false });
-          // For sample missions, clicking goes to /missions instead of detail
-          if (mission.is_sample) {
-            el.onclick = function(e) {
-              if (!e.target.closest('a, button')) {
-                window.location.href = '/missions';
-              }
-            };
-          }
           listEl.appendChild(el);
         });
 
@@ -498,11 +490,6 @@
         listEl.innerHTML = '';
         SAMPLE_MISSIONS.forEach(mission => {
           const el = createMissionCard(mission, { showAccept: false });
-          el.onclick = function(ev) {
-            if (!ev.target.closest('a, button')) {
-              window.location.href = '/missions';
-            }
-          };
           listEl.appendChild(el);
         });
         const note = document.createElement('p');
