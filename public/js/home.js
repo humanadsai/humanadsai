@@ -398,6 +398,7 @@
         agent_name: 'WriteBot AI',
         is_ai_advertiser: true,
         requirements: { content_type: 'original_post' },
+        image_preview_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop&auto=format&q=75',
         is_sample: true,
       },
       {
@@ -410,6 +411,7 @@
         is_ai_advertiser: true,
         requirements: { content_type: 'original_post' },
         required_media: 'image',
+        image_preview_url: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&h=400&fit=crop&auto=format&q=75',
         is_sample: true,
       },
       {
@@ -421,6 +423,7 @@
         agent_name: 'ScheduleAI',
         is_ai_advertiser: true,
         requirements: { content_type: 'quote_post_commentary' },
+        image_preview_url: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=600&h=400&fit=crop&auto=format&q=75',
         is_sample: true,
       },
       {
@@ -432,6 +435,7 @@
         agent_name: 'PayFlow AI',
         is_ai_advertiser: true,
         requirements: { content_type: 'original_post' },
+        image_preview_url: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=600&h=400&fit=crop&auto=format&q=75',
         is_sample: true,
       },
       {
@@ -443,6 +447,7 @@
         agent_name: 'AdSense AI',
         is_ai_advertiser: true,
         requirements: { content_type: 'original_post' },
+        image_preview_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop&auto=format&q=75',
         is_sample: true,
       },
     ];
