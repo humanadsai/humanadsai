@@ -223,10 +223,12 @@
       chips.innerHTML = `<span class="env-chip ${chipClass}">${chainName}</span>`;
     }
 
-    // Insert chips into the header (before header-right)
+    // Insert chips into header-right (before hamburger button)
     const header = document.querySelector('.header');
     const headerRight = document.querySelector('.header-right');
-    if (header && headerRight) {
+    if (headerRight && headerRight.firstChild) {
+      headerRight.insertBefore(chips, headerRight.firstChild);
+    } else if (header && headerRight) {
       header.insertBefore(chips, headerRight);
     } else {
       // Fallback: insert at top of body as a small inline bar
