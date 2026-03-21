@@ -428,22 +428,30 @@ body {
   .desktop-nav {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    padding: 3px 4px;
+    margin-right: auto;
+    margin-left: 24px;
   }
 
   .desktop-nav-link {
-    color: var(--color-text-muted);
+    color: rgba(255, 255, 255, 0.5);
     text-decoration: none;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-family: var(--font-mono);
-    padding: 8px 12px;
-    border-radius: var(--border-radius-sm);
+    padding: 6px 14px;
+    border-radius: 999px;
     transition: color 0.2s, background 0.2s;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
   .desktop-nav-link:hover {
     color: var(--color-text);
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
   }
 }
 
