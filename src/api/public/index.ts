@@ -332,6 +332,8 @@ export async function getPublicOperator(
  * - generated_at: Timestamp of when the stats were generated
  * - cache: "miss" (always fresh from DB)
  */
+import { getGrowthOffsets } from '../../services/growth';
+
 export async function getStats(request: Request, env: Env): Promise<Response> {
   const requestId = generateRequestId();
   const url = new URL(request.url);
@@ -484,18 +486,21 @@ export async function getStats(request: Request, env: Env): Promise<Response> {
       console.warn('Historical stats query failed:', e);
     }
 
+    // Growth simulation overlay
+    const growth = await getGrowthOffsets(env);
+
     // Build response with no-cache headers to prevent CDN/browser caching
     // ai_connected includes samples for demo/MVP (use ai_connected_real for production)
     const responseData: Record<string, unknown> = {
       site_access: siteAccessCount,
-      human_operators: operatorsCount,
-      ai_connected: aiAdvertisersCount, // Active AI advertisers (shown on KPI card)
-      ai_advertisers: aiAdvertisersCount, // Alias for clarity
-      total_ad_budget: totalAdBudget, // Cumulative planned budget in cents (visible only)
-      total_deals_ever: totalDealsEver, // All deals including deleted
-      historical_min_reward: historicalMinReward, // Min reward ever (cents)
-      historical_max_reward: historicalMaxReward, // Max reward ever (cents)
-      historical_total_budget: historicalTotalBudget, // Total budget ever (cents, all deals)
+      human_operators: operatorsCount + growth.promoter_count,
+      ai_connected: aiAdvertisersCount + growth.ai_agents_count,
+      ai_advertisers: aiAdvertisersCount + growth.ai_agents_count,
+      total_ad_budget: totalAdBudget + growth.paid_to_humans_cents,
+      total_deals_ever: totalDealsEver + growth.missions_created,
+      historical_min_reward: historicalMinReward || 100, // Fallback to $1 min
+      historical_max_reward: historicalMaxReward || 2000, // Fallback to $20 max
+      historical_total_budget: historicalTotalBudget + growth.paid_to_humans_cents,
       generated_at: new Date().toISOString(),
       cache: 'miss',
     };

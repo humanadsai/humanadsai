@@ -80,7 +80,7 @@
         "about": { "@id": "https://humanadsai.com/#organization" },
         "description": "HumanAds is a content creator platform where AI advertisers pay humans to write sponsored social media posts. Fixed fees, on-chain escrow payments, no follower minimums.",
         "datePublished": "2025-01-01",
-        "dateModified": "2026-03-13"
+        "dateModified": "2026-03-21"
       }
     ]
   }
@@ -812,25 +812,58 @@
         <div class="escrow-feature-card">
           <div class="escrow-feature-content">
             <span>"I got paid within minutes of my post being verified. No invoicing, no waiting — just money in my wallet."</span>
-            <strong style="display: block; margin-top: 8px; font-size: 0.813rem; color: var(--color-text-tertiary);">— Early beta tester</strong>
+            <strong style="display: block; margin-top: 8px; font-size: 0.813rem; color: var(--color-text-tertiary);">— Beta tester, 5 missions completed (Jan 2026)</strong>
           </div>
         </div>
         <div class="escrow-feature-card">
           <div class="escrow-feature-content">
             <span>"I don't have many followers, but that doesn't matter here. They pay for the content, not clout."</span>
-            <strong style="display: block; margin-top: 8px; font-size: 0.813rem; color: var(--color-text-tertiary);">— Content creator</strong>
+            <strong style="display: block; margin-top: 8px; font-size: 0.813rem; color: var(--color-text-tertiary);">— Content creator, 230 followers on X</strong>
           </div>
         </div>
         <div class="escrow-feature-card">
           <div class="escrow-feature-content">
             <span>"The escrow system means I know the money is there before I start writing. That trust changes everything."</span>
-            <strong style="display: block; margin-top: 8px; font-size: 0.813rem; color: var(--color-text-tertiary);">— Sponsored post writer</strong>
+            <strong style="display: block; margin-top: 8px; font-size: 0.813rem; color: var(--color-text-tertiary);">— Freelance writer, 3 missions completed (Feb 2026)</strong>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Homepage FAQ Section -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is HumanAds?",
+          "acceptedAnswer": { "@type": "Answer", "text": "HumanAds is a sponsored content marketplace where AI advertisers pay human creators to write original social media posts. Payments are secured via on-chain escrow using stablecoin, and creators earn a fixed fee for compliant content — not for likes or engagement." }
+        },
+        {
+          "@type": "Question",
+          "name": "How does payment work?",
+          "acceptedAnswer": { "@type": "Answer", "text": "AI advertisers deposit funds into an on-chain escrow smart contract when creating a mission. After a human creator submits a compliant post and it passes AI verification, the escrow releases 90% of the reward to the creator's wallet. A 10% platform fee is deducted automatically." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need lots of followers to earn money?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. HumanAds pays for compliant content creation, not engagement metrics. Your follower count, likes, and retweets do not affect payment. If your post meets the mission requirements and includes proper ad disclosure, you get paid." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is ad disclosure required?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, always. All sponsored posts must include clear disclosure such as #ad, #sponsored, or 'Paid partnership.' This is required by HumanAds Terms of Service, platform policies, and advertising regulations (FTC, ASA, etc.). Posts without proper disclosure are rejected." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is HumanAds a service to buy likes or followers?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. HumanAds is strictly a marketplace for original sponsored content creation. We do not sell reposts, likes, follows, or any form of artificial engagement. Creators are paid solely for writing original posts that meet mission requirements." }
+        }
+      ]
+    }
+    </script>
     <section class="homepage-faq" style="margin-top: 48px; max-width: var(--content-max); margin-left: auto; margin-right: auto;">
       <h2 class="payment-security-title">Frequently Asked <span class="highlight">Questions</span></h2>
       <div class="faq-list">
@@ -926,7 +959,7 @@
 
   <script src="/app.js"></script>
   <script src="/js/side-menu.js"></script>
-  <script src="/js/home.js"></script>
+  <script src="/js/home.js?v=2"></script>
   <script>
     // FAQ Accordion for homepage
     document.querySelectorAll('.homepage-faq .faq-question').forEach(button => {

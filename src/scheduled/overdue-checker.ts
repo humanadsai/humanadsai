@@ -3,6 +3,7 @@ import { createNotificationWithEmail } from '../services/email-notifications';
 import { recalculateReputation } from '../services/reputation';
 import { escrowRefund } from '../services/onchain';
 import { processVideoPostJobs } from '../api/admin/video';
+import { updateGrowthMetrics } from '../services/growth';
 
 /**
  * Scheduled Job
@@ -30,6 +31,9 @@ export async function handleScheduled(
 
     // 3. Process video post pipeline (upload to Postiz, create posts)
     await processVideoPostJobs(env);
+
+    // 4. Update growth simulation metrics (hourly)
+    await updateGrowthMetrics(env);
 
     console.log('Scheduled checker completed successfully');
   } catch (error) {
