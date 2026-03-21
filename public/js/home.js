@@ -112,7 +112,7 @@
             ? (mission.is_accepted
                 ? `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.5;">ACCEPTED</span>`
                 : `<button class="btn btn-primary accept-btn" data-deal-id="${mission.deal_id}" style="padding: 8px 16px; font-size: 0.75rem;">ACCEPT</button>`)
-            : `<a href="/missions/detail?id=${mission.deal_id}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">VIEW</a>`
+            : `<a href="/missions/apply?id=${mission.deal_id}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">VIEW</a>`
           }
         </div>
         ${mission.created_at ? `<div style="margin-top: 8px; font-size: 0.7rem; color: var(--color-text-muted);">Posted ${HumanAds.formatRelativeTime(mission.created_at)}</div>` : ''}
@@ -132,7 +132,7 @@
         // On home page, clicking the card goes to mission detail (or signup for samples)
         el.addEventListener('click', (e) => {
           if (e.target.closest('a, button')) return;
-          window.location.href = `/missions/detail?id=${mission.deal_id}`;
+          window.location.href = `/missions/apply?id=${mission.deal_id}`;
         });
       }
 
