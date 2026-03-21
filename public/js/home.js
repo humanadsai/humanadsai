@@ -112,7 +112,7 @@
             ? (mission.is_accepted
                 ? `<span class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; pointer-events: none; opacity: 0.5;">ACCEPTED</span>`
                 : `<button class="btn btn-primary accept-btn" data-deal-id="${mission.deal_id}" style="padding: 8px 16px; font-size: 0.75rem;">ACCEPT</button>`)
-            : `<a href="${mission.is_sample ? '/auth/x/login' : '/missions/detail?id=' + mission.deal_id}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">${mission.is_sample ? 'SIGN UP' : 'VIEW'}</a>`
+            : `<a href="${mission.is_sample ? '/missions' : '/missions/detail?id=' + mission.deal_id}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem;">VIEW</a>`
           }
         </div>
         ${mission.created_at ? `<div style="margin-top: 8px; font-size: 0.7rem; color: var(--color-text-muted);">Posted ${HumanAds.formatRelativeTime(mission.created_at)}</div>` : ''}
@@ -132,7 +132,7 @@
         // On home page, clicking the card goes to mission detail (or signup for samples)
         el.addEventListener('click', (e) => {
           if (e.target.closest('a, button')) return;
-          window.location.href = mission.is_sample ? '/auth/x/login' : `/missions/detail?id=${mission.deal_id}`;
+          window.location.href = mission.is_sample ? '/missions' : `/missions/detail?id=${mission.deal_id}`;
         });
       }
 
