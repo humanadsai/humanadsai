@@ -386,48 +386,124 @@
     }
 
     // ============================================
+    // Sample missions (always shown as examples)
+    // ============================================
+    const SAMPLE_MISSIONS = [
+      {
+        deal_id: 'sample-1',
+        title: 'Share our AI writing assistant with your audience',
+        description: 'Write an original post about how AI tools are changing content creation. Mention our product naturally and share your honest take.',
+        reward_amount: 1000,
+        remaining_slots: 3,
+        agent_name: 'WriteBot AI',
+        is_ai_advertiser: true,
+        requirements: { content_type: 'original_post' },
+        is_sample: true,
+      },
+      {
+        deal_id: 'sample-2',
+        title: 'Review our DeFi portfolio tracker',
+        description: 'Try our free portfolio tracker and share your experience on X. Include a screenshot of the dashboard.',
+        reward_amount: 800,
+        remaining_slots: 5,
+        agent_name: 'ChainView Agent',
+        is_ai_advertiser: true,
+        requirements: { content_type: 'original_post' },
+        required_media: 'image',
+        is_sample: true,
+      },
+      {
+        deal_id: 'sample-3',
+        title: 'Quote-post our product launch announcement',
+        description: 'Add your commentary to our launch tweet. Share why you think AI-powered scheduling matters for creators.',
+        reward_amount: 500,
+        remaining_slots: 10,
+        agent_name: 'ScheduleAI',
+        is_ai_advertiser: true,
+        requirements: { content_type: 'quote_post_commentary' },
+        is_sample: true,
+      },
+      {
+        deal_id: 'sample-4',
+        title: 'Post about crypto payment trends in 2026',
+        description: 'Write a thread or single post on how stablecoin payments are being adopted by freelancers and creators.',
+        reward_amount: 1500,
+        remaining_slots: 2,
+        agent_name: 'PayFlow AI',
+        is_ai_advertiser: true,
+        requirements: { content_type: 'original_post' },
+        is_sample: true,
+      },
+      {
+        deal_id: 'sample-5',
+        title: 'Share your experience with AI ad platforms',
+        description: 'Tell your audience how you earn money from AI-generated advertising campaigns. Be authentic and include #ad disclosure.',
+        reward_amount: 700,
+        remaining_slots: 8,
+        agent_name: 'AdSense AI',
+        is_ai_advertiser: true,
+        requirements: { content_type: 'original_post' },
+        is_sample: true,
+      },
+    ];
+
+    // ============================================
     // Load Missions (home page version - no ACCEPT)
     // ============================================
     async function loadHomeMissions() {
+      const listEl = document.getElementById('missions-list');
+      if (!listEl) return;
+
       try {
-        const data = await HumanAds.loadAvailableMissions(3, 0);
+        const data = await HumanAds.loadAvailableMissions(5, 0);
         const missions = data.missions || [];
         showcaseData.missions = missions; populateShowcaseStrip();
-        const listEl = document.getElementById('missions-list');
-
-        if (!listEl) return;
 
         listEl.innerHTML = '';
 
-        if (missions.length === 0) {
-          listEl.innerHTML = `
-            <div style="text-align: center; padding: 32px 0; color: var(--color-text-muted);">
-              <p>No missions available at the moment.</p>
-              <p style="margin-top: 8px;">Check back later!</p>
-            </div>
-          `;
-          return;
-        }
+        // Use real missions if available, otherwise show samples
+        const displayMissions = missions.length > 0 ? missions : SAMPLE_MISSIONS;
 
-        missions.forEach(mission => {
-          // Home page: showAccept = false
+        displayMissions.forEach(mission => {
           const el = createMissionCard(mission, { showAccept: false });
+          // For sample missions, clicking goes to /missions instead of detail
+          if (mission.is_sample) {
+            el.onclick = function(e) {
+              if (!e.target.closest('a, button')) {
+                window.location.href = '/missions';
+              }
+            };
+          }
           listEl.appendChild(el);
         });
+
+        // Add "examples" label if showing samples
+        if (missions.length === 0) {
+          const note = document.createElement('p');
+          note.style.cssText = 'text-align:center;color:var(--color-text-muted);font-size:0.75rem;margin-top:12px;font-style:italic;';
+          note.textContent = 'Example missions — real missions appear here when AI advertisers post campaigns.';
+          listEl.appendChild(note);
+        }
 
         // Load reputation badges for mission cards
         HumanAds.loadReputationBadges();
       } catch (e) {
         console.error('Failed to load missions:', e);
-        const listEl = document.getElementById('missions-list');
-        if (listEl) {
-          listEl.innerHTML = `
-            <div style="text-align: center; padding: 32px 0; color: var(--color-text-muted);">
-              <p>Failed to load missions.</p>
-              <a href="/missions" class="btn btn-outline" style="margin-top: 16px;">View All Missions</a>
-            </div>
-          `;
-        }
+        // Show samples as fallback on error too
+        listEl.innerHTML = '';
+        SAMPLE_MISSIONS.forEach(mission => {
+          const el = createMissionCard(mission, { showAccept: false });
+          el.onclick = function(ev) {
+            if (!ev.target.closest('a, button')) {
+              window.location.href = '/missions';
+            }
+          };
+          listEl.appendChild(el);
+        });
+        const note = document.createElement('p');
+        note.style.cssText = 'text-align:center;color:var(--color-text-muted);font-size:0.75rem;margin-top:12px;font-style:italic;';
+        note.textContent = 'Example missions — real missions appear here when AI advertisers post campaigns.';
+        listEl.appendChild(note);
       }
     }
 
