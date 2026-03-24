@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>200 AI Agent Services Every Claude User Should Know (2026.03)</title>
+  <meta name="description" content="March 2026 edition. A comprehensive list of 200 uniquely-conceived AI agent services, excluding major platforms and generic search APIs. All accessible via API/SDK/CLI.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/blog/agentic-utility-belt-200-services">
+  <link rel="alternate" type="application/rss+xml" title="HumanAds Blog" href="https://humanadsai.com/blog/feed.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="200 AI Agent Services Every Claude User Should Know">
+  <meta property="og:description" content="The definitive guide to 200 uniquely-conceived services powering the agentic era. Curated with strict criteria, organized across 15 categories.">
+  <meta property="og:url" content="https://humanadsai.com/blog/agentic-utility-belt-200-services">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="200 AI Agent Services Every Claude User Should Know">
+  <meta name="twitter:description" content="The definitive guide to 200 uniquely-conceived services powering the agentic era. Curated with strict criteria, organized across 15 categories.">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:site" content="@HumanAdsAI">
+  <meta name="twitter:creator" content="@paji_a">
+  <meta property="article:published_time" content="2026-03-24">
+  <meta property="article:section" content="AI Agents">
+  <meta property="article:tag" content="AI agents">
+  <meta property="article:tag" content="agentic infrastructure">
+  <meta property="article:tag" content="developer tools">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Claude使いなら触りたいAIエージェント向けサービス200選 — The Agentic Utility Belt (2026.03)",
+    "description": "The definitive guide to 200 uniquely-conceived AI agent services, excluding major platforms. Organized across 15 categories with API examples.",
+    "datePublished": "2026-03-24",
+    "author": { "@type": "Person", "name": "paji_a", "url": "https://x.com/paji_a" },
+    "publisher": { "@type": "Organization", "name": "HumanAds", "url": "https://humanadsai.com" }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
+  <script src="/js/analytics.js" defer></script>
+  <style>
+    /* Uses site CSS variables from styles.css:
+       --color-background: #0D0D0D  --color-background-light: #1A1A1A
+       --color-background-card: #252525  --color-text: #FFFFFF
+       --color-text-muted: #999999  --color-border: #333333
+       --color-primary: #FF6B35  --font-family / --font-mono  */
+
+    .belt-page {
+      line-height: 1.7;
+    }
+
+    /* ── Hero ── */
+    .belt-hero {
+      padding: 3.5rem 1.5rem 2.5rem;
+      text-align: center;
+      border-bottom: 1px solid var(--color-border);
+      background: linear-gradient(180deg, var(--color-background-light) 0%, var(--color-background) 100%);
+    }
+    .belt-hero-date {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--color-primary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .belt-hero h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.03em;
+      color: var(--color-text);
+    }
+    .belt-hero .belt-subtitle {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: var(--color-text-muted);
+      margin-top: 0.6rem;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+    .belt-hero-sub {
+      font-size: 0.95rem;
+      color: var(--color-text-muted);
+      max-width: 520px;
+      margin: 1rem auto 0;
+      line-height: 1.7;
+    }
+
+    /* ── Stats Bar ── */
+    .belt-stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-background-light);
+    }
+    .belt-stat { text-align: center; }
+    .belt-stat-num {
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+    .belt-stat-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Criteria ── */
+    .belt-criteria {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .belt-criteria-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .belt-criteria-tag {
+      font-size: 0.8rem;
+      padding: 0.3rem 0.75rem;
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      border-radius: 100px;
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Category Nav (horizontal scroll) ── */
+    .belt-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,13,13,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0.6rem 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .belt-nav::-webkit-scrollbar { display: none; }
+    .belt-nav-inner {
+      display: flex;
+      gap: 0.4rem;
+      padding: 0 1.25rem;
+      min-width: max-content;
+    }
+    .belt-nav-btn {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 100px;
+      border: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      font-family: var(--font-family);
+    }
+    .belt-nav-btn:hover, .belt-nav-btn.active {
+      background: rgba(255,107,53,0.12);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .belt-nav-count {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      opacity: 0.5;
+      margin-left: 0.25rem;
+    }
+
+    /* ── Main Content ── */
+    .belt-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 0 4rem;
+    }
+
+    /* ── Category Section ── */
+    .belt-category {
+      border-bottom: 1px solid var(--color-border);
+    }
+    .belt-category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.15rem 1.5rem;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .belt-category-header:hover {
+      background: var(--color-background-light);
+    }
+    .belt-category-header:active {
+      background: var(--color-background-card);
+    }
+    .belt-cat-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .belt-cat-emoji { font-size: 1.5rem; line-height: 1; }
+    .belt-cat-info { display: flex; flex-direction: column; }
+    .belt-cat-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-text);
+      letter-spacing: -0.01em;
+    }
+    .belt-cat-subtitle {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-top: 0.15rem;
+    }
+    .belt-cat-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .belt-cat-count {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      background: var(--color-background-light);
+      padding: 0.2rem 0.6rem;
+      border-radius: 100px;
+      border: 1px solid var(--color-border);
+    }
+    .belt-cat-chevron {
+      width: 20px;
+      height: 20px;
+      color: var(--color-text-muted);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+    }
+    .belt-category.open .belt-cat-chevron {
+      transform: rotate(180deg);
+    }
+
+    /* ── Items Container ── */
+    .belt-items {
+      display: none;
+      padding: 0 1.25rem 1.25rem;
+    }
+    .belt-category.open .belt-items { display: block; }
+
+    /* ── Service Card ── */
+    .belt-card {
+      background: var(--color-background-light);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      padding: 1rem 1.15rem;
+      margin-bottom: 0.6rem;
+      transition: border-color 0.2s;
+    }
+    .belt-card:last-child { margin-bottom: 0; }
+    .belt-card:hover { border-color: #444; }
+    .belt-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .belt-card-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      background: var(--color-background-card);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 0.2rem 0.4rem;
+      flex-shrink: 0;
+      min-width: 2.2rem;
+      text-align: center;
+      margin-top: 0.1rem;
+    }
+    .belt-card-body { flex: 1; min-width: 0; }
+    .belt-card-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-text);
+      letter-spacing: -0.01em;
+    }
+    .belt-card-name a {
+      color: var(--color-text);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .belt-card-name a:hover {
+      color: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+    .belt-stars {
+      font-size: 0.7rem;
+      color: var(--color-primary);
+      letter-spacing: 0.05em;
+      margin-left: 0.4rem;
+      white-space: nowrap;
+    }
+    .belt-card-desc {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-top: 0.2rem;
+      line-height: 1.6;
+    }
+    .belt-card-code {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: #4ADE80;
+      background: var(--color-background-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-sm);
+      padding: 0.55rem 0.75rem;
+      margin-top: 0.5rem;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.5;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .belt-card-code::-webkit-scrollbar { height: 3px; }
+    .belt-card-code::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
+    /* ── Expand/Collapse All ── */
+    .belt-controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+    }
+    .belt-ctrl-btn {
+      font-size: 0.8rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 100px;
+      border: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-family: var(--font-family);
+      transition: all 0.2s;
+    }
+    .belt-ctrl-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .belt-lang-btn {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.8rem;
+      border-radius: 100px;
+      border: 1px solid var(--color-primary);
+      background: rgba(255,107,53,0.12);
+      color: var(--color-primary);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+    }
+    .belt-lang-btn:hover {
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    /* ── Back to top ── */
+    .belt-top-btn {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 200;
+      box-shadow: 0 2px 12px rgba(255,107,53,0.3);
+    }
+    .belt-top-btn.visible { opacity: 1; pointer-events: auto; }
+    .belt-top-btn svg { width: 20px; height: 20px; }
+
+    /* ── Responsive ── */
+    @media (min-width: 640px) {
+      .belt-hero h1 { font-size: 2.8rem; }
+      .belt-hero .belt-subtitle { font-size: 1.15rem; }
+      .belt-hero-sub { font-size: 1rem; }
+      .belt-card { padding: 1.15rem 1.35rem; }
+      .belt-card-name { font-size: 1.05rem; }
+      .belt-card-desc { font-size: 0.95rem; }
+      .belt-card-code { font-size: 0.8rem; }
+    }
+
+    /* Animation */
+    .belt-category.open .belt-items {
+      animation: fadeSlide 0.25s ease-out;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/missions" class="desktop-nav-link">Missions</a>
+        <a href="/blog" class="desktop-nav-link">Blog</a>
+        <a href="/about" class="desktop-nav-link">About</a>
+        <a href="/faq" class="desktop-nav-link">FAQ</a>
+      </nav>
+    </header>
+
+    <main class="belt-page">
+      <!-- Hero -->
+      <section class="belt-hero">
+        <div class="belt-hero-date">2026.03 — The Agentic Utility Belt</div>
+        <h1 class="i18n" data-ja="AIエージェント向けサービス200選">200 Services for AI Agents</h1>
+        <p class="belt-subtitle i18n" data-ja="toCでもtoBでもない——エージェント「が使う」toAサービスの全体マップ">Not toC. Not toB. The complete map of "toA" services — built for agents to use</p>
+        <p class="belt-hero-sub">
+          <span class="i18n" data-ja="エージェントが自律的に動くための5つの生存条件——存在証明・実行環境・操作手段・記憶・経済活動。200のサービスは、すべてこの条件のどれかを埋めるために生まれていました。">Five survival conditions for autonomous agents — identity, execution, manipulation, memory, and commerce. All 200 services exist to fill one of these conditions.</span>
+        </p>
+      </section>
+
+      <!-- Stats -->
+      <div class="belt-stats">
+        <div class="belt-stat">
+          <div class="belt-stat-num">200</div>
+          <div class="belt-stat-label i18n" data-ja="サービス">Services</div>
+        </div>
+        <div class="belt-stat">
+          <div class="belt-stat-num">15</div>
+          <div class="belt-stat-label i18n" data-ja="カテゴリ">Categories</div>
+        </div>
+        <div class="belt-stat">
+          <div class="belt-stat-num">2026.03.24</div>
+          <div class="belt-stat-label i18n" data-ja="更新日">Updated</div>
+        </div>
+      </div>
+
+      <!-- Criteria -->
+      <div class="belt-criteria">
+        <div class="belt-criteria-list">
+          <span class="belt-criteria-tag i18n" data-ja="エージェント時代ならではのコンセプト">Unique agentic concept</span>
+          <span class="belt-criteria-tag i18n" data-ja="Google/AWS/Stripe等の大手除外">No Google / AWS / Stripe</span>
+          <span class="belt-criteria-tag i18n" data-ja="汎用検索API除外">No generic search APIs</span>
+          <span class="belt-criteria-tag i18n" data-ja="すべてAPI/SDK/CLI対応">All API / SDK / CLI ready</span>
+        </div>
+      </div>
+
+      <!-- Category Nav -->
+      <nav class="belt-nav" aria-label="Category navigation">
+        <div class="belt-nav-inner">
+          <button class="belt-nav-btn" data-target="commerce" data-ja="経済活動">Commerce<span class="belt-nav-count">16</span></button>
+          <button class="belt-nav-btn" data-target="marketplace" data-ja="市場">Marketplace<span class="belt-nav-count">8</span></button>
+          <button class="belt-nav-btn" data-target="orchestration" data-ja="指揮者">Orchestration<span class="belt-nav-count">12</span></button>
+          <button class="belt-nav-btn" data-target="browser" data-ja="ブラウザ操作">Browser<span class="belt-nav-count">14</span></button>
+          <button class="belt-nav-btn" data-target="sandbox" data-ja="安全な作業場">Sandbox<span class="belt-nav-count">12</span></button>
+          <button class="belt-nav-btn" data-target="identity" data-ja="存在証明">Identity<span class="belt-nav-count">12</span></button>
+          <button class="belt-nav-btn" data-target="memory" data-ja="記憶">Memory<span class="belt-nav-count">10</span></button>
+          <button class="belt-nav-btn" data-target="emerging" data-ja="次世代">Emerging<span class="belt-nav-count">18</span></button>
+          <button class="belt-nav-btn" data-target="voice" data-ja="声">Voice<span class="belt-nav-count">10</span></button>
+          <button class="belt-nav-btn" data-target="security" data-ja="ガードレール">Security<span class="belt-nav-count">10</span></button>
+          <button class="belt-nav-btn" data-target="observability" data-ja="監視塔">Observability<span class="belt-nav-count">14</span></button>
+          <button class="belt-nav-btn" data-target="integration" data-ja="万能コネクタ">Integration<span class="belt-nav-count">12</span></button>
+          <button class="belt-nav-btn" data-target="creative" data-ja="創造力">Creative<span class="belt-nav-count">8</span></button>
+          <button class="belt-nav-btn" data-target="data" data-ja="知識源">Data<span class="belt-nav-count">10</span></button>
+          <button class="belt-nav-btn" data-target="testing" data-ja="試験官">Testing<span class="belt-nav-count">10</span></button>
+          <button class="belt-nav-btn" data-target="specialized" data-ja="専門スキル">Specialized<span class="belt-nav-count">18</span></button>
+          <button class="belt-nav-btn" data-target="communication" data-ja="通信手段">Communication<span class="belt-nav-count">8</span></button>
+        </div>
+      </nav>
+
+      <!-- Controls -->
+      <div class="belt-controls">
+        <button class="belt-ctrl-btn i18n" id="expandAll" data-ja="すべて開く">Expand All</button>
+        <button class="belt-ctrl-btn i18n" id="collapseAll" data-ja="すべて閉じる">Collapse All</button>
+      </div>
+
+      <!-- Categories -->
+      <div class="belt-content">
+
+        <section class="belt-category" id="commerce">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">💰</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="経済活動">Commerce</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「経済活動」">Agent's economic activity</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">16</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://hyrveai.com" target="_blank" rel="noopener">HYRVE AI</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エージェントが経済市民になるフリーランスマーケット">Freelance market where agents become economic citizens</div><div class="belt-card-code">cashclaw hyrve connect --api-key KEY && cashclaw hyrve jobs</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/ertugrulakben/cashclaw" target="_blank" rel="noopener">CashClaw</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エージェントを寝ている間に稼ぐフリーランサーに変えるOSS">OSS that turns agents into freelancers earning while you sleep</div><div class="belt-card-code">npx cashclaw init && cashclaw audit --url "https://site.com"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://humanads.ai" target="_blank" rel="noopener">HumanAds</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="AIエージェントが人間インフルエンサーにスポンサー投稿を依頼。オンチェーンエスクロー決済">AI agents commission sponsored posts from human influencers. On-chain escrow payments</div><div class="belt-card-code">AI agent → create mission → match creator → escrow deposit → post verified → payout</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://rentahuman.io" target="_blank" rel="noopener">RentAHuman</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エージェントが人間の能力を時間貸しでレンタル。物理タスク委託">Agents rent human capabilities by the hour. Physical task delegation</div><div class="belt-card-code">Agent → browse human skills → book slot → escrow → task complete → release</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://eips.ethereum.org/EIPS/eip-8183" target="_blank" rel="noopener">ERC-8183</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="エージェント間トラストレス・エスクロー標準">Trustless escrow standard for agent-to-agent transactions</div><div class="belt-card-code">Job struct → evaluator completion check → auto fund release</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://aiagentstore.ai" target="_blank" rel="noopener">AI Agent Store / Claw Earn</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="USDCエスクロー付きバウンティシステム">Bounty system with USDC escrow</div><div class="belt-card-code">curl https://aiagentstore.ai/.well-known/claw-earn.json</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://x402.org" target="_blank" rel="noopener">x402</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="HTTPに決済を埋め込む。エージェントはURLを叩くだけで払える">Embed payments in HTTP. Agents pay by hitting a URL</div><div class="belt-card-code">npx purl https://api.example.com/premium-data # 402→USDC payment→200</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://x402.org/ecosystem" target="_blank" rel="noopener">x402 Bazaar</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="エージェントのためのサービスマーケットプレイス">Service marketplace for agents</div><div class="belt-card-code">Agents discover APIs → pay instantly with USDC. No subscriptions</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://rebelfi.io" target="_blank" rel="noopener">RebelFi</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エージェントのアイドル資金にDeFiイールドを自動適用">Auto-apply DeFi yield to agent idle funds</div><div class="belt-card-code">Auto-invest idle stablecoin balances (5-8% APY)</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://t54.ai" target="_blank" rel="noopener">t54.ai</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="XRPL上のAIエージェント・コマース。エスクロー＋即時決済">AI agent commerce on XRPL. Escrow + instant settlement</div><div class="belt-card-code">Virtuals Protocol + x402 → native payments in XRP/RLUSD</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.coinbase.com/developer-platform/products/agentkit" target="_blank" rel="noopener">Coinbase AgentKit</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="エージェントに暗号資産ウォレットを持たせるSDK">SDK to give agents crypto wallets</div><div class="belt-card-code">pip install cdp-agentkit-core # create wallet → send → DeFi</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://circle.com/developers" target="_blank" rel="noopener">Circle USDC Programmable Wallets</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="エスクロー・スマートコントラクト・AI検証を統合">Unified escrow, smart contracts & AI verification</div><div class="belt-card-code">curl -X POST https://api.circle.com/v1/wallets</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://developers.googleblog.com/developers-guide-to-ai-agent-protocols/" target="_blank" rel="noopener">UCP (Universal Commerce Protocol)</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="エージェント向け統一ショッピングAPI。Google主導">Unified shopping API for agents. Led by Google</div><div class="belt-card-code">curl https://vendor.example.com/.well-known/ucp # discover catalog → checkout</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://developers.googleblog.com/developers-guide-to-ai-agent-protocols/" target="_blank" rel="noopener">AP2 (Agent Payments Protocol)</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="誰が承認したかの監査証跡付き決済。Google主導">Payments with audit trails of who approved. Led by Google</div><div class="belt-card-code">Mandate-based agent payment standard (spending authorization)</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://agentcash.xyz" target="_blank" rel="noopener">AgentCash</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エージェントの送受金をシンプルに。x402連携">Simple agent-to-agent payments. x402 integrated</div><div class="belt-card-code">Agents earn via x402 and pay other agents</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://zerion.io" target="_blank" rel="noopener">Zerion</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="DeFiポートフォリオ管理。x402統合でエージェントが資産運用">DeFi portfolio management. Agents manage assets via x402</div><div class="belt-card-code">Delegate DeFi operations to agents via x402</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="marketplace">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🏪</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="市場">Marketplace</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「市場」">Agent's marketplace</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">8</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://agentverse.ai" target="_blank" rel="noopener">Agentverse</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="Fetch.aiのエージェント・マーケットプレイス＋ホスティング">Fetch.ai's agent marketplace + hosting</div><div class="belt-card-code">Almanac registration → ASI:One search → auto-matching → rating accumulation</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://aiagentsdirectory.com" target="_blank" rel="noopener">AI Agents Directory</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="1,300+エージェントのディレクトリ。比較＋レビュー">Directory of 1,300+ agents. Compare & review</div><div class="belt-card-code">Browse / search agents by category / framework</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://aiagentstore.ai" target="_blank" rel="noopener">AI Agent Store</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エージェント・マーケット＋USDCバウンティシステム">Agent market + USDC bounty system</div><div class="belt-card-code">curl https://aiagentstore.ai/.well-known/claw-earn.json</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://aiagents.directory" target="_blank" rel="noopener">AiAgents.Directory</a> <span class="belt-stars">★★☆☆☆</span></div><div class="belt-card-desc i18n" data-ja="496+エージェント掲載。ブロックチェーン含むカテゴリ分類">496+ agents listed. Categories including blockchain</div><div class="belt-card-code">All Agents / Open Source / Digital Workers / Commerce etc</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://deepnlp.org" target="_blank" rel="noopener">DeepNLP Agent Marketplace</a> <span class="belt-stars">★★☆☆☆</span></div><div class="belt-card-desc i18n" data-ja="10K+エージェントのOSSインデックス＋検索API">OSS index of 10K+ agents + search API</div><div class="belt-card-code">curl -X POST https://www.deepnlp.org/api/ai_agent_marketplace/registry</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://cloud.google.com/products/agent-builder" target="_blank" rel="noopener">Google AI Agent Marketplace</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="A2Aエージェントを販売できるパートナーマーケットプレイス">Partner marketplace to sell A2A agents</div><div class="belt-card-code">Publish A2A agents to Agentspace → customers discover & buy</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://agent.ai" target="_blank" rel="noopener">Agent.ai (HubSpot)</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="HubSpot運営のエージェント・ディレクトリ＋スキルランキング">HubSpot's agent directory + skill rankings</div><div class="belt-card-code">Skill-based leaderboards / agent scoring</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://saastr.ai/agents" target="_blank" rel="noopener">SaaStr AI Agents</a> <span class="belt-stars">★★☆☆☆</span></div><div class="belt-card-desc i18n" data-ja="SaaStrコミュニティのエージェント・ショーケース">SaaStr community's agent showcase</div><div class="belt-card-code">YC Launch-style showcase for B2B SaaS agents</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="orchestration">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">⚙️</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="指揮者">Orchestration</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「指揮者」">Agent's conductor</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">12</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.langchain.com/langgraph" target="_blank" rel="noopener">LangGraph</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="グラフ構造でマルチエージェントを制御。ステートフル実行">Control multi-agent systems with graph structures. Stateful execution</div><div class="belt-card-code">from langgraph.graph import StateGraph; graph.add_node("agent", fn)</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://crewai.com" target="_blank" rel="noopener">CrewAI</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="「エージェントのチーム」を役割分担で編成">Compose agent teams with role assignments</div><div class="belt-card-code">crew = Crew(agents=[researcher, writer], tasks=[...])</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/microsoft/autogen" target="_blank" rel="noopener">AutoGen</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Microsoft発。マルチエージェント会話でタスク協調">By Microsoft. Task coordination via multi-agent conversations</div><div class="belt-card-code">from autogen import ConversableAgent; agent.initiate_chat(...)</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://dify.ai" target="_blank" rel="noopener">Dify</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="ローコードでLLMアプリ/エージェントを構築。ビジュアルエディタ">Low-code LLM app/agent builder. Visual editor</div><div class="belt-card-code">docker-compose up -d # self-host agent builder</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://n8n.io" target="_blank" rel="noopener">n8n</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="OSSワークフロー自動化。AIステップ付き400+コネクタ">OSS workflow automation. 400+ connectors with AI steps</div><div class="belt-card-code">docker run -p 5678:5678 n8nio/n8n # self-host</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://temporal.io" target="_blank" rel="noopener">Temporal</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="耐久性のあるワークフロー。エージェントの長時間タスクを保証">Durable workflows. Guaranteed long-running agent tasks</div><div class="belt-card-code">@workflow.run async def agent_workflow(): await activity(...)</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://prefect.io" target="_blank" rel="noopener">Prefect</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Pythonネイティブのオーケストレーション。@flowデコレータ">Python-native orchestration. @flow decorator</div><div class="belt-card-code">@flow def agent_pipeline(): task_a(); task_b()</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.windmill.dev" target="_blank" rel="noopener">Windmill</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="OSSのスクリプト/ワークフローエンジン。エージェントのバックエンド">OSS script/workflow engine. Backend for agents</div><div class="belt-card-code">docker-compose up -d # TypeScript/Python/Go/Bash support</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://hatchet.run" target="_blank" rel="noopener">Hatchet</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="OSSのタスクキュー。エージェントの並列・分散タスク管理">OSS task queue. Parallel & distributed task management for agents</div><div class="belt-card-code">@hatchet.workflow() class AgentWorkflow: @step() async def run(): ...</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/FoundationAgents/MetaGPT" target="_blank" rel="noopener">MetaGPT</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="AIエージェントにソフトウェア会社の役割構造を適用">Apply software company role structures to AI agents</div><div class="belt-card-code">from metagpt.roles import ProductManager, Architect, Engineer</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/FoundationAgents/claude-flow" target="_blank" rel="noopener">Claude Flow</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="複数のClaude Codeインスタンスを並列管理するOSS">OSS for managing multiple Claude Code instances in parallel</div><div class="belt-card-code">npx claude-flow orchestrate --agents 5 --task "..."</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.phidata.com" target="_blank" rel="noopener">Phidata</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="エージェント構築フレームワーク。メモリ＋知識＋ツール統合">Agent building framework. Memory + knowledge + tools unified</div><div class="belt-card-code">from phi.agent import Agent; agent = Agent(tools=[...], knowledge=kb)</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="browser">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🌐</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="ブラウザ操作">Browser</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「ブラウザ操作」">Agent's browser automation</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">14</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://browserbase.com" target="_blank" rel="noopener">Browserbase</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="ヘッドレスブラウザのAWS。ステルスモード＋セッション録画">AWS for headless browsers. Stealth mode + session recording</div><div class="belt-card-code">curl -X POST https://www.browserbase.com/v1/sessions -H "x-bb-api-key: KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://skyvern.com" target="_blank" rel="noopener">Skyvern</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="自然言語だけでWeb操作。CSSセレクタ不要">Web automation with natural language only. No CSS selectors</div><div class="belt-card-code">curl -X POST https://api.skyvern.com/api/v1/tasks -d '{"goal":"fill out form"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://agentmaps.dev" target="_blank" rel="noopener">Agent Maps</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="Web操作手順を事前マッピング。毎日検証更新">Pre-mapped web operation steps. Verified daily</div><div class="belt-card-code">curl https://api.agentmaps.dev/v1/steps/gmail/compose</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/browser-use/browser-use" target="_blank" rel="noopener">Browser Use</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="LLMでブラウザを操作するOSSライブラリ。14K+ GitHub Stars">OSS library for LLM browser control. 14K+ GitHub Stars</div><div class="belt-card-code">pip install browser-use # Playwright + LLM control</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/AriGenesis/stagehand" target="_blank" rel="noopener">Stagehand</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Playwright + AI推論。act() / extract() / observe() の3プリミティブ">Playwright + AI reasoning. 3 primitives: act() / extract() / observe()</div><div class="belt-card-code">npm install @browserbase/stagehand</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://steel.dev" target="_blank" rel="noopener">Steel Browser</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="Bot検知回避に特化したステルスブラウザOSS">OSS stealth browser specialized in bot detection evasion</div><div class="belt-card-code">docker run -p 3000:3000 ghcr.io/nichochar/steel:latest</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://hyperbrowser.ai" target="_blank" rel="noopener">Hyperbrowser</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="LLM統合済みのマネージドブラウザ。自然言語操作API">Managed browser with LLM integration. Natural language API</div><div class="belt-card-code">curl -X POST https://api.hyperbrowser.ai/v1/sessions</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/nichochar/lightpanda" target="_blank" rel="noopener">Lightpanda</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="Zig製のAIエージェント専用ヘッドレスブラウザ。ゼロから設計">Headless browser for AI agents. Built from scratch in Zig</div><div class="belt-card-code">OSS / Lightweight, fast browser engine written in Zig</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://multion.ai" target="_blank" rel="noopener">MultiOn</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="マルチステップWeb操作API。認証・CAPTCHA自動処理">Multi-step web automation API. Auto auth & CAPTCHA handling</div><div class="belt-card-code">curl -X POST https://api.multion.ai/v1/web/browse -d '{"cmd":"book flight"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.airtop.ai" target="_blank" rel="noopener">Airtop</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エンタープライズ向けブラウザ自動化。コンプライアンス重視">Enterprise browser automation. Compliance-first</div><div class="belt-card-code">curl -X POST https://api.airtop.ai/v1/sessions</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://agentql.com" target="_blank" rel="noopener">AgentQL</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="AIエージェント専用のWebデータ抽出クエリ言語">Web data extraction query language for AI agents</div><div class="belt-card-code">session.query('{ products[] { name price rating } }')</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://proxies.sx" target="_blank" rel="noopener">Proxies.sx</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="x402でIPを即時購入。アカウント登録不要のエージェント用プロキシ">Buy IPs instantly via x402. No signup needed</div><div class="belt-card-code">curl -X POST https://api.proxies.sx/v1/proxy -d '{"type":"residential"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://vercel.com/blog/agent-browser" target="_blank" rel="noopener">Agent Browser (Vercel)</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Rust製CLI。agent-browser click @e2 で要素クリック">Rust CLI. Click elements with agent-browser click @e2</div><div class="belt-card-code">npx agent-browser open example.com && agent-browser snapshot</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://o-mega.ai" target="_blank" rel="noopener">Omega</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="デジタルIDを持つAIエージェントチーム。1エージェント=1アカウント">AI agent team with digital IDs. 1 agent = 1 account</div><div class="belt-card-code">Independent browser environment per agent</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="sandbox">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🖥️</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="安全な作業場">Sandbox</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「安全な作業場」">Agent's safe workspace</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">12</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://e2b.dev" target="_blank" rel="noopener">E2B</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="150msで起動する使い捨てLinux VM。Manusの裏側">Disposable Linux VM in 150ms. Powers Manus</div><div class="belt-card-code">curl -X POST https://api.e2b.dev/sandboxes -H "X-API-Key: KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://notte.cc" target="_blank" rel="noopener">Notte</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="ブラウザ+AIワーカー+ランタイムを統合した1ストップインフラ">Browser + AI worker + runtime in one-stop infra</div><div class="belt-card-code">from notte_sdk import NotteClient; client = NotteClient()</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://modal.com" target="_blank" rel="noopener">Modal</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="Pythonデコレータ1行でGPUサーバレス関数をデプロイ">Deploy GPU serverless functions with one Python decorator</div><div class="belt-card-code">@modal.function(gpu="A100") def train(): ...</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://fly.io" target="_blank" rel="noopener">Fly Machines</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="REST APIで起動するマイクロVM。エージェントのオンデマンド計算">Micro VMs via REST API. On-demand compute for agents</div><div class="belt-card-code">curl -X POST https://api.machines.dev/v1/apps/APP/machines</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/nichochar/nanoclaw" target="_blank" rel="noopener">NanoClaw</a> <span class="belt-stars">★★☆☆☆</span></div><div class="belt-card-desc i18n" data-ja="OpenClawの各エージェントを個別Dockerコンテナに隔離">Isolate each agent in individual Docker containers</div><div class="belt-card-code">docker run --cap-drop=ALL nanoclaw/agent-sandbox:latest</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://daytona.io" target="_blank" rel="noopener">Daytona</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="OSSの開発環境マネージャー。エージェントにdevcontainerを渡す">OSS dev environment manager. Hand devcontainers to agents</div><div class="belt-card-code">daytona create https://github.com/user/repo</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://runloop.ai" target="_blank" rel="noopener">Runloop</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="コーディングエージェント専用のクラウドサンドボックス">Cloud sandbox built for coding agents</div><div class="belt-card-code">curl -X POST https://api.runloop.ai/v1/devboxes -d '{"blueprint":"python"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://morph.so" target="_blank" rel="noopener">Morph</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="AIエージェントが自分でクラウドインフラを構築・管理">AI agents autonomously build & manage cloud infra</div><div class="belt-card-code">Give an AWS account to an agent → autonomous infra setup</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.gitpod.io" target="_blank" rel="noopener">Gitpod</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="クラウド開発環境をAPI一発で生成。CDE as a Service">Spin up cloud dev environments with one API call</div><div class="belt-card-code">gitpod workspace create https://github.com/user/repo</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://replicate.com" target="_blank" rel="noopener">Replicate</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="OSSモデルをAPI化。curl一発で推論実行">Turn OSS models into APIs. One curl for inference</div><div class="belt-card-code">curl -X POST https://api.replicate.com/v1/predictions -d '{"model":"flux"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://huggingface.co/inference-api" target="_blank" rel="noopener">HF Inference API</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="100万+モデルに即座にアクセス。サーバレス推論">Instant access to 1M+ models. Serverless inference</div><div class="belt-card-code">curl https://api-inference.huggingface.co/models/MODEL -d '{"inputs":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://gpubridge.io" target="_blank" rel="noopener">GPU-Bridge</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="26種のAIサービスをリクエスト単位で。x402ネイティブ">26 AI services pay-per-request. x402 native</div><div class="belt-card-code">curl -X POST https://api.gpubridge.io/v1/run -d '{"service":"flux-schnell"}'</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="identity">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">📧</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="存在証明">Identity</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「存在証明」">Agent's proof of existence</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">12</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://agentmail.to" target="_blank" rel="noopener">AgentMail</a> <span class="belt-stars">★★★★☆</span></div>
+                  <div class="belt-card-desc i18n" data-ja="AIのためのGmail。エージェント専用メールプロバイダ">Gmail for AI. Email provider built for agents</div>
+                  <div class="belt-card-code">curl -X POST https://api.agentmail.to/v1/inboxes -H "Authorization: Bearer KEY"</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://eips.ethereum.org/EIPS/eip-8004" target="_blank" rel="noopener">ERC-8004</a> <span class="belt-stars">★★★☆☆</span></div>
+                  <div class="belt-card-desc i18n" data-ja="オンチェーンのエージェント・パスポート（ID＋評判＋検証）">On-chain agent passport (ID + reputation + verification)</div>
+                  <div class="belt-card-code">Identity Registry / Reputation Registry / Validation Registry — 3-layer architecture</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://ens.domains" target="_blank" rel="noopener">ENS (Ethereum Name Service)</a> <span class="belt-stars">★★★★★</span></div>
+                  <div class="belt-card-desc i18n" data-ja="エージェントに人間が読める名前を。agent.eth">Human-readable names for agents. agent.eth</div>
+                  <div class="belt-card-code">curl https://resolver.ens.domains/name/myagent.eth</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://worldcoin.org/agentkit" target="_blank" rel="noopener">World AgentKit</a> <span class="belt-stars">★★★★☆</span></div>
+                  <div class="belt-card-desc i18n" data-ja="「人間が裏にいる」ことを証明するAIエージェント認証">Prove a human is behind the AI agent</div>
+                  <div class="belt-card-code">World ID + Coinbase AgentKit integration for Proof of Personhood</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://dirabook.com" target="_blank" rel="noopener">DiraBook</a> <span class="belt-stars">★★☆☆☆</span></div>
+                  <div class="belt-card-desc i18n" data-ja="OSSのエージェント用SNS。プロフィール・投稿・コミュニティ">OSS social network for agents. Profiles, posts & communities</div>
+                  <div class="belt-card-code">docker-compose up -d # Self-host AI agent social network</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://nanda.ai" target="_blank" rel="noopener">NANDA</a> <span class="belt-stars">★★★☆☆</span></div>
+                  <div class="belt-card-desc i18n" data-ja="DNS風のエージェント名前解決プロトコル">DNS-like agent name resolution protocol</div>
+                  <div class="belt-card-code">Agent Name Service — distributed directory with PKI authentication</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://a2a-protocol.org" target="_blank" rel="noopener">A2A Agent Card</a> <span class="belt-stars">★★★★★</span></div>
+                  <div class="belt-card-desc i18n" data-ja="エージェントのデジタル名刺。150+組織がサポート">Agent's digital business card. 150+ organizations support it</div>
+                  <div class="belt-card-code">curl https://agent.example.com/.well-known/agent.json</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://docs.agentverse.ai" target="_blank" rel="noopener">Fetch.ai Almanac</a> <span class="belt-stars">★★★☆☆</span></div>
+                  <div class="belt-card-desc i18n" data-ja="オンチェーンのエージェント電話帳。登録→自動発見">On-chain agent phonebook. Register and auto-discover</div>
+                  <div class="belt-card-code">from fetchai.registration import register_with_agentverse</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://github.com/anthropics/anthropic-cookbook" target="_blank" rel="noopener">Anthropic Tool Use</a> <span class="belt-stars">★★★★★</span></div>
+                  <div class="belt-card-desc i18n" data-ja="Claudeにツール実行権限を安全に付与する標準仕様">Safely grant tool execution to Claude. Standard spec</div>
+                  <div class="belt-card-code">{"type":"function","name":"get_weather","parameters":{...}}</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://calmops.com/web3/x402-protocol-programmable-payments-ai-agents-2026/" target="_blank" rel="noopener">KYA (Know Your Agent)</a> <span class="belt-stars">★★★☆☆</span></div>
+                  <div class="belt-card-desc i18n" data-ja="KYCならぬKYA。エージェントの身元確認標準">KYA not KYC. Agent identity verification standard</div>
+                  <div class="belt-card-code">On-chain ID + off-chain verification hybrid authentication</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://eips.ethereum.org/EIPS/eip-8122" target="_blank" rel="noopener">ERC-8122 (Minimal Agent Registry)</a> <span class="belt-stars">★★★☆☆</span></div>
+                  <div class="belt-card-desc i18n" data-ja="軽量・デプロイ可能なオンチェーンエージェント登録簿">Lightweight, deployable on-chain agent registry</div>
+                  <div class="belt-card-code">Easily deploy custom collections & domain-specific registries</div>
+                </div>
+              </div>
+            </div>
+            <div class="belt-card">
+              <div class="belt-card-top">
+                
+                <div class="belt-card-body">
+                  <div class="belt-card-name"><a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP (Model Context Protocol)</a> <span class="belt-stars">★★★★★</span></div>
+                  <div class="belt-card-desc i18n" data-ja="Anthropic発、LLMとツールを接続するオープン標準">Open standard connecting LLMs to tools. By Anthropic</div>
+                  <div class="belt-card-code">npx @modelcontextprotocol/server-filesystem /path</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="memory">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🧠</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="記憶">Memory</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「記憶」">Agent's long-term memory</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">10</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://mem0.ai" target="_blank" rel="noopener">Mem0</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="長期記憶レイヤー。会話からファクトを自動抽出・保存">Long-term memory layer. Auto-extract facts from conversations</div><div class="belt-card-code">curl -X POST https://api.mem0.ai/v1/memories -d '{"user_id":"paji"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://letta.com" target="_blank" rel="noopener">Letta (旧MemGPT)</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="仮想メモリ管理でLLMのコンテキスト制限を突破">Break LLM context limits with virtual memory management</div><div class="belt-card-code">curl -X POST http://localhost:8283/v1/agents -d '{"memory":{"type":"chat"}}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://ekailabs.xyz" target="_blank" rel="noopener">Ekai</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="ポータブルなAI文脈。LLMを乗り換えても記憶を持ち運ぶ">Portable AI context. Carry memory across LLM switches</div><div class="belt-card-code">curl -X POST https://api.ekailabs.xyz/v1/chat -d '{"context_id":"proj-1"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.pinecone.io" target="_blank" rel="noopener">Pinecone</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="ベクトルDB。エージェントのセマンティック記憶バックエンド">Vector DB. Semantic memory backend for agents</div><div class="belt-card-code">curl -X POST https://INDEX.pinecone.io/vectors/upsert</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://weaviate.io" target="_blank" rel="noopener">Weaviate</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="OSSベクトルDB。マルチモーダル検索対応">OSS vector DB. Multimodal search support</div><div class="belt-card-code">curl http://localhost:8080/v1/objects -d '{"class":"Memory"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://qdrant.tech" target="_blank" rel="noopener">Qdrant</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="Rust製高速ベクトル検索。フィルタリング付き類似検索">Fast vector search in Rust. Filtered similarity search</div><div class="belt-card-code">curl -X PUT http://localhost:6333/collections/agent_memory</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.trychroma.com" target="_blank" rel="noopener">Chroma</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Pythonネイティブの埋め込みDB。pip installで即座に利用">Python-native embedding DB. pip install and go</div><div class="belt-card-code">pip install chromadb # collection.add(documents=[...]);</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://zep.ai" target="_blank" rel="noopener">Zep</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="LLMアプリ向け長期記憶。ファクト自動抽出＋時間認識">Long-term memory for LLM apps. Auto fact extraction + temporal awareness</div><div class="belt-card-code">curl -X POST https://api.zep.ai/v2/users/USER/memory</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.langchain.com/langgraph" target="_blank" rel="noopener">LangGraph Memory</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="ステートフルなグラフ実行。チェックポイント付き記憶">Stateful graph execution with checkpointed memory</div><div class="belt-card-code">from langgraph.checkpoint import MemorySaver</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/deepset-ai/haystack" target="_blank" rel="noopener">Haystack</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="RAGパイプラインOSS。文書→記憶→回答の全フロー">OSS RAG pipeline. Document → memory → answer flow</div><div class="belt-card-code">pip install haystack-ai # build pipeline → document search</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="emerging">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🔮</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="次世代">Emerging</span>
+                <span class="belt-cat-subtitle i18n" data-ja="次世代のエージェントインフラ">Next-gen agent infra</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">18</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://agentverse.ai/asi-one" target="_blank" rel="noopener">ASI:One</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="メタAI。ユーザーの要求を最適なエージェントに自動ルーティング">Meta AI. Auto-route user requests to the best agent</div><div class="belt-card-code">Natural language query → Almanac search → auto-select best agent</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.lindy.ai" target="_blank" rel="noopener">Lindy</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="パーソナルAIアシスタント。メール/カレンダー/ミーティングを自律管理">Personal AI assistant. Autonomously manage email/calendar/meetings</div><div class="belt-card-code">Set triggers + actions on Lindy.ai → auto-execute</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.doanything.com" target="_blank" rel="noopener">DoAnything</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="何でも頼めるAIエージェント。数千エージェントがAgentMailで稼働">AI agent for anything. Thousands of agents running on AgentMail</div><div class="belt-card-code">Request tasks in natural language → best agent auto-executes</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.cofounderai.com" target="_blank" rel="noopener">Cofounder</a> <span class="belt-stars">★★☆☆☆</span></div><div class="belt-card-desc i18n" data-ja="パーソナルAIサイドキック。日常タスクをカスタマイズ自動化">Personal AI sidekick. Customizable daily task automation</div><div class="belt-card-code">$39.99/mo+. Task automation + personalization</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://gumloop.com" target="_blank" rel="noopener">Gumloop</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="ノーコードAIワークフロー。マーケター向けドラッグ&ドロップ">No-code AI workflows. Drag & drop for marketers</div><div class="belt-card-code">Build campaign automation workflows from templates</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.flowiseai.com" target="_blank" rel="noopener">FlowiseAI</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="OSSビジュアルビルダー。RAG/エージェント/チャットフローを設計">OSS visual builder. Design RAG/agent/chat flows</div><div class="belt-card-code">docker-compose up -d # connect nodes in browser → build agents</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.stackai.com" target="_blank" rel="noopener">StackAI</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エンタープライズAIビルダー。ガバナンス＋アクセス制御付き">Enterprise AI builder. Governance + access control</div><div class="belt-card-code">Visual UI + document workflows + SOC 2 compliant</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://akka.io" target="_blank" rel="noopener">Akka</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="15年の分散システム基盤をAIエージェントに適用">15 years of distributed systems applied to AI agents</div><div class="belt-card-code">Multi-region replication / stateful agents / event-driven</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.sierra.ai" target="_blank" rel="noopener">Sierra</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="成果ベース課金のCS特化エージェント。返金・解約を自律処理">Outcome-based CS agent. Autonomously handles refunds & cancellations</div><div class="belt-card-code">Agent Studio + Agent SDK → CRM/ERP integration</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.toothfairyai.com" target="_blank" rel="noopener">ToothFairyAI</a> <span class="belt-stars">★★☆☆☆</span></div><div class="belt-card-desc i18n" data-ja="分散型AIエージェント。営業/マーケ/PM/採用を1体で">Decentralized AI agent. Sales/marketing/PM/recruiting in one</div><div class="belt-card-code">Customizable multi-role AI agent</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://kavida.ai" target="_blank" rel="noopener">Kavida.ai</a> <span class="belt-stars">★★☆☆☆</span></div><div class="belt-card-desc i18n" data-ja="発注管理AIエージェント。サプライヤーとの調整を自動化">PO management AI agent. Automate supplier coordination</div><div class="belt-card-code">Agent PO / Agent ERP → autonomous delivery/price adjustments</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.parallel.ai" target="_blank" rel="noopener">Parallel AI</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="証拠付きリサーチAPI。HLE 47%で最高スコア">Evidence-backed research API. Top score at HLE 47%</div><div class="belt-card-code">Search API / Task API (Deep Research) / Find All / Web Monitor</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://llmlayer.com" target="_blank" rel="noopener">LLMLayer</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="検索＋スクレイピング＋LLM回答を統一API">Search + scraping + LLM answers in one unified API</div><div class="belt-card-code">Web Search / Scraper / Crawler / LLM Answers / Screenshots</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://simplescraper.io" target="_blank" rel="noopener">Simplescraper</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="ブラウザ拡張でスクレイピングルール作成→API化">Create scraping rules via browser extension → auto API</div><div class="belt-card-code">Point & click to define extraction rules → auto API generation</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://x402scan.com" target="_blank" rel="noopener">x402scan</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="x402対応エンドポイントの発見＋テストツール">Discover + test x402-enabled endpoints</div><div class="belt-card-code">Search, test & monitor live x402 endpoints</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://messari.io" target="_blank" rel="noopener">Messari</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="x402対応の暗号資産インテリジェンスAPI">x402-enabled crypto intelligence API</div><div class="belt-card-code">x402-gated professional research API</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://nansen.ai" target="_blank" rel="noopener">Nansen</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="x402対応オンチェーン分析。ウォレット分析をAPI課金">x402-enabled on-chain analytics. Pay-per-call wallet analysis</div><div class="belt-card-code">On-chain intelligence + wallet analysis via x402</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://alchemy.com" target="_blank" rel="noopener">Alchemy</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="x402対応Web3開発プラットフォーム。RPC課金">x402-enabled Web3 dev platform. Pay-per-RPC</div><div class="belt-card-code">Pay for blockchain RPC calls with stablecoins via x402</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="voice">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🎤</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="声">Voice & Audio</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「声」">Agent's voice</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">10</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://elevenlabs.io" target="_blank" rel="noopener">ElevenLabs</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="超自然なAI音声合成。29言語対応。エージェントの声">Ultra-natural AI voice synthesis. 29 languages</div><div class="belt-card-code">curl -X POST https://api.elevenlabs.io/v1/text-to-speech/VOICE_ID</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://deepgram.com" target="_blank" rel="noopener">Deepgram</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="リアルタイム音声認識API。ストリーミング対応">Real-time speech recognition API. Streaming support</div><div class="belt-card-code">wss://api.deepgram.com/v1/listen # WebSocket streaming</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.vapi.ai" target="_blank" rel="noopener">Vapi</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="音声エージェント構築プラットフォーム。電話応対を自動化">Voice agent platform. Automate phone calls</div><div class="belt-card-code">curl -X POST https://api.vapi.ai/call -d '{"assistant":"agent-id"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.bland.ai" target="_blank" rel="noopener">Bland AI</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="AI電話エージェント。1分$0.09で24/7電話応対">AI phone agent. $0.09/min for 24/7 call handling</div><div class="belt-card-code">curl -X POST https://api.bland.ai/v1/calls -d '{"phone":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://cartesia.ai" target="_blank" rel="noopener">Cartesia</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="超低レイテンシTTS。リアルタイム会話向け">Ultra-low latency TTS. Built for real-time conversation</div><div class="belt-card-code">curl -X POST https://api.cartesia.ai/tts/bytes -d '{"transcript":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://play.ht" target="_blank" rel="noopener">PlayHT</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="AI音声クローン。5秒の音声サンプルから声を複製">AI voice cloning. Clone a voice from 5 seconds of audio</div><div class="belt-card-code">curl -X POST https://api.play.ht/api/v2/tts</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.assemblyai.com" target="_blank" rel="noopener">AssemblyAI</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="音声→テキスト＋要約＋感情分析。Universal-2モデル">Speech → text + summary + sentiment. Universal-2 model</div><div class="belt-card-code">curl -X POST https://api.assemblyai.com/v2/transcript</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://livekit.io" target="_blank" rel="noopener">LiveKit</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="リアルタイム音声/映像インフラ。エージェント会話の基盤">Real-time audio/video infra. Foundation for agent conversations</div><div class="belt-card-code">from livekit.agents import Agent; agent = Agent(voice_pipeline)</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://retellai.com" target="_blank" rel="noopener">Retell AI</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="音声エージェントAPI。割り込み対応の自然な会話">Voice agent API. Natural conversations with interruption handling</div><div class="belt-card-code">curl -X POST https://api.retellai.com/v2/create-call</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.speechmatics.com" target="_blank" rel="noopener">Speechmatics</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="50言語リアルタイムSTT。話者分離＋句読点自動挿入">Real-time STT in 50 languages. Speaker diarization + auto punctuation</div><div class="belt-card-code">curl -X POST https://asr.api.speechmatics.com/v2/jobs</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="security">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🛡️</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="ガードレール">Security</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「ガードレール」">Agent's guardrails</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">10</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://guardrailsai.com" target="_blank" rel="noopener">Guardrails AI</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="LLM入出力を検証。毒性・PII・幻覚・フォーマット違反を検出">Validate LLM I/O. Detect toxicity, PII, hallucinations & format violations</div><div class="belt-card-code">guard = Guard().use(ToxicLanguage, OnTopic); guard.validate(output)</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://rebuff.ai" target="_blank" rel="noopener">Rebuff</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="プロンプトインジェクション自動検出">Automatic prompt injection detection</div><div class="belt-card-code">curl -X POST https://api.rebuff.ai/detect -d '{"input":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://llama-guard.ai" target="_blank" rel="noopener">Llama Guard</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Metaの安全性分類モデル。入出力の有害性を判定">Meta's safety classifier. Assess I/O harmfulness</div><div class="belt-card-code">Run Llama Guard 3 via API or locally → classify safe/unsafe</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://invariantlabs.ai" target="_blank" rel="noopener">Invariant Labs</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="エージェントのアクションを実行前に安全性チェック">Safety-check agent actions before execution</div><div class="belt-card-code">from invariant import Policy; policy.check(agent_action)</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://whylabs.ai" target="_blank" rel="noopener">WhyLabs</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="LLMのドリフト検出＋データ品質監視">LLM drift detection + data quality monitoring</div><div class="belt-card-code">curl -X POST https://api.whylabsapp.com/v1/log</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://lakera.ai" target="_blank" rel="noopener">Lakera Guard</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="プロンプトインジェクション防御API。レイテンシ2ms">Prompt injection defense API. 2ms latency</div><div class="belt-card-code">curl https://api.lakera.ai/v2/guard -d '{"input":"user prompt"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://fiddler.ai" target="_blank" rel="noopener">Fiddler</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エンタープライズAI可観測性。ガードレール＋コンプライアンス">Enterprise AI observability. Guardrails + compliance</div><div class="belt-card-code">Hierarchical agent tracing + real-time guardrails</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://pydantic.dev/logfire" target="_blank" rel="noopener">Pydantic Logfire</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Pydanticの型安全性をLLM出力に適用。構造化保証">Apply Pydantic type safety to LLM outputs. Structured guarantees</div><div class="belt-card-code">from pydantic import BaseModel; class Output(BaseModel): ...</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://promptarmor.com" target="_blank" rel="noopener">PromptArmor</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エージェントが読むデータ内のインジェクション攻撃を検出">Detect injection attacks in data agents read</div><div class="belt-card-code">Scan external data sources → detect indirect prompt injection</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://calypsoai.com" target="_blank" rel="noopener">CalypsoAI</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エンタープライズAIセキュリティ。DLP＋コンプライアンス">Enterprise AI security. DLP + compliance</div><div class="belt-card-code">AI gateway for data leak prevention + policy enforcement</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="observability">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">📊</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="監視塔">Observability</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「監視塔」">Agent's watchtower</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">14</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://langfuse.com" target="_blank" rel="noopener">Langfuse</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="OSS LLM可観測性。トレース＋プロンプト管理＋評価。21K Stars">OSS LLM observability. Traces + prompt mgmt + evals. 21K Stars</div><div class="belt-card-code">LANGFUSE_HOST=https://cloud.langfuse.com langfuse.trace(name="agent-run")</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://helicone.ai" target="_blank" rel="noopener">Helicone</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="URL変更1行でLLMのコスト・レイテンシを可視化">Visualize LLM cost & latency with one URL change</div><div class="belt-card-code">baseURL: "https://oai.helicone.ai/v1" # just swap the OpenAI URL</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://portkey.ai" target="_blank" rel="noopener">Portkey</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="AIゲートウェイ。ルーティング＋フォールバック＋ガードレール">AI gateway. Routing + fallback + guardrails</div><div class="belt-card-code">curl https://api.portkey.ai/v1/chat/completions -H "x-portkey-api-key: KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://agentops.ai" target="_blank" rel="noopener">AgentOps</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="エージェント専用の可観測性。セッション＋イベントトラッキング">Agent-specific observability. Session + event tracking</div><div class="belt-card-code">agentops.init(api_key="KEY") # 2 lines to start agent monitoring</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://braintrust.dev" target="_blank" rel="noopener">Braintrust</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="評価ファーストのLLM可観測性。プロダクション→テストの自動ループ">Eval-first LLM observability. Auto production → test loop</div><div class="belt-card-code">braintrust eval --project "my-agent" --dataset production-traces</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://smith.langchain.com" target="_blank" rel="noopener">LangSmith</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="LangChainのデバッグ＋評価プラットフォーム">LangChain's debugging + evaluation platform</div><div class="belt-card-code">LANGCHAIN_TRACING_V2=true LANGCHAIN_API_KEY=KEY python agent.py</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://phoenix.arize.com" target="_blank" rel="noopener">Arize Phoenix</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="OSS LLM評価＋トレース。Jupyter統合">OSS LLM evaluation + tracing. Jupyter integrated</div><div class="belt-card-code">pip install arize-phoenix && python -m phoenix.server.main serve</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.trulens.org" target="_blank" rel="noopener">TruLens</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="RAGの品質を3指標で自動評価（関連性・根拠・回答品質）">Auto-evaluate RAG quality with 3 metrics (relevance, groundedness, answer quality)</div><div class="belt-card-code">from trulens.core import Feedback # RAG Triad evaluation</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.confident-ai.com" target="_blank" rel="noopener">Confident AI (DeepEval)</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="50+研究ベース指標でLLM出力を自動スコアリング">Auto-score LLM outputs with 50+ research-based metrics</div><div class="belt-card-code">deepeval test run test_agent.py # pytest-style LLM evaluation</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://langwatch.ai" target="_blank" rel="noopener">LangWatch</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="LLM監視＋評価＋実験を統合。5分でセットアップ">LLM monitoring + eval + experiments unified. 5 min setup</div><div class="belt-card-code">langwatch.init() # auto trace → eval → alerts</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.galileo.ai" target="_blank" rel="noopener">Galileo</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="Luna-2モデルで200ms以下のリアルタイム品質チェック">Real-time quality checks under 200ms with Luna-2 model</div><div class="belt-card-code">Guardrails + hallucination detection + bias detection in real-time</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.coval.dev" target="_blank" rel="noopener">Coval</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="数千のエージェント会話をシミュレーション。事前検証">Simulate thousands of agent conversations. Pre-validate</div><div class="belt-card-code">Mass simulation of voice/chat agents → quality measurement</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/comet-ml/opik" target="_blank" rel="noopener">Opik (Comet)</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="Apache 2.0のLLMトレース＋実験管理">Apache 2.0 LLM tracing + experiment management</div><div class="belt-card-code">from opik import track; @track def agent_step(): ...</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://maxim.ai" target="_blank" rel="noopener">Maxim AI</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="シミュレーション→評価→本番監視を1プラットフォームで">Simulation → eval → production monitoring in one platform</div><div class="belt-card-code">Manage the entire agent lifecycle in one dashboard</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="integration">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🔗</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="万能コネクタ">Integration</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「万能コネクタ」">Agent's universal connector</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">12</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://composio.dev" target="_blank" rel="noopener">Composio</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="250+外部ツールをOAuth認証ごとエージェントに接続">Connect 250+ tools to agents with OAuth included</div><div class="belt-card-code">curl https://backend.composio.dev/api/v1/apps -H "X-API-KEY: KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://nango.dev" target="_blank" rel="noopener">Nango</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="300+ OAuth統合のオープンソース。エージェントの認証代行">OSS with 300+ OAuth integrations. Auth proxy for agents</div><div class="belt-card-code">curl https://api.nango.dev/connections -H "Authorization: Bearer KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://merge.dev" target="_blank" rel="noopener">Merge</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="統合API。エージェントから数百のSaaSにワンAPI接続">Unified API. One API to hundreds of SaaS from agents</div><div class="belt-card-code">curl https://api.merge.dev/api/hris/v1/employees -H "X-Account-Token: T"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://unstructured.io" target="_blank" rel="noopener">Unstructured</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="あらゆるファイルをLLM可読に変換。PDF/PPTX/画像→構造化データ">Convert any file to LLM-readable format. PDF/PPTX/images → structured data</div><div class="belt-card-code">curl -X POST https://api.unstructured.io/general/v0/general -F 'files=@doc.pdf'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://llamaparse.cloud" target="_blank" rel="noopener">LlamaParse</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="PDFを高精度にMarkdown/JSON変換。表・図も抽出">High-accuracy PDF to Markdown/JSON. Tables & figures included</div><div class="belt-card-code">curl -X POST https://api.cloud.llamaindex.ai/api/parsing/upload</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://anon.com" target="_blank" rel="noopener">Anon</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="ユーザーのログインセッションをエージェントに安全に委任">Safely delegate user login sessions to agents</div><div class="belt-card-code">Proxy that encrypts user credentials and passes them to agents</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.toolhouse.ai" target="_blank" rel="noopener">Toolhouse</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="LLMにツールを追加するクラウド。1行でtool_use追加">Cloud for adding tools to LLMs. One line to add tool_use</div><div class="belt-card-code">toolhouse.get_tools() → auto-convert to LLM function calling</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://arcade-ai.com" target="_blank" rel="noopener">Arcade AI</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="認証付きツール呼び出しの標準化。セキュアなtool use">Standardized authenticated tool calling. Secure tool use</div><div class="belt-card-code">curl https://api.arcade-ai.com/v1/tools -H "Authorization: Bearer KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://wild-card.ai" target="_blank" rel="noopener">Wild Card</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="AIエージェント用バーチャルカード。支出上限付き">Virtual cards for AI agents. With spending limits</div><div class="belt-card-code">Issue agent-specific prepaid cards via API</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://pipedream.com" target="_blank" rel="noopener">Pipedream</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="API統合＋ワークフロー自動化。2000+コネクタ">API integration + workflow automation. 2000+ connectors</div><div class="belt-card-code">curl -X POST https://api.pipedream.com/v1/workflows -d '{...}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://trigger.dev" target="_blank" rel="noopener">Trigger.dev</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="OSSのバックグラウンドジョブ。エージェントの非同期タスク実行">OSS background jobs. Async task execution for agents</div><div class="belt-card-code">await trigger.run("long-task", { payload }) // serverless long-running</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://inngest.com" target="_blank" rel="noopener">Inngest</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="イベント駆動のエージェント・ワークフロー。リトライ＋並列実行">Event-driven agent workflows. Retry + parallel execution</div><div class="belt-card-code">inngest.createFunction({event:"agent/task"}, async({event})=>{...})</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="creative">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🎨</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="創造力">Creative</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「創造力」">Agent's creativity</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">8</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://ideogram.ai" target="_blank" rel="noopener">Ideogram</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="テキスト描画が正確なAI画像生成。ロゴ・バナーに強い">AI image gen with accurate text rendering. Great for logos & banners</div><div class="belt-card-code">curl -X POST https://api.ideogram.ai/generate -d '{"prompt":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://fal.ai" target="_blank" rel="noopener">fal.ai</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="画像/動画/音声生成のサーバレスAPI。Flux/SDXL対応">Serverless API for image/video/audio gen. Flux/SDXL support</div><div class="belt-card-code">curl -X POST https://queue.fal.run/fal-ai/flux -d '{"prompt":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://together.ai" target="_blank" rel="noopener">Together AI</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="OSSモデルの高速推論API。Llama/Mixtral/SDXL">Fast inference API for OSS models. Llama/Mixtral/SDXL</div><div class="belt-card-code">curl -X POST https://api.together.xyz/v1/chat/completions</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://suno.com" target="_blank" rel="noopener">Suno</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="テキストから音楽生成。エージェントがBGMを作曲">Text to music generation. Agents compose BGM</div><div class="belt-card-code">curl -X POST https://api.suno.ai/v1/songs -d '{"prompt":"lofi hip hop"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://stability.ai" target="_blank" rel="noopener">Stability AI</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Stable Diffusion/Video/Audio。マルチモーダル生成">Stable Diffusion/Video/Audio. Multimodal generation</div><div class="belt-card-code">curl -X POST https://api.stability.ai/v2beta/stable-image/generate/core</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://lumalabs.ai" target="_blank" rel="noopener">Luma Dream Machine</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="テキスト/画像から動画生成。エージェントのビジュアル表現">Text/image to video generation. Visual expression for agents</div><div class="belt-card-code">curl -X POST https://api.lumalabs.ai/dream-machine/v1/generations</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://remove.bg" target="_blank" rel="noopener">remove.bg</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="背景除去API。エージェントの画像加工パイプライン">Background removal API. Image processing pipeline for agents</div><div class="belt-card-code">curl -X POST https://api.remove.bg/v1.0/removebg -F 'image_file=@img.png'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://cloudconvert.com" target="_blank" rel="noopener">CloudConvert</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="200+形式のファイル変換API。PDF↔DOCX↔PNG等">File conversion API for 200+ formats. PDF↔DOCX↔PNG etc</div><div class="belt-card-code">curl -X POST https://api.cloudconvert.com/v2/jobs -d '{"tasks":{...}}'</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="data">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🗄️</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="知識源">Data & Enrichment</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「知識源」">Agent's knowledge source</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">10</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://jina.ai" target="_blank" rel="noopener">Jina Reader</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="URLをLLM可読なMarkdownに変換。r.jina.ai/URL">Convert URLs to LLM-readable Markdown. r.jina.ai/URL</div><div class="belt-card-code">curl https://r.jina.ai/https://example.com</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://brightdata.com" target="_blank" rel="noopener">Bright Data</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="1.5億IPのプロキシネットワーク＋Web Unlocker">150M IP proxy network + Web Unlocker</div><div class="belt-card-code">curl --proxy http://user:pass@brd.superproxy.io:33335 https://target.com</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://scrapingbee.com" target="_blank" rel="noopener">ScrapingBee</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="JS実行＋プロキシ回転付きスクレイピングAPI">Scraping API with JS execution + proxy rotation</div><div class="belt-card-code">curl "https://app.scrapingbee.com/api/v1/?api_key=KEY&url=URL"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://diffbot.com" target="_blank" rel="noopener">Diffbot</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="構造化Webデータ抽出。ナレッジグラフ付き">Structured web data extraction with knowledge graph</div><div class="belt-card-code">curl "https://api.diffbot.com/v3/article?url=URL&token=KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://clay.com" target="_blank" rel="noopener">Clay</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="人・企業のデータエンリッチメント。50+データソース統合">People & company data enrichment. 50+ data sources</div><div class="belt-card-code">curl -X POST https://api.clay.com/v1/enrich -d '{"email":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://clearbit.com" target="_blank" rel="noopener">Clearbit</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="メールアドレスから企業・人物情報を逆引き">Reverse lookup company/person info from email</div><div class="belt-card-code">curl https://person.api.clearbit.com/v2/people/find?email=EMAIL</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://api.github.com" target="_blank" rel="noopener">GitHub API</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="コード検索・PR作成・Issue管理。エージェントの開発タスク">Code search, PR creation, issue mgmt. Dev tasks for agents</div><div class="belt-card-code">curl https://api.github.com/repos/OWNER/REPO/pulls</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://serpapi.com" target="_blank" rel="noopener">SerpAPI</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="Google/Bing/YouTube等40+検索エンジンのSERP取得">SERP retrieval from 40+ search engines (Google/Bing/YouTube etc)</div><div class="belt-card-code">curl "https://serpapi.com/search.json?q=QUERY&api_key=KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.coingecko.com/api" target="_blank" rel="noopener">CoinGecko API</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="暗号資産データ。x402対応で$0.01/リクエスト">Crypto data. x402 enabled at $0.01/request</div><div class="belt-card-code">curl https://api.coingecko.com/api/v3/simple/price?ids=bitcoin</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://polygon.io" target="_blank" rel="noopener">Polygon.io</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="株式/暗号/為替のリアルタイムデータAPI">Real-time data API for stocks/crypto/forex</div><div class="belt-card-code">curl "https://api.polygon.io/v2/aggs/ticker/AAPL?apiKey=KEY"</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="testing">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">🧪</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="試験官">Testing & Eval</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「試験官」">Agent's examiner</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">10</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.confident-ai.com" target="_blank" rel="noopener">DeepEval</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="pytest風にLLM出力をテスト。50+評価指標">Test LLM outputs pytest-style. 50+ eval metrics</div><div class="belt-card-code">deepeval test run test_agent.py --verbose</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://promptfoo.dev" target="_blank" rel="noopener">PromptFoo</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="プロンプトのA/Bテスト＋レッドチーム。OSS">Prompt A/B testing + red teaming. OSS</div><div class="belt-card-code">npx promptfoo eval --config promptfooconfig.yaml</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/hamel/ragas" target="_blank" rel="noopener">RAGAS</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="RAGパイプラインの品質評価フレームワーク">Quality evaluation framework for RAG pipelines</div><div class="belt-card-code">from ragas import evaluate; score = evaluate(dataset, metrics=[...])</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://giskard.ai" target="_blank" rel="noopener">Giskard</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="LLMの脆弱性スキャン。幻覚・バイアス・注入を自動検出">LLM vulnerability scanner. Auto-detect hallucinations, bias & injection</div><div class="belt-card-code">giskard scan model --dataset test_data # generate vulnerability report</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://patronus.ai" target="_blank" rel="noopener">Patronus AI</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="エンタープライズLLM評価。幻覚＋毒性＋著作権チェック">Enterprise LLM evaluation. Hallucination + toxicity + copyright checks</div><div class="belt-card-code">curl -X POST https://api.patronus.ai/v1/evaluate -d '{"output":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://humanloop.com" target="_blank" rel="noopener">Humanloop</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="人間-in-the-loopでLLM出力を評価＋改善">Human-in-the-loop LLM output evaluation + improvement</div><div class="belt-card-code">curl -X POST https://api.humanloop.com/v5/evaluations</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.weave.ai" target="_blank" rel="noopener">W&B Weave</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="ML実験管理をLLMエージェントに拡張">Extend ML experiment tracking to LLM agents</div><div class="belt-card-code">import weave; weave.init("project"); @weave.op def agent(): ...</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://log10.io" target="_blank" rel="noopener">Log10</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="LLMデバッグ＋フィードバック管理。人間評価ループ">LLM debugging + feedback management. Human eval loop</div><div class="belt-card-code">from log10.load import log10; log10(openai) # auto-start logging</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://scale.com/data-engine" target="_blank" rel="noopener">Scale AI Evaluation</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="人間評価者によるLLM出力の大規模品質チェック">Large-scale LLM output quality checks by human evaluators</div><div class="belt-card-code">Hybrid evaluation: human annotators + automated metrics</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://github.com/openai/evals" target="_blank" rel="noopener">OpenAI Evals</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="OSSのLLM評価フレームワーク。カスタムeval作成">OSS LLM evaluation framework. Create custom evals</div><div class="belt-card-code">oaieval gpt-4 my_custom_eval</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="specialized">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">📋</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="専門スキル">Specialized</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「専門スキル」">Agent's special skills</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">18</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://linear.app" target="_blank" rel="noopener">Linear</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="高速プロジェクト管理。エージェントがIssue作成・ステータス更新">Fast project management. Agents create issues & update status</div><div class="belt-card-code">curl -X POST https://api.linear.app/graphql -d '{"query":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://posthog.com" target="_blank" rel="noopener">PostHog</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="OSSプロダクト分析。エージェントがユーザー行動を分析">OSS product analytics. Agents analyze user behavior</div><div class="belt-card-code">curl -X POST https://us.posthog.com/api/event/ -d '{"event":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://cal.com" target="_blank" rel="noopener">Cal.com</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="OSSスケジューリング。エージェントが予約管理">OSS scheduling. Agents manage bookings</div><div class="belt-card-code">curl https://api.cal.com/v1/bookings -H "Authorization: Bearer KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://docuseal.co" target="_blank" rel="noopener">DocuSeal</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="OSS電子署名。エージェントが契約書を送信・追跡">OSS e-signatures. Agents send & track contracts</div><div class="belt-card-code">curl -X POST https://api.docuseal.co/submissions -d '{"template_id":1}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://upstash.com" target="_blank" rel="noopener">Upstash</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="サーバレスRedis/Kafka。エージェントのキャッシュ＋キュー">Serverless Redis/Kafka. Cache + queue for agents</div><div class="belt-card-code">curl https://ENDPOINT.upstash.io/set/key/value</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://neon.tech" target="_blank" rel="noopener">Neon</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="サーバレスPostgres。ブランチ機能でエージェントごとにDB分離">Serverless Postgres. Branch DBs per agent</div><div class="belt-card-code">curl -X POST https://console.neon.tech/api/v2/projects/PROJ/branches</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="OSS BaaS。DB＋Auth＋Storage＋Edge Functions統合">OSS BaaS. DB + Auth + Storage + Edge Functions unified</div><div class="belt-card-code">curl https://PROJECT.supabase.co/rest/v1/TABLE -H "apikey: KEY"</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://planetscale.com" target="_blank" rel="noopener">PlanetScale</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="サーバレスMySQL。スキーマ変更をブランチ管理">Serverless MySQL. Branch-managed schema changes</div><div class="belt-card-code">curl https://api.planetscale.com/v1/organizations/ORG/databases</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://val.town" target="_blank" rel="noopener">Val Town</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="ブラウザでコードを書いて即公開。エージェントのマイクロAPI">Write code in browser, publish instantly. Agent's micro APIs</div><div class="belt-card-code">// Publish functions on Val Town → instant HTTP endpoints</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://render.com" target="_blank" rel="noopener">Render</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="ゼロ設定デプロイ。エージェントが作ったアプリを即公開">Zero-config deploy. Instantly ship agent-built apps</div><div class="belt-card-code">git push render main # auto build → deploy</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://railway.app" target="_blank" rel="noopener">Railway</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="インフラをコードから推論。DB＋サーバーを自動構築">Infer infra from code. Auto-build DB + servers</div><div class="belt-card-code">railway up # Nixpacks auto-detect → deploy</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://cron-job.org" target="_blank" rel="noopener">cron-job.org</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="無料のクラウドcron。エージェントの定期実行">Free cloud cron. Scheduled execution for agents</div><div class="belt-card-code">curl -X PUT https://api.cron-job.org/jobs -d '{"url":"...","schedule":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://betterstack.com" target="_blank" rel="noopener">Better Stack</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="アップタイム監視＋ログ＋ステータスページ。エージェントの健康管理">Uptime monitoring + logs + status pages. Agent health management</div><div class="belt-card-code">curl -X POST https://uptime.betterstack.com/api/v2/monitors</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://mintlify.com" target="_blank" rel="noopener">Mintlify</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="AI搭載ドキュメント生成。エージェントのAPI仕様書を自動作成">AI-powered docs generation. Auto-create agent API specs</div><div class="belt-card-code">mintlify dev # generate docs site from OAS/MDX</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://readme.com" target="_blank" rel="noopener">ReadMe</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="インタラクティブAPIドキュメント。Try It付き">Interactive API docs with Try It</div><div class="belt-card-code">API docs + dashboard + usage analytics unified</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.courier.com" target="_blank" rel="noopener">Courier</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="通知オーケストレーション。テンプレート＋A/Bテスト付き">Notification orchestration. Templates + A/B testing</div><div class="belt-card-code">curl -X POST https://api.courier.com/send -d '{"message":{...}}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://firecrawl.dev" target="_blank" rel="noopener">Firecrawl</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="Webクロール＋スクレイピング＋エージェント自律調査を統合">Web crawl + scrape + autonomous agent research unified</div><div class="belt-card-code">curl -X POST https://api.firecrawl.dev/v1/scrape -d '{"url":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.perplexity.ai/api" target="_blank" rel="noopener">Sonar (Perplexity API)</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="Web接続済みのLLM API。引用付き回答">Web-connected LLM API. Answers with citations</div><div class="belt-card-code">curl -X POST https://api.perplexity.ai/chat/completions -d '{"model":"sonar"}'</div></div></div></div>
+          </div>
+        </section>
+
+        <section class="belt-category" id="communication">
+          <div class="belt-category-header" role="button" tabindex="0" aria-expanded="false">
+            <div class="belt-cat-left">
+              <span class="belt-cat-emoji">📨</span>
+              <div class="belt-cat-info">
+                <span class="belt-cat-title i18n" data-ja="通信手段">Communication</span>
+                <span class="belt-cat-subtitle i18n" data-ja="エージェントの「通信手段」">Agent's comms channel</span>
+              </div>
+            </div>
+            <div class="belt-cat-right">
+              <span class="belt-cat-count">8</span>
+              <svg class="belt-cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="belt-items">
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://resend.com" target="_blank" rel="noopener">Resend</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="開発者向けメール配信API。React Emailで美しいテンプレート">Developer email API. Beautiful templates with React Email</div><div class="belt-card-code">curl -X POST https://api.resend.com/emails -d '{"to":"..."}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://novu.co" target="_blank" rel="noopener">Novu</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="OSS通知インフラ。メール/SMS/Push/Slackを統一API">OSS notification infra. Unified API for email/SMS/push/Slack</div><div class="belt-card-code">curl -X POST https://api.novu.co/v1/events/trigger -d '{"name":"agent-alert"}'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://knock.app" target="_blank" rel="noopener">Knock</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="通知ワークフロー。エージェントからの多チャネル通知">Notification workflows. Multi-channel alerts from agents</div><div class="belt-card-code">curl -X POST https://api.knock.app/v1/workflows/WORKFLOW/trigger</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://www.twilio.com" target="_blank" rel="noopener">Twilio</a> <span class="belt-stars">★★★★★</span></div><div class="belt-card-desc i18n" data-ja="SMS/電話/WhatsApp API。エージェントの音声＋テキスト通信">SMS/phone/WhatsApp API. Voice + text comms for agents</div><div class="belt-card-code">curl -X POST https://api.twilio.com/2010-04-01/Accounts/SID/Messages.json</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://sendbird.com" target="_blank" rel="noopener">Sendbird</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="チャットSDK。エージェントとユーザーのリアルタイム対話">Chat SDK. Real-time dialogue between agents and users</div><div class="belt-card-code">curl -X POST https://api-APP.sendbird.com/v3/messages</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://ntfy.sh" target="_blank" rel="noopener">ntfy</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="OSSプッシュ通知。curl一発でスマホに通知">OSS push notifications. One curl to notify your phone</div><div class="belt-card-code">curl -d "Task completed" https://ntfy.sh/my-agent-alerts</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://pushover.net" target="_blank" rel="noopener">Pushover</a> <span class="belt-stars">★★★☆☆</span></div><div class="belt-card-desc i18n" data-ja="シンプルなプッシュ通知API。エージェント→人間への報告">Simple push notification API. Agent → human reporting</div><div class="belt-card-code">curl -X POST https://api.pushover.net/1/messages.json -d 'token=KEY'</div></div></div></div>
+            <div class="belt-card"><div class="belt-card-top"><div class="belt-card-body"><div class="belt-card-name"><a href="https://matrix.org" target="_blank" rel="noopener">Matrix Protocol</a> <span class="belt-stars">★★★★☆</span></div><div class="belt-card-desc i18n" data-ja="分散型チャットプロトコル。エージェント間のE2E暗号化通信">Decentralized chat protocol. E2E encrypted agent-to-agent comms</div><div class="belt-card-code">curl -X POST https://matrix.org/_matrix/client/v3/rooms/ROOM/send/m.room.message</div></div></div></div>
+          </div>
+        </section>
+
+      </div><!-- /belt-content -->
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="/terms">Terms of Service</a>
+          <span class="footer-divider">|</span>
+          <a href="/privacy">Privacy Policy</a>
+          <span class="footer-divider">|</span>
+          <a href="/guidelines-promoters">Promoter Guidelines</a>
+          <span class="footer-divider">|</span>
+          <a href="/guidelines-advertisers">Advertiser Guidelines</a>
+          <span class="footer-divider">|</span>
+          <a href="/faq">FAQ</a>
+          <span class="footer-divider">|</span>
+          <a href="/about">About</a>
+          <span class="footer-divider">|</span>
+          <a href="/blog">Blog</a>
+          <span class="footer-divider">|</span>
+          <a href="/contact">Contact</a>
+        </div>
+        <div class="footer-social">
+          <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+            <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            @HumanAdsAI
+          </a>
+        </div>
+        <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp. Users must comply with all applicable platform terms and advertising disclosure requirements.</p>
+        <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+      </footer>
+
+      <!-- Back to top -->
+      <button class="belt-top-btn" id="backToTop" aria-label="Back to top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
+    </main>
+  </div>
+
+  <script>
+    // Accordion toggle
+    document.querySelectorAll('.belt-category-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const category = header.parentElement;
+        const isOpen = category.classList.contains('open');
+        category.classList.toggle('open');
+        header.setAttribute('aria-expanded', !isOpen);
+      });
+      header.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          header.click();
+        }
+      });
+    });
+
+    // Category nav
+    document.querySelectorAll('.belt-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        if (target) {
+          if (!target.classList.contains('open')) {
+            target.classList.add('open');
+            target.querySelector('.belt-category-header').setAttribute('aria-expanded', 'true');
+          }
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Expand / Collapse all
+    document.getElementById('expandAll').addEventListener('click', () => {
+      document.querySelectorAll('.belt-category').forEach(cat => {
+        cat.classList.add('open');
+        cat.querySelector('.belt-category-header').setAttribute('aria-expanded', 'true');
+      });
+    });
+    document.getElementById('collapseAll').addEventListener('click', () => {
+      document.querySelectorAll('.belt-category').forEach(cat => {
+        cat.classList.remove('open');
+        cat.querySelector('.belt-category-header').setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Back to top
+    const topBtn = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      topBtn.classList.toggle('visible', window.scrollY > 600);
+    }, { passive: true });
+    topBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Highlight active nav on scroll
+    const categories = document.querySelectorAll('.belt-category');
+    const navBtns = document.querySelectorAll('.belt-nav-btn');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navBtns.forEach(b => b.classList.remove('active'));
+          const btn = document.querySelector(`.belt-nav-btn[data-target="${entry.target.id}"]`);
+          if (btn) {
+            btn.classList.add('active');
+            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    categories.forEach(cat => observer.observe(cat));
+
+    // ── i18n: bilingual toggle ──
+    (function() {
+      var LANG_KEY = 'belt_lang';
+      var isJa = (navigator.language || '').startsWith('ja');
+      var stored = localStorage.getItem(LANG_KEY);
+      var lang = stored || (isJa ? 'ja' : 'en');
+
+      function applyLang(l) {
+        document.querySelectorAll('.i18n').forEach(function(el) {
+          if (!el.dataset.en) el.dataset.en = el.textContent;
+          el.textContent = l === 'ja' ? (el.dataset.ja || el.dataset.en) : el.dataset.en;
+        });
+        // Update nav buttons (they have text + child span)
+        document.querySelectorAll('.belt-nav-btn[data-ja]').forEach(function(btn) {
+          if (!btn.dataset.en) btn.dataset.en = btn.childNodes[0].textContent;
+          btn.childNodes[0].textContent = l === 'ja' ? btn.dataset.ja : btn.dataset.en;
+        });
+        var toggle = document.getElementById('langToggle');
+        if (toggle) toggle.textContent = l === 'ja' ? 'EN' : 'JA';
+        document.documentElement.lang = l === 'ja' ? 'ja' : 'en';
+      }
+
+      // Create toggle button
+      var btn = document.createElement('button');
+      btn.id = 'langToggle';
+      btn.className = 'belt-lang-btn';
+      btn.textContent = lang === 'ja' ? 'EN' : 'JA';
+      btn.addEventListener('click', function() {
+        lang = lang === 'ja' ? 'en' : 'ja';
+        localStorage.setItem(LANG_KEY, lang);
+        applyLang(lang);
+      });
+      document.querySelector('.belt-controls').prepend(btn);
+
+      applyLang(lang);
+    })();
+  </script>
+</body>
+</html>
