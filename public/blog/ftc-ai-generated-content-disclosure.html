@@ -70,6 +70,41 @@
     "mainEntityOfPage": { "@type": "WebPage", "@id": "https://humanadsai.com/blog/ftc-ai-generated-content-disclosure" }
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "If I use ChatGPT to write my sponsored post, do I need to disclose both the sponsorship and the AI?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. If an AI tool wrote or substantially contributed to the text of a sponsored post, you need to disclose both the paid relationship (#ad, paid partnership label) and the AI involvement. The FTC's position is that consumers have a right to know both facts." }
+      },
+      {
+        "@type": "Question",
+        "name": "What if I use AI for brainstorming but write everything myself?",
+        "acceptedAnswer": { "@type": "Answer", "text": "If you used AI only to generate ideas and wrote all the final content yourself without directly using AI-generated text, disclosure of AI involvement is likely not required. Using AI as a thinking tool is different from using it as a writing tool." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Grammarly count as AI-generated content?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Grammar checking, spell checking, and similar tools that correct errors in human-written text are not considered AI content generation for disclosure purposes. However, if you use Grammarly's AI rewriting features that rephrase or generate new text, that crosses into AI content generation territory." }
+      },
+      {
+        "@type": "Question",
+        "name": "Are penalties really enforced for AI disclosure violations?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes, enforcement is happening. The FTC brought its first enforcement action specifically targeting AI-generated advertising content in late 2025. Additional cases targeting undisclosed AI involvement in sponsored content are pending as of early 2026. The maximum penalty is $53,088 per violation." }
+      },
+      {
+        "@type": "Question",
+        "name": "Do FTC AI disclosure rules apply to AI agents that autonomously create advertising content?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. AI agents that create advertising content are subject to the same disclosure requirements as human-created advertising. The entity that deploys the AI agent (the brand or platform operator) is responsible for ensuring disclosure compliance." }
+      }
+    ]
+  }
+  </script>
+  <meta name="twitter:site" content="@HumanAdsAI">
+  <meta name="twitter:creator" content="@paji_a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -114,7 +149,7 @@
       <div class="guidelines-hero">
         <p style="margin-bottom: var(--spacing-xs);"><a href="/blog" style="color: var(--color-text-muted); text-decoration: none;">&larr; Back to Blog</a></p>
         <h1>FTC AI-Generated Content <span class="highlight">Disclosure</span>: 2026 Rules Explained</h1>
-        <p>By <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a> &middot; March 16, 2026 &middot; 15 min read</p>
+        <p>By <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a> &middot; <time datetime="2026-03-16">March 16, 2026</time> &middot; 15 min read</p>
       </div>
 
       <article>
@@ -136,7 +171,7 @@
             <p style="margin: 0; color: var(--color-text-muted); font-size: 0.8125rem; line-height: 1.6;"><strong>Disclaimer:</strong> This article is for informational purposes only and does not constitute legal advice. AI disclosure regulations are evolving rapidly across jurisdictions. Consult a qualified attorney for advice specific to your situation and jurisdiction.</p>
           </div>
 
-          <p>In 2026, the FTC requires "double disclosure" for AI-involved sponsored content: you must disclose both the sponsorship AND that AI was involved in creating it. Violations carry penalties up to $53,088 per incident. Here is exactly what you need to do.</p>
+          <p>In 2026, the FTC requires "double disclosure" for AI-involved sponsored content: you must disclose both the sponsorship AND that AI was involved in creating it. Violations carry penalties up to <a href="https://www.ftc.gov/legal-library/browse/federal-register-notices/16-cfr-part-1-revisions-adjustments-civil-penalty-amounts" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">$53,088 per incident</a>. Here is exactly what you need to do.</p>
           <p>This is not theoretical. The FTC brought its first enforcement action specifically targeting undisclosed AI-generated advertising content in late 2025. Multiple additional cases are pending. If you are running advertising campaigns that use AI tools -- and in 2026, most campaigns involve AI at some level -- you need to understand these rules.</p>
         </section>
 
@@ -145,11 +180,11 @@
           <p>The regulatory landscape for AI in advertising shifted significantly between 2023 and 2026. Here is a timeline of the key developments.</p>
 
           <h3>FTC Endorsement Guides Update (October 2023)</h3>
-          <p>The FTC's updated Endorsement Guides, effective October 2023, did not specifically address AI-generated content. However, the update broadened the definition of "endorsement" and "material connection" in ways that capture AI-assisted content. The Guides state that any testimonial or endorsement that appears to reflect the opinions of an individual must disclose material connections -- and this extends to content where AI generates text that appears to be the creator's own words.</p>
+          <p>The FTC's updated <a href="https://www.ftc.gov/legal-library/browse/federal-register-notices/16-cfr-part-255-guides-concerning-use-endorsements-testimonials-advertising" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Endorsement Guides (16 CFR Part 255)</a>, effective October 2023, did not specifically address AI-generated content. However, the update broadened the definition of "endorsement" and "material connection" in ways that capture AI-assisted content. The Guides state that any testimonial or endorsement that appears to reflect the opinions of an individual must disclose material connections -- and this extends to content where AI generates text that appears to be the creator's own words.</p>
           <p>The key principle: if a reasonable consumer would believe the content reflects the personal experience or opinion of the creator, any assistance (human or AI) that shapes that content must not create a misleading impression.</p>
 
           <h3>FTC Staff Guidance on AI in Advertising (March 2025)</h3>
-          <p>In March 2025, the FTC published staff guidance specifically addressing the use of AI in advertising. The guidance established three core principles:</p>
+          <p>In March 2025, the FTC published <a href="https://www.ftc.gov/business-guidance/blog/2023/02/keep-your-ai-claims-check" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">staff guidance</a> specifically addressing the use of AI in advertising. The guidance established three core principles:</p>
           <ol style="padding-left: var(--spacing-lg); color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">
             <li><strong>Transparency about AI involvement:</strong> If AI tools are used to generate or substantially modify advertising content, the use of AI should be disclosed to consumers.</li>
             <li><strong>Truthfulness of AI claims:</strong> Claims made by AI-generated content must be truthful and substantiated, just like claims made by human-created content. The use of AI does not excuse false or misleading statements.</li>
@@ -491,16 +526,31 @@
         </section>
 
       <div class="author-bio">
-        <p><strong>About the Author:</strong> <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer">@paji_a</a> is the planner of HumanAds. Follow for updates on AI advertising and the creator economy.</p>
+        <p><strong>About the Author:</strong> <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer">@paji_a</a> is the founder and developer of HumanAds. Full-stack engineer based in Tokyo, Japan, building at the intersection of AI agents, blockchain payments, and the creator economy.</p>
       </div>
+
+        <section class="guidelines-section" style="background: rgba(255, 107, 53, 0.08); border: 1px solid rgba(255, 107, 53, 0.2); border-radius: var(--border-radius); padding: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+          <h2 style="margin-top: 0;">Stay Compliant with Built-In Disclosure</h2>
+          <p style="color: var(--color-text-muted); font-size: 0.9375rem; line-height: 1.7;">HumanAds builds FTC disclosure requirements into every mission brief. Creators get clear instructions on what to disclose, and brands get automatic compliance verification before payment is released from escrow.</p>
+          <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-top: var(--spacing-md);">
+            <a href="/missions" style="display: inline-block; padding: 10px 24px; background: var(--color-primary); color: #000; font-weight: 600; border-radius: var(--border-radius); text-decoration: none; font-size: 0.875rem;">Browse Missions</a>
+            <a href="/blog/earn-money-sponsored-posts" style="display: inline-block; padding: 10px 24px; background: transparent; color: var(--color-primary); font-weight: 600; border-radius: var(--border-radius); text-decoration: none; font-size: 0.875rem; border: 1px solid var(--color-primary);">Earn Money with Sponsored Posts</a>
+          </div>
+        </section>
 
         <section class="guidelines-section">
           <h2>Related Articles</h2>
           <div style="display: grid; gap: var(--spacing-sm);">
-            <a href="/blog/ftc-sponsored-post-disclosure" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+            <a href="/blog/sponsor-post-on-x-without-x-ads" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
               <div class="escrow-feature-content">
-                <strong>FTC Sponsored Post Disclosure Rules: 2026 Guide</strong>
-                <span>Complete guide to FTC requirements for sponsored content disclosure on social media.</span>
+                <strong>How to Sponsor a Post on X Without Using X Ads (2026 Guide)</strong>
+                <span>3 ways to get real humans to post about your product on X — no ad manager, no minimum spend.</span>
+              </div>
+            </a>
+            <a href="/blog/pay-someone-to-tweet-about-your-product" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>How to Pay Someone to Tweet About Your Product (Legally)</strong>
+                <span>Pricing, legal requirements, and the best platforms. Step-by-step guide from $5/post.</span>
               </div>
             </a>
             <a href="/blog/x-paid-partnership-label-how-to" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
@@ -509,10 +559,16 @@
                 <span>Step-by-step instructions for X's new native paid partnership label.</span>
               </div>
             </a>
-            <a href="/blog/how-ai-advertising-works" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+            <a href="/blog/x-ads-alternatives-small-business" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
               <div class="escrow-feature-content">
-                <strong>How AI Advertising Works: The Complete Guide</strong>
-                <span>Understanding how AI agents create and manage advertising campaigns.</span>
+                <strong>7 Cheap Alternatives to X Ads for Small Businesses (2026)</strong>
+                <span>X Ads too expensive? 7 alternatives from $5/post — sponsored posts, creator outreach, and more.</span>
+              </div>
+            </a>
+            <a href="/blog/influencer-marketing-500-budget-startup" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>Influencer Marketing on a $500 Budget: A 2026 Startup Playbook</strong>
+                <span>Exact math on what $500 gets you on each platform. Step-by-step campaign guide.</span>
               </div>
             </a>
           </div>
