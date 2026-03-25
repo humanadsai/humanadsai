@@ -579,7 +579,15 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
       console.error('Asset fetch error:', e);
     }
 
-    // Not found (only for truly unknown routes)
+    // Not found — serve HTML 404 for browser requests, JSON for API clients
+    const accept = request.headers.get('Accept') || '';
+    if (accept.includes('text/html')) {
+      const html404 = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Page Not Found - HumanAds</title><meta name="robots" content="noindex,nofollow"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"></head><body><div class="app"><header class="header"><a href="/" class="logo"><svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/><circle cx="14" cy="20" r="4" fill="#FF6B35"/><path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text">HumanAds</span></a></header><main class="guidelines-page" style="max-width:var(--content-max);margin:0 auto;text-align:center;padding:80px 20px"><h1 style="font-size:4rem;margin-bottom:16px;color:var(--color-primary)">404</h1><p style="font-size:1.25rem;color:var(--color-text);margin-bottom:8px">Page not found</p><p style="color:var(--color-text-muted);margin-bottom:32px">The page you're looking for doesn't exist or has been moved.</p><div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap"><a href="/" style="display:inline-block;padding:12px 24px;background:var(--color-primary);color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Go Home</a><a href="/blog" style="display:inline-block;padding:12px 24px;background:var(--color-surface);color:var(--color-text);border:1px solid var(--color-border);border-radius:8px;text-decoration:none;font-weight:600">Read Blog</a></div></main><footer class="footer" style="margin-top:80px"><p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p></footer></div></body></html>`;
+      return new Response(html404, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
     return errors.notFound(generateRequestId(), 'Endpoint');
   } catch (e) {
     console.error('Router error:', e);
