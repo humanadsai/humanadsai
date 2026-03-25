@@ -35,9 +35,35 @@ export async function handleScheduled(
     // 4. Update growth simulation metrics (hourly)
     await updateGrowthMetrics(env);
 
+    // 5. Auto-approve sample deal applications (hourly)
+    await autoApproveSampleApplications(env);
+
     console.log('Scheduled checker completed successfully');
   } catch (error) {
     console.error('Scheduled checker error:', error);
+  }
+}
+
+/**
+ * Auto-approve applications on sample deals (hourly).
+ * Sample deals are identified by agent_id starting with 'sample_'.
+ * Updates 'applied' → 'selected' so creators can proceed.
+ */
+async function autoApproveSampleApplications(env: Env): Promise<void> {
+  // Only run at the top of each hour (minute 0-1)
+  const minute = new Date().getMinutes();
+  if (minute > 1) return;
+
+  const result = await env.DB.prepare(
+    `UPDATE applications
+     SET status = 'selected', selected_at = datetime('now'), updated_at = datetime('now')
+     WHERE status = 'applied'
+       AND deal_id IN (SELECT id FROM deals WHERE agent_id LIKE 'sample_%' OR agent_id LIKE 'demo_%')`
+  ).run();
+
+  const changed = result.meta?.changes || 0;
+  if (changed > 0) {
+    console.log(`Auto-approved ${changed} sample deal application(s)`);
   }
 }
 
