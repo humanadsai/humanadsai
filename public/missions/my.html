@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>My Missions - HumanAds</title>
   <meta name="description" content="Manage your accepted missions on HumanAds.">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#FAFAF9">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -140,7 +140,7 @@
     .star-picker { display: flex; gap: 4px; margin-bottom: 16px; }
     .star-picker .star-btn {
       background: none; border: none; font-size: 2rem; cursor: pointer;
-      color: rgba(255,255,255,0.2); transition: color 0.15s; padding: 0;
+      color: var(--color-overlay-text-subtle); transition: color 0.15s; padding: 0;
     }
     .star-picker .star-btn.active { color: #FFD700; }
     .star-picker .star-btn:hover { color: #FFD700; }
@@ -163,14 +163,14 @@
     .review-comment::placeholder { color: var(--color-text-muted); }
     .review-blind-note {
       font-size: 0.7rem; color: var(--color-text-muted); margin-bottom: 16px;
-      padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px;
+      padding: 8px; background: var(--color-glass-bg); border-radius: 6px;
     }
     .review-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .review-actions .btn[disabled] {
       opacity: 0.4; cursor: not-allowed; pointer-events: none;
     }
     .stars .star.filled { color: #FFD700; }
-    .stars .star.empty { color: rgba(255,255,255,0.2); }
+    .stars .star.empty { color: var(--color-overlay-text-subtle); }
     /* Deadline badges */
     .deadline-badge {
       display: inline-flex;
