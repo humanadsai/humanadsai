@@ -28,11 +28,6 @@
   color: var(--color-text);
 }
 
-/* i18n: show/hide by lang attribute (global) */
-[data-lang="en"] [lang="ja"] { display: none !important; }
-[data-lang="ja"] [lang="en"] { display: none !important; }
-body:not([data-lang]) [lang="ja"] { display: none !important; }
-
 :root {
   /* Light mode defaults */
   --color-primary: #E85D3A;
