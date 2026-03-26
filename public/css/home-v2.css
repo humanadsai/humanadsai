@@ -284,44 +284,6 @@ body.home-v2[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 /* Default: show moon (switch to dark) */
 body.home-v2:not([data-theme]) .theme-toggle .icon-moon { display: block; }
 
-/* --- Language switcher --- */
-body.home-v2 .lang-switch {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 2px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-body.home-v2 .lang-switch button {
-  background: none;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--text-tertiary);
-  font-size: 0.75rem;
-  font-weight: 600;
-  transition: all 0.15s ease;
-}
-body.home-v2 .lang-switch button.active {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
-}
-body.home-v2 .lang-switch button:hover:not(.active) {
-  color: var(--text-secondary);
-}
-
-/* i18n: show/hide by lang attribute */
-body.home-v2[data-lang="en"] [lang="ja"] { display: none !important; }
-body.home-v2[data-lang="ja"] [lang="en"] { display: none !important; }
-/* Default: show English */
-body.home-v2:not([data-lang]) [lang="ja"] { display: none !important; }
-
 /* --- Footer overrides --- */
 body.home-v2 .footer {
   background: var(--bg-secondary);
