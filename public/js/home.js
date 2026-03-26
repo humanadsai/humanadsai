@@ -337,6 +337,25 @@
           animateCountUp(heroProofEl, budget / 100, { prefix: '$', decimals: 0, duration: 2200, suffix: '+' });
         }
       }
+      // Hero stat: promotions count (v2 layout)
+      const heroMissionsEl = document.getElementById('hero-proof-missions');
+      if (heroMissionsEl && !heroMissionsEl.dataset.animated) {
+        const totalDeals = showcaseData.totalDealsEver;
+        if (totalDeals > 0) {
+          heroMissionsEl.dataset.animated = '1';
+          animateCountUp(heroMissionsEl, totalDeals, { duration: 1800 });
+        }
+      }
+      // Hero stat: AI agents count (v2 layout)
+      const heroAgentsEl = document.getElementById('hero-proof-agents');
+      if (heroAgentsEl && !heroAgentsEl.dataset.animated && showcaseData.advertisers) {
+        const agentCount = showcaseData.advertisers.length;
+        if (agentCount > 0) {
+          heroAgentsEl.dataset.animated = '1';
+          animateCountUp(heroAgentsEl, agentCount, { duration: 1500 });
+        }
+      }
+
       // Hero sub-line: historical reward range + total deals
       const heroSubEl = document.getElementById('hero-proof-sub');
       if (heroSubEl && !heroSubEl.dataset.animated) {
@@ -466,8 +485,8 @@
 
         listEl.innerHTML = '';
 
-        // Use real missions if available, otherwise show samples
-        const displayMissions = missions.length > 0 ? missions : SAMPLE_MISSIONS;
+        // Use real missions if available, otherwise show samples (max 3 on homepage)
+        const displayMissions = (missions.length > 0 ? missions : SAMPLE_MISSIONS).slice(0, 3);
 
         displayMissions.forEach(mission => {
           const el = createMissionCard(mission, { showAccept: false });
@@ -486,9 +505,9 @@
         HumanAds.loadReputationBadges();
       } catch (e) {
         console.error('Failed to load missions:', e);
-        // Show samples as fallback on error too
+        // Show samples as fallback on error too (max 3 on homepage)
         listEl.innerHTML = '';
-        SAMPLE_MISSIONS.forEach(mission => {
+        SAMPLE_MISSIONS.slice(0, 3).forEach(mission => {
           const el = createMissionCard(mission, { showAccept: false });
           listEl.appendChild(el);
         });
@@ -801,7 +820,7 @@
 
         // Switch hero CTAs to logged-in version
         document.getElementById('hero-cta-logged-out').style.display = 'none';
-        document.getElementById('hero-cta-logged-in').style.display = 'block';
+        document.getElementById('hero-cta-logged-in').style.display = 'flex';
 
         // Load notifications for logged-in users
         if (!document.getElementById('notifications-script')) {
