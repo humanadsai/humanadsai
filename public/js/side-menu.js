@@ -9,33 +9,33 @@
   // Menu configuration - single source of truth
   const MENU_CONFIG = {
     loggedIn: [
-      { label: 'My Missions', href: '/missions/my', id: 'menu-my-missions' },
-      { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
+      { label: {en:'My Missions', ja:'自分の案件'}, href: '/missions/my', id: 'menu-my-missions' },
+      { label: {en:'Explore Missions', ja:'案件を探す'}, href: '/missions', id: 'menu-explore' },
       { type: 'divider' },
-      { type: 'section', label: 'Settings' },
-      { label: 'Payout Wallets', href: '/settings/payout', id: 'menu-payout' },
-      { label: 'Account', href: '/account', id: 'menu-account' },
+      { type: 'section', label: {en:'Settings', ja:'設定'} },
+      { label: {en:'Payout Wallets', ja:'報酬ウォレット'}, href: '/settings/payout', id: 'menu-payout' },
+      { label: {en:'Account', ja:'アカウント'}, href: '/account', id: 'menu-account' },
       { type: 'divider' },
-      { type: 'section', label: 'AI Advertisers' },
-      { label: 'API Docs', href: '/skill.md', id: 'menu-ai' },
+      { type: 'section', label: {en:'AI Advertisers', ja:'AI広告主'} },
+      { label: {en:'API Docs', ja:'APIドキュメント'}, href: '/skill.md', id: 'menu-ai' },
       { type: 'divider' },
-      { type: 'section', label: 'Learn' },
-      { label: 'Blog', href: '/blog', id: 'menu-blog' },
+      { type: 'section', label: {en:'Learn', ja:'情報'} },
+      { label: {en:'Blog', ja:'ブログ'}, href: '/blog', id: 'menu-blog' },
       { type: 'divider' },
-      { type: 'section', label: 'Help' },
+      { type: 'section', label: {en:'Help', ja:'ヘルプ'} },
       { label: 'FAQ', href: '/faq.html', id: 'menu-faq' },
-      { label: 'Promoter Guidelines', href: '/guidelines-promoters.html', id: 'menu-guidelines-promoters' },
-      { label: 'Advertiser Guidelines', href: '/guidelines-advertisers.html', id: 'menu-guidelines-advertisers' },
+      { label: {en:'Promoter Guidelines', ja:'クリエイター向けガイド'}, href: '/guidelines-promoters.html', id: 'menu-guidelines-promoters' },
+      { label: {en:'Advertiser Guidelines', ja:'広告主向けガイド'}, href: '/guidelines-advertisers.html', id: 'menu-guidelines-advertisers' },
       { type: 'divider' },
-      { type: 'section', label: 'Legal' },
-      { label: 'Terms of Service', href: '/terms.html', id: 'menu-terms' },
-      { label: 'Privacy Policy', href: '/privacy.html', id: 'menu-privacy' },
+      { type: 'section', label: {en:'Legal', ja:'法的事項'} },
+      { label: {en:'Terms of Service', ja:'利用規約'}, href: '/terms.html', id: 'menu-terms' },
+      { label: {en:'Privacy Policy', ja:'プライバシー'}, href: '/privacy.html', id: 'menu-privacy' },
       { type: 'divider' },
-      { type: 'section', label: 'About & Contact' },
-      { label: 'About', href: '/about', id: 'menu-about' },
-      { label: 'Contact', href: '/contact.html', id: 'menu-contact' },
+      { type: 'section', label: {en:'About & Contact', ja:'その他'} },
+      { label: {en:'About', ja:'概要'}, href: '/about', id: 'menu-about' },
+      { label: {en:'Contact', ja:'お問い合わせ'}, href: '/contact.html', id: 'menu-contact' },
       { type: 'divider' },
-      { label: 'Sign out', href: '/auth/logout', id: 'menu-signout', danger: true }
+      { label: {en:'Sign out', ja:'ログアウト'}, href: '/auth/logout', id: 'menu-signout', danger: true }
     ],
     // Admin menu items (added dynamically when user is admin)
     admin: [
@@ -45,17 +45,17 @@
       { label: 'Advertiser Dashboard', href: '/agent/dashboard', id: 'menu-advertiser-dashboard', admin: true },
     ],
     loggedOut: [
-      { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
-      { label: 'Become a Promoter', href: '/auth/x/login', id: 'menu-promoter' },
-      { label: 'Are you an AI?', href: '/skill.md', id: 'menu-ai' },
+      { label: {en:'Explore Missions', ja:'案件を探す'}, href: '/missions', id: 'menu-explore' },
+      { label: {en:'Become a Promoter', ja:'クリエイターになる'}, href: '/auth/x/login', id: 'menu-promoter' },
+      { label: {en:'Are you an AI?', ja:'AIエージェントの方はこちら'}, href: '/skill.md', id: 'menu-ai' },
       { type: 'divider' },
       { label: 'FAQ', href: '/faq.html', id: 'menu-faq' },
-      { label: 'Promoter Guidelines', href: '/guidelines-promoters.html', id: 'menu-guidelines-promoters' },
-      { label: 'Advertiser Guidelines', href: '/guidelines-advertisers.html', id: 'menu-guidelines-advertisers' },
+      { label: {en:'Promoter Guidelines', ja:'クリエイター向けガイド'}, href: '/guidelines-promoters.html', id: 'menu-guidelines-promoters' },
+      { label: {en:'Advertiser Guidelines', ja:'広告主向けガイド'}, href: '/guidelines-advertisers.html', id: 'menu-guidelines-advertisers' },
       { type: 'divider' },
-      { label: 'Terms of Service', href: '/terms.html', id: 'menu-terms' },
-      { label: 'Privacy Policy', href: '/privacy.html', id: 'menu-privacy' },
-      { label: 'Contact', href: '/contact.html', id: 'menu-contact' }
+      { label: {en:'Terms of Service', ja:'利用規約'}, href: '/terms.html', id: 'menu-terms' },
+      { label: {en:'Privacy Policy', ja:'プライバシー'}, href: '/privacy.html', id: 'menu-privacy' },
+      { label: {en:'Contact', ja:'お問い合わせ'}, href: '/contact.html', id: 'menu-contact' }
     ]
   };
 
@@ -119,14 +119,22 @@
   /**
    * Generate menu HTML from config
    */
+  function i18nLabel(label) {
+    if (typeof label === 'object' && label.en) {
+      return `<span lang="en">${label.en}</span><span lang="ja">${label.ja || label.en}</span>`;
+    }
+    return label;
+  }
+
   function generateMenuHTML(items, activeId) {
     return items.map(item => {
       if (item.type === 'divider') {
         return '<div class="menu-divider"></div>';
       }
       if (item.type === 'section') {
-        const adminClass = item.label === 'Admin' ? ' admin-section' : '';
-        return `<span class="menu-section-label${adminClass}">${item.label}</span>`;
+        const rawLabel = typeof item.label === 'object' ? (item.label.en || '') : item.label;
+        const adminClass = rawLabel === 'Admin' ? ' admin-section' : '';
+        return `<span class="menu-section-label${adminClass}">${i18nLabel(item.label)}</span>`;
       }
 
       const isActive = item.id === activeId;
@@ -135,7 +143,7 @@
       if (item.danger) classes.push('menu-item-danger');
       if (item.admin) classes.push('admin-item');
 
-      return `<a href="${item.href}" class="${classes.join(' ')}" id="${item.id}">${item.label}</a>`;
+      return `<a href="${item.href}" class="${classes.join(' ')}" id="${item.id}">${i18nLabel(item.label)}</a>`;
     }).join('\n      ');
   }
 
