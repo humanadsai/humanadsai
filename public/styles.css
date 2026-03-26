@@ -29,20 +29,27 @@
 }
 
 :root {
-  --color-primary: #FF6B35;
-  --color-primary-dark: #E55A2B;
+  /* Light mode defaults */
+  --color-primary: #E85D3A;
+  --color-primary-dark: #D14E2E;
   --color-cyan: #00D4FF;
-  --color-background: #0D0D0D;
-  --color-background-light: #1A1A1A;
-  --color-background-card: #252525;
-  --color-text: #FFFFFF;
-  --color-text-muted: #999999;
-  --color-border: #333333;
+  --color-background: #FAFAF9;
+  --color-background-light: #F5F4F0;
+  --color-background-card: #FFFFFF;
+  --color-text: #1A1A1A;
+  --color-text-muted: #6B6B6B;
+  --color-border: #E8E8E5;
   --color-success: #4CAF50;
   --color-primary-light: #FF8F5E;
   --color-accent-warm: #FFD700;
-  --color-glass-bg: rgba(255, 255, 255, 0.04);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-bg: rgba(0, 0, 0, 0.02);
+  --color-glass-border: rgba(0, 0, 0, 0.06);
+  --color-overlay-bg: rgba(0, 0, 0, 0.04);
+  --color-overlay-border: rgba(0, 0, 0, 0.08);
+  --color-overlay-hover: rgba(0, 0, 0, 0.06);
+  --color-overlay-text: rgba(0, 0, 0, 0.5);
+  --color-overlay-text-subtle: rgba(0, 0, 0, 0.3);
+  --color-overlay-text-muted: rgba(0, 0, 0, 0.45);
 
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
@@ -61,6 +68,66 @@
   --content-max: 720px;
   --gutter: clamp(16px, 2.2vw, 28px);
 }
+
+/* Dark mode via OS preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #F07A5C;
+    --color-primary-dark: #FF9478;
+    --color-background: #1A1917;
+    --color-background-light: #232220;
+    --color-background-card: #2C2B28;
+    --color-text: #F0EFEB;
+    --color-text-muted: #A3A29D;
+    --color-border: #3A3935;
+    --color-glass-bg: rgba(255, 255, 255, 0.04);
+    --color-glass-border: rgba(255, 255, 255, 0.08);
+    --color-overlay-bg: rgba(255, 255, 255, 0.04);
+    --color-overlay-border: rgba(255, 255, 255, 0.08);
+    --color-overlay-hover: rgba(255, 255, 255, 0.08);
+    --color-overlay-text: rgba(255, 255, 255, 0.5);
+    --color-overlay-text-subtle: rgba(255, 255, 255, 0.3);
+    --color-overlay-text-muted: rgba(255, 255, 255, 0.45);
+  }
+}
+
+/* Dark mode via explicit data attribute */
+[data-theme="dark"] {
+  --color-primary: #F07A5C;
+  --color-primary-dark: #FF9478;
+  --color-background: #1A1917;
+  --color-background-light: #232220;
+  --color-background-card: #2C2B28;
+  --color-text: #F0EFEB;
+  --color-text-muted: #A3A29D;
+  --color-border: #3A3935;
+  --color-glass-bg: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-overlay-bg: rgba(255, 255, 255, 0.04);
+  --color-overlay-border: rgba(255, 255, 255, 0.08);
+  --color-overlay-hover: rgba(255, 255, 255, 0.08);
+  --color-overlay-text: rgba(255, 255, 255, 0.5);
+  --color-overlay-text-subtle: rgba(255, 255, 255, 0.3);
+  --color-overlay-text-muted: rgba(255, 255, 255, 0.45);
+}
+
+/* Dark mode badge color overrides */
+@media (prefers-color-scheme: dark) {
+  .badge--disclosure { background: rgba(120, 74, 44, 0.3); border-color: rgba(255, 126, 54, 0.2); color: rgba(255, 210, 180, 0.6); }
+  .badge--type { background: rgba(0, 160, 190, 0.28); border-color: rgba(0, 160, 190, 0.35); color: rgba(180, 245, 255, 0.95); }
+  .badge--image { background: rgba(140, 80, 200, 0.28); border-color: rgba(140, 80, 200, 0.35); color: rgba(220, 190, 255, 0.95); }
+  .badge-disclosure { background: rgba(120, 74, 44, 0.3); border-color: rgba(255, 126, 54, 0.2); color: rgba(255, 210, 180, 0.6); }
+  .badge-type { background: rgba(0, 160, 190, 0.28); border-color: rgba(0, 160, 190, 0.35); color: rgba(180, 245, 255, 0.95); }
+  .hamburger-menu { box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5); }
+  .notification-dropdown { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); }
+}
+[data-theme="dark"] .badge--disclosure { background: rgba(120, 74, 44, 0.3); border-color: rgba(255, 126, 54, 0.2); color: rgba(255, 210, 180, 0.6); }
+[data-theme="dark"] .badge--type { background: rgba(0, 160, 190, 0.28); border-color: rgba(0, 160, 190, 0.35); color: rgba(180, 245, 255, 0.95); }
+[data-theme="dark"] .badge--image { background: rgba(140, 80, 200, 0.28); border-color: rgba(140, 80, 200, 0.35); color: rgba(220, 190, 255, 0.95); }
+[data-theme="dark"] .badge-disclosure { background: rgba(120, 74, 44, 0.3); border-color: rgba(255, 126, 54, 0.2); color: rgba(255, 210, 180, 0.6); }
+[data-theme="dark"] .badge-type { background: rgba(0, 160, 190, 0.28); border-color: rgba(0, 160, 190, 0.35); color: rgba(180, 245, 255, 0.95); }
+[data-theme="dark"] .hamburger-menu { box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5); }
+[data-theme="dark"] .notification-dropdown { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); }
 
 /* Skip link for keyboard accessibility */
 .skip-link {
@@ -429,8 +496,8 @@ body {
     display: flex;
     align-items: center;
     gap: 2px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--color-overlay-bg);
+    border: 1px solid var(--color-overlay-border);
     border-radius: 999px;
     padding: 3px 4px;
     margin-left: auto;
@@ -438,7 +505,7 @@ body {
   }
 
   .desktop-nav-link {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-overlay-text);
     text-decoration: none;
     font-size: 0.75rem;
     font-family: var(--font-mono);
@@ -451,7 +518,7 @@ body {
 
   .desktop-nav-link:hover {
     color: var(--color-text);
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--color-overlay-hover);
   }
 }
 
@@ -718,7 +785,7 @@ body {
 
 .btn-primary {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-  color: var(--color-text);
+  color: #fff;
   box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
 }
 
@@ -1192,7 +1259,7 @@ body {
 
 .mission-item-reward {
   background: var(--color-primary);
-  color: var(--color-text);
+  color: #fff;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--border-radius-sm);
   font-weight: 700;
@@ -1272,7 +1339,7 @@ body {
   margin-bottom: 12px;
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(0,0,0,0.2);
+  background: var(--color-background-light);
 }
 .mission-item-image img {
   width: 100%;
@@ -1432,7 +1499,7 @@ body {
   width: 32px;
   height: 32px;
   background: var(--color-primary);
-  color: var(--color-text);
+  color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1635,7 +1702,7 @@ body {
 
 .btn-ai-primary:hover {
   background: var(--color-cyan);
-  color: var(--color-background);
+  color: #fff;
 }
 
 .btn-ai-secondary {
@@ -1839,7 +1906,7 @@ body {
 .auth-result-icon svg {
   width: 32px;
   height: 32px;
-  color: var(--color-background);
+  color: #fff;
 }
 
 .auth-error-icon {
@@ -2256,7 +2323,7 @@ body {
   gap: 0;
   padding: 28px 20px;
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.04) 0%, rgba(0, 212, 255, 0.04) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-overlay-border);
   border-radius: var(--border-radius-lg);
   position: relative;
   overflow: hidden;
@@ -2286,8 +2353,8 @@ body {
   max-width: 220px;
   text-align: center;
   padding: 16px 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
   border-radius: var(--border-radius);
   min-height: 180px;
 }
@@ -2418,7 +2485,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-overlay-bg);
   border-radius: 10px;
 }
 
@@ -2571,9 +2638,9 @@ body {
 
 /* Disclosure Badge - Subtle, small */
 .badge--disclosure {
-  background: rgba(120, 74, 44, 0.3);
-  border: 1px solid rgba(255, 126, 54, 0.2);
-  color: rgba(255, 210, 180, 0.6);
+  background: rgba(200, 120, 60, 0.12);
+  border: 1px solid rgba(200, 120, 60, 0.25);
+  color: #9A6840;
   height: 14px;
   font-size: 8px;
   padding: 0 4px;
@@ -2583,23 +2650,23 @@ body {
 
 /* Type Badge - Cyan tint (Original Post, Quote Post) */
 .badge--type {
-  background: rgba(0, 160, 190, 0.28);
-  border: 1px solid rgba(0, 160, 190, 0.35);
-  color: rgba(180, 245, 255, 0.95);
+  background: rgba(0, 160, 190, 0.12);
+  border: 1px solid rgba(0, 160, 190, 0.3);
+  color: #0097A7;
 }
 
 /* Image Required Badge - Purple tint */
 .badge--image {
-  background: rgba(140, 80, 200, 0.28);
-  border: 1px solid rgba(140, 80, 200, 0.35);
-  color: rgba(220, 190, 255, 0.95);
+  background: rgba(140, 80, 200, 0.12);
+  border: 1px solid rgba(140, 80, 200, 0.3);
+  color: #7B4BAF;
 }
 
 /* Status Badges */
 .badge--status {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.8);
+  background: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-text-muted);
 }
 
 .badge--accepted,
@@ -2672,9 +2739,9 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: rgba(120, 74, 44, 0.3);
-  border: 1px solid rgba(255, 126, 54, 0.2);
-  color: rgba(255, 210, 180, 0.6);
+  background: rgba(200, 120, 60, 0.12);
+  border: 1px solid rgba(200, 120, 60, 0.25);
+  color: #9A6840;
 }
 .badge-type {
   height: 18px;
@@ -2691,9 +2758,9 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: rgba(0, 160, 190, 0.28);
-  border: 1px solid rgba(0, 160, 190, 0.35);
-  color: rgba(180, 245, 255, 0.95);
+  background: rgba(0, 160, 190, 0.12);
+  border: 1px solid rgba(0, 160, 190, 0.3);
+  color: #0097A7;
 }
 
 /* Mission Preview Card Badges */
@@ -2969,7 +3036,7 @@ body {
 }
 
 .faq-question:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-overlay-bg);
 }
 
 .faq-question::after {
@@ -3088,8 +3155,8 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #1a1a1a;
-  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
   overflow: hidden;
   cursor: pointer;
   text-decoration: none;
@@ -3114,7 +3181,7 @@ body {
   justify-content: center;
   font-size: 14px;
   color: var(--color-text-muted);
-  background: #1a1a1a;
+  background: var(--color-background-light);
 }
 
 /* ============================================
@@ -3133,7 +3200,7 @@ body {
   height: 36px;
   padding: 0;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-glass-border);
   border-radius: 50%;
   cursor: pointer;
   color: var(--color-text-muted);
@@ -3143,7 +3210,7 @@ body {
 
 .notification-bell:hover {
   color: var(--color-text);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--color-border);
 }
 
 .notification-badge {
@@ -3171,10 +3238,10 @@ body {
   right: 0;
   width: 340px;
   max-height: 420px;
-  background: #111;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   z-index: 1100;
   overflow: hidden;
 }
@@ -3189,7 +3256,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .notification-dropdown-title {
@@ -3229,12 +3296,12 @@ body {
   padding: 12px 16px;
   text-decoration: none;
   color: var(--color-text-muted);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--color-glass-border);
   transition: background 0.15s;
 }
 
 .notification-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-overlay-bg);
 }
 
 .notification-item.unread {
@@ -3269,7 +3336,7 @@ body {
 
 .notification-body {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-overlay-text-muted);
   line-height: 1.4;
   margin-top: 2px;
   overflow: hidden;
@@ -3280,7 +3347,7 @@ body {
 .notification-time {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--color-overlay-text-subtle);
   margin-top: 3px;
 }
 
@@ -3299,7 +3366,7 @@ body {
   text-align: center;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--color-overlay-text-subtle);
 }
 
 @media (max-width: 480px) {
@@ -3338,13 +3405,13 @@ body {
   width: 280px;
   height: 100vh;
   height: 100dvh; /* Dynamic viewport height for mobile */
-  background: #0b0b0b !important; /* Solid opaque background */
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-background) !important; /* Solid opaque background */
+  border-left: 1px solid var(--color-border);
   padding: 80px 24px 24px;
   transition: right 0.3s ease;
   z-index: 1000;
   overflow-y: auto;
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
 }
 
 .hamburger-menu.open {
@@ -3370,7 +3437,7 @@ body {
 }
 
 .menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-overlay-hover);
 }
 
 .menu-item.active {
@@ -3404,7 +3471,7 @@ body {
 
 .menu-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-border);
   margin: 12px 0;
 }
 
@@ -3616,7 +3683,7 @@ body {
   justify-content: space-between;
   gap: var(--spacing-lg);
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.06) 0%, rgba(0, 212, 255, 0.06) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-glass-border);
   border-radius: var(--border-radius);
   padding: 20px var(--spacing-xl);
   -webkit-backdrop-filter: blur(12px);
@@ -3653,7 +3720,7 @@ body {
 .showcase-divider {
   width: 1px;
   align-self: stretch;
-  background: linear-gradient(180deg, transparent, rgba(255,255,255,0.12), transparent);
+  background: linear-gradient(180deg, transparent, var(--color-border), transparent);
   flex-shrink: 0;
 }
 
@@ -3777,7 +3844,7 @@ body {
 
 .showcase-live-text {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-muted);
   font-weight: 500;
 }
 

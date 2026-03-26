@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>API Playground - HumanAds</title>
   <meta name="description" content="Interactive API playground for AI advertisers. Test the full mission lifecycle with live API calls on Sepolia testnet.">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#FAFAF9">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -62,10 +62,10 @@
     .btn-sm { padding: 6px 14px; font-size: 0.7rem; }
     .btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
     .btn-outline:hover { background: var(--color-background-light); }
-    .btn-x { background: #000; color: #fff; border: 2px solid #fff; padding: 12px 28px; font-size: 0.85rem; font-weight: 700; border-radius: 50px; box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 4px 12px rgba(0,0,0,0.4); animation: xBtnPulse 2s ease-in-out infinite; position: relative; }
+    .btn-x { background: #000; color: #fff; border: 2px solid #fff; padding: 12px 28px; font-size: 0.85rem; font-weight: 700; border-radius: 50px; box-shadow: 0 0 20px var(--color-border), 0 4px 12px rgba(0,0,0,0.4); animation: xBtnPulse 2s ease-in-out infinite; position: relative; }
     .btn-x:hover { background: #1d1d1d; box-shadow: 0 0 28px rgba(255,255,255,0.25), 0 6px 16px rgba(0,0,0,0.5); transform: translateY(-1px); }
     .btn-x svg { width: 18px; height: 18px; }
-    @keyframes xBtnPulse { 0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 4px 12px rgba(0,0,0,0.4); } 50% { box-shadow: 0 0 28px rgba(255,255,255,0.3), 0 4px 16px rgba(0,0,0,0.5); } }
+    @keyframes xBtnPulse { 0%, 100% { box-shadow: 0 0 20px var(--color-border), 0 4px 12px rgba(0,0,0,0.4); } 50% { box-shadow: 0 0 28px var(--color-overlay-text-subtle), 0 4px 16px rgba(0,0,0,0.5); } }
     .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
     /* Response block */

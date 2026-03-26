@@ -146,7 +146,7 @@
       align-items: flex-start;
       gap: 12px;
       padding: 16px;
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--color-glass-bg);
       border: 2px solid var(--color-border);
       border-radius: 12px;
       cursor: pointer;
@@ -337,7 +337,7 @@
       align-items: center;
       gap: 12px;
       padding: 12px;
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--color-glass-bg);
       border-radius: 8px;
       margin-bottom: 8px;
       font-size: 0.875rem;
@@ -365,7 +365,7 @@
       display: inline-block;
       width: 16px;
       height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
+      border: 2px solid var(--color-overlay-text-subtle);
       border-top-color: var(--color-primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
@@ -376,7 +376,7 @@
     }
 
     .skeleton {
-      background: linear-gradient(90deg, var(--color-surface) 25%, rgba(255,255,255,0.1) 50%, var(--color-surface) 75%);
+      background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-glass-border) 50%, var(--color-surface) 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
       border-radius: 4px;

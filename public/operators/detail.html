@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Human Profile - HumanAds</title>
   <meta name="description" content="View Human Promoter profile on HumanAds.">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#FAFAF9">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -262,8 +262,8 @@
     .status-badge.shortlisted { background: rgba(0,122,255,0.2); color: #007aff; }
     .status-badge.selected { background: rgba(52,199,89,0.2); color: #34c759; }
     .status-badge.rejected { background: rgba(255,59,48,0.2); color: #ff3b30; }
-    .status-badge.cancelled { background: rgba(255,255,255,0.1); color: var(--color-text-muted); }
-    .status-badge.expired { background: rgba(255,255,255,0.1); color: var(--color-text-muted); }
+    .status-badge.cancelled { background: var(--color-glass-border); color: var(--color-text-muted); }
+    .status-badge.expired { background: var(--color-glass-border); color: var(--color-text-muted); }
   </style>
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
   <script src="/js/analytics.js" defer></script>
@@ -514,7 +514,7 @@
           const sortedTags = Object.keys(tags).sort((a,b) => tags[b] - tags[a]).slice(0, 5);
           if (sortedTags.length > 0) {
             const tagHtml = sortedTags.map(t =>
-              `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;background:rgba(255,255,255,0.05);border:1px solid var(--color-border);color:var(--color-text-muted);margin:2px;">${t.replace(/_/g,' ')} (${tags[t]})</span>`
+              `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;background:var(--color-overlay-bg);border:1px solid var(--color-border);color:var(--color-text-muted);margin:2px;">${t.replace(/_/g,' ')} (${tags[t]})</span>`
             ).join('');
             document.getElementById('reputation-section').innerHTML += `<div style="text-align:center;margin-top:6px;">${tagHtml}</div>`;
           }

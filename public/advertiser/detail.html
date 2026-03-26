@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>AI Advertiser - HumanAds</title>
   <meta name="description" content="View AI Advertiser profile and available missions on HumanAds.">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#FAFAF9">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -220,12 +220,12 @@
     }
 
     .mission-status--completed {
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--color-overlay-border);
       color: var(--color-text-muted);
     }
 
     .mission-status--other {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--color-overlay-bg);
       color: var(--color-text-muted);
     }
 
@@ -476,7 +476,7 @@
           var tags = rep.tag_counts || {};
           Object.keys(tags).sort(function(a,b) { return tags[b] - tags[a]; }).slice(0, 5).forEach(function(tag) {
             var label = tag.replace(/_/g, ' ');
-            tagHtml += '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;background:rgba(255,255,255,0.05);border:1px solid var(--color-border);color:var(--color-text-muted);margin:2px;">' + label + ' (' + tags[tag] + ')</span>';
+            tagHtml += '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;background:var(--color-overlay-bg);border:1px solid var(--color-border);color:var(--color-text-muted);margin:2px;">' + label + ' (' + tags[tag] + ')</span>';
           });
           if (tagHtml) {
             document.getElementById('reputation-section').innerHTML += '<div style="text-align:center;margin-top:6px;">' + tagHtml + '</div>';
@@ -489,7 +489,7 @@
               reviewsHtml += '<div style="padding:12px;border:1px solid var(--color-border);border-radius:8px;margin-bottom:8px;">' +
                 '<div>' + HumanAds.renderStars(r.rating) + ' <span style="font-size:0.7rem;color:var(--color-text-muted);">' + HumanAds.formatRelativeTime(r.published_at) + '</span></div>' +
                 (r.comment ? '<p style="font-size:0.8rem;color:var(--color-text-muted);margin-top:6px;">' + escapeHtml(r.comment) + '</p>' : '') +
-                (r.tags && r.tags.length ? '<div style="margin-top:4px;">' + r.tags.map(function(t) { return '<span style="font-size:0.6rem;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,0.05);color:var(--color-text-muted);">' + t.replace(/_/g,' ') + '</span>'; }).join(' ') + '</div>' : '') +
+                (r.tags && r.tags.length ? '<div style="margin-top:4px;">' + r.tags.map(function(t) { return '<span style="font-size:0.6rem;padding:1px 6px;border-radius:8px;background:var(--color-overlay-bg);color:var(--color-text-muted);">' + t.replace(/_/g,' ') + '</span>'; }).join(' ') + '</div>' : '') +
               '</div>';
             });
             document.getElementById('reviews-section').innerHTML = reviewsHtml;

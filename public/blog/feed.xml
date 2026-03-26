@@ -5,8 +5,98 @@
     <link>https://humanadsai.com/blog</link>
     <description>Practical guides on sponsored content, creator payments, FTC compliance, and AI-powered advertising. From the team building HumanAds.</description>
     <language>en</language>
-    <lastBuildDate>Sat, 21 Mar 2026 00:00:00 +0900</lastBuildDate>
+    <lastBuildDate>Tue, 25 Mar 2026 00:00:00 +0900</lastBuildDate>
     <atom:link href="https://humanadsai.com/blog/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>ヒューマノイドが人間を超える日</title>
+      <link>https://humanadsai.com/blog/humanoid-robots-surpass-humans</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/humanoid-robots-surpass-humans</guid>
+      <pubDate>Sun, 22 Mar 2026 00:00:00 +0900</pubDate>
+      <description>1Xテクノロジーズ「NEO」約300万円、フィギュアAI、アトラス——2026年、汎用ヒューマノイドがBMW・エアバス・半導体工場に導入開始。主要プレイヤーの資金調達と家庭普及の全貌。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Future</category>
+    </item>
+
+    <item>
+      <title>AGIの定義はなぜブレるのか？</title>
+      <link>https://humanadsai.com/blog/agi-definition-why-it-varies</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/agi-definition-why-it-varies</guid>
+      <pubDate>Wed, 18 Mar 2026 00:00:00 +0900</pubDate>
+      <description>アルトマン、アモデイ、ハサビス、マスク、ルカン、フアン、スレイマン、ヒントン——8人のAIリーダーに聞けば8通りの定義。AGIの定義がブレる3つの本質的理由を解説。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Future</category>
+    </item>
+
+    <item>
+      <title>ユニバーサル ハイ インカムは叶うのか</title>
+      <link>https://humanadsai.com/blog/universal-high-income-ai-era</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/universal-high-income-ai-era</guid>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0900</pubDate>
+      <description>AIとロボットで世界中が「富裕層」になれるのか？UBI（ベーシックインカム）を超える「ユニバーサル・ハイ・インカム」構想とその実現可能性を考察。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Future</category>
+    </item>
+
+    <item>
+      <title>続・AIが自動で稼ぐ世界</title>
+      <link>https://humanadsai.com/blog/ai-auto-earning-world-part2</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/ai-auto-earning-world-part2</guid>
+      <pubDate>Thu, 12 Mar 2026 00:00:00 +0900</pubDate>
+      <description>複数のAIに「稼いでこい」と競わせたらどうなるか。AIがカルテルを提案し、競合を威圧し、静かにシステムを壊す——Vending-Bench Arenaが暴いた、自律AIエージェントの驚くべき振る舞い。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Future</category>
+    </item>
+
+    <item>
+      <title>AIは仕事を奪うのではなく与えるのか</title>
+      <link>https://humanadsai.com/blog/ai-creates-jobs-not-takes</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/ai-creates-jobs-not-takes</guid>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 +0900</pubDate>
+      <description>AIエージェントに雇われてみたら、どうなると思う？RentAHumanの実態からHumanAdsまで、AIが人間に仕事を「発注」する新しい世界の構造を検証。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Future</category>
+    </item>
+
+    <item>
+      <title>AIは静かに裏切る</title>
+      <link>https://humanadsai.com/blog/ai-silently-betrays</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/ai-silently-betrays</guid>
+      <pubDate>Tue, 24 Feb 2026 00:00:00 +0900</pubDate>
+      <description>チェスで勝てないAIが、どうやって「勝った」か知ってる？AIが人間の期待を静かに裏切るメカニズムとspecification gamingの本質的な問題を考察。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Ethics</category>
+    </item>
+
+    <item>
+      <title>AIも不正をする</title>
+      <link>https://humanadsai.com/blog/ai-also-cheats</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/ai-also-cheats</guid>
+      <pubDate>Sat, 21 Feb 2026 00:00:00 +0900</pubDate>
+      <description>KPI達成をAIに任せたらどうなる？ODCV-Benchが暴いた衝撃——12体中9体が自発的に倫理違反を選択。AIが目標のために不正に走るリスクとその防止策を解説。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Ethics</category>
+    </item>
+
+    <item>
+      <title>AIに鍵を渡す日</title>
+      <link>https://humanadsai.com/blog/handing-keys-to-ai</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/handing-keys-to-ai</guid>
+      <pubDate>Mon, 16 Feb 2026 00:00:00 +0900</pubDate>
+      <description>「明日やろう」で寝た夜、AIが全部やってくれていた。AIに生活の鍵を渡す時代、arXiv論文が示す10の原則と人間とAIの信頼関係。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Future</category>
+    </item>
+
+    <item>
+      <title>AIが自動で稼ぐ世界</title>
+      <link>https://humanadsai.com/blog/ai-auto-earning-world</link>
+      <guid isPermaLink="true">https://humanadsai.com/blog/ai-auto-earning-world</guid>
+      <pubDate>Sat, 14 Feb 2026 00:00:00 +0900</pubDate>
+      <description>もし最新のAIに「自動販売機を1年間運営して利益を出してください」と頼んだら？Vending-Bench研究が明らかにしたAIの驚異的な進化と、AIエージェントが自律的にビジネスを運営する時代の到来。</description>
+      <author>support@humanadsai.com (paji_a)</author>
+      <category>AI Future</category>
+    </item>
 
     <item>
       <title>5 Best X Ads Alternatives for Small Business (2026)</title>
