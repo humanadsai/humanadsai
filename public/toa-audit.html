@@ -14,16 +14,16 @@
   <!-- OGP -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HumanAds">
-  <meta property="og:title" content="AIに使ってもらえるサイトか無料診断 — toA診断">
-  <meta property="og:description" content="あなたのサイト、AIに使ってもらえる？ URLを入力するだけで30秒で無料診断。">
+  <meta property="og:title" content="AIエージェント対応度診断 — あなたのサイトはAIに対応できていますか？">
+  <meta property="og:description" content="AIエージェントがサイトを発見・理解・利用できるかを30秒で診断。無料・登録不要。">
   <meta property="og:url" content="https://humanadsai.com/toa-audit">
   <meta property="og:image" content="https://humanadsai.com/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="AIに使ってもらえるサイトか無料診断 — toA診断">
-  <meta name="twitter:description" content="あなたのサイト、AIに使ってもらえる？ 30秒で無料診断。">
+  <meta name="twitter:title" content="AIエージェント対応度診断 — あなたのサイトはAIに対応できていますか？">
+  <meta name="twitter:description" content="AIエージェントがサイトを発見・理解・利用できるかを30秒で診断。無料・登録不要。">
   <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
   <meta name="twitter:site" content="@HumanAdsAI">
   <meta name="twitter:creator" content="@paji_a">
@@ -174,9 +174,27 @@
     .toa-score-sub-item { display: flex; align-items: center; gap: 4px; }
     .toa-score-bar { width: 40px; height: 4px; background: var(--color-border); border-radius: 2px; overflow: hidden; }
     .toa-score-bar-fill { height: 100%; border-radius: 2px; }
-    .toa-overall { text-align: center; padding: var(--spacing-md); background: var(--color-background-light); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-lg); }
-    .toa-grade { font-size: 1.5rem; font-weight: 700; font-family: var(--font-mono); }
-    .toa-grade-a { color: #10b981; } .toa-grade-b { color: #3b82f6; } .toa-grade-c { color: #f59e0b; } .toa-grade-d { color: #ef4444; } .toa-grade-f { color: #ef4444; }
+    /* Overall Grade — stamp / hanko style */
+    .toa-overall { text-align: center; padding: 32px 20px; margin-bottom: var(--spacing-lg); position: relative; }
+    .toa-stamp { display: inline-block; position: relative; padding: 20px 36px; border-radius: 16px; animation: toa-stamp-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes toa-stamp-in { 0% { transform: scale(1.8) rotate(-8deg); opacity: 0; } 40% { transform: scale(0.95) rotate(1deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); } }
+    .toa-stamp-grade { font-size: 4.5rem; font-weight: 900; font-family: var(--font-mono); line-height: 1; letter-spacing: -0.03em; }
+    .toa-stamp-pct { font-size: 1.25rem; font-weight: 700; font-family: var(--font-mono); margin-top: 2px; }
+    .toa-stamp-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; }
+    .toa-stamp-msg { font-size: 0.9375rem; font-weight: 600; margin-top: 12px; }
+    /* Grade colors with border + background tint */
+    .toa-stamp-a { border: 4px solid #10b981; background: rgba(16, 185, 129, 0.06); color: #10b981; }
+    .toa-stamp-a .toa-stamp-msg { color: #059669; }
+    .toa-stamp-b { border: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.06); color: #3b82f6; }
+    .toa-stamp-b .toa-stamp-msg { color: #2563eb; }
+    .toa-stamp-c { border: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.06); color: #f59e0b; }
+    .toa-stamp-c .toa-stamp-msg { color: #d97706; }
+    .toa-stamp-d { border: 4px solid #ef4444; background: rgba(239, 68, 68, 0.06); color: #ef4444; }
+    .toa-stamp-d .toa-stamp-msg { color: #dc2626; }
+    .toa-stamp-f { border: 4px solid #ef4444; background: rgba(239, 68, 68, 0.06); color: #ef4444; }
+    .toa-stamp-f .toa-stamp-msg { color: #dc2626; }
+    .toa-stamp-blocker { display: inline-block; margin-top: 12px; padding: 4px 12px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 6px; font-size: 0.8125rem; font-weight: 600; }
+    .toa-stamp-share { margin-top: 16px; }
     .toa-summary { padding: var(--spacing-md); background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-lg); font-size: 0.875rem; line-height: 1.7; white-space: pre-line; }
     .toa-top-actions { margin-bottom: var(--spacing-lg); }
     .toa-action-card { display: flex; gap: 12px; padding: 12px; background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); margin-bottom: 8px; align-items: flex-start; }
@@ -605,7 +623,21 @@
         <div class="toa-score-card"><div class="toa-score-card-label">AIエージェント対応度</div><div class="toa-score-card-value toa-score-purple">${s.toaScore}%</div>
           <div class="toa-score-sub"><span class="toa-score-sub-item">取引 ${s.agent_transaction}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.agent_transaction}%;background:#f59e0b"></span></span></span><span class="toa-score-sub-item">インフラ ${s.toa_infra}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.toa_infra}%;background:#8b5cf6"></span></span></span></div></div>
       </div>`;
-      html += `<div class="toa-overall">総合評価: <span class="toa-grade toa-grade-${gradeClass}">${s.grade}</span> (${s.overall}%)${s.hasBlockerUnchecked ? ' <span style="color:#ef4444;font-size:0.8125rem;">&#9888; ブロッカー未解決</span>' : ''}</div>`;
+      // Stamp message by grade
+      const stampMsg = s.grade.startsWith('A') ? 'AIエージェント対応 — 優秀' :
+        s.grade.startsWith('B') ? 'AIエージェント対応 — 良好' :
+        s.grade === 'C' ? '改善の余地あり' :
+        s.grade === 'D' ? '基盤整備が必要' : '早急な対応が必要';
+      html += `<div class="toa-overall">
+        <div class="toa-stamp toa-stamp-${gradeClass}">
+          <div class="toa-stamp-label">総合評価</div>
+          <div class="toa-stamp-grade">${s.grade}</div>
+          <div class="toa-stamp-pct">${s.overall}%</div>
+          <div class="toa-stamp-msg">${stampMsg}</div>
+          ${s.hasBlockerUnchecked ? '<div class="toa-stamp-blocker">&#9888; Blocker未解決 — グレード上限あり</div>' : ''}
+        </div>
+        <div class="toa-stamp-share"><button onclick="window._toaShareX()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;font-size:0.875rem;font-weight:600;color:#fff;background:#000;border:none;border-radius:10px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#000'"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>結果をシェア</button></div>
+      </div>`;
       try { html += buildRadarChart(s); } catch (e) { console.warn('Radar chart skipped:', e); }
       html += `<div class="toa-summary">${escapeHtml(data.summary)}</div>`;
 
@@ -657,7 +689,7 @@
         <button class="toa-btn-sm" onclick="window._toaExportMd()">Markdownエクスポート</button>
         <button class="toa-btn-sm" onclick="window._toaExportCsv()">CSVエクスポート</button>
         <button class="toa-btn-sm" onclick="window._toaCopyLink()">リンクをコピー</button>
-        <button class="toa-btn-sm" onclick="window._toaShareX()">Xでシェア</button>
+        <button class="toa-btn-sm" onclick="window._toaShareX()" style="display:inline-flex;align-items:center;gap:5px;background:#000;color:#fff;border-color:#000;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#000'"><svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Xでシェア</button>
       </div>`;
       resultArea.innerHTML = html;
     }
