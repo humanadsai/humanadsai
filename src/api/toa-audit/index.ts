@@ -5,7 +5,7 @@
 import type { Env } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { checkRateLimit } from '../../middleware/rate-limit';
-import { crawlUrl } from '../../services/toa-audit/crawler';
+import { crawlUrl, normalizeUrl } from '../../services/toa-audit/crawler';
 import {
   evaluateChecks,
   calculateScores,
@@ -61,29 +61,28 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
     return errors.badRequest(requestId, 'URL is required');
   }
 
-  // Basic URL validation
+  // URL length limit (DoS prevention)
+  if (url.length > 2048) {
+    return errors.badRequest(requestId, 'URL too long (max 2048 characters)');
+  }
+
+  // Unified URL normalization (same function used by crawler for cache consistency)
   let normalizedUrl: string;
   try {
-    const testUrl = url.startsWith('http') ? url : 'https://' + url;
-    const parsed = new URL(testUrl);
+    normalizedUrl = normalizeUrl(url);
+    const parsed = new URL(normalizedUrl);
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return errors.badRequest(requestId, 'Only http/https URLs are supported');
     }
-    normalizedUrl = parsed.origin + parsed.pathname.replace(/\/+$/, '') || parsed.origin;
-  } catch {
-    return errors.badRequest(requestId, 'Invalid URL format');
-  }
-
-  // SSRF check
-  try {
-    const parsed = new URL(normalizedUrl);
-    const host = parsed.hostname;
+    // SSRF check at API level (crawler has its own deeper check)
+    const host = parsed.hostname.toLowerCase();
     if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.|localhost)/i.test(host) ||
-        /^(fc00:|fe80:|::1$)/i.test(host)) {
+        /^(fc00:|fe80:|fd[0-9a-f]{2}:|::1$|::ffff:)/i.test(host) ||
+        (parsed.port && parsed.port !== '80' && parsed.port !== '443')) {
       return errors.badRequest(requestId, 'Internal/private URLs are not allowed');
     }
   } catch {
-    return errors.badRequest(requestId, 'Invalid URL');
+    return errors.badRequest(requestId, 'Invalid URL format');
   }
 
   const siteType = (body.siteType && VALID_SITE_TYPES.includes(body.siteType as SiteType))
@@ -178,12 +177,20 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
   } catch (e: any) {
     console.error('Audit failed:', e);
 
-    // Save failure
+    // Sanitize error message — never expose internal details to client or DB
+    const rawMsg = String(e.message || '');
+    let safeMsg = 'Internal processing error';
+    if (rawMsg.includes('SSRF')) safeMsg = 'URL blocked by security policy';
+    else if (rawMsg.includes('Too many redirects')) safeMsg = 'Too many redirects';
+    else if (rawMsg.includes('aborted') || rawMsg.includes('timeout')) safeMsg = 'Target site did not respond in time';
+    else if (rawMsg.includes('too large')) safeMsg = 'Target page too large to analyze';
+
+    // Save failure (with sanitized message only)
     try {
       await env.DB.prepare(
         `INSERT INTO toa_audits (id, url, site_type, status, error_message, duration_ms, ip_hash)
          VALUES (?, ?, ?, 'failed', ?, ?, ?)`
-      ).bind(auditId, normalizedUrl, siteType, e.message || 'Unknown error', Date.now() - startTime, await hashIp(ip)).run();
+      ).bind(auditId, normalizedUrl, siteType, safeMsg, Date.now() - startTime, await hashIp(ip)).run();
     } catch { /* ignore */ }
 
     return errors.internalError(requestId);
@@ -196,6 +203,11 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
 
 export async function handleToaAuditGet(request: Request, env: Env, auditId: string): Promise<Response> {
   const requestId = generateRequestId();
+
+  // Defensive validation (router regex should already constrain this)
+  if (!/^[a-z0-9]{6,20}$/.test(auditId)) {
+    return errors.badRequest(requestId, 'Invalid audit ID');
+  }
 
   try {
     const row = await env.DB.prepare(

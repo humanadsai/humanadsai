@@ -38,14 +38,30 @@ const PRIVATE_IP_PATTERNS = [
   /^0\./,
   /^fc00:/i,
   /^fe80:/i,
+  /^fd[0-9a-f]{2}:/i,
   /^::1$/,
+  /^::ffff:(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.)/i,
   /^localhost$/i,
+  /^\[::1\]$/,
+  /^\[::ffff:/i,
 ];
+
+// Cloud metadata hostnames to block
+const BLOCKED_HOSTNAMES = [
+  'metadata.google.internal',
+  'metadata.goog',
+  'kubernetes.default.svc',
+];
+
+const MAX_REDIRECTS = 5;
 
 function isPrivateUrl(urlStr: string): boolean {
   try {
     const u = new URL(urlStr);
-    const host = u.hostname;
+    const host = u.hostname.toLowerCase();
+    if (BLOCKED_HOSTNAMES.includes(host)) return true;
+    // Block non-standard ports (only allow 80, 443, or default)
+    if (u.port && u.port !== '80' && u.port !== '443') return true;
     return PRIVATE_IP_PATTERNS.some(p => p.test(host));
   } catch {
     return true;
@@ -78,33 +94,77 @@ function getOrigin(url: string): string {
 // Safe Fetch
 // ============================================
 
-async function safeFetch(url: string, options?: RequestInit): Promise<Response> {
-  if (isPrivateUrl(url)) {
-    throw new Error('SSRF: private/internal URL blocked');
+async function safeFetch(url: string, options?: RequestInit & { followRedirects?: boolean }): Promise<Response> {
+  const { followRedirects = true, ...fetchOptions } = options || {};
+
+  let currentUrl = url;
+  for (let i = 0; i <= MAX_REDIRECTS; i++) {
+    if (isPrivateUrl(currentUrl)) {
+      throw new Error('SSRF: private/internal URL blocked');
+    }
+    // Enforce protocol allowlist
+    const parsed = new URL(currentUrl);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      throw new Error('SSRF: non-HTTP protocol blocked');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+    try {
+      const resp = await fetch(currentUrl, {
+        ...fetchOptions,
+        redirect: 'manual',
+        signal: controller.signal,
+        headers: {
+          'User-Agent': USER_AGENT,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          ...(fetchOptions?.headers || {}),
+        },
+      });
+
+      // If not a redirect or we don't want to follow, return as-is
+      if (!followRedirects || resp.status < 300 || resp.status >= 400) {
+        return resp;
+      }
+
+      const location = resp.headers.get('location');
+      if (!location) return resp;
+
+      // Resolve relative redirect
+      currentUrl = new URL(location, currentUrl).href;
+      // Consume body to free resources
+      await resp.text().catch(() => {});
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-  try {
-    const resp = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        'User-Agent': USER_AGENT,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        ...(options?.headers || {}),
-      },
-    });
-    return resp;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  throw new Error('Too many redirects');
 }
 
 async function safeFetchText(url: string): Promise<{ text: string; status: number }> {
   try {
     const resp = await safeFetch(url);
-    const text = await resp.text();
-    return { text: text.slice(0, MAX_BODY_SIZE), status: resp.status };
+    // Read body as stream, limit to MAX_BODY_SIZE
+    const reader = resp.body?.getReader();
+    if (!reader) return { text: '', status: resp.status };
+    let chunks: Uint8Array[] = [];
+    let totalSize = 0;
+    while (totalSize < MAX_BODY_SIZE) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      totalSize += value.length;
+    }
+    reader.cancel().catch(() => {});
+    const merged = new Uint8Array(Math.min(totalSize, MAX_BODY_SIZE));
+    let offset = 0;
+    for (const chunk of chunks) {
+      const copyLen = Math.min(chunk.length, MAX_BODY_SIZE - offset);
+      merged.set(chunk.subarray(0, copyLen), offset);
+      offset += copyLen;
+      if (offset >= MAX_BODY_SIZE) break;
+    }
+    return { text: new TextDecoder().decode(merged), status: resp.status };
   } catch {
     return { text: '', status: 0 };
   }
@@ -202,7 +262,7 @@ function parseRobotsTxt(content: string, statusCode: number): RobotsResult {
     return { name: bot.name, category: bot.category, status: 'no_rule' as BotStatus };
   });
 
-  return { exists: true, statusCode, bots, hasSitemap, rawContent: content.slice(0, 2000) };
+  return { exists: true, statusCode, bots, hasSitemap };
 }
 
 // ============================================
@@ -451,7 +511,10 @@ function processSchemaItem(item: any, schema: SchemaResult): void {
       }
     }
   }
-  schema.rawBlocks.push(item);
+  // Limit rawBlocks to prevent oversized responses
+  if (schema.rawBlocks.length < 5) {
+    schema.rawBlocks.push(item);
+  }
 }
 
 // ============================================
@@ -505,29 +568,43 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
     safeFetchText(origin + '/sitemap.xml'),
     (async () => {
       const start = Date.now();
-      const resp = await safeFetch(normalizedUrl, { redirect: 'follow' });
+      // safeFetch follows redirects with SSRF checks on each hop
+      const resp = await safeFetch(normalizedUrl);
       const ttfb = Date.now() - start;
+      // Check Content-Length before consuming body (DoS prevention)
+      const contentLength = parseInt(resp.headers.get('content-length') || '0', 10);
+      if (contentLength > MAX_BODY_SIZE * 5) {
+        throw new Error('Response too large');
+      }
       return { resp, ttfb };
     })(),
-    // HTTP check with manual redirect
+    // HTTP check — count redirects using manual mode (safeFetch still checks SSRF per hop)
     (async () => {
       let redirectCount = 0;
       let currentUrl = normalizedUrl;
       const start = Date.now();
-      for (let i = 0; i < 5; i++) {
-        const resp = await safeFetch(currentUrl, { redirect: 'manual' });
+      for (let i = 0; i < MAX_REDIRECTS; i++) {
+        const resp = await safeFetch(currentUrl, { followRedirects: false });
         if (resp.status >= 300 && resp.status < 400) {
           redirectCount++;
           const loc = resp.headers.get('location');
           if (!loc) break;
           currentUrl = new URL(loc, currentUrl).href;
+          // SSRF check on redirect target
+          if (isPrivateUrl(currentUrl)) break;
         } else {
+          // Only expose security-relevant headers (not full header dump)
+          const safeHeaders: Record<string, string> = {};
+          for (const key of ['x-robots-tag', 'content-type', 'strict-transport-security', 'content-security-policy', 'x-frame-options', 'x-content-type-options']) {
+            const val = resp.headers.get(key);
+            if (val) safeHeaders[key] = val;
+          }
           return {
             statusCode: resp.status,
             redirectChain: redirectCount,
             isHttps: new URL(normalizedUrl).protocol === 'https:',
             ttfbMs: Date.now() - start,
-            headers: Object.fromEntries([...resp.headers]),
+            headers: safeHeaders,
           } as HttpResult;
         }
       }
