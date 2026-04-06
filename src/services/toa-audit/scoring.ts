@@ -33,6 +33,7 @@ const SEVERITY_WEIGHTS: Record<Severity, number> = {
 interface CheckDef {
   id: string;
   category: string;
+  categoryEn: string;
   name: string;
   nameJa: string;
   layer: Layer;
@@ -47,6 +48,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'robots-search',
     category: 'クロール許可',
+    categoryEn: 'Crawl Permission',
     name: 'Search bot access allowed',
     nameJa: '検索ボットのアクセス許可',
     layer: 'discovery',
@@ -63,6 +65,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'robots-training',
     category: 'クロール許可',
+    categoryEn: 'Crawl Permission',
     name: 'Training bot policy defined',
     nameJa: 'トレーニングボットのポリシー定義',
     layer: 'discovery',
@@ -80,6 +83,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'robots-user-triggered',
     category: 'クロール許可',
+    categoryEn: 'Crawl Permission',
     name: 'User-triggered bot access allowed',
     nameJa: 'ユーザー起動ボットのアクセス許可',
     layer: 'discovery',
@@ -96,6 +100,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'cf-bot-block',
     category: 'クロール許可',
+    categoryEn: 'Crawl Permission',
     name: 'No aggressive bot blocking detected',
     nameJa: '積極的ボットブロック未検出',
     layer: 'discovery',
@@ -113,6 +118,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'llms-txt',
     category: 'AI発見性',
+    categoryEn: 'AI Discoverability',
     name: 'llms.txt exists',
     nameJa: 'llms.txt の存在',
     layer: 'comprehension',
@@ -126,6 +132,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'sitemap-xml',
     category: 'AI発見性',
+    categoryEn: 'AI Discoverability',
     name: 'XML sitemap exists',
     nameJa: 'XMLサイトマップの存在',
     layer: 'discovery',
@@ -140,6 +147,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'meta-robots',
     category: 'AI発見性',
+    categoryEn: 'AI Discoverability',
     name: 'No noindex/nofollow blocking',
     nameJa: 'noindex/nofollowブロックなし',
     layer: 'discovery',
@@ -155,6 +163,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'canonical',
     category: 'AI発見性',
+    categoryEn: 'AI Discoverability',
     name: 'Canonical URL set correctly',
     nameJa: 'canonical URLの正しい設定',
     layer: 'discovery',
@@ -169,6 +178,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'hreflang',
     category: 'AI発見性',
+    categoryEn: 'AI Discoverability',
     name: 'Hreflang tags (if multilingual)',
     nameJa: 'hreflangタグ（多言語の場合）',
     layer: 'discovery',
@@ -184,6 +194,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'schema-org',
     category: '構造化データ',
+    categoryEn: 'Structured Data',
     name: 'JSON-LD Organization schema',
     nameJa: 'JSON-LD Organizationスキーマ',
     layer: 'comprehension',
@@ -198,6 +209,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'schema-sameas',
     category: '構造化データ',
+    categoryEn: 'Structured Data',
     name: 'sameAs entity disambiguation',
     nameJa: 'sameAsによるエンティティ識別',
     layer: 'comprehension',
@@ -212,6 +224,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'schema-faq-howto',
     category: '構造化データ',
+    categoryEn: 'Structured Data',
     name: 'FAQ or HowTo schema',
     nameJa: 'FAQ/HowToスキーマ',
     layer: 'comprehension',
@@ -225,6 +238,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'schema-product',
     category: '構造化データ',
+    categoryEn: 'Structured Data',
     name: 'Product/Software schema',
     nameJa: 'Product/Softwareスキーマ',
     layer: 'economics',
@@ -240,6 +254,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'semantic-html',
     category: 'コンテンツ構造',
+    categoryEn: 'Content Structure',
     name: 'Semantic HTML elements used',
     nameJa: 'セマンティックHTML要素の使用',
     layer: 'comprehension',
@@ -255,6 +270,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'heading-hierarchy',
     category: 'コンテンツ構造',
+    categoryEn: 'Content Structure',
     name: 'Proper heading hierarchy',
     nameJa: '適切な見出し階層',
     layer: 'comprehension',
@@ -277,6 +293,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'text-script-ratio',
     category: 'コンテンツ構造',
+    categoryEn: 'Content Structure',
     name: 'Text/script ratio > 50%',
     nameJa: 'テキスト/スクリプト比率 > 50%',
     layer: 'comprehension',
@@ -293,6 +310,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'ogp',
     category: 'メタ情報・OGP',
+    categoryEn: 'Meta & OGP',
     name: 'Open Graph Protocol tags',
     nameJa: 'OGPタグ',
     layer: 'comprehension',
@@ -308,6 +326,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'alt-text',
     category: 'メタ情報・OGP',
+    categoryEn: 'Meta & OGP',
     name: 'Image alt text coverage > 80%',
     nameJa: '画像alt属性カバレッジ > 80%',
     layer: 'comprehension',
@@ -323,6 +342,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'meta-title',
     category: 'メタ情報・OGP',
+    categoryEn: 'Meta & OGP',
     name: 'Title tag present and adequate',
     nameJa: 'titleタグの存在と適切さ',
     layer: 'discovery',
@@ -338,6 +358,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'meta-description',
     category: 'メタ情報・OGP',
+    categoryEn: 'Meta & OGP',
     name: 'Meta description present',
     nameJa: 'メタディスクリプションの存在',
     layer: 'discovery',
@@ -354,6 +375,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'http-status',
     category: 'HTTP・パフォーマンス',
+    categoryEn: 'HTTP & Performance',
     name: 'HTTP 200 OK response',
     nameJa: 'HTTP 200 OK レスポンス',
     layer: 'discovery',
@@ -368,6 +390,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'redirect-chain',
     category: 'HTTP・パフォーマンス',
+    categoryEn: 'HTTP & Performance',
     name: 'Redirect chain ≤ 3 hops',
     nameJa: 'リダイレクトチェーン ≤ 3段',
     layer: 'discovery',
@@ -382,6 +405,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'https',
     category: 'HTTP・パフォーマンス',
+    categoryEn: 'HTTP & Performance',
     name: 'HTTPS enabled',
     nameJa: 'HTTPS有効',
     layer: 'safety',
@@ -395,6 +419,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'ttfb',
     category: 'HTTP・パフォーマンス',
+    categoryEn: 'HTTP & Performance',
     name: 'TTFB < 800ms',
     nameJa: 'TTFB < 800ms',
     layer: 'discovery',
@@ -411,6 +436,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'about-page',
     category: 'toAインフラ',
+    categoryEn: 'toA Infrastructure',
     name: 'About/Company page linked',
     nameJa: 'About/会社ページへのリンク',
     layer: 'identity',
@@ -424,6 +450,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'pricing-page',
     category: 'toAインフラ',
+    categoryEn: 'toA Infrastructure',
     name: 'Pricing page linked',
     nameJa: '料金ページへのリンク',
     layer: 'economics',
@@ -437,6 +464,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'api-docs',
     category: 'toAインフラ',
+    categoryEn: 'toA Infrastructure',
     name: 'API/docs endpoint discoverable',
     nameJa: 'API/docsエンドポイントの発見可能性',
     layer: 'actionability',
@@ -459,6 +487,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-no-captcha',
     category: 'Friction',
+    categoryEn: 'Friction',
     name: 'No CAPTCHA on critical paths',
     nameJa: '主要導線にCAPTCHAなし',
     layer: 'actionability',
@@ -480,6 +509,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-no-cookie-wall',
     category: 'Friction',
+    categoryEn: 'Friction',
     name: 'No cookie consent wall blocking content',
     nameJa: 'Cookie同意ウォールがコンテンツを遮断しない',
     layer: 'actionability',
@@ -501,6 +531,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-openapi',
     category: 'API連携',
+    categoryEn: 'API Integration',
     name: 'OpenAPI/Swagger spec available',
     nameJa: 'OpenAPI/Swagger仕様が利用可能',
     layer: 'actionability',
@@ -526,6 +557,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-content-freshness',
     category: 'コンテンツの信頼性',
+    categoryEn: 'Content Trustworthiness',
     name: 'Content freshness signals (dateModified)',
     nameJa: 'コンテンツ鮮度シグナル(dateModified)',
     layer: 'comprehension',
@@ -547,6 +579,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-author-byline',
     category: 'コンテンツの信頼性',
+    categoryEn: 'Content Trustworthiness',
     name: 'Author byline with credentials',
     nameJa: '資格付きの著者情報',
     layer: 'comprehension',
@@ -568,6 +601,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-machine-readable-price',
     category: '経済・決済',
+    categoryEn: 'Economics & Payments',
     name: 'Pricing is machine-readable (structured data)',
     nameJa: '価格が機械可読(構造化データ)',
     layer: 'economics',
@@ -592,6 +626,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-rate-limit-header',
     category: '信頼性・リトライ',
+    categoryEn: 'Reliability & Retry',
     name: 'Rate limit info in response headers',
     nameJa: 'レスポンスヘッダーにレート制限情報',
     layer: 'actionability',
@@ -619,6 +654,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-webmcp',
     category: 'API連携',
+    categoryEn: 'API Integration',
     name: 'WebMCP form annotations',
     nameJa: 'WebMCPフォームアノテーション',
     layer: 'actionability',
@@ -632,6 +668,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-ai-analytics',
     category: '計測・分析',
+    categoryEn: 'Measurement & Analytics',
     name: 'AI traffic tagged in analytics',
     nameJa: 'AI流入のアナリティクスタグ付け',
     layer: 'observability',
@@ -645,6 +682,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-oauth-login',
     category: 'エージェント認証',
+    categoryEn: 'Agent Authentication',
     name: 'Auth/login flow available',
     nameJa: '認証/ログイン導線あり',
     layer: 'actionability',
@@ -663,6 +701,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-mcp-server',
     category: 'API連携',
+    categoryEn: 'API Integration',
     name: 'MCP server reference',
     nameJa: 'MCPサーバーの参照',
     layer: 'actionability',
@@ -676,6 +715,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-trial',
     category: '経済・決済',
+    categoryEn: 'Economics & Payments',
     name: 'Free trial or demo available',
     nameJa: '無料トライアル/デモあり',
     layer: 'economics',
@@ -689,6 +729,7 @@ const AUTO_CHECKS: CheckDef[] = [
   {
     id: 'auto-contact',
     category: '安全性',
+    categoryEn: 'Safety',
     name: 'Contact/support link available',
     nameJa: 'お問い合わせ/サポートリンクあり',
     layer: 'safety',
@@ -732,6 +773,7 @@ export function evaluateChecks(data: CrawlData, siteType: SiteType = 'all'): Aut
     return {
       id: check.id,
       category: check.category,
+      categoryEn: check.categoryEn,
       name: check.name,
       nameJa: check.nameJa,
       layer: check.layer,
@@ -863,6 +905,26 @@ export function generateSummary(scores: Scores): string {
     comment = 'AI検索・toA基盤ともに改善が必要です。まずはrobots.txt・メタ情報・構造化データなどの基盤（Layer 1-2）から着手してください。';
   } else {
     comment = `AI検索スコア ${searchScore}%、AIエージェント対応度 ${toaScore}%。両スコアのバランスを見ながら、重要度の高い項目から優先的に改善してください。`;
+  }
+
+  return comment;
+}
+
+export function generateSummaryEn(scores: Scores): string {
+  const { searchScore, toaScore, hasBlockerUnchecked } = scores;
+
+  let comment = '';
+
+  if (searchScore >= 70 && toaScore >= 70) {
+    comment = 'Both AI search optimization and toA infrastructure are at a high level. Fine-tuning details can further improve your score.';
+  } else if (searchScore >= 70 && toaScore < 40) {
+    comment = 'AI search optimization is solid, but toA infrastructure is lacking. AI agents can "find" your site but struggle to "use" it. Prioritize API/auth/payment setup.';
+  } else if (searchScore < 40 && toaScore >= 70) {
+    comment = 'toA infrastructure is solid, but AI search discoverability is low. Prioritize structured data, meta tags, and semantic HTML.';
+  } else if (searchScore < 40 && toaScore < 40) {
+    comment = 'Both AI search and toA infrastructure need improvement. Start with foundations (Layer 1-2): robots.txt, meta tags, and structured data.';
+  } else {
+    comment = `AI Search Score ${searchScore}%, AI Agent Readiness ${toaScore}%. Prioritize high-severity items while balancing both scores.`;
   }
 
   return comment;

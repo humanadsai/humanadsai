@@ -185,6 +185,7 @@ export type SiteType = 'all' | 'media' | 'saas' | 'ec' | 'marketplace' | 'api_pr
 export interface AutoCheckResult {
   id: string;
   category: string;
+  categoryEn: string;
   name: string;
   nameJa: string;
   layer: Layer;
