@@ -314,9 +314,9 @@
 
       <!-- HERO -->
       <section class="toa-section toa-hero" id="hero">
-        <div class="toa-hero-label">toA診断 ― 第三の市場への対応度チェック</div>
-        <h1>次の顧客は、<span class="toa-hl">AIエージェント</span>かもしれない。</h1>
-        <p class="toa-hero-sub">認証・操作・決済まで自律的にこなすAIエージェント。<br>あなたのサイトは対応できていますか？</p>
+        <div class="toa-hero-label">toA診断 ― AIエージェント対応度チェック</div>
+        <h1>次のお客さんは<br class="toa-br-sp"><span class="toa-hl">AIかも？</span></h1>
+        <p class="toa-hero-sub">買い物もAIが代わりにやる時代。<br>準備ができているか30秒でわかります。</p>
         <form class="toa-form" id="audit-form" aria-label="サイトチェックフォーム">
           <label for="audit-url" class="sr-only">診断するサイトのURL</label>
           <input type="text" id="audit-url" placeholder="yoursite.com" required autocomplete="url">
@@ -445,8 +445,15 @@
       return false;
     };
 
-    async function runAudit(url) {
+    async function runAudit(url, forceRescan) {
       if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      // Client-side URL validation
+      try {
+        const parsed = new URL(url);
+        if (!['http:', 'https:'].includes(parsed.protocol)) { showError('http/https URLのみ対応しています。'); return; }
+        if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.|localhost)/i.test(parsed.hostname)) { showError('プライベートURLは診断できません。'); return; }
+        if (url.length > 2048) { showError('URLが長すぎます（最大2048文字）。'); return; }
+      } catch { showError('無効なURL形式です。'); return; }
       urlInput.value = url;
 
       submitBtn.disabled = true;
@@ -457,10 +464,12 @@
       try {
         const ac = new AbortController();
         const tid = setTimeout(() => ac.abort(), 90000);
+        const body = { url };
+        if (forceRescan) body.rescan = true;
         const resp = await fetch('/api/toa-audit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify(body),
           signal: ac.signal,
         });
         clearTimeout(tid);
@@ -476,7 +485,9 @@
         }
         currentAuditId = data.data.id;
         currentResults = data.data;
-        if (data.data.permalink) history.replaceState(null, '', data.data.permalink);
+        if (data.data.permalink && /^\/toa-audit\/[a-z0-9][a-z0-9-]{2,50}[a-z0-9]$/.test(data.data.permalink)) {
+          history.replaceState(null, '', data.data.permalink);
+        }
         renderResults(data.data);
       } catch (err) {
         console.error('[toA Audit] fetch error:', err);
@@ -688,7 +699,7 @@
       if (data.topActions && data.topActions.length > 0) {
         html += `<div class="toa-top-actions"><h3 class="toa-h3">優先アクション</h3>`;
         data.topActions.forEach((a, i) => {
-          html += `<div class="toa-action-card"><div class="toa-action-num">${i + 1}</div><div class="toa-action-body"><div class="toa-action-title">${escapeHtml(a.nameJa || a.name)} <span class="toa-severity-badge toa-sev-${a.severity}">${a.severity}</span></div><div class="toa-action-detail">${escapeHtml(a.detailsJa || a.details)}</div>${a.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(a.recommendationJa)}</div>` : ''}</div></div>`;
+          html += `<div class="toa-action-card"><div class="toa-action-num">${i + 1}</div><div class="toa-action-body"><div class="toa-action-title">${escapeHtml(a.nameJa || a.name)} <span class="toa-severity-badge toa-sev-${escapeAttr(a.severity)}">${escapeHtml(a.severity)}</span></div><div class="toa-action-detail">${escapeHtml(a.detailsJa || a.details)}</div>${a.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(a.recommendationJa)}</div>` : ''}</div></div>`;
         });
         html += `</div>`;
       }
@@ -709,7 +720,7 @@
         html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}<div class="toa-cat-score"><span class="toa-cat-bar" style="background:${barBg}"><span class="toa-cat-bar-fill" style="width:${barWidth}%;background:${barColor}"></span></span><span class="toa-cat-ratio" style="color:${ratioColor}">${ratioText}</span></div></div><div class="toa-category-body hidden">`;
         for (const c of checks) {
           const icon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : c.status === 'warn' ? '&#9888;' : '&#8226;';
-          html += `<div class="toa-check-item" data-status="${c.status}"><div class="toa-status toa-status-${c.status}">${icon}</div><div class="toa-check-body"><div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div><div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}</div></div>`;
+          html += `<div class="toa-check-item" data-status="${escapeAttr(c.status)}"><div class="toa-status toa-status-${escapeAttr(c.status)}">${icon}</div><div class="toa-check-body"><div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${escapeAttr(c.severity)}">${escapeHtml(c.severity)}</span></div><div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}</div></div>`;
         }
         html += `</div>`;
       }
@@ -721,8 +732,9 @@
         for (const [cat, checks] of Object.entries(manualCats)) {
           html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}</div><div class="toa-category-body hidden">`;
           for (const c of checks) {
+            const safeId = escapeAttr(c.id);
             const checked = getManualState(c.id) ? 'checked' : '';
-            html += `<div class="toa-manual-item"><input type="checkbox" id="manual-${c.id}" ${checked} onchange="window._toaManualChange('${c.id}', this.checked)"><label for="manual-${c.id}">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></label></div>`;
+            html += `<div class="toa-manual-item"><input type="checkbox" id="manual-${safeId}" data-manual-id="${safeId}" ${checked} class="toa-manual-cb"><label for="manual-${safeId}">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${escapeAttr(c.severity)}">${escapeHtml(c.severity)}</span></label></div>`;
           }
           html += `</div>`;
         }
@@ -730,6 +742,7 @@
       }
 
       html += `<div class="toa-actions-bar">
+        <button class="toa-btn-sm" onclick="window._toaRescan()" style="display:inline-flex;align-items:center;gap:5px;">&#8635; もう一度スキャン</button>
         <button class="toa-btn-sm toa-btn-primary" onclick="window._toaCopyClaudeCode()" style="background:#6b21a8;border-color:#6b21a8;">Claude Code用にコピー</button>
         <button class="toa-btn-sm" onclick="window._toaExportMd()">Markdownエクスポート</button>
         <button class="toa-btn-sm" onclick="window._toaExportCsv()">CSVエクスポート</button>
@@ -768,7 +781,14 @@
     // ============================================
     function getManualState(id) { if (!currentAuditId) return false; try { return !!JSON.parse(localStorage.getItem(STORAGE_PREFIX + currentAuditId) || '{}')[id]; } catch { return false; } }
     function setManualState(id, v) { if (!currentAuditId) return; try { const k = STORAGE_PREFIX + currentAuditId; const d = JSON.parse(localStorage.getItem(k) || '{}'); d[id] = v; localStorage.setItem(k, JSON.stringify(d)); } catch {} }
-    window._toaManualChange = function(id, v) { setManualState(id, v); };
+    // Event delegation for manual checkboxes (avoid inline handlers for XSS safety)
+    resultArea.addEventListener('change', function(e) {
+      const cb = e.target;
+      if (cb && cb.classList && cb.classList.contains('toa-manual-cb')) {
+        const id = cb.getAttribute('data-manual-id');
+        if (id) setManualState(id, cb.checked);
+      }
+    });
 
     // ============================================
     // Export / Share
@@ -892,6 +912,14 @@
       preview.value = md;
     };
 
+    window._toaRescan = function() {
+      if (!currentResults) return;
+      const url = currentResults.url;
+      if (!url) return;
+      urlInput.value = url;
+      runAudit(url, true);
+    };
+
     window._toaShareX = function() {
       if (!currentResults) return;
       const s = currentResults.scores;
@@ -900,11 +928,12 @@
         g.startsWith("B") ? "概ね良好。改善余地はわずか。" :
         g === "C" ? "改善の余地がある。" : "基盤の整備から着手したい。";
       const url = currentResults.url || "";
-      const domain = url.replace(/^https?:\/\//, "").replace(/\/.*/, "");
-      const text = "次の顧客は、AIエージェントかもしれない。\n\n" +
-        domain + " の対応度を調べてみた。\n" +
+      const domain = url.replace(/^https?:\/\//, "").replace(/\/.*/, "").replace(/\.com/g, "[.]com").replace(/\.jp/g, "[.]jp").replace(/\.net/g, "[.]net").replace(/\.org/g, "[.]org").replace(/\.io/g, "[.]io").replace(/\.co/g, "[.]co");
+      const permalink = currentAuditId ? "https://humanadsai.com/toa-audit/" + currentAuditId : "https://humanadsai.com/toa-audit";
+      const text = "AIエージェントが自分のサイトを見つけて、理解して、使えるか。その対応度を診断できる「toA診断」で調べてみた。\n\n" +
+        domain + "\n" +
         "総合 " + g + "（" + s.overall + "%） AI検索 " + s.searchScore + "% ／ エージェント対応 " + s.toaScore + "%\n\n" +
-        verdict + "\n\nhttps://humanadsai.com/toa-audit";
+        verdict + "\n\n" + permalink;
       window.open("https://x.com/intent/tweet?text=" + encodeURIComponent(text), "_blank", "noopener,noreferrer");
     };
 
@@ -912,16 +941,17 @@
     // Permalink
     // ============================================
     function checkPermalink() {
-      const pathMatch = window.location.pathname.match(/^\/toa-audit\/([a-z0-9][a-z0-9-]+[a-z0-9])$/);
+      const pathMatch = window.location.pathname.match(/^\/toa-audit\/([a-z0-9][a-z0-9-]{2,50}[a-z0-9])$/);
       if (pathMatch) { loadAudit(pathMatch[1]); return; }
       const id = new URLSearchParams(window.location.search).get('id');
-      if (id && /^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(id)) { loadAudit(id); return; }
+      if (id && /^[a-z0-9][a-z0-9-]{2,50}[a-z0-9]$/.test(id)) { loadAudit(id); return; }
     }
     async function loadAudit(id) {
+      if (!/^[a-z0-9][a-z0-9-]{2,50}[a-z0-9]$/.test(id)) { showError('無効な診断IDです。'); return; }
       // Show a simple loading state (not the full step-by-step since we're just fetching cached result)
       resultArea.innerHTML = '<div style="text-align:center;padding:40px;color:var(--color-text-muted);">結果を読み込み中...</div>';
       try {
-        const resp = await fetch('/api/toa-audit/' + id);
+        const resp = await fetch('/api/toa-audit/' + encodeURIComponent(id));
         const data = await resp.json();
         if (!resp.ok || !data.success) { showError('チェック結果が見つからないか、期限切れです。'); return; }
         currentAuditId = data.data.id; currentResults = data.data;
@@ -937,9 +967,10 @@
     // ============================================
     // Utilities
     // ============================================
-    function escapeHtml(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-    function csvEscape(s) { if (!s) return ''; if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes("'")) return '"' + s.replace(/"/g, '""') + '"'; return s; }
-    function groupBy(a, k) { const g = {}; for (const i of a) { (g[i[k]] = g[i[k]] || []).push(i); } return g; }
+    function escapeHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function escapeAttr(s) { return escapeHtml(String(s || '')); }
+    function csvEscape(s) { if (!s) return ''; s = String(s); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes("'")) return '"' + s.replace(/"/g, '""') + '"'; return s; }
+    function groupBy(a, k) { const g = Object.create(null); for (const i of a) { const key = String(i[k] || 'unknown'); (g[key] = g[key] || []).push(i); } return g; }
     function downloadText(c, f, m) { const b = new Blob([c], {type:m}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = f; a.click(); URL.revokeObjectURL(a.href); }
 
     checkPermalink();

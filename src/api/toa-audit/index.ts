@@ -59,6 +59,23 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
   const requestId = generateRequestId();
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
+  // Origin validation — block cross-origin POST (CSRF prevention)
+  const origin = request.headers.get('Origin');
+  const referer = request.headers.get('Referer');
+  const requestUrl = new URL(request.url);
+  const allowedOrigins = [requestUrl.origin, 'https://humanadsai.com'];
+  if (origin && !allowedOrigins.includes(origin)) {
+    return errors.forbidden(requestId, 'Cross-origin requests are not allowed');
+  }
+  if (!origin && referer) {
+    try {
+      const refOrigin = new URL(referer).origin;
+      if (!allowedOrigins.includes(refOrigin)) {
+        return errors.forbidden(requestId, 'Cross-origin requests are not allowed');
+      }
+    } catch { /* malformed referer, allow (some clients omit it) */ }
+  }
+
   // Rate limit: 5/hour per IP
   const rateResult = await checkRateLimit(env, ip, 'toa-audit');
   if (!rateResult.allowed) {
@@ -66,7 +83,7 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
   }
 
   // Parse body
-  let body: { url?: string; siteType?: string };
+  let body: { url?: string; siteType?: string; rescan?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -74,6 +91,7 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
   }
 
   const url = body.url?.trim();
+  const forceRescan = !!body.rescan;
   if (!url) {
     return errors.badRequest(requestId, 'URL is required');
   }
@@ -93,8 +111,9 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
     }
     // SSRF check at API level (crawler has its own deeper check)
     const host = parsed.hostname.toLowerCase();
-    if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.|localhost)/i.test(host) ||
-        /^(fc00:|fe80:|fd[0-9a-f]{2}:|::1$|::ffff:)/i.test(host) ||
+    if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.|localhost$)/i.test(host) ||
+        /^(fc00:|fe80:|fd[0-9a-f]{2}:|::1$|::$|::ffff:)/i.test(host) ||
+        host.endsWith('.internal') || host.endsWith('.local') || host.endsWith('.localhost') ||
         (parsed.port && parsed.port !== '80' && parsed.port !== '443')) {
       return errors.badRequest(requestId, 'Internal/private URLs are not allowed');
     }
@@ -106,8 +125,8 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
     ? body.siteType as SiteType
     : 'all';
 
-  // Check for cached recent result (< 1 hour)
-  try {
+  // Check for cached recent result (< 1 hour), skip if rescan requested
+  if (!forceRescan) try {
     const cached = await env.DB.prepare(
       "SELECT id, auto_results, scores, grade, has_blocker, summary, top_actions, duration_ms, created_at, completed_at FROM toa_audits WHERE url = ? AND status = 'completed' AND created_at > datetime('now', '-1 hour') ORDER BY created_at DESC LIMIT 1"
     ).bind(normalizedUrl).first<any>();

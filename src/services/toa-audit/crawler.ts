@@ -37,14 +37,19 @@ const PRIVATE_IP_PATTERNS = [
   /^192\.168\./,
   /^169\.254\./,
   /^0\./,
+  /^0\.0\.0\.0$/,
   /^fc00:/i,
   /^fe80:/i,
   /^fd[0-9a-f]{2}:/i,
   /^::1$/,
-  /^::ffff:(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.)/i,
+  /^::$/,
+  /^::ffff:(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.)/i,
   /^localhost$/i,
   /^\[::1\]$/,
   /^\[::ffff:/i,
+  /^\[fd[0-9a-f]{2}:/i,
+  /^\[fe80:/i,
+  /^\[fc00:/i,
 ];
 
 // Cloud metadata hostnames to block
@@ -52,7 +57,16 @@ const BLOCKED_HOSTNAMES = [
   'metadata.google.internal',
   'metadata.goog',
   'kubernetes.default.svc',
+  'metadata.azure.internal',
+  'metadata.azure.com',
 ];
+
+// Block *.internal and other suspicious TLDs
+function isBlockedHostname(host: string): boolean {
+  if (BLOCKED_HOSTNAMES.includes(host)) return true;
+  if (host.endsWith('.internal') || host.endsWith('.local') || host.endsWith('.localhost')) return true;
+  return false;
+}
 
 const MAX_REDIRECTS = 5;
 
@@ -60,7 +74,7 @@ export function isPrivateUrl(urlStr: string): boolean {
   try {
     const u = new URL(urlStr);
     const host = u.hostname.toLowerCase();
-    if (BLOCKED_HOSTNAMES.includes(host)) return true;
+    if (isBlockedHostname(host)) return true;
     // Block non-standard ports (only allow 80, 443, or default)
     if (u.port && u.port !== '80' && u.port !== '443') return true;
     return PRIVATE_IP_PATTERNS.some(p => p.test(host));
