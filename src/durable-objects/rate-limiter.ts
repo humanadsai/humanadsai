@@ -75,8 +75,8 @@ const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
     refillInterval: 60000,  // = 1 token/min = 60/hour
   },
   'diagnosis': {
-    maxTokens: 3,
-    refillRate: 0.05,       // ~3 per hour
+    maxTokens: 10,
+    refillRate: 0.167,      // ~10 per hour
     refillInterval: 60000,  // check every minute
   },
 };
