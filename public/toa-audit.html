@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>toA診断 — あなたのサイトのAIエージェント対応度を無料チェック | HumanAds</title>
-  <meta name="description" content="URLを入力するだけで、AIエージェントがあなたのサイトを利用できるか30秒で診断。API・MCP対応、構造化データ、セキュリティなど48項目以上をチェック。無料・登録不要。">
+  <title>AIに使ってもらえるサイトか無料診断 — toA診断 | HumanAds</title>
+  <meta name="description" content="あなたのサイト、AIに使ってもらえる？ URLを入力するだけで30秒で診断。ChatGPTやGeminiなどのAIエージェントがサイトを見つけて使えるかをチェック。無料・登録不要。">
   <meta name="theme-color" content="#FAFAF9">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -14,16 +14,16 @@
   <!-- OGP -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HumanAds">
-  <meta property="og:title" content="toA診断 — AIエージェント対応度を無料チェック">
-  <meta property="og:description" content="URLを入力するだけ。AIエージェントがあなたのサイトを発見・理解・操作できるか、30秒で診断。48項目以上を無料チェック。">
+  <meta property="og:title" content="AIに使ってもらえるサイトか無料診断 — toA診断">
+  <meta property="og:description" content="あなたのサイト、AIに使ってもらえる？ URLを入力するだけで30秒で無料診断。">
   <meta property="og:url" content="https://humanadsai.com/toa-audit">
   <meta property="og:image" content="https://humanadsai.com/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="toA診断 — AIエージェント対応度を無料チェック">
-  <meta name="twitter:description" content="あなたのサイト、AIエージェントに対応できていますか？ 無料診断で30秒で分かります。">
+  <meta name="twitter:title" content="AIに使ってもらえるサイトか無料診断 — toA診断">
+  <meta name="twitter:description" content="あなたのサイト、AIに使ってもらえる？ 30秒で無料診断。">
   <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
   <meta name="twitter:site" content="@HumanAdsAI">
   <meta name="twitter:creator" content="@paji_a">
@@ -250,17 +250,17 @@
 
     <main class="toa-page">
 
-      <!-- [1] HERO — toA市場の定義から入る -->
+      <!-- HERO -->
       <section class="toa-section toa-hero" id="hero">
-        <div class="toa-hero-label">toA診断 ― AIエージェントが顧客になる時代の準備度チェック</div>
-        <h1>AIエージェントは、あなたのサイトで<br><span class="toa-hl">認証・操作・取引</span>できますか？</h1>
-        <p class="toa-hero-sub">toA（to Agent）診断は、AIに引用されるかではなく、AIエージェントに<strong>使われ、依頼され、取引される</strong>準備があるかを測ります。</p>
+        <div class="toa-hero-label">無料のAIエージェント対応チェック</div>
+        <h1>あなたのサイト、<br><span class="toa-hl">AIに使ってもらえる</span>準備できてる？</h1>
+        <p class="toa-hero-sub">ChatGPTやGeminiなどのAIエージェントが、あなたのサイトを見つけて、理解して、使えるかどうかを<strong>30秒で無料診断</strong>します。</p>
         <form class="toa-form" id="audit-form" aria-label="サイトチェックフォーム">
           <label for="audit-url" class="sr-only">チェックするサイトのURL</label>
-          <input type="text" id="audit-url" placeholder="yoursite.com" required autocomplete="url">
-          <button type="submit" id="audit-submit">無料でtoA診断する →</button>
+          <input type="text" id="audit-url" placeholder="https://yoursite.com" required autocomplete="url">
+          <button type="submit" id="audit-submit">無料で診断する →</button>
         </form>
-        <p class="toa-form-meta">登録なし ・ 無料 ・ 30秒で結果がわかる ・ 48項目以上を自動チェック</p>
+        <p class="toa-form-meta">登録不要 ・ 完全無料 ・ 30秒で結果表示</p>
       </section>
 
       <!-- 診断結果エリア -->
@@ -623,10 +623,13 @@
         const passCount = checks.filter(c => c.status === 'pass').length;
         const infoCount = checks.filter(c => c.status === 'info').length;
         const scorable = checks.length - infoCount;
-        const pct = scorable > 0 ? Math.round((passCount / scorable) * 100) : 100;
-        const barColor = pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : pct >= 1 ? '#ef4444' : '#6b7280';
-        const ratioColor = pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : pct >= 1 ? '#ef4444' : 'var(--color-text-muted)';
-        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}<div class="toa-cat-score"><span class="toa-cat-bar"><span class="toa-cat-bar-fill" style="width:${pct}%;background:${barColor}"></span></span><span class="toa-cat-ratio" style="color:${ratioColor}">${passCount}/${scorable}</span></div></div><div class="toa-category-body hidden">`;
+        const pct = scorable > 0 ? Math.round((passCount / scorable) * 100) : 0;
+        const allPass = scorable > 0 && passCount === scorable;
+        const barColor = scorable === 0 ? '#6b7280' : allPass ? '#10b981' : pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+        const ratioColor = scorable === 0 ? 'var(--color-text-muted)' : allPass ? '#10b981' : pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+        const barWidth = scorable === 0 ? 0 : pct;
+        const ratioText = scorable === 0 ? '-' : `${passCount}/${scorable}`;
+        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}<div class="toa-cat-score"><span class="toa-cat-bar"><span class="toa-cat-bar-fill" style="width:${barWidth}%;background:${barColor}"></span></span><span class="toa-cat-ratio" style="color:${ratioColor}">${ratioText}</span></div></div><div class="toa-category-body hidden">`;
         for (const c of checks) {
           const icon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : c.status === 'warn' ? '&#9888;' : '&#8226;';
           html += `<div class="toa-check-item" data-status="${c.status}"><div class="toa-status toa-status-${c.status}">${icon}</div><div class="toa-check-body"><div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div><div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}</div></div>`;
