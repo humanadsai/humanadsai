@@ -335,163 +335,7 @@
         <p class="toa-form-meta">登録なし ・ 無料 ・ 30秒で結果がわかる ・ 48項目以上を自動チェック</p>
       </section>
 
-      <!-- [2] toAとは何か（短い定義 + 5条件） -->
-      <section class="toa-section toa-section-alt" id="what-is-toa">
-        <div class="toa-narrow">
-          <h2 class="toa-h2">toA（to Agent）とは？</h2>
-          <p class="toa-p">toC（消費者向け）でもtoB（企業向け）でもない。<strong style="color:var(--color-text)">AIエージェントそのものが顧客になる市場</strong> ―― それがtoAです。<br>この診断は、AIエージェントがあなたのサイトを発見・理解・操作・取引できるかを測ります。AIOはその一部にすぎません。</p>
-          <p class="toa-p" style="font-size:0.8125rem;margin-bottom:var(--spacing-sm);"><strong style="color:var(--color-text)">AIエージェントが自律的に動くための5条件:</strong></p>
-          <div class="toa-5cards">
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128100;</div>
-              <div class="toa-5card-title">アイデンティティ</div>
-              <div class="toa-5card-desc">「自分は誰か」を証明する手段（APIキー、OAuth）</div>
-            </div>
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128187;</div>
-              <div class="toa-5card-title">実行環境</div>
-              <div class="toa-5card-desc">安全にコードを実行できるサンドボックス</div>
-            </div>
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128295;</div>
-              <div class="toa-5card-title">ツール</div>
-              <div class="toa-5card-desc">外部サービスを操作する手段（API、MCP、ブラウザ）</div>
-            </div>
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128451;</div>
-              <div class="toa-5card-title">記憶</div>
-              <div class="toa-5card-desc">経験を蓄積し、次の行動に活かす力</div>
-            </div>
-            <div class="toa-5card" style="border-color:var(--color-primary);background:rgba(255,107,53,0.04);">
-              <div class="toa-5card-icon">&#128176;</div>
-              <div class="toa-5card-title" style="color:var(--color-primary);">経済活動</div>
-              <div class="toa-5card-desc">対価を支払い・受け取る仕組み ― <strong>HumanAdsが提供するインフラ</strong></div>
-            </div>
-          </div>
-          <p class="toa-p" style="text-align:center;font-size:0.8125rem;">toA診断は、この5つすべての準備状況を測定します。</p>
-        </div>
-      </section>
-
-      <!-- [3] 3層モデル（ピラミッド型・クリック展開） -->
-      <section class="toa-section" id="model">
-        <div class="toa-narrow">
-          <h2 class="toa-h2">toA診断が測る3つのレベル</h2>
-          <p class="toa-p">下のレベルが揃っていないと、上のレベルは機能しません。</p>
-          <div class="toa-pyramid">
-            <div class="toa-pyramid-layer toa-pyramid-l3" onclick="this.classList.toggle('open')">
-              <div class="toa-pyramid-icon">&#9889;</div>
-              <div class="toa-pyramid-body">
-                <div class="toa-pyramid-title" style="color:#8b5cf6">レベル3：AIがサイトで「操作・取引できる」か</div>
-                <div class="toa-pyramid-desc">API連携・認証・決済・購入・契約・安全装置</div>
-                <div class="toa-pyramid-detail">API / MCP / WebMCP / OAuth / 決済API / ガードレール / ヒューマンハンドオフ</div>
-              </div>
-              <div class="toa-pyramid-arrow">&#9654;</div>
-            </div>
-            <div class="toa-pyramid-layer toa-pyramid-l2" onclick="this.classList.toggle('open')">
-              <div class="toa-pyramid-icon">&#128218;</div>
-              <div class="toa-pyramid-body">
-                <div class="toa-pyramid-title" style="color:#3b82f6">レベル2：AIがサイトの情報を「理解できる」か</div>
-                <div class="toa-pyramid-desc">構造化データ・セマンティックHTML・エンティティ情報</div>
-                <div class="toa-pyramid-detail">JSON-LD / Schema.org / OGP / 見出し階層 / alt属性 / sameAs</div>
-              </div>
-              <div class="toa-pyramid-arrow">&#9654;</div>
-            </div>
-            <div class="toa-pyramid-layer toa-pyramid-l1" onclick="this.classList.toggle('open')">
-              <div class="toa-pyramid-icon">&#127758;</div>
-              <div class="toa-pyramid-body">
-                <div class="toa-pyramid-title" style="color:#10b981">レベル1：AIがサイトを「見つけられる」か</div>
-                <div class="toa-pyramid-desc">クロール許可・サイトマップ・表示速度</div>
-                <div class="toa-pyramid-detail">robots.txt / llms.txt / sitemap.xml / canonical / TTFB / HTTPS</div>
-              </div>
-              <div class="toa-pyramid-arrow">&#9654;</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- [4] 他ツールとの違い（簡易比較・6行） -->
-      <section class="toa-section toa-section-alt" id="comparison">
-        <div class="toa-narrow">
-          <h2 class="toa-h2">toA診断は、AIOでは見えない領域まで診る</h2>
-          <p class="toa-p">従来のAIO（AI最適化）は「AIに引用されるか」を測定します。toA診断はさらに踏み込み、AIエージェントがサイトで認証・操作・購入・取引できるかまでチェックします。</p>
-          <div class="toa-compare">
-            <div class="toa-compare-row toa-compare-header">
-              <div>診断カテゴリ</div><div>AIO</div><div>toA</div>
-            </div>
-            <div class="toa-compare-row">
-              <div>AI検索への露出（クロール許可・サイトマップ）</div>
-              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
-              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
-            </div>
-            <div class="toa-compare-row">
-              <div>構造化データ・メタ情報</div>
-              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
-              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
-            </div>
-            <div class="toa-compare-row toa-compare-highlight">
-              <div><strong>ボット種別の制御（検索/学習/ユーザー）</strong></div>
-              <div class="toa-compare-check toa-cmp-no" aria-label="非対応">&#8212;</div>
-              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
-            </div>
-            <div class="toa-compare-row toa-compare-highlight">
-              <div><strong>エージェント認証・API / MCP連携</strong></div>
-              <div class="toa-compare-check toa-cmp-no" aria-label="非対応">&#8212;</div>
-              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
-            </div>
-            <div class="toa-compare-row toa-compare-highlight">
-              <div><strong>機械可読な価格・決済・購入フロー</strong></div>
-              <div class="toa-compare-check toa-cmp-no" aria-label="非対応">&#8212;</div>
-              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
-            </div>
-            <div class="toa-compare-row toa-compare-highlight">
-              <div><strong>安全装置・AIトラフィック計測</strong></div>
-              <div class="toa-compare-check toa-cmp-partial" aria-label="部分対応">&#9651;</div>
-              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- [5] 診断結果サンプル → CTA -->
-      <section class="toa-section" id="sample">
-        <div class="toa-narrow">
-          <h2 class="toa-h2">こんな診断結果が得られます</h2>
-          <div class="toa-sample">
-            <div class="toa-sample-scores">
-              <div class="toa-sample-score toa-sample-score-green">
-                <div class="toa-sample-label">AI検索スコア</div>
-                <div class="toa-sample-value toa-score-green">72%</div>
-              </div>
-              <div class="toa-sample-score toa-sample-score-purple">
-                <div class="toa-sample-label">AIエージェント対応度</div>
-                <div class="toa-sample-value toa-score-purple">28%</div>
-              </div>
-            </div>
-            <p style="text-align:center;font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:var(--spacing-md);">「見つかるが、取引できない」 ―― この差を可視化します。</p>
-            <div class="toa-sample-actions">
-              <p style="font-weight:600;margin-bottom:8px;">改善が必要な項目 TOP 3:</p>
-              <div class="toa-sample-action">
-                <div class="toa-sample-action-icon" style="background:#ef4444">1</div>
-                <div>ユーザー起動ボット（ChatGPT-User）がブロックされている <span class="toa-sample-badge toa-sev-blocker">blocker</span></div>
-              </div>
-              <div class="toa-sample-action">
-                <div class="toa-sample-action-icon" style="background:#f59e0b">2</div>
-                <div>llms.txt が存在しない <span class="toa-sample-badge toa-sev-important">important</span></div>
-              </div>
-              <div class="toa-sample-action">
-                <div class="toa-sample-action-icon" style="background:#f59e0b">3</div>
-                <div>JSON-LD Organization スキーマが未設定 <span class="toa-sample-badge toa-sev-important">important</span></div>
-              </div>
-            </div>
-            <div class="toa-sample-note">* サンプルデータです。実際の結果はサイトにより異なります。</div>
-          </div>
-          <div class="toa-center" style="margin-top:var(--spacing-lg)">
-            <button style="padding:14px 32px;font-size:1rem;font-weight:700;color:#fff;background:var(--color-primary);border:none;border-radius:16px;cursor:pointer;" onclick="document.getElementById('audit-url').focus();document.getElementById('hero').scrollIntoView({behavior:'smooth'})">あなたのサイトもtoA診断してみる →</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- [6] 診断結果エリア -->
+      <!-- 診断結果エリア -->
       <section class="toa-section" id="result" style="padding-top:32px;">
         <div class="toa-narrow">
           <h2 class="toa-h2">診断結果</h2>
@@ -503,111 +347,34 @@
         </div>
       </section>
 
-      <!-- [7] なぜ「今」対応すべきなのか（タイムライン） -->
-      <section class="toa-section toa-section-alt" id="market">
-        <div class="toa-narrow">
-          <h2 class="toa-h2">なぜ「今」toAに備えるべきなのか</h2>
-          <p class="toa-p">AIエージェントが顧客として行動する世界は、もう始まっています。</p>
-          <div class="toa-why-cards" style="margin-bottom:var(--spacing-lg);">
-            <div class="toa-why-card">
-              <div class="toa-why-card-icon">&#128270;</div>
-              <h3>〜2025年：AIに引用される時代</h3>
-              <p>AIがユーザーの質問に回答し、あなたのサイトを「引用」する。認知度は上がるが、取引は発生しない。</p>
-            </div>
-            <div class="toa-why-card toa-active">
-              <div class="toa-why-card-icon">&#129302;</div>
-              <h3>2026年〜：AIエージェントが顧客になる時代</h3>
-              <p>AIエージェントが自律的にサイトを「操作」する。認証・購入・契約・支払いまで自動で完了する。</p>
-            </div>
-          </div>
-          <div class="toa-timeline">
-            <div class="toa-timeline-item">
-              <div class="toa-timeline-date">2026.02</div>
-              <div class="toa-timeline-body">
-                WebMCP発表（Google + Microsoft、W3C標準化が進行中）
-                <div class="toa-timeline-impact">&#8594; Webサイト自体がAIエージェントの「ツール」として使われる時代へ</div>
-              </div>
-            </div>
-            <div class="toa-timeline-item">
-              <div class="toa-timeline-date">2026.03</div>
-              <div class="toa-timeline-body">
-                Google-Agent 公式ドキュメント公開
-                <div class="toa-timeline-impact">&#8594; Googleの検索エージェントがサイトを直接操作する仕組みが明示された</div>
-              </div>
-            </div>
-            <div class="toa-timeline-item">
-              <div class="toa-timeline-date">2026.03</div>
-              <div class="toa-timeline-body">
-                <a href="https://x.com/paji_a" target="_blank" rel="noopener" class="toa-link">paji_a</a> が「toAサービス200選」リサーチを公開
-                <div class="toa-timeline-impact">&#8594; AIエージェント向けサービス市場が急速に立ち上がっている証拠</div>
-              </div>
-            </div>
-            <div class="toa-timeline-item">
-              <div class="toa-timeline-date">2026 Q1</div>
-              <div class="toa-timeline-body">
-                Fortune誌：「AIエージェント経由売上が一部ブランドで10%に到達」
-                <div class="toa-timeline-impact">&#8594; 対応の遅れは売上機会の損失に直結する</div>
-              </div>
-            </div>
-          </div>
-          <div class="toa-stats">
-            <div class="toa-stat"><div class="toa-stat-num">200+</div><div class="toa-stat-label">toAサービスを確認</div></div>
-            <div class="toa-stat"><div class="toa-stat-num">10%</div><div class="toa-stat-label">AIエージェント経由売上<br><small style="font-size:0.625rem;">(一部ブランド / Fortune報道)</small></div></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- [8] toA詳細 + HumanAdsの接続 -->
-      <section class="toa-section" id="about-toa">
-        <div class="toa-narrow">
-          <h2 class="toa-h2">HumanAdsが見ているのは「AI検索」ではなく「AIエージェント経済圏」</h2>
-          <p class="toa-p"><a href="/" class="toa-link">HumanAds</a>は、AIエージェントと人間が取引する時代のインフラをつくっています。toA診断は、その経済圏への入口として、あなたのサイトがAIエージェントを「顧客」として迎えられるかを測るものです。</p>
-          <p class="toa-p">AIに引用されることがゴールではありません。AIエージェントが認証し、操作し、購入し、支払いを完了する ―― その一連のフローに対応できているかどうか。それがtoAの診断軸です。</p>
-          <p><a href="/blog/toa-ai-agent-services-new-market" class="toa-link">「toA ― AIエージェントサービスという新たな市場」を読む &#8594;</a></p>
-        </div>
-      </section>
-
-      <!-- [9] FAQ（思考順に並び替え） -->
+      <!-- FAQ -->
       <section class="toa-section toa-section-alt" id="faq">
         <div class="toa-narrow">
           <h2 class="toa-h2">よくある質問</h2>
           <div class="toa-faq">
             <details>
-              <summary>toA診断とは何ですか？</summary>
-              <div class="toa-faq-answer">toA（to Agent）診断は、AIエージェントがあなたのサイトを「発見・理解・操作・取引」できるかを測る無料ツールです。従来のAIO（AI最適化）がカバーする「AIに引用されるか」だけでなく、認証・購入・決済までの準備度を48項目以上でチェックします。URLを入力するだけで約30秒で結果が出ます。</div>
+              <summary>toA診断とは？</summary>
+              <div class="toa-faq-answer">AIエージェントがあなたのサイトを発見・理解・操作・取引できるかを測る無料ツールです。URLを入力するだけで約30秒で結果が出ます。</div>
             </details>
             <details>
-              <summary>AIO診断との違いは何ですか？</summary>
-              <div class="toa-faq-answer">AIOは「AIに引用されるか」を見ます。toA診断はさらに、AIエージェントがサイトで認証・操作・取引できるかまでチェックします。AI検索対策はtoAの一部にすぎません。</div>
+              <summary>AIO診断との違いは？</summary>
+              <div class="toa-faq-answer">AIOは「AIに引用されるか」を測定します。toA診断はそこに加えて、AIエージェントがサイトで認証・操作・取引できるかまでチェックします。</div>
             </details>
             <details>
-              <summary>無料ですか？費用はかかりますか？</summary>
-              <div class="toa-faq-answer">完全無料です。ユーザー登録も不要。URLを入力するだけで診断が始まります。結果はパーマリンク付きで30日間保存されます。</div>
-            </details>
-            <details>
-              <summary>診断にはどのくらい時間がかかりますか？</summary>
-              <div class="toa-faq-answer">自動診断は約30秒です。手動チェックリスト（16項目）はサイトの規模に応じて10〜30分程度です。</div>
+              <summary>費用はかかりますか？</summary>
+              <div class="toa-faq-answer">完全無料・登録不要です。結果はパーマリンク付きで30日間保存されます。</div>
             </details>
             <details>
               <summary>スコアが2つに分かれているのはなぜ？</summary>
-              <div class="toa-faq-answer">「AI検索スコア 85% / AIエージェント対応度 20%」は「見つかるが取引できない」状態を意味します。2つに分けることで、AI検索対策とtoA対応のどちらに投資すべきかが一目でわかります。</div>
-            </details>
-            <details>
-              <summary>メディアサイトですが、AIOだけで十分では？</summary>
-              <div class="toa-faq-answer">メディアサイトでも、エージェントが有料コンテンツを購読したりRSS経由で記事を取得するケースが増えています。サイト種別フィルタで「メディア」を選ぶと、関連するチェック項目だけを確認できます。</div>
-            </details>
-            <details>
-              <summary>WebMCPの項目はまだ実験段階ですか？</summary>
-              <div class="toa-faq-answer">はい。WebMCP項目は「実験的」タグ付きでスコアの重みも低めです。ただし今のうちに準備しておけば、標準化後にすぐ対応できます。</div>
+              <div class="toa-faq-answer">「AI検索スコア」と「toA対応度スコア」を分けることで、「見つかるが取引できない」状態を可視化します。どちらに投資すべきかが一目でわかります。</div>
             </details>
           </div>
         </div>
       </section>
 
-      <!-- [10] 最終CTA -->
+      <!-- 最終CTA -->
       <section class="toa-section toa-final-cta" id="final-cta">
-        <h2>AIエージェントを<span class="toa-hl">顧客</span>として迎える準備はできていますか？</h2>
-        <p style="font-size:0.9375rem;color:var(--color-text-muted);margin-bottom:var(--spacing-lg);">登録なし・無料。30秒でtoA対応度がわかります。</p>
+        <p style="font-size:1.125rem;font-weight:600;margin-bottom:var(--spacing-md);">まずは無料で診断してみる</p>
         <form class="toa-form" id="audit-form-bottom" onsubmit="return handleBottomForm(event)">
           <label for="audit-url-bottom" class="sr-only">チェックするサイトのURL</label>
           <input type="text" id="audit-url-bottom" placeholder="yoursite.com" required autocomplete="url">
@@ -1132,10 +899,10 @@
     // Permalink
     // ============================================
     function checkPermalink() {
-      const pathMatch = window.location.pathname.match(/^\/toa-audit\/([a-z0-9]+)$/);
+      const pathMatch = window.location.pathname.match(/^\/toa-audit\/([a-z0-9][a-z0-9-]+[a-z0-9])$/);
       if (pathMatch) { loadAudit(pathMatch[1]); return; }
       const id = new URLSearchParams(window.location.search).get('id');
-      if (id && /^[a-z0-9]+$/.test(id)) { loadAudit(id); return; }
+      if (id && /^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(id)) { loadAudit(id); return; }
     }
     async function loadAudit(id) {
       // Show a simple loading state (not the full step-by-step since we're just fetching cached result)

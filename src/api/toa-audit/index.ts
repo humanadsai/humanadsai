@@ -16,15 +16,31 @@ import {
 } from '../../services/toa-audit/scoring';
 import type { SiteType, AuditResult } from '../../services/toa-audit/types';
 
-function generateAuditId(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let id = '';
-  const bytes = new Uint8Array(12);
-  crypto.getRandomValues(bytes);
-  for (const b of bytes) {
-    id += chars[b % chars.length];
+function generateAuditId(url: string): string {
+  try {
+    const parsed = new URL(url);
+    // e.g. "www.example.com" → "example-com", "sub.example.co.jp" → "sub-example-co-jp"
+    let host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    // Replace dots with hyphens, strip non-alphanumeric except hyphens
+    let slug = host.replace(/\./g, '-').replace(/[^a-z0-9-]/g, '');
+    // Trim leading/trailing hyphens and collapse multiples
+    slug = slug.replace(/-+/g, '-').replace(/^-|-$/g, '');
+    // Truncate to 40 chars to keep URLs reasonable
+    if (slug.length > 40) slug = slug.slice(0, 40).replace(/-$/, '');
+    // Append short random suffix for uniqueness
+    const bytes = new Uint8Array(3);
+    crypto.getRandomValues(bytes);
+    const suffix = Array.from(bytes).map(b => (b % 36).toString(36)).join('');
+    return slug ? `${slug}-${suffix}` : suffix;
+  } catch {
+    // Fallback to random ID
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let id = '';
+    const bytes = new Uint8Array(12);
+    crypto.getRandomValues(bytes);
+    for (const b of bytes) id += chars[b % chars.length];
+    return id;
   }
-  return id;
 }
 
 async function hashIp(ip: string): Promise<string> {
@@ -136,7 +152,7 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
 
   // Run crawl + scoring
   const startTime = Date.now();
-  const auditId = existingId || generateAuditId();
+  const auditId = existingId || generateAuditId(normalizedUrl);
 
   // Set up self-handler so the crawler can fetch our own pages internally
   const selfOrigin = new URL(request.url).origin;
@@ -246,7 +262,7 @@ export async function handleToaAuditGet(request: Request, env: Env, auditId: str
   const requestId = generateRequestId();
 
   // Defensive validation (router regex should already constrain this)
-  if (!/^[a-z0-9]{6,20}$/.test(auditId)) {
+  if (!/^[a-z0-9][a-z0-9-]{2,50}[a-z0-9]$/.test(auditId) && !/^[a-z0-9]{6,20}$/.test(auditId)) {
     return errors.badRequest(requestId, 'Invalid audit ID');
   }
 
