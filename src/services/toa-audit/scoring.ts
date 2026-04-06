@@ -644,7 +644,7 @@ const AUTO_CHECKS: CheckDef[] = [
   },
   {
     id: 'auto-oauth-login',
-    category: 'Agent Authentication',
+    category: 'エージェント認証',
     name: 'Auth/login flow available',
     nameJa: '認証/ログイン導線あり',
     layer: 'actionability',
@@ -688,7 +688,7 @@ const AUTO_CHECKS: CheckDef[] = [
   },
   {
     id: 'auto-contact',
-    category: 'Safety',
+    category: '安全性',
     name: 'Contact/support link available',
     nameJa: 'お問い合わせ/サポートリンクあり',
     layer: 'safety',
