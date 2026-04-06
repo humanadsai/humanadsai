@@ -862,7 +862,7 @@ export function generateSummary(scores: Scores): string {
   } else if (searchScore < 40 && toaScore < 40) {
     comment = 'AI検索・toA基盤ともに改善が必要です。まずはrobots.txt・メタ情報・構造化データなどの基盤（Layer 1-2）から着手してください。';
   } else {
-    comment = `AI Search Score: ${searchScore}%, toA Readiness: ${toaScore}%。両スコアのバランスを見ながら、Severity: Blockerの項目から優先的に改善してください。`;
+    comment = `AI検索スコア ${searchScore}%、AIエージェント対応度 ${toaScore}%。両スコアのバランスを見ながら、重要度の高い項目から優先的に改善してください。`;
   }
 
   return comment;
