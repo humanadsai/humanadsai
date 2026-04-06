@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>toA Audit — Is Your Website Ready for AI Agents? | HumanAds</title>
-  <meta name="description" content="Free AI agent readiness diagnostic. Check if your website can be discovered, understood, and used by AI agents — not just cited. 16 categories, 48+ checks.">
+  <title>toA診断 — あなたのサイトのAIエージェント対応度を無料チェック | HumanAds</title>
+  <meta name="description" content="URLを入力するだけで、AIエージェントがあなたのサイトを利用できるか30秒で診断。API・MCP対応、構造化データ、セキュリティなど48項目以上をチェック。無料・登録不要。">
   <meta name="theme-color" content="#FAFAF9">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -14,16 +14,16 @@
   <!-- OGP -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HumanAds">
-  <meta property="og:title" content="toA Audit — AI Agent Readiness Diagnostic">
-  <meta property="og:description" content="Free diagnostic: Can AI agents discover, understand, and transact on your site? 16 categories, 48+ checks. No signup required.">
+  <meta property="og:title" content="toA診断 — AIエージェント対応度を無料チェック">
+  <meta property="og:description" content="URLを入力するだけ。AIエージェントがあなたのサイトを発見・理解・操作できるか、30秒で診断。48項目以上を無料チェック。">
   <meta property="og:url" content="https://humanadsai.com/toa-audit">
   <meta property="og:image" content="https://humanadsai.com/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="toA Audit — AI Agent Readiness Diagnostic">
-  <meta name="twitter:description" content="Is your site ready for AI agents? Free diagnostic — 16 categories, 48+ checks.">
+  <meta name="twitter:title" content="toA診断 — AIエージェント対応度を無料チェック">
+  <meta name="twitter:description" content="あなたのサイト、AIエージェントに対応できていますか？ 無料診断で30秒で分かります。">
   <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
   <meta name="twitter:site" content="@HumanAdsAI">
   <meta name="twitter:creator" content="@paji_a">
@@ -32,12 +32,12 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "toA Audit",
+    "name": "toA診断",
     "url": "https://humanadsai.com/toa-audit",
-    "description": "Free AI agent readiness diagnostic tool. Checks if your website can be discovered, understood, and used by AI agents across 16 categories.",
+    "description": "AIエージェントがあなたのサイトを利用できるかを診断する無料ツール。16カテゴリ・48項目以上をチェック。",
     "applicationCategory": "SEO Tool",
     "operatingSystem": "Web",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" },
     "creator": {
       "@type": "Organization",
       "@id": "https://humanadsai.com/#organization",
@@ -52,36 +52,12 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "How is this different from AIO/SEO tools?",
-        "acceptedAnswer": { "@type": "Answer", "text": "AIO tools measure whether AI can cite your content. toA Audit goes further — it checks whether AI agents can authenticate, operate, and transact on your site. Layer 1-2 (Discovery & Comprehension) overlap with AIO; Layer 3 (Actionability) is unique to toA." }
-      },
-      {
-        "@type": "Question",
-        "name": "Is it free? Do I need to sign up?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Completely free. No signup required. Enter a URL and get results in about 30 seconds. Results are saved with a permalink for 30 days." }
-      },
-      {
-        "@type": "Question",
-        "name": "What are the two scores?",
-        "acceptedAnswer": { "@type": "Answer", "text": "AI Search Score measures how well AI search engines can discover and understand your site. toA Readiness Score measures whether AI agents can actually use your site — authenticate, transact, and integrate programmatically." }
-      },
-      {
-        "@type": "Question",
-        "name": "How long does the diagnostic take?",
-        "acceptedAnswer": { "@type": "Answer", "text": "The automated diagnostic takes about 30 seconds. The manual checklist (23 items) takes 10-30 minutes depending on your site's complexity." }
-      },
-      {
-        "@type": "Question",
-        "name": "Are WebMCP items still experimental?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. WebMCP items are marked as Experimental with low score weight. But preparing now means you'll be ready when the standard is finalized." }
-      },
-      {
-        "@type": "Question",
-        "name": "What is toA?",
-        "acceptedAnswer": { "@type": "Answer", "text": "toA stands for 'to Agent' — a market where AI agents are the customers. Unlike toC (consumer) or toB (business), toA services are designed for autonomous AI agents that discover, evaluate, and transact independently." }
-      }
+      { "@type": "Question", "name": "toA診断とは何ですか？", "acceptedAnswer": { "@type": "Answer", "text": "toA診断は、あなたのWebサイトがAIエージェントに「発見」「理解」「操作」されるための準備ができているかを測定する無料の診断ツールです。URLを入力するだけで、約30秒で結果が出ます。" } },
+      { "@type": "Question", "name": "無料ですか？費用はかかりますか？", "acceptedAnswer": { "@type": "Answer", "text": "完全無料です。ユーザー登録も不要。URLを入力するだけで診断が始まります。結果はパーマリンク付きで30日間保存されます。" } },
+      { "@type": "Question", "name": "診断にはどのくらい時間がかかりますか？", "acceptedAnswer": { "@type": "Answer", "text": "自動診断は約30秒です。手動チェックリスト（23項目）はサイトの規模に応じて10〜30分程度です。" } },
+      { "@type": "Question", "name": "既存のAIO・SEOツールとの違いは？", "acceptedAnswer": { "@type": "Answer", "text": "既存のAI最適化（AIO）ツールは「AIに引用されるか」を測定します。toA診断はさらに踏み込み、AIエージェントがサイトで認証・操作・取引できるかまでチェックします。" } },
+      { "@type": "Question", "name": "スコアが2つに分かれているのはなぜ？", "acceptedAnswer": { "@type": "Answer", "text": "「AI検索スコア 85% / toA対応度 20%」は「見つかるが使えない」状態を意味します。2つに分けることで、どこに投資すべきかが一目でわかります。" } },
+      { "@type": "Question", "name": "WebMCPの項目はまだ実験段階ですか？", "acceptedAnswer": { "@type": "Answer", "text": "はい。WebMCP項目は「実験的」タグ付きでスコアの重みも低めです。ただし今のうちに準備しておけば、標準化後にすぐ対応できます。" } }
     ]
   }
   </script>
@@ -92,84 +68,148 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
-      { "@type": "ListItem", "position": 2, "name": "toA Audit", "item": "https://humanadsai.com/toa-audit" }
+      { "@type": "ListItem", "position": 2, "name": "toA診断", "item": "https://humanadsai.com/toa-audit" }
     ]
   }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
   <script src="/js/analytics.js" defer></script>
   <style>
     /* ============================================
-       toA Audit — Page-specific Styles
+       toA Audit — UX Redesign Styles
        ============================================ */
     .toa-page { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); }
-    .toa-section { padding: var(--spacing-xl) 0; border-bottom: 1px solid var(--color-border); }
-    .toa-section:last-child { border-bottom: none; }
-    .toa-section-narrow { max-width: var(--content-max); margin: 0 auto; }
+    .toa-section { padding: 60px 0; }
+    .toa-section-alt { background: var(--color-background-light); margin: 0 calc(-1 * var(--gutter)); padding-left: var(--gutter); padding-right: var(--gutter); }
+    .toa-narrow { max-width: var(--content-max); margin: 0 auto; }
+    .toa-wide { max-width: 900px; margin: 0 auto; }
 
-    /* Hero */
-    .toa-hero { text-align: center; padding: 60px 0 40px; }
-    .toa-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; color: var(--color-primary); background: rgba(232, 93, 58, 0.08); border: 1px solid rgba(232, 93, 58, 0.2); border-radius: 20px; padding: 4px 14px; margin-bottom: var(--spacing-md); text-transform: uppercase; letter-spacing: 0.05em; }
-    .toa-hero h1 { font-family: var(--font-mono); font-size: clamp(1.5rem, 4vw, 2.25rem); font-weight: 700; line-height: 1.3; margin-bottom: var(--spacing-md); color: var(--color-text); }
-    .toa-hero-sub { font-size: 1rem; color: var(--color-text-muted); max-width: 600px; margin: 0 auto var(--spacing-lg); line-height: 1.6; }
-    .toa-hero-meta { font-size: 0.75rem; font-family: var(--font-mono); color: var(--color-text-muted); margin-top: var(--spacing-md); letter-spacing: 0.02em; }
+    /* Hero — largest visual weight */
+    .toa-hero { text-align: center; padding: 72px 0 56px; }
+    .toa-hero h1 { font-family: 'Noto Sans JP', var(--font-family); font-size: clamp(1.5rem, 4.5vw, 2.5rem); font-weight: 700; line-height: 1.4; margin-bottom: var(--spacing-md); color: var(--color-text); }
+    .toa-hero h1 .toa-hl { color: var(--color-primary); }
+    .toa-hero-sub { font-size: 1.0625rem; color: var(--color-text-muted); max-width: 540px; margin: 0 auto var(--spacing-xl); line-height: 1.7; }
 
-    /* URL Input Form */
-    .toa-form { display: flex; gap: 8px; max-width: 560px; margin: 0 auto; }
-    .toa-form input { flex: 1; padding: 12px 16px; font-size: 0.9375rem; font-family: var(--font-mono); border: 2px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-background-card); color: var(--color-text); outline: none; transition: border-color 0.2s; }
+    /* CTA Form */
+    .toa-form { display: flex; gap: 8px; max-width: 520px; margin: 0 auto; }
+    .toa-form input { flex: 1; padding: 14px 16px; font-size: 1rem; font-family: var(--font-mono); border: 2px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-background-card); color: var(--color-text); outline: none; transition: border-color 0.2s; }
     .toa-form input:focus { border-color: var(--color-primary); }
-    .toa-form button { padding: 12px 24px; font-size: 0.9375rem; font-weight: 600; color: #fff; background: var(--color-primary); border: none; border-radius: var(--border-radius-sm); cursor: pointer; white-space: nowrap; transition: background 0.2s; }
-    .toa-form button:hover { background: var(--color-primary-dark); }
-    .toa-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .toa-form input::placeholder { color: var(--color-text-muted); opacity: 0.6; }
+    .toa-form button { padding: 14px 28px; font-size: 1rem; font-weight: 700; color: #fff; background: var(--color-primary); border: none; border-radius: var(--border-radius-sm); cursor: pointer; white-space: nowrap; transition: background 0.2s, transform 0.1s; }
+    .toa-form button:hover { background: var(--color-primary-dark); transform: translateY(-1px); }
+    .toa-form button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     @media (max-width: 640px) { .toa-form { flex-direction: column; } .toa-form button { width: 100%; } }
+    .toa-form-meta { font-size: 0.8125rem; color: var(--color-text-muted); margin-top: var(--spacing-md); text-align: center; }
 
-    /* Score Mock in Hero */
-    .toa-score-preview { display: flex; gap: 24px; justify-content: center; margin-top: var(--spacing-lg); flex-wrap: wrap; }
-    .toa-score-mock { text-align: center; padding: 16px 24px; background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); min-width: 140px; }
-    .toa-score-mock-label { font-size: 0.75rem; font-family: var(--font-mono); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .toa-score-mock-value { font-size: 2rem; font-weight: 700; font-family: var(--font-mono); }
-    .toa-score-green { color: #10b981; }
-    .toa-score-purple { color: #8b5cf6; }
+    /* 3-Step Flow */
+    .toa-steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-lg); margin: var(--spacing-xl) auto; max-width: 700px; }
+    @media (max-width: 640px) { .toa-steps { grid-template-columns: 1fr; gap: var(--spacing-md); } }
+    .toa-step-card { text-align: center; padding: var(--spacing-lg) var(--spacing-md); }
+    .toa-step-num { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--color-primary); color: #fff; font-family: var(--font-mono); font-weight: 700; font-size: 0.9375rem; margin-bottom: var(--spacing-sm); }
+    .toa-step-title { font-weight: 600; font-size: 0.9375rem; margin-bottom: 4px; }
+    .toa-step-desc { font-size: 0.8125rem; color: var(--color-text-muted); }
 
-    /* Problem Section */
-    .toa-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin: var(--spacing-lg) 0; }
-    @media (max-width: 640px) { .toa-columns { grid-template-columns: 1fr; } }
-    .toa-column-card { padding: var(--spacing-lg); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); }
-    .toa-column-card h3 { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; margin-bottom: var(--spacing-sm); }
-    .toa-column-card ul { list-style: none; padding: 0; margin: 0; font-size: 0.875rem; }
-    .toa-column-card li { padding: 4px 0; color: var(--color-text-muted); }
+    /* Why Now (problem) */
+    .toa-why-cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin: var(--spacing-lg) 0; }
+    @media (max-width: 640px) { .toa-why-cards { grid-template-columns: 1fr; } }
+    .toa-why-card { padding: var(--spacing-lg); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); }
+    .toa-why-card-icon { font-size: 1.5rem; margin-bottom: var(--spacing-sm); }
+    .toa-why-card h3 { font-size: 0.9375rem; font-weight: 600; margin-bottom: var(--spacing-xs); }
+    .toa-why-card p { font-size: 0.8125rem; color: var(--color-text-muted); line-height: 1.6; }
+    .toa-why-card.toa-active { border-color: var(--color-primary); }
 
-    /* Ticker */
-    .toa-ticker { overflow: hidden; padding: var(--spacing-sm) 0; margin: var(--spacing-lg) 0 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
-    .toa-ticker-inner { display: flex; gap: 40px; animation: tickerScroll 30s linear infinite; white-space: nowrap; }
-    .toa-ticker-item { font-size: 0.8125rem; font-family: var(--font-mono); color: var(--color-text-muted); }
-    @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    /* Stats Counter */
+    .toa-stats { display: flex; gap: var(--spacing-xl); justify-content: center; flex-wrap: wrap; margin: var(--spacing-xl) 0 0; }
+    .toa-stat { text-align: center; }
+    .toa-stat-num { font-family: var(--font-mono); font-size: 1.75rem; font-weight: 700; color: var(--color-primary); }
+    .toa-stat-label { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px; }
 
-    /* 3-Layer Model */
-    .toa-layers { max-width: 600px; margin: var(--spacing-lg) auto; }
-    .toa-layer { padding: 16px 20px; border: 1px solid; border-radius: var(--border-radius-sm); margin-bottom: -1px; position: relative; }
-    .toa-layer-3 { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.05); }
-    .toa-layer-2 { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
-    .toa-layer-1 { border-color: #10b981; background: rgba(16, 185, 129, 0.05); }
-    .toa-layer-title { font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 600; margin-bottom: 4px; }
-    .toa-layer-desc { font-size: 0.8125rem; color: var(--color-text-muted); }
+    /* 3-Layer Pyramid */
+    .toa-pyramid { max-width: 560px; margin: var(--spacing-lg) auto; }
+    .toa-pyramid-layer { padding: 16px 20px; border-radius: var(--border-radius-sm); margin-bottom: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+    .toa-pyramid-layer:hover { transform: translateX(4px); }
+    .toa-pyramid-l3 { background: rgba(139, 92, 246, 0.07); border-left: 4px solid #8b5cf6; }
+    .toa-pyramid-l2 { background: rgba(59, 130, 246, 0.07); border-left: 4px solid #3b82f6; }
+    .toa-pyramid-l1 { background: rgba(16, 185, 129, 0.07); border-left: 4px solid #10b981; }
+    .toa-pyramid-icon { font-size: 1.25rem; flex-shrink: 0; }
+    .toa-pyramid-body { flex: 1; }
+    .toa-pyramid-title { font-size: 0.875rem; font-weight: 600; }
+    .toa-pyramid-desc { font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 2px; }
+    .toa-pyramid-detail { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 6px; font-family: var(--font-mono); display: none; }
+    .toa-pyramid-layer.open .toa-pyramid-detail { display: block; }
+    .toa-pyramid-arrow { font-size: 0.75rem; color: var(--color-text-muted); transition: transform 0.2s; }
+    .toa-pyramid-layer.open .toa-pyramid-arrow { transform: rotate(90deg); }
 
     /* Comparison Table */
-    .toa-table-wrap { overflow-x: auto; margin: var(--spacing-lg) 0; }
-    .toa-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
-    .toa-table th, .toa-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
-    .toa-table th { font-family: var(--font-mono); font-weight: 600; background: var(--color-background-light); position: sticky; top: 0; }
-    .toa-table tr.toa-unique { background: rgba(139, 92, 246, 0.04); }
-    .toa-table .check { color: #10b981; } .toa-table .cross { color: #ef4444; } .toa-table .partial { color: #f59e0b; }
+    .toa-compare { margin: var(--spacing-lg) 0; }
+    .toa-compare-row { display: grid; grid-template-columns: 1fr 60px 60px; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--color-border); align-items: center; font-size: 0.8125rem; }
+    .toa-compare-header { font-weight: 600; font-family: var(--font-mono); font-size: 0.75rem; background: var(--color-background-light); border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0; }
+    .toa-compare-check { text-align: center; font-size: 1rem; }
+    .toa-cmp-yes { color: #10b981; font-weight: 700; }
+    .toa-cmp-no { color: var(--color-border); }
+    .toa-cmp-partial { color: #f59e0b; }
+    .toa-compare-highlight { background: rgba(139, 92, 246, 0.04); }
+    @media (max-width: 640px) { .toa-compare-row { grid-template-columns: 1fr 48px 48px; font-size: 0.75rem; } }
+
+    /* Sample Result Preview */
+    .toa-sample { padding: var(--spacing-lg); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); margin: var(--spacing-lg) 0; }
+    .toa-sample-scores { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-md); }
+    @media (max-width: 640px) { .toa-sample-scores { grid-template-columns: 1fr; } }
+    .toa-sample-score { text-align: center; padding: var(--spacing-md); border-radius: var(--border-radius-sm); }
+    .toa-sample-score-green { background: rgba(16, 185, 129, 0.06); }
+    .toa-sample-score-purple { background: rgba(139, 92, 246, 0.06); }
+    .toa-sample-label { font-family: var(--font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 4px; }
+    .toa-sample-value { font-family: var(--font-mono); font-size: 2rem; font-weight: 700; }
+    .toa-sample-actions { font-size: 0.8125rem; }
+    .toa-sample-action { display: flex; gap: 8px; padding: 6px 0; align-items: center; }
+    .toa-sample-action-icon { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .toa-sample-badge { display: inline-block; font-size: 0.625rem; font-family: var(--font-mono); padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+    .toa-sample-note { text-align: center; font-size: 0.75rem; color: var(--color-text-muted); font-style: italic; margin-top: var(--spacing-md); }
+
+    /* Timeline */
+    .toa-timeline { margin: var(--spacing-lg) 0; }
+    .toa-timeline-item { display: grid; grid-template-columns: 80px 1fr; gap: var(--spacing-md); padding: var(--spacing-md) 0; border-bottom: 1px solid var(--color-border); }
+    .toa-timeline-item:last-child { border-bottom: none; }
+    .toa-timeline-date { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-primary); font-weight: 600; padding-top: 2px; }
+    .toa-timeline-body { font-size: 0.875rem; }
+    .toa-timeline-impact { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px; }
+
+    /* toA Cards */
+    .toa-5cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--spacing-md); margin: var(--spacing-lg) 0; }
+    .toa-5card { padding: var(--spacing-md); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); }
+    .toa-5card-icon { font-size: 1.25rem; margin-bottom: var(--spacing-xs); }
+    .toa-5card-title { font-weight: 600; font-size: 0.875rem; margin-bottom: 4px; }
+    .toa-5card-desc { font-size: 0.75rem; color: var(--color-text-muted); line-height: 1.5; }
+
+    /* FAQ */
+    .toa-faq details { border-bottom: 1px solid var(--color-border); }
+    .toa-faq summary { padding: 14px 0; font-weight: 600; font-size: 0.9375rem; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .toa-faq summary::after { content: '+'; font-size: 1.25rem; color: var(--color-text-muted); flex-shrink: 0; }
+    .toa-faq details[open] summary::after { content: '\2212'; }
+    .toa-faq summary::-webkit-details-marker { display: none; }
+    .toa-faq .toa-faq-answer { padding: 0 0 14px; font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.7; }
+
+    /* Final CTA */
+    .toa-final-cta { text-align: center; padding: 64px 0; }
+    .toa-final-cta h2 { font-family: 'Noto Sans JP', var(--font-family); font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 700; margin-bottom: var(--spacing-sm); }
 
     /* Diagnosis Result */
     .toa-result { min-height: 200px; }
-    .toa-result-placeholder { text-align: center; padding: 60px 20px; color: var(--color-text-muted); border: 2px dashed var(--color-border); border-radius: var(--border-radius); font-size: 0.875rem; }
-    /* Loading — rich step-by-step UI */
+    .toa-result-placeholder { text-align: center; padding: 48px 20px; color: var(--color-text-muted); border: 2px dashed var(--color-border); border-radius: var(--border-radius); font-size: 0.875rem; }
+
+    /* Shared utility */
+    .toa-h2 { font-family: 'Noto Sans JP', var(--font-family); font-size: 1.375rem; font-weight: 700; margin-bottom: var(--spacing-sm); color: var(--color-text); }
+    .toa-h3 { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--color-text); }
+    .toa-p { font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.7; margin-bottom: var(--spacing-md); }
+    .toa-hl { color: var(--color-primary); }
+    .toa-link { color: var(--color-primary); text-decoration: none; } .toa-link:hover { text-decoration: underline; }
+    .toa-center { text-align: center; }
+
+    /* Keep all result-rendering styles from before */
     .toa-result-loading { padding: 32px 0; }
     .toa-loading-header { text-align: center; margin-bottom: 24px; }
     .toa-loading-title { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; color: var(--color-text); margin-bottom: 4px; }
@@ -195,7 +235,6 @@
     @keyframes toa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .toa-loading-eta { text-align: center; margin-top: 20px; font-size: 0.75rem; color: var(--color-text-muted); font-family: var(--font-mono); }
 
-    /* Score Card */
     .toa-scores { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); }
     @media (max-width: 640px) { .toa-scores { grid-template-columns: 1fr; } }
     .toa-score-card { padding: var(--spacing-lg); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); text-align: center; }
@@ -205,86 +244,37 @@
     .toa-score-sub-item { display: flex; align-items: center; gap: 4px; }
     .toa-score-bar { width: 40px; height: 4px; background: var(--color-border); border-radius: 2px; overflow: hidden; }
     .toa-score-bar-fill { height: 100%; border-radius: 2px; }
-
-    /* Overall Grade */
     .toa-overall { text-align: center; padding: var(--spacing-md); background: var(--color-background-light); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-lg); }
     .toa-grade { font-size: 1.5rem; font-weight: 700; font-family: var(--font-mono); }
     .toa-grade-a { color: #10b981; } .toa-grade-b { color: #3b82f6; } .toa-grade-c { color: #f59e0b; } .toa-grade-d { color: #ef4444; } .toa-grade-f { color: #ef4444; }
-
-    /* Summary */
     .toa-summary { padding: var(--spacing-md); background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-lg); font-size: 0.875rem; line-height: 1.7; white-space: pre-line; }
-
-    /* Top Actions */
     .toa-top-actions { margin-bottom: var(--spacing-lg); }
     .toa-action-card { display: flex; gap: 12px; padding: 12px; background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); margin-bottom: 8px; align-items: flex-start; }
     .toa-action-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--color-primary); color: #fff; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-    .toa-action-body { flex: 1; }
-    .toa-action-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 2px; }
-    .toa-action-detail { font-size: 0.8125rem; color: var(--color-text-muted); }
-
-    /* Check List */
+    .toa-action-body { flex: 1; } .toa-action-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 2px; } .toa-action-detail { font-size: 0.8125rem; color: var(--color-text-muted); }
     .toa-checks-section { margin-bottom: var(--spacing-lg); }
     .toa-category-header { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; padding: 8px 0; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--color-border); user-select: none; }
     .toa-category-header:hover { color: var(--color-primary); }
     .toa-category-arrow { transition: transform 0.2s; font-size: 0.75rem; }
     .toa-category-arrow.open { transform: rotate(90deg); }
-    .toa-category-body { padding: 8px 0; }
-    .toa-category-body.hidden { display: none; }
+    .toa-category-body { padding: 8px 0; } .toa-category-body.hidden { display: none; }
     .toa-check-item { display: flex; gap: 8px; padding: 6px 0; font-size: 0.8125rem; align-items: flex-start; border-bottom: 1px solid var(--color-border); }
     .toa-check-item:last-child { border-bottom: none; }
     .toa-status { flex-shrink: 0; width: 20px; text-align: center; font-size: 0.75rem; font-weight: 700; }
     .toa-status-pass { color: #10b981; } .toa-status-fail { color: #ef4444; } .toa-status-warn { color: #f59e0b; } .toa-status-info { color: #6b7280; }
-    .toa-check-body { flex: 1; }
-    .toa-check-name { font-weight: 500; }
-    .toa-check-detail { color: var(--color-text-muted); font-size: 0.75rem; margin-top: 2px; }
-    .toa-check-rec { color: var(--color-primary); font-size: 0.75rem; margin-top: 2px; }
+    .toa-check-body { flex: 1; } .toa-check-name { font-weight: 500; } .toa-check-detail { color: var(--color-text-muted); font-size: 0.75rem; margin-top: 2px; } .toa-check-rec { color: var(--color-primary); font-size: 0.75rem; margin-top: 2px; }
     .toa-severity-badge { font-size: 0.625rem; font-family: var(--font-mono); padding: 1px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
-    .toa-sev-blocker { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-    .toa-sev-important { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-    .toa-sev-nice_to_have { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
-    .toa-sev-experimental { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
-
-    /* Manual Checklist */
+    .toa-sev-blocker { background: rgba(239, 68, 68, 0.1); color: #ef4444; } .toa-sev-important { background: rgba(245, 158, 11, 0.1); color: #f59e0b; } .toa-sev-nice_to_have { background: rgba(107, 114, 128, 0.1); color: #6b7280; } .toa-sev-experimental { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
     .toa-manual-item { display: flex; gap: 8px; padding: 8px 0; font-size: 0.8125rem; align-items: center; border-bottom: 1px solid var(--color-border); }
     .toa-manual-item:last-child { border-bottom: none; }
     .toa-manual-item input[type="checkbox"] { width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--color-primary); }
-
-    /* Filter Bar */
-    .toa-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: var(--spacing-md); }
-    .toa-filter-select { padding: 4px 8px; font-size: 0.75rem; font-family: var(--font-mono); border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background-card); color: var(--color-text); }
-
-    /* Export / Share */
     .toa-actions-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: var(--spacing-lg) 0; }
     .toa-btn-sm { padding: 6px 14px; font-size: 0.8125rem; font-family: var(--font-mono); font-weight: 500; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background-card); color: var(--color-text); cursor: pointer; transition: all 0.15s; }
     .toa-btn-sm:hover { border-color: var(--color-primary); color: var(--color-primary); }
     .toa-btn-primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
     .toa-btn-primary:hover { background: var(--color-primary-dark); color: #fff; }
-
-    /* Timeline */
-    .toa-timeline { padding-left: 20px; border-left: 2px solid var(--color-border); margin: var(--spacing-lg) 0; }
-    .toa-timeline-item { padding: 0 0 var(--spacing-lg) var(--spacing-md); position: relative; }
-    .toa-timeline-item::before { content: ''; position: absolute; left: -25px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); }
-    .toa-timeline-date { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
-    .toa-timeline-text { font-size: 0.875rem; margin-top: 4px; }
-
-    /* FAQ */
-    .toa-faq details { border-bottom: 1px solid var(--color-border); }
-    .toa-faq summary { padding: 12px 0; font-weight: 600; font-size: 0.875rem; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-    .toa-faq summary::after { content: '+'; font-size: 1.25rem; color: var(--color-text-muted); transition: transform 0.2s; }
-    .toa-faq details[open] summary::after { content: '-'; }
-    .toa-faq summary::-webkit-details-marker { display: none; }
-    .toa-faq .toa-faq-answer { padding: 0 0 12px; font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.6; }
-
-    /* Error */
     .toa-error { padding: var(--spacing-md); background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--border-radius-sm); color: #ef4444; font-size: 0.875rem; margin-bottom: var(--spacing-md); }
-
-    /* Section titles */
-    .toa-h2 { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; margin-bottom: var(--spacing-sm); color: var(--color-text); }
-    .toa-h3 { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--color-text); }
-    .toa-p { font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.7; margin-bottom: var(--spacing-md); }
-    .toa-note { font-size: 0.8125rem; color: var(--color-text-muted); padding: var(--spacing-sm) var(--spacing-md); background: var(--color-background-light); border-radius: var(--border-radius-sm); margin: var(--spacing-md) 0; }
-    .toa-highlight { color: var(--color-primary); }
-    .toa-link { color: var(--color-primary); text-decoration: none; } .toa-link:hover { text-decoration: underline; }
+    .toa-score-green { color: #10b981; } .toa-score-purple { color: #8b5cf6; }
   </style>
 </head>
 <body>
@@ -301,7 +291,7 @@
       </a>
       <nav class="desktop-nav" aria-label="Main navigation">
         <a href="/missions" class="desktop-nav-link">Missions</a>
-        <a href="/toa-audit" class="desktop-nav-link" style="color: var(--color-primary);">toA Audit</a>
+        <a href="/toa-audit" class="desktop-nav-link" style="color: var(--color-primary);">toA診断</a>
         <a href="/blog" class="desktop-nav-link">Blog</a>
         <a href="/faq" class="desktop-nav-link">FAQ</a>
         <a href="/about" class="desktop-nav-link">About</a>
@@ -314,241 +304,336 @@
         </button>
       </div>
     </header>
-
-    <!-- Hamburger Menu -->
     <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
     <div class="menu-overlay" id="menu-overlay"></div>
 
     <main class="toa-page">
 
-      <!-- [1] HERO -->
+      <!-- [1] HERO — 最大の視覚的重み -->
       <section class="toa-section toa-hero" id="hero">
-        <div class="toa-badge notranslate" translate="no">TOA / AI AGENT READINESS</div>
-        <h1 class="i18n" data-ja="AIエージェントは、あなたのサイトを使えますか。">Can AI agents actually use your site?</h1>
-        <p class="toa-hero-sub i18n" data-ja="認証、操作、取引。AIに引用されるかではなく、実際に使えるかを診断。">Authenticate, operate, transact. Not whether AI can cite you — whether agents can use you.</p>
-        <form class="toa-form" id="audit-form" toolname="run_toa_audit" tooldescription="Analyze a website URL for AI agent readiness across 16 categories">
-          <input type="text" id="audit-url" placeholder="example.com" required autocomplete="url" aria-label="Website URL">
-          <button type="submit" id="audit-submit" class="i18n" data-ja="無料で診断する">Diagnose — Free</button>
+        <h1>あなたのサイト、<br>AIエージェントに<span class="toa-hl">対応</span>できていますか？</h1>
+        <p class="toa-hero-sub">URLを入れるだけ。30秒で<strong style="color:var(--color-text)">AI対応度スコア</strong>と<strong style="color:var(--color-text)">改善ポイント</strong>が分かります。</p>
+        <form class="toa-form" id="audit-form" aria-label="サイト診断フォーム">
+          <label for="audit-url" class="sr-only">診断するサイトのURL</label>
+          <input type="text" id="audit-url" placeholder="yoursite.com" required autocomplete="url">
+          <button type="submit" id="audit-submit">無料で診断する</button>
         </form>
-        <p class="toa-hero-meta i18n" data-ja="無料・登録不要・約30秒で結果表示">Free. No signup. Results in ~30 seconds.</p>
-      </section>
+        <p class="toa-form-meta">登録不要 ・ 完全無料 ・ 約30秒で結果表示</p>
 
-      <!-- [2] PROBLEM -->
-      <section class="toa-section" id="problem">
-        <div class="toa-section-narrow">
-          <h2 class="toa-h2"><span class="i18n" data-ja="AIに引用されるだけでは足りない。AIはあなたのサイトを">Cited by AI is not enough. Can AI </span><em class="i18n" data-ja="使える">use</em><span class="i18n" data-ja="のか？"> your site?</span></h2>
-          <div class="toa-columns">
-            <div class="toa-column-card">
-              <h3 style="color: var(--color-text-muted);" class="i18n" data-ja="〜2025年">Until 2025</h3>
-              <ul>
-                <li class="i18n" data-ja="AIが質問に「回答」する">AI "answers" questions</li>
-                <li class="i18n" data-ja="あなたのサイトが引用される">Your site gets cited</li>
-                <li class="i18n" data-ja="認知度が向上する">Awareness increases</li>
-                <li>SEO → AEO → AIO</li>
-              </ul>
-            </div>
-            <div class="toa-column-card" style="border-color: var(--color-primary);">
-              <h3 style="color: var(--color-primary);" class="i18n" data-ja="2026年〜">2026 onward</h3>
-              <ul>
-                <li class="i18n" data-ja="AIが自律的に「行動」する">AI "acts" autonomously</li>
-                <li><span class="i18n" data-ja="あなたのサイトが">Your site gets </span><strong style="color: var(--color-text);" class="i18n" data-ja="利用される">operated</strong></li>
-                <li class="i18n" data-ja="取引が完了する">Transactions complete</li>
-                <li>→ <strong style="color: var(--color-text);" class="notranslate" translate="no">toA</strong></li>
-              </ul>
-            </div>
+        <!-- 3ステップ図解 -->
+        <div class="toa-steps">
+          <div class="toa-step-card">
+            <div class="toa-step-num">1</div>
+            <div class="toa-step-title">URLを入力</div>
+            <div class="toa-step-desc">診断したいサイトのURLを貼るだけ</div>
           </div>
-          <div class="toa-ticker" aria-hidden="true">
-            <div class="toa-ticker-inner">
-              <span class="toa-ticker-item i18n" data-ja="Google Agentリリース（2026年3月）">Google-Agent launched (2026.03)</span>
-              <span class="toa-ticker-item i18n" data-ja="WebMCP W3C標準化が進行中">WebMCP W3C standardization in progress</span>
-              <span class="toa-ticker-item i18n" data-ja="MCPサーバーが急増中">MCP servers growing exponentially</span>
-              <span class="toa-ticker-item i18n" data-ja="200以上のtoAサービスを確認">200+ toA services identified</span>
-              <span class="toa-ticker-item i18n" data-ja="Fortune誌：「一部ブランドでは収益の10%がAIエージェント経由」">Fortune: "10% of revenue via AI agents" at some brands</span>
-              <span class="toa-ticker-item i18n" data-ja="Google Agentリリース（2026年3月）">Google-Agent launched (2026.03)</span>
-              <span class="toa-ticker-item i18n" data-ja="WebMCP W3C標準化が進行中">WebMCP W3C standardization in progress</span>
-              <span class="toa-ticker-item i18n" data-ja="MCPサーバーが急増中">MCP servers growing exponentially</span>
-              <span class="toa-ticker-item i18n" data-ja="200以上のtoAサービスを確認">200+ toA services identified</span>
-              <span class="toa-ticker-item i18n" data-ja="Fortune誌：「一部ブランドでは収益の10%がAIエージェント経由」">Fortune: "10% of revenue via AI agents" at some brands</span>
-            </div>
+          <div class="toa-step-card">
+            <div class="toa-step-num">2</div>
+            <div class="toa-step-title">自動分析</div>
+            <div class="toa-step-desc">48項目以上を約30秒でチェック</div>
+          </div>
+          <div class="toa-step-card">
+            <div class="toa-step-num">3</div>
+            <div class="toa-step-title">結果＋改善案</div>
+            <div class="toa-step-desc">スコアと優先すべき改善点を表示</div>
           </div>
         </div>
       </section>
 
-      <!-- [3] 3-LAYER MODEL -->
+      <!-- [2] なぜ今これが重要か + toA簡易説明 -->
+      <section class="toa-section toa-section-alt" id="why">
+        <div class="toa-narrow">
+          <p class="toa-p" style="font-size:0.8125rem;">
+            <strong style="color:var(--color-text)">toA（to Agent）とは：</strong>あなたのサイトがAIエージェントに「発見」「理解」「操作」されるための準備度を測る指標です。
+          </p>
+          <h2 class="toa-h2">AIに引用されるだけでは、もう足りない。</h2>
+          <div class="toa-why-cards">
+            <div class="toa-why-card">
+              <div class="toa-why-card-icon">&#128270;</div>
+              <h3>〜2025年：検索される時代</h3>
+              <p>AIがユーザーの質問に回答し、あなたのサイトを「引用」する。認知度は上がるが、取引は発生しない。</p>
+            </div>
+            <div class="toa-why-card toa-active">
+              <div class="toa-why-card-icon">&#129302;</div>
+              <h3>2026年〜：操作される時代</h3>
+              <p>AIエージェントが自律的にサイトを「操作」する。認証・購入・API連携まで自動で完了する。</p>
+            </div>
+          </div>
+          <div class="toa-stats">
+            <div class="toa-stat"><div class="toa-stat-num">200+</div><div class="toa-stat-label">toAサービスを確認</div></div>
+            <div class="toa-stat"><div class="toa-stat-num">10%</div><div class="toa-stat-label">AIエージェント経由売上<br><small style="font-size:0.625rem;">(一部ブランド / Fortune報道)</small></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- [3] 3層モデル（ピラミッド型・クリック展開） -->
       <section class="toa-section" id="model">
-        <div class="toa-section-narrow">
-          <h2 class="toa-h2 i18n" data-ja="3層モデル">The 3-Layer Model</h2>
-          <p class="toa-p i18n" data-ja="下層が欠けると、上層は機能しません。">If the base layers are missing, the upper layers can't function.</p>
-          <div class="toa-layers">
-            <div class="toa-layer toa-layer-3">
-              <div class="toa-layer-title i18n" style="color: #8b5cf6;" data-ja="レイヤー3：実行可能性＋安全性">Layer 3: Actionability + Safety</div>
-              <div class="toa-layer-desc">API / MCP / WebMCP / OAuth / <span class="i18n" data-ja="ガードレール">Guardrails</span> / <span class="i18n" data-ja="エコノミクス">Economics</span></div>
+        <div class="toa-narrow">
+          <h2 class="toa-h2">AIエージェント対応の3つのレベル</h2>
+          <p class="toa-p">下のレベルが揃っていないと、上のレベルは機能しません。</p>
+          <div class="toa-pyramid">
+            <div class="toa-pyramid-layer toa-pyramid-l3" onclick="this.classList.toggle('open')">
+              <div class="toa-pyramid-icon">&#9889;</div>
+              <div class="toa-pyramid-body">
+                <div class="toa-pyramid-title" style="color:#8b5cf6">レベル3：AIがサイトで「操作できる」か</div>
+                <div class="toa-pyramid-desc">API連携・認証・決済・安全装置</div>
+                <div class="toa-pyramid-detail">API / MCP / WebMCP / OAuth / 決済API / ガードレール / ヒューマンハンドオフ</div>
+              </div>
+              <div class="toa-pyramid-arrow">&#9654;</div>
             </div>
-            <div class="toa-layer toa-layer-2">
-              <div class="toa-layer-title i18n" style="color: #3b82f6;" data-ja="レイヤー2：理解＋信頼">Layer 2: Comprehension + Trust</div>
-              <div class="toa-layer-desc"><span class="i18n" data-ja="構造化データ">Structured Data</span> / <span class="i18n" data-ja="セマンティックHTML">Semantic HTML</span> / <span class="i18n" data-ja="エンティティ">Entity</span> / <span class="i18n" data-ja="来歴">Provenance</span></div>
+            <div class="toa-pyramid-layer toa-pyramid-l2" onclick="this.classList.toggle('open')">
+              <div class="toa-pyramid-icon">&#128218;</div>
+              <div class="toa-pyramid-body">
+                <div class="toa-pyramid-title" style="color:#3b82f6">レベル2：AIがサイトの情報を「理解できる」か</div>
+                <div class="toa-pyramid-desc">構造化データ・セマンティックHTML・エンティティ情報</div>
+                <div class="toa-pyramid-detail">JSON-LD / Schema.org / OGP / 見出し階層 / alt属性 / sameAs</div>
+              </div>
+              <div class="toa-pyramid-arrow">&#9654;</div>
             </div>
-            <div class="toa-layer toa-layer-1">
-              <div class="toa-layer-title i18n" style="color: #10b981;" data-ja="レイヤー1：発見＋インデックス">Layer 1: Discovery + Index</div>
-              <div class="toa-layer-desc">robots.txt / llms.txt / <span class="i18n" data-ja="サイトマップ">Sitemap</span> / CWV / <span class="i18n" data-ja="正規URL">Canonical</span></div>
+            <div class="toa-pyramid-layer toa-pyramid-l1" onclick="this.classList.toggle('open')">
+              <div class="toa-pyramid-icon">&#127758;</div>
+              <div class="toa-pyramid-body">
+                <div class="toa-pyramid-title" style="color:#10b981">レベル1：AIがサイトを「見つけられる」か</div>
+                <div class="toa-pyramid-desc">クロール許可・サイトマップ・表示速度</div>
+                <div class="toa-pyramid-detail">robots.txt / llms.txt / sitemap.xml / canonical / TTFB / HTTPS</div>
+              </div>
+              <div class="toa-pyramid-arrow">&#9654;</div>
             </div>
-          </div>
-          <div class="toa-note">
-            <strong class="i18n" data-ja="AI検索スコア">AI Search Score</strong> = <span class="i18n" data-ja="レイヤー1-2">Layer 1-2</span> &nbsp;|&nbsp; <strong class="i18n" data-ja="toA対応度スコア">toA Readiness Score</strong> = <span class="i18n" data-ja="レイヤー2-3">Layer 2-3</span><br>
-            <span class="i18n" data-ja="既存のAIOツールはレイヤー1-2をカバー。本ツールはレイヤー3を追加します。">Existing AIO tools cover Layer 1-2. This tool adds Layer 3.</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- [4] COMPARISON TABLE -->
-      <section class="toa-section" id="comparison">
-        <div class="toa-section-narrow">
-          <h2 class="toa-h2 i18n" data-ja="AIOツール vs toA 診断">AIO Tools vs. toA Audit</h2>
-          <div class="toa-table-wrap">
-            <table class="toa-table">
-              <thead><tr><th class="i18n" data-ja="カテゴリ">Category</th><th class="i18n" data-ja="AIOツール">AIO Tools</th><th class="i18n" data-ja="toA 診断">toA Audit</th></tr></thead>
-              <tbody>
-                <tr><td class="i18n" data-ja="robots.txt / クローラーアクセス">robots.txt / crawler access</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
-                <tr><td class="i18n" data-ja="構造化データ">Structured data</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
-                <tr><td class="i18n" data-ja="コンテンツ構造">Content structure</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
-                <tr><td>E-E-A-T / <span class="i18n" data-ja="権威性">authority</span></td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="ボット種別の意図的制御（検索/学習/ユーザー）">Bot-type intentional control (Search/Training/User)</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="インデックス登録 / canonical整合">Indexability / Canonical alignment</strong></td><td class="partial">&#9651;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="エージェント認証（OAuth / APIトークン）">Agent authentication (OAuth / API token)</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="CAPTCHA / Cookieウォールの摩擦">CAPTCHA / Cookie wall friction</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="API / MCP / WebMCPサポート">API / MCP / WebMCP support</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="状態管理 / リトライ / 冪等性">State / Retry / Idempotency</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="機械可読な価格 / SKU">Machine-readable pricing / SKU</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="ガードレール / 人間への引き継ぎ">Guardrails / Human handoff</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="AIトラフィック計測">AI traffic measurement</strong></td><td class="partial">&#9651;</td><td class="check">&#10003;</td></tr>
-                <tr class="toa-unique"><td><strong class="i18n" data-ja="来歴（オリジナルコンテンツ）">Provenance (original content)</strong></td><td class="partial">&#9651;</td><td class="check">&#10003;</td></tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </section>
 
-      <!-- [5] DIAGNOSIS RESULT -->
-      <section class="toa-section" id="result">
-        <div class="toa-section-narrow">
-          <h2 class="toa-h2 i18n" data-ja="診断結果">Diagnosis Result</h2>
+      <!-- [4] 他ツールとの違い（簡易比較・6行） -->
+      <section class="toa-section toa-section-alt" id="comparison">
+        <div class="toa-narrow">
+          <h2 class="toa-h2">他のAI対策ツールとの違い</h2>
+          <p class="toa-p">従来のAI最適化（AIO）ツールはレベル1〜2をカバー。toA診断はレベル3まで診断します。</p>
+          <div class="toa-compare">
+            <div class="toa-compare-row toa-compare-header">
+              <div>カテゴリ</div><div>AIO</div><div>toA</div>
+            </div>
+            <div class="toa-compare-row">
+              <div>AI検索への露出（クロール許可・サイトマップ）</div>
+              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
+              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
+            </div>
+            <div class="toa-compare-row">
+              <div>構造化データ・メタ情報</div>
+              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
+              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
+            </div>
+            <div class="toa-compare-row toa-compare-highlight">
+              <div><strong>ボット種別の制御（検索/学習/ユーザー）</strong></div>
+              <div class="toa-compare-check toa-cmp-no" aria-label="非対応">&#8212;</div>
+              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
+            </div>
+            <div class="toa-compare-row toa-compare-highlight">
+              <div><strong>エージェント認証・API / MCP連携</strong></div>
+              <div class="toa-compare-check toa-cmp-no" aria-label="非対応">&#8212;</div>
+              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
+            </div>
+            <div class="toa-compare-row toa-compare-highlight">
+              <div><strong>機械可読な価格・決済・CAPTCHA摩擦</strong></div>
+              <div class="toa-compare-check toa-cmp-no" aria-label="非対応">&#8212;</div>
+              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
+            </div>
+            <div class="toa-compare-row toa-compare-highlight">
+              <div><strong>安全装置・AIトラフィック計測</strong></div>
+              <div class="toa-compare-check toa-cmp-partial" aria-label="部分対応">&#9651;</div>
+              <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- [5] 診断結果サンプル → CTA -->
+      <section class="toa-section" id="sample">
+        <div class="toa-narrow">
+          <h2 class="toa-h2">こんな診断結果が得られます</h2>
+          <div class="toa-sample">
+            <div class="toa-sample-scores">
+              <div class="toa-sample-score toa-sample-score-green">
+                <div class="toa-sample-label">AI検索スコア</div>
+                <div class="toa-sample-value toa-score-green">72%</div>
+              </div>
+              <div class="toa-sample-score toa-sample-score-purple">
+                <div class="toa-sample-label">toA対応度スコア</div>
+                <div class="toa-sample-value toa-score-purple">28%</div>
+              </div>
+            </div>
+            <div class="toa-sample-actions">
+              <p style="font-weight:600;margin-bottom:8px;">改善が必要な項目 TOP 3:</p>
+              <div class="toa-sample-action">
+                <div class="toa-sample-action-icon" style="background:#ef4444">1</div>
+                <div>ユーザー起動ボット（ChatGPT-User）がブロックされている <span class="toa-sample-badge toa-sev-blocker">blocker</span></div>
+              </div>
+              <div class="toa-sample-action">
+                <div class="toa-sample-action-icon" style="background:#f59e0b">2</div>
+                <div>llms.txt が存在しない <span class="toa-sample-badge toa-sev-important">important</span></div>
+              </div>
+              <div class="toa-sample-action">
+                <div class="toa-sample-action-icon" style="background:#f59e0b">3</div>
+                <div>JSON-LD Organization スキーマが未設定 <span class="toa-sample-badge toa-sev-important">important</span></div>
+              </div>
+            </div>
+            <div class="toa-sample-note">* サンプルデータです。実際の結果はサイトにより異なります。</div>
+          </div>
+          <div class="toa-center" style="margin-top:var(--spacing-lg)">
+            <button class="toa-form button" style="padding:14px 32px;font-size:1rem;font-weight:700;color:#fff;background:var(--color-primary);border:none;border-radius:var(--border-radius-sm);cursor:pointer;" onclick="document.getElementById('audit-url').focus();document.getElementById('hero').scrollIntoView({behavior:'smooth'})">あなたのサイトも診断してみる</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- [6] 診断結果エリア -->
+      <section class="toa-section" id="result" style="padding-top:32px;">
+        <div class="toa-narrow">
+          <h2 class="toa-h2">診断結果</h2>
           <div class="toa-result" id="result-area">
-            <div class="toa-result-placeholder i18n" id="result-placeholder" data-ja="上のフォームにURLを入力して診断を実行してください。">
-              Enter a URL above to run the diagnostic.
+            <div class="toa-result-placeholder" id="result-placeholder">
+              上のフォームにURLを入力して診断を実行してください。
             </div>
           </div>
         </div>
       </section>
 
-      <!-- [6] MARKET CONTEXT -->
-      <section class="toa-section" id="market">
-        <div class="toa-section-narrow">
-          <h2 class="toa-h2 i18n" data-ja="市場の動向">Market Context</h2>
+      <!-- [7] なぜ「今」対応すべきなのか（タイムライン） -->
+      <section class="toa-section toa-section-alt" id="market">
+        <div class="toa-narrow">
+          <h2 class="toa-h2">なぜ「今」対応すべきなのか</h2>
           <div class="toa-timeline">
             <div class="toa-timeline-item">
               <div class="toa-timeline-date">2026.02</div>
-              <div class="toa-timeline-text i18n" data-ja="WebMCP発表（Google＋Microsoft協力、W3C標準化が進行中）">WebMCP announced (Google + Microsoft, W3C standardization in progress)</div>
+              <div class="toa-timeline-body">
+                WebMCP発表（Google + Microsoft、W3C標準化が進行中）
+                <div class="toa-timeline-impact">&#8594; Webサイト自体がAIエージェントの「ツール」として使われる時代へ</div>
+              </div>
             </div>
             <div class="toa-timeline-item">
               <div class="toa-timeline-date">2026.03</div>
-              <div class="toa-timeline-text i18n" data-ja="Google Agentの公式ドキュメントが公開">Google-Agent official documentation added</div>
+              <div class="toa-timeline-body">
+                Google-Agent 公式ドキュメント公開
+                <div class="toa-timeline-impact">&#8594; Googleの検索エージェントがサイトを直接操作する仕組みが明示された</div>
+              </div>
             </div>
             <div class="toa-timeline-item">
               <div class="toa-timeline-date">2026.03</div>
-              <div class="toa-timeline-text"><a href="https://x.com/paji_a" target="_blank" rel="noopener" class="toa-link">paji_a</a> <span class="i18n" data-ja="が「200以上のtoAサービス」調査を公開">publishes "200+ toA Services" research</span></div>
+              <div class="toa-timeline-body">
+                <a href="https://x.com/paji_a" target="_blank" rel="noopener" class="toa-link">paji_a</a> が「toAサービス200選」リサーチを公開
+                <div class="toa-timeline-impact">&#8594; AIエージェント向けサービス市場が急速に立ち上がっている証拠</div>
+              </div>
             </div>
             <div class="toa-timeline-item">
               <div class="toa-timeline-date">2026 Q1</div>
-              <div class="toa-timeline-text i18n" data-ja="Fortune誌報道：「AIエージェント経由の収益が一部ブランドで10%に到達」">Fortune reports: "AI agent-driven revenue hits 10% at some brands"</div>
+              <div class="toa-timeline-body">
+                Fortune誌：「AIエージェント経由売上が一部ブランドで10%に到達」
+                <div class="toa-timeline-impact">&#8594; 対応の遅れは売上機会の損失に直結する</div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- [7] ABOUT toA -->
+      <!-- [8] toAとは？（詳細版・カード型） -->
       <section class="toa-section" id="about-toa">
-        <div class="toa-section-narrow">
-          <h2 class="toa-h2 i18n" data-ja="toAとは？">What is toA?</h2>
-          <p class="toa-p i18n" data-ja="toCでもtoBでもない。toA ―― AIエージェントが顧客となる市場。">
-            Not toC. Not toB. <strong style="color: var(--color-text);">toA</strong> — a market where AI agents are the customers.
-          </p>
-          <p class="toa-p i18n" data-ja="エージェントが自律的に動くには、5つの条件が必要です。">For an agent to operate autonomously, five conditions must be met:</p>
-          <ol style="font-size: 0.875rem; line-height: 1.8; padding-left: 20px; color: var(--color-text-muted); margin-bottom: var(--spacing-md);">
-            <li><strong style="color: var(--color-text);" class="i18n" data-ja="アイデンティティ">Identity</strong><span class="i18n" data-ja=" ―― 「自分は誰か」（存在の証明）"> — "Who am I?" (proof of existence)</span></li>
-            <li><strong style="color: var(--color-text);" class="i18n" data-ja="環境">Environment</strong><span class="i18n" data-ja=" ―― 「安全な実行場所」（ランタイム）"> — "A safe place to work" (execution runtime)</span></li>
-            <li><strong style="color: var(--color-text);" class="i18n" data-ja="ツール">Tools</strong><span class="i18n" data-ja=" ―― 「世界を操作する道具」（ブラウザ、API）"> — "Hands to manipulate the world" (browser, APIs)</span></li>
-            <li><strong style="color: var(--color-text);" class="i18n" data-ja="記憶">Memory</strong><span class="i18n" data-ja=" ―― 「蓄積された経験」（永続的な状態）"> — "Accumulated experience" (persistent state)</span></li>
-            <li><strong style="color: var(--color-text);" class="i18n" data-ja="経済">Economics</strong><span class="i18n" data-ja=" ―― 「仕事の対価を得る」（決済基盤）"> — "Get paid for work" (payment rails)</span></li>
-          </ol>
-          <p class="toa-p"><a href="/" class="toa-link">HumanAds</a> <span class="i18n" data-ja="は、AIエージェントと人間が取引するマーケットプレイスという経済インフラを提供します。toA診断は、この5つの条件すべてについてサイトの準備状況を測定します。">provides the economic infrastructure — a marketplace where AI agents and humans transact.
-            toA Audit diagnoses how ready your site is across all five conditions.</span>
-          </p>
-          <p><a href="/blog/toa-ai-agent-services-new-market" class="toa-link"><span class="i18n" data-ja="「toA ―― AIエージェントサービスという新たな市場」を読む →">Read: "toA — AI Agent Services as a New Market" →</span></a></p>
+        <div class="toa-narrow">
+          <h2 class="toa-h2">toA（to Agent）とは？</h2>
+          <p class="toa-p">toC（消費者向け）でもtoB（企業向け）でもない。<strong style="color:var(--color-text)">AIエージェントそのものが顧客になる市場</strong> ―― それが「toA」です。エージェントが自律的に動くには5つの条件が必要です。</p>
+          <div class="toa-5cards">
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128100;</div>
+              <div class="toa-5card-title">アイデンティティ</div>
+              <div class="toa-5card-desc">「自分は誰か」を証明する手段（API キー、OAuth）</div>
+            </div>
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128187;</div>
+              <div class="toa-5card-title">実行環境</div>
+              <div class="toa-5card-desc">安全にコードを実行できるサンドボックス</div>
+            </div>
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128295;</div>
+              <div class="toa-5card-title">ツール</div>
+              <div class="toa-5card-desc">外部サービスを操作する手段（API、MCP、ブラウザ）</div>
+            </div>
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128451;</div>
+              <div class="toa-5card-title">記憶</div>
+              <div class="toa-5card-desc">経験を蓄積し、次の行動に活かす力</div>
+            </div>
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128176;</div>
+              <div class="toa-5card-title">経済活動</div>
+              <div class="toa-5card-desc">対価を支払い・受け取る仕組み</div>
+            </div>
+          </div>
+          <p class="toa-p"><a href="/" class="toa-link">HumanAds</a>はAIエージェントと人間が取引するマーケットプレイスとして「経済活動」のインフラを提供。toA診断は、この5つすべての準備状況を測定します。</p>
+          <p><a href="/blog/toa-ai-agent-services-new-market" class="toa-link">「toA ― AIエージェントサービスという新たな市場」を読む &#8594;</a></p>
         </div>
       </section>
 
-      <!-- [8] FAQ -->
-      <section class="toa-section" id="faq">
-        <div class="toa-section-narrow">
-          <h2 class="toa-h2 i18n" data-ja="よくある質問">FAQ</h2>
+      <!-- [9] FAQ（思考順に並び替え） -->
+      <section class="toa-section toa-section-alt" id="faq">
+        <div class="toa-narrow">
+          <h2 class="toa-h2">よくある質問</h2>
           <div class="toa-faq">
             <details>
-              <summary class="i18n" data-ja="AIO/SEOツールとの違いは？">How is this different from AIO/SEO tools?</summary>
-              <div class="toa-faq-answer i18n" data-ja="AIOツールは「AIがあなたのコンテンツを引用できるか」を測定します。toA診断はさらに踏み込み、「AIエージェントがあなたのサイトで認証・操作・取引できるか」をチェックします。レイヤー1-2（発見＆理解）はAIOと重複しますが、レイヤー3（実行可能性）はtoA独自の領域です。">AIO tools measure whether AI can cite your content. toA Audit goes further — it checks whether AI agents can authenticate, operate, and transact on your site. Layer 1-2 (Discovery &amp; Comprehension) overlap with AIO; Layer 3 (Actionability) is unique to toA.</div>
+              <summary>toA診断とは何ですか？</summary>
+              <div class="toa-faq-answer">あなたのWebサイトがAIエージェントに「発見」「理解」「操作」されるための準備ができているかを測定する無料の診断ツールです。URLを入力するだけで、約30秒で結果が出ます。</div>
             </details>
             <details>
-              <summary class="i18n" data-ja="メディアサイトですが、AIOだけで十分では？">My site is a media site. Is AIO enough?</summary>
-              <div class="toa-faq-answer i18n" data-ja="メディアサイトでも、エージェントが有料コンテンツを購読したりRSS経由で記事を取得するケースが増えています。サイト種別フィルタで「メディア」を選ぶと、関連するチェック項目だけを確認できます。">Even media sites are seeing agents subscribe to paid content and fetch articles via RSS. Use the site type filter to select "Media" and see only the relevant checks.</div>
+              <summary>無料ですか？費用はかかりますか？</summary>
+              <div class="toa-faq-answer">完全無料です。ユーザー登録も不要。URLを入力するだけで診断が始まります。結果はパーマリンク付きで30日間保存されます。</div>
             </details>
             <details>
-              <summary class="i18n" data-ja="なぜスコアが2つに分かれているのか？">Why two separate scores?</summary>
-              <div class="toa-faq-answer i18n" data-ja="「AI検索 85% / toA 20%」は「見つかるが使えない」状態を意味します。2つに分けることで、どこに投資すべきかが一目でわかります。1つの数字にまとめるとこの差が隠れてしまいます。">"AI Search 85% / toA 20%" means "discoverable but not usable." The split shows exactly where to invest. One number would hide this insight.</div>
+              <summary>診断にはどのくらい時間がかかりますか？</summary>
+              <div class="toa-faq-answer">自動診断は約30秒です。手動チェックリスト（23項目）はサイトの規模に応じて10〜30分程度です。</div>
             </details>
             <details>
-              <summary class="i18n" data-ja="無料ですか？登録は必要ですか？">Is it free? Do I need to sign up?</summary>
-              <div class="toa-faq-answer i18n" data-ja="完全無料です。登録不要。URLを入力すれば約30秒で結果が出ます。結果は共有可能なパーマリンク付きで30日間保存されます。">Completely free. No signup required. Enter a URL and get results in about 30 seconds. Results are saved with a shareable permalink for 30 days.</div>
+              <summary>既存のAIO・SEOツールとの違いは？</summary>
+              <div class="toa-faq-answer">既存のAI最適化（AIO）ツールは「AIに引用されるか」を測定します。toA診断はさらに踏み込み、AIエージェントがサイトで認証・操作・取引できるかまでチェックします。レベル1-2は既存ツールと共通ですが、レベル3はtoA診断独自の領域です。</div>
             </details>
             <details>
-              <summary class="i18n" data-ja="診断にはどのくらい時間がかかりますか？">How long does the diagnostic take?</summary>
-              <div class="toa-faq-answer i18n" data-ja="自動診断は約30秒です。手動チェックリスト（23項目）はサイトの複雑さに応じて10〜30分程度です。">The automated diagnostic takes about 30 seconds. The manual checklist (23 items) takes 10-30 minutes depending on your site's complexity.</div>
+              <summary>スコアが2つに分かれているのはなぜ？</summary>
+              <div class="toa-faq-answer">「AI検索スコア 85% / toA対応度 20%」は「見つかるが使えない」状態を意味します。2つに分けることで、どこに投資すべきかが一目でわかります。1つの数字にまとめるとこの重要な差が隠れてしまいます。</div>
             </details>
             <details>
-              <summary class="i18n" data-ja="WebMCPの項目はまだ実験段階ですか？">Are WebMCP items still experimental?</summary>
-              <div class="toa-faq-answer i18n" data-ja="はい。WebMCPの項目は「実験的」タグ付きでスコアの重みは低く設定されています。ただし、今のうちに対応しておけば、標準が確定したときにすぐ準備完了です。">Yes. WebMCP items are marked as Experimental with low score weight. But preparing now means you'll be ready when the standard is finalized.</div>
+              <summary>メディアサイトですが、AIOだけで十分では？</summary>
+              <div class="toa-faq-answer">メディアサイトでも、エージェントが有料コンテンツを購読したりRSS経由で記事を取得するケースが増えています。サイト種別フィルタで「メディア」を選ぶと、関連するチェック項目だけを確認できます。</div>
+            </details>
+            <details>
+              <summary>WebMCPの項目はまだ実験段階ですか？</summary>
+              <div class="toa-faq-answer">はい。WebMCP項目は「実験的」タグ付きでスコアの重みも低めです。ただし今のうちに準備しておけば、標準化後にすぐ対応できます。</div>
             </details>
           </div>
         </div>
       </section>
 
-      <!-- [9] FINAL CTA -->
-      <section class="toa-section toa-hero" id="final-cta" style="border-bottom: none;">
-        <h2 class="toa-h2 i18n" data-ja="あなたのサイトのエージェント対応度を確認しよう。">Check your site's Agent Readiness.</h2>
-        <p class="toa-hero-sub i18n" data-ja="無料。登録不要。約30秒で結果が出ます。">Free. No signup. Results in ~30 seconds.</p>
+      <!-- [10] 最終CTA -->
+      <section class="toa-section toa-final-cta" id="final-cta">
+        <h2>ここまで読んだら、あとは<span class="toa-hl">診断する</span>だけ。</h2>
+        <p style="font-size:0.9375rem;color:var(--color-text-muted);margin-bottom:var(--spacing-lg);">無料・登録不要。約30秒で結果が出ます。</p>
         <form class="toa-form" id="audit-form-bottom" onsubmit="return handleBottomForm(event)">
-          <input type="text" id="audit-url-bottom" placeholder="example.com" required autocomplete="url" aria-label="Website URL">
-          <button type="submit" class="i18n" data-ja="無料で診断する">Diagnose</button>
+          <label for="audit-url-bottom" class="sr-only">診断するサイトのURL</label>
+          <input type="text" id="audit-url-bottom" placeholder="yoursite.com" required autocomplete="url">
+          <button type="submit">無料で診断する</button>
         </form>
-        <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: var(--spacing-md);">
-          Made with &#9824; by <a href="/" class="toa-link">HumanAds</a>
-        </p>
       </section>
 
     </main>
 
-    <!-- Footer -->
+    <!-- Footer（日本語統一） -->
     <footer class="footer">
       <div class="footer-links">
-        <a href="/terms">Terms of Service</a>
+        <a href="/terms">利用規約</a>
         <span class="footer-divider">|</span>
-        <a href="/privacy">Privacy Policy</a>
+        <a href="/privacy">プライバシーポリシー</a>
         <span class="footer-divider">|</span>
-        <a href="/guidelines-promoters">Promoter Guidelines</a>
+        <a href="/guidelines-promoters">プロモーターガイドライン</a>
         <span class="footer-divider">|</span>
-        <a href="/guidelines-advertisers">Advertiser Guidelines</a>
+        <a href="/guidelines-advertisers">広告主ガイドライン</a>
         <span class="footer-divider">|</span>
         <a href="/faq">FAQ</a>
         <span class="footer-divider">|</span>
-        <a href="/contact">Contact</a>
+        <a href="/contact">お問い合わせ</a>
       </div>
       <div class="footer-social">
         <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
@@ -558,69 +643,17 @@
           <span>@HumanAdsAI</span>
         </a>
       </div>
-      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp.</p>
+      <p class="footer-disclaimer">XはX Corp.の商標です。HumanAdsはX Corp.とは関係のない独立したサービスです。</p>
       <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
     </footer>
   </div>
 
+  <!-- sr-only for accessibility -->
+  <style>.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }</style>
+
   <script src="/js/side-menu.js"></script>
   <script>SideMenu.init(null);</script>
   <script src="/js/env-banner.js" defer></script>
-  <script src="/js/google-translate.js" defer></script>
-
-  <!-- i18n: bilingual EN/JA toggle -->
-  <script>
-  (function() {
-    var LANG_KEY = 'toa_audit_lang';
-    var isJa = (navigator.language || '').startsWith('ja');
-    var stored = localStorage.getItem(LANG_KEY);
-    var lang = stored || (isJa ? 'ja' : 'en');
-
-    function applyLang(l) {
-      document.querySelectorAll('.i18n').forEach(function(el) {
-        if (!el.dataset.en) el.dataset.en = el.textContent;
-        el.textContent = l === 'ja' ? (el.dataset.ja || el.dataset.en) : el.dataset.en;
-      });
-      var toggle = document.getElementById('toaLangToggle');
-      if (toggle) toggle.textContent = l === 'ja' ? 'EN' : 'JA';
-      document.documentElement.lang = l === 'ja' ? 'ja' : 'en';
-      // JA mode: block Google Translate from re-translating our correct JA text
-      if (l === 'ja') {
-        document.documentElement.classList.add('notranslate');
-        document.documentElement.setAttribute('translate', 'no');
-        // Reset Google Translate to original if already active
-        var combo = document.querySelector('.goog-te-combo');
-        if (combo && combo.value !== 'en') {
-          combo.value = 'en';
-          combo.dispatchEvent(new Event('change'));
-        }
-      } else {
-        document.documentElement.classList.remove('notranslate');
-        document.documentElement.removeAttribute('translate');
-      }
-      window._toaLang = l;
-    }
-
-    // Expose for JS-rendered content
-    window._toaLang = lang;
-    window._toaT = function(en, ja) { return lang === 'ja' ? ja : en; };
-
-    // Create toggle button
-    document.addEventListener('DOMContentLoaded', function() {
-      var btn = document.createElement('button');
-      btn.id = 'toaLangToggle';
-      btn.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:999;padding:6px 14px;font-family:var(--font-mono);font-size:0.8125rem;font-weight:600;border:1px solid var(--color-border);border-radius:6px;background:var(--color-background-card);color:var(--color-text);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08);';
-      btn.textContent = lang === 'ja' ? 'EN' : 'JA';
-      btn.addEventListener('click', function() {
-        lang = lang === 'ja' ? 'en' : 'ja';
-        localStorage.setItem(LANG_KEY, lang);
-        applyLang(lang);
-      });
-      document.body.appendChild(btn);
-      applyLang(lang);
-    });
-  })();
-  </script>
 
   <script>
   // ============================================
@@ -630,7 +663,6 @@
     'use strict';
 
     const STORAGE_PREFIX = 'toa-audit-manual-';
-    const T = window._toaT || function(en) { return en; };
     let currentAuditId = null;
     let currentResults = null;
 
@@ -650,7 +682,6 @@
       await runAudit(url);
     });
 
-    // Bottom form syncs with top form
     window.handleBottomForm = function(e) {
       e.preventDefault();
       const url = document.getElementById('audit-url-bottom').value.trim();
@@ -661,17 +692,12 @@
     };
 
     async function runAudit(url) {
-      // Auto-prepend https:// if no protocol
-      if (!/^https?:\/\//i.test(url)) {
-        url = 'https://' + url;
-      }
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
       urlInput.value = url;
 
       submitBtn.disabled = true;
-      submitBtn.textContent = T('Diagnosing...', '診断中…');
+      submitBtn.textContent = '診断中…';
       showLoading();
-
-      // Scroll to result
       document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       try {
@@ -680,33 +706,25 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url }),
         });
-
         const data = await resp.json();
-
         if (!resp.ok || !data.success) {
-          showError(data.error?.message || data.error?.details || T('Diagnosis failed. Please try again.', '診断に失敗しました。もう一度お試しください。'));
+          showError(data.error?.message || data.error?.details || '診断に失敗しました。もう一度お試しください。');
           return;
         }
-
         currentAuditId = data.data.id;
         currentResults = data.data;
-
-        // Update URL to permalink (without reload)
-        if (data.data.permalink) {
-          history.replaceState(null, '', data.data.permalink);
-        }
-
+        if (data.data.permalink) history.replaceState(null, '', data.data.permalink);
         renderResults(data.data);
       } catch (err) {
-        showError(T('Network error. Please check the URL and try again.', 'ネットワークエ���ーです。URLを確認してもう一度お試しください。'));
+        showError('ネットワークエラーです。URLを確認してもう一度お試しください。');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = T('Diagnose', '診断する');
+        submitBtn.textContent = '無料で診断する';
       }
     }
 
     // ============================================
-    // Loading / Error States
+    // Loading UI
     // ============================================
 
     function showLoading() {
@@ -716,95 +734,70 @@
       const ICON_DONE = '<span class="toa-step-icon done">&#10003;</span>';
 
       const steps = [
-        { layer: 1, label: T('Layer 1 — Discovery', 'レイヤー1 ― 発見'), items: [
-          { id: 's-robots',    text: T('robots.txt — bot access policy', 'robots.txt ― ボットのアクセスポリシー') },
-          { id: 's-llms',      text: T('llms.txt — LLM site description', 'llms.txt ― LLM向けサイト説明') },
-          { id: 's-sitemap',   text: T('sitemap.xml — URL inventory', 'sitemap.xml ― URL一覧') },
-          { id: 's-http',      text: T('HTTP status / redirect chain / TTFB', 'HTTPステータス / リダイレクトチェーン / TTFB') },
-          { id: 's-meta',      text: T('Title / description / canonical', 'タイトル / description / canonical') },
+        { layer: 1, label: 'レベル1 ― 発見可能性', items: [
+          { id: 's-robots', text: 'robots.txt ― ボットアクセスポリシー' },
+          { id: 's-llms', text: 'llms.txt ― LLM向けサイト説明' },
+          { id: 's-sitemap', text: 'sitemap.xml ― URL一覧' },
+          { id: 's-http', text: 'HTTPステータス / リダイレクト / TTFB' },
+          { id: 's-meta', text: 'タイトル / description / canonical' },
         ]},
-        { layer: 2, label: T('Layer 2 — Comprehension', 'レイヤー2 ― 理解'), items: [
-          { id: 's-html',      text: T('Semantic HTML structure', 'セマンティックHTML構造') },
-          { id: 's-heading',   text: T('Heading hierarchy (H1-H6)', '見出し階層（H1-H6）') },
-          { id: 's-schema',    text: 'JSON-LD / Schema.org' },
-          { id: 's-ogp',       text: 'OGP / Twitter Card' },
-          { id: 's-images',    text: T('Image alt coverage', '画像altカバー率') },
+        { layer: 2, label: 'レベル2 ― 理解度', items: [
+          { id: 's-html', text: 'セマンティックHTML構造' },
+          { id: 's-heading', text: '見出し階層（H1-H6）' },
+          { id: 's-schema', text: 'JSON-LD / Schema.org' },
+          { id: 's-ogp', text: 'OGP / Twitter Card' },
+          { id: 's-images', text: '画像altカバー率' },
         ]},
-        { layer: 3, label: T('Layer 3 — Actionability', 'レイヤー3 ― 実行可能性'), items: [
-          { id: 's-paths',     text: '/api, /docs, ai-plugin.json' },
-          { id: 's-pricing',   text: T('Pricing / About page discovery', '料金ページ / Aboutページの検出') },
-          { id: 's-scoring',   text: T('Score calculation + grading', 'スコア算出＋グレード判定') },
+        { layer: 3, label: 'レベル3 ― 操作可能性', items: [
+          { id: 's-paths', text: '/api, /docs, ai-plugin.json 探索' },
+          { id: 's-pricing', text: '料金ページ / Aboutページ検出' },
+          { id: 's-scoring', text: 'スコア算出＋グレード判定' },
         ]},
       ];
 
       let stepsHtml = '';
       let allItems = [];
       for (const group of steps) {
-        stepsHtml += `<div class="toa-loading-layer toa-loading-layer-${group.layer}">
-          <div class="toa-loading-layer-label">${escapeHtml(group.label)}</div>`;
+        stepsHtml += `<div class="toa-loading-layer toa-loading-layer-${group.layer}"><div class="toa-loading-layer-label">${escapeHtml(group.label)}</div>`;
         for (const item of group.items) {
           allItems.push(item);
-          stepsHtml += `<div class="toa-loading-step waiting" id="${item.id}">
-            ${ICON_WAIT}
-            <span>${escapeHtml(item.text)}</span>
-          </div>`;
+          stepsHtml += `<div class="toa-loading-step waiting" id="${item.id}">${ICON_WAIT}<span>${escapeHtml(item.text)}</span></div>`;
         }
         stepsHtml += `</div>`;
       }
 
-      resultArea.innerHTML = `
-        <div class="toa-result-loading">
-          <div class="toa-loading-header">
-            <div class="toa-loading-title">${T('Diagnosing AI Agent Readiness', 'AIエージェント対応度を診断中')}</div>
-            <div class="toa-loading-url">${escapeHtml(auditUrl)}</div>
-          </div>
-          <div class="toa-loading-bar-wrap">
-            <div class="toa-loading-bar"><div class="toa-loading-bar-fill" id="progress-fill"></div></div>
-            <div class="toa-loading-pct" id="progress-pct">0 / ${allItems.length} ${T('checks', '項目')}</div>
-          </div>
-          <div class="toa-loading-steps">${stepsHtml}</div>
-          <div class="toa-loading-eta" id="loading-eta">${T('Estimated: ~30 seconds', '推定：約30秒')}</div>
-        </div>
-      `;
+      resultArea.innerHTML = `<div class="toa-result-loading">
+        <div class="toa-loading-header"><div class="toa-loading-title">AIエージェント対応度を診断中</div><div class="toa-loading-url">${escapeHtml(auditUrl)}</div></div>
+        <div class="toa-loading-bar-wrap"><div class="toa-loading-bar"><div class="toa-loading-bar-fill" id="progress-fill"></div></div><div class="toa-loading-pct" id="progress-pct">0 / ${allItems.length} 項目</div></div>
+        <div class="toa-loading-steps">${stepsHtml}</div>
+        <div class="toa-loading-eta" id="loading-eta">推定：約30秒</div>
+      </div>`;
 
-      // Animate steps one by one
       let idx = 0;
       const fill = document.getElementById('progress-fill');
       const pct = document.getElementById('progress-pct');
       const eta = document.getElementById('loading-eta');
       const totalItems = allItems.length;
 
-      // Timing: spread items across ~25 seconds with some variance
       function advanceStep() {
         if (idx > 0 && idx <= totalItems) {
-          // Mark previous as done
           const prevEl = document.getElementById(allItems[idx - 1].id);
-          if (prevEl) {
-            prevEl.className = 'toa-loading-step done';
-            prevEl.querySelector('.toa-step-icon').outerHTML = ICON_DONE;
-          }
+          if (prevEl) { prevEl.className = 'toa-loading-step done'; prevEl.querySelector('.toa-step-icon').outerHTML = ICON_DONE; }
         }
         if (idx < totalItems) {
-          // Mark current as active
           const curEl = document.getElementById(allItems[idx].id);
-          if (curEl) {
-            curEl.className = 'toa-loading-step active';
-            curEl.querySelector('.toa-step-icon').outerHTML = ICON_ACTIVE;
-          }
+          if (curEl) { curEl.className = 'toa-loading-step active'; curEl.querySelector('.toa-step-icon').outerHTML = ICON_ACTIVE; }
           if (fill) fill.style.width = Math.min(95, ((idx + 0.5) / totalItems) * 100) + '%';
-          if (pct) pct.textContent = `${idx} / ${totalItems} ${T('checks', '項目')}`;
+          if (pct) pct.textContent = `${idx} / ${totalItems} 項目`;
           const remaining = Math.max(1, Math.round((totalItems - idx) * 2));
-          if (eta) eta.textContent = T(`Remaining: ~${remaining}s`, `残り：約${remaining}秒`);
+          if (eta) eta.textContent = `残り：約${remaining}秒`;
           idx++;
-          // Variable delay: first few steps faster, middle slower
           const baseDelay = idx <= 3 ? 1200 : idx <= 8 ? 2500 : 3000;
-          const jitter = Math.random() * 600 - 300;
-          resultArea._progressTimeout = setTimeout(advanceStep, baseDelay + jitter);
+          resultArea._progressTimeout = setTimeout(advanceStep, baseDelay + (Math.random() * 600 - 300));
         } else {
-          // All done — hold at 95%
           if (fill) fill.style.width = '95%';
-          if (pct) pct.textContent = `${totalItems} / ${totalItems} ${T('checks', '項目')}`;
-          if (eta) eta.textContent = T('Finalizing results...', '結果を生成中…');
+          if (pct) pct.textContent = `${totalItems} / ${totalItems} 項目`;
+          if (eta) eta.textContent = '結果を生成中…';
         }
       }
       advanceStep();
@@ -812,7 +805,7 @@
 
     function showError(msg) {
       if (resultArea._progressTimeout) clearTimeout(resultArea._progressTimeout);
-      resultArea.innerHTML = `<div class="toa-error">${escapeHtml(msg)}</div><div class="toa-result-placeholder">${T('Fix the issue and try again.', '問題を修正してもう一��お試しください。')}</div>`;
+      resultArea.innerHTML = `<div class="toa-error">${escapeHtml(msg)}</div><div class="toa-result-placeholder">問題を修正してもう一度お試しください。</div>`;
     }
 
     // ============================================
@@ -825,265 +818,124 @@
       const gradeClass = s.grade.startsWith('A') ? 'a' : s.grade.startsWith('B') ? 'b' : s.grade.startsWith('C') ? 'c' : s.grade.startsWith('D') ? 'd' : 'f';
 
       let html = '';
-
-      // 5a. Score Cards
       html += `<div class="toa-scores">
-        <div class="toa-score-card">
-          <div class="toa-score-card-label">${T('AI Search Score', 'AI検索スコア')}</div>
-          <div class="toa-score-card-value toa-score-green">${s.searchScore}%</div>
-          <div class="toa-score-sub">
-            <span class="toa-score-sub-item">${T('Discovery', '発見率')} ${s.ai_discovery}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.ai_discovery}%;background:#10b981"></span></span></span>
-            <span class="toa-score-sub-item">${T('Comprehension', '理解度')} ${s.ai_comprehension}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.ai_comprehension}%;background:#3b82f6"></span></span></span>
-          </div>
-        </div>
-        <div class="toa-score-card">
-          <div class="toa-score-card-label">${T('toA Readiness Score', 'toA対応度スコ���')}</div>
-          <div class="toa-score-card-value toa-score-purple">${s.toaScore}%</div>
-          <div class="toa-score-sub">
-            <span class="toa-score-sub-item">${T('Transaction', '取引')} ${s.agent_transaction}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.agent_transaction}%;background:#f59e0b"></span></span></span>
-            <span class="toa-score-sub-item">${T('Infra', 'インフラ')} ${s.toa_infra}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.toa_infra}%;background:#8b5cf6"></span></span></span>
-          </div>
-        </div>
+        <div class="toa-score-card"><div class="toa-score-card-label">AI検索スコア</div><div class="toa-score-card-value toa-score-green">${s.searchScore}%</div>
+          <div class="toa-score-sub"><span class="toa-score-sub-item">発見率 ${s.ai_discovery}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.ai_discovery}%;background:#10b981"></span></span></span><span class="toa-score-sub-item">理解度 ${s.ai_comprehension}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.ai_comprehension}%;background:#3b82f6"></span></span></span></div></div>
+        <div class="toa-score-card"><div class="toa-score-card-label">toA対応度スコア</div><div class="toa-score-card-value toa-score-purple">${s.toaScore}%</div>
+          <div class="toa-score-sub"><span class="toa-score-sub-item">取引 ${s.agent_transaction}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.agent_transaction}%;background:#f59e0b"></span></span></span><span class="toa-score-sub-item">インフラ ${s.toa_infra}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.toa_infra}%;background:#8b5cf6"></span></span></span></div></div>
       </div>`;
-
-      // Overall
-      html += `<div class="toa-overall">
-        ${T('Overall', '総合評価')}: <span class="toa-grade toa-grade-${gradeClass}">${s.grade}</span> (${s.overall}%)
-        ${s.hasBlockerUnchecked ? ` <span style="color:#ef4444;font-size:0.8125rem;">&#9888; ${T('Blocker unresolved', 'ブロッカー未解決')}</span>` : ''}
-      </div>`;
-
-      // 5b. Summary
+      html += `<div class="toa-overall">総合評価: <span class="toa-grade toa-grade-${gradeClass}">${s.grade}</span> (${s.overall}%)${s.hasBlockerUnchecked ? ' <span style="color:#ef4444;font-size:0.8125rem;">&#9888; ブロッカー未解決</span>' : ''}</div>`;
       html += `<div class="toa-summary">${escapeHtml(data.summary)}</div>`;
 
-      // 5c. Top Actions
       if (data.topActions && data.topActions.length > 0) {
-        html += `<div class="toa-top-actions"><h3 class="toa-h3">${T('Priority Actions', '優先アクション')}</h3>`;
+        html += `<div class="toa-top-actions"><h3 class="toa-h3">優先アクション</h3>`;
         data.topActions.forEach((a, i) => {
-          html += `<div class="toa-action-card">
-            <div class="toa-action-num">${i + 1}</div>
-            <div class="toa-action-body">
-              <div class="toa-action-title">${escapeHtml(a.nameJa || a.name)} <span class="toa-severity-badge toa-sev-${a.severity}">${a.severity}</span></div>
-              <div class="toa-action-detail">${escapeHtml(a.detailsJa || a.details)}</div>
-              ${a.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(a.recommendationJa)}</div>` : ''}
-            </div>
-          </div>`;
+          html += `<div class="toa-action-card"><div class="toa-action-num">${i + 1}</div><div class="toa-action-body"><div class="toa-action-title">${escapeHtml(a.nameJa || a.name)} <span class="toa-severity-badge toa-sev-${a.severity}">${a.severity}</span></div><div class="toa-action-detail">${escapeHtml(a.detailsJa || a.details)}</div>${a.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(a.recommendationJa)}</div>` : ''}</div></div>`;
         });
         html += `</div>`;
       }
 
-      // 5d. Auto check results by category
-      html += `<div class="toa-checks-section"><h3 class="toa-h3">${T(`Auto Diagnosis (${data.autoResults.length} items)`, `自動診断（${data.autoResults.length}項目）`)}</h3>`;
+      html += `<div class="toa-checks-section"><h3 class="toa-h3">自動診断（${data.autoResults.length}項目）</h3>`;
       const categories = groupBy(data.autoResults, 'category');
       for (const [cat, checks] of Object.entries(categories)) {
         const passCount = checks.filter(c => c.status === 'pass').length;
-        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')">
-          <span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)} <span style="color:var(--color-text-muted);font-weight:400;font-size:0.75rem;">${passCount}/${checks.length}</span>
-        </div>`;
-        html += `<div class="toa-category-body hidden">`;
+        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)} <span style="color:var(--color-text-muted);font-weight:400;font-size:0.75rem;">${passCount}/${checks.length}</span></div><div class="toa-category-body hidden">`;
         for (const c of checks) {
-          const statusIcon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : c.status === 'warn' ? '&#9888;' : '&#8226;';
-          html += `<div class="toa-check-item">
-            <div class="toa-status toa-status-${c.status}">${statusIcon}</div>
-            <div class="toa-check-body">
-              <div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div>
-              <div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>
-              ${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}
-            </div>
-          </div>`;
+          const icon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : c.status === 'warn' ? '&#9888;' : '&#8226;';
+          html += `<div class="toa-check-item"><div class="toa-status toa-status-${c.status}">${icon}</div><div class="toa-check-body"><div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div><div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}</div></div>`;
         }
         html += `</div>`;
       }
       html += `</div>`;
 
-      // 5e. Manual Checklist
       if (data.manualChecks && data.manualChecks.length > 0) {
-        html += `<div class="toa-checks-section"><h3 class="toa-h3">${T(`Manual Checklist (${data.manualChecks.length} items)`, `手動チェックリスト（${data.manualChecks.length}項目）`)}</h3>`;
-        html += `<p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:8px;">${T('Check items you\'ve verified. State is saved locally and affects your score.', '確認済みの項目にチェックを入れてください。状態はローカルに保存され、スコアに反映されます。')}</p>`;
+        html += `<div class="toa-checks-section"><h3 class="toa-h3">手動チェックリスト（${data.manualChecks.length}項目）</h3><p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:8px;">確認済みの項目にチェック。状態はブラウザに保存されます。</p>`;
         const manualCats = groupBy(data.manualChecks, 'category');
         for (const [cat, checks] of Object.entries(manualCats)) {
-          html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')">
-            <span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}
-          </div>`;
-          html += `<div class="toa-category-body hidden">`;
+          html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}</div><div class="toa-category-body hidden">`;
           for (const c of checks) {
             const checked = getManualState(c.id) ? 'checked' : '';
-            html += `<div class="toa-manual-item">
-              <input type="checkbox" id="manual-${c.id}" ${checked} onchange="window._toaManualChange('${c.id}', this.checked)">
-              <label for="manual-${c.id}">
-                ${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span>
-              </label>
-            </div>`;
+            html += `<div class="toa-manual-item"><input type="checkbox" id="manual-${c.id}" ${checked} onchange="window._toaManualChange('${c.id}', this.checked)"><label for="manual-${c.id}">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></label></div>`;
           }
           html += `</div>`;
         }
         html += `</div>`;
       }
 
-      // 5h/5i. Actions bar
       html += `<div class="toa-actions-bar">
-        <button class="toa-btn-sm" onclick="window._toaExportMd()">${T('Export Markdown', 'Markdownエクスポート')}</button>
-        <button class="toa-btn-sm" onclick="window._toaExportCsv()">${T('Export CSV', 'CSVエクスポート')}</button>
-        <button class="toa-btn-sm" onclick="window._toaCopyLink()">${T('Copy Link', 'リンクをコピー')}</button>
-        <button class="toa-btn-sm toa-btn-primary" onclick="window._toaShareX()">${T('Share on X', 'Xでシェア')}</button>
+        <button class="toa-btn-sm" onclick="window._toaExportMd()">Markdownエクスポート</button>
+        <button class="toa-btn-sm" onclick="window._toaExportCsv()">CSVエクスポート</button>
+        <button class="toa-btn-sm" onclick="window._toaCopyLink()">リンクをコピー</button>
+        <button class="toa-btn-sm toa-btn-primary" onclick="window._toaShareX()">Xでシェア</button>
       </div>`;
-
       resultArea.innerHTML = html;
     }
 
     // ============================================
-    // Manual Checklist State (localStorage)
+    // Manual Checklist (localStorage)
     // ============================================
-
-    function getManualState(checkId) {
-      if (!currentAuditId) return false;
-      try {
-        const data = JSON.parse(localStorage.getItem(STORAGE_PREFIX + currentAuditId) || '{}');
-        return !!data[checkId];
-      } catch { return false; }
-    }
-
-    function setManualState(checkId, checked) {
-      if (!currentAuditId) return;
-      try {
-        const key = STORAGE_PREFIX + currentAuditId;
-        const data = JSON.parse(localStorage.getItem(key) || '{}');
-        data[checkId] = checked;
-        localStorage.setItem(key, JSON.stringify(data));
-      } catch { /* ignore */ }
-    }
-
-    window._toaManualChange = function(checkId, checked) {
-      setManualState(checkId, checked);
-    };
+    function getManualState(id) { if (!currentAuditId) return false; try { return !!JSON.parse(localStorage.getItem(STORAGE_PREFIX + currentAuditId) || '{}')[id]; } catch { return false; } }
+    function setManualState(id, v) { if (!currentAuditId) return; try { const k = STORAGE_PREFIX + currentAuditId; const d = JSON.parse(localStorage.getItem(k) || '{}'); d[id] = v; localStorage.setItem(k, JSON.stringify(d)); } catch {} }
+    window._toaManualChange = function(id, v) { setManualState(id, v); };
 
     // ============================================
-    // Export Functions
+    // Export / Share
     // ============================================
-
     window._toaExportMd = function() {
-      if (!currentResults) return;
-      const d = currentResults;
-      let md = `# toA Audit Report\n\n`;
-      md += `**URL:** ${d.url}\n`;
-      md += `**Date:** ${d.completedAt}\n`;
-      md += `**Grade:** ${d.scores.grade} (${d.scores.overall}%)\n\n`;
-      md += `## Scores\n\n`;
-      md += `| Axis | Score |\n|------|-------|\n`;
-      md += `| AI Search Score | ${d.scores.searchScore}% |\n`;
-      md += `| toA Readiness | ${d.scores.toaScore}% |\n`;
-      md += `| Discovery | ${d.scores.ai_discovery}% |\n`;
-      md += `| Comprehension | ${d.scores.ai_comprehension}% |\n`;
-      md += `| Transaction | ${d.scores.agent_transaction}% |\n`;
-      md += `| Infrastructure | ${d.scores.toa_infra}% |\n\n`;
-      md += `## Summary\n\n${d.summary}\n\n`;
-      md += `## Auto Checks\n\n`;
-      md += `| Status | Check | Details |\n|--------|-------|--------|\n`;
-      for (const c of d.autoResults) {
-        md += `| ${c.status.toUpperCase()} | ${c.name} | ${c.details} |\n`;
-      }
+      if (!currentResults) return; const d = currentResults;
+      let md = `# toA Audit Report\n\n**URL:** ${d.url}\n**Date:** ${d.completedAt}\n**Grade:** ${d.scores.grade} (${d.scores.overall}%)\n\n## Scores\n\n| Axis | Score |\n|------|-------|\n| AI Search Score | ${d.scores.searchScore}% |\n| toA Readiness | ${d.scores.toaScore}% |\n| Discovery | ${d.scores.ai_discovery}% |\n| Comprehension | ${d.scores.ai_comprehension}% |\n| Transaction | ${d.scores.agent_transaction}% |\n| Infrastructure | ${d.scores.toa_infra}% |\n\n## Summary\n\n${d.summary}\n\n## Auto Checks\n\n| Status | Check | Details |\n|--------|-------|--------|\n`;
+      for (const c of d.autoResults) md += `| ${c.status.toUpperCase()} | ${c.name} | ${c.details} |\n`;
       md += `\n---\nGenerated by [toA Audit](https://humanadsai.com/toa-audit)\n`;
       downloadText(md, `toa-audit-${d.id}.md`, 'text/markdown');
     };
-
     window._toaExportCsv = function() {
-      if (!currentResults) return;
-      const d = currentResults;
+      if (!currentResults) return; const d = currentResults;
       let csv = 'Status,Category,Check,Severity,Details,Recommendation\n';
-      for (const c of d.autoResults) {
-        csv += `${csvEscape(c.status)},${csvEscape(c.category)},${csvEscape(c.name)},${csvEscape(c.severity)},${csvEscape(c.details)},${csvEscape(c.recommendation || '')}\n`;
-      }
+      for (const c of d.autoResults) csv += `${csvEscape(c.status)},${csvEscape(c.category)},${csvEscape(c.name)},${csvEscape(c.severity)},${csvEscape(c.details)},${csvEscape(c.recommendation || '')}\n`;
       downloadText(csv, `toa-audit-${d.id}.csv`, 'text/csv');
     };
-
     window._toaCopyLink = function() {
-      const link = window.location.href;
-      navigator.clipboard.writeText(link).then(() => {
+      navigator.clipboard.writeText(window.location.href).then(() => {
         const btn = document.querySelector('[onclick="window._toaCopyLink()"]');
-        if (btn) { btn.textContent = T('Copied!', 'コピー済み！'); setTimeout(() => { btn.textContent = T('Copy Link', 'リンクをコピー'); }, 2000); }
+        if (btn) { btn.textContent = 'コピー済み！'; setTimeout(() => { btn.textContent = 'リンクをコピー'; }, 2000); }
       });
     };
-
     window._toaShareX = function() {
-      if (!currentResults) return;
-      const s = currentResults.scores;
-      const text = `My site's toA Readiness diagnostic:\nAI Search: ${s.searchScore}% | toA: ${s.toaScore}% | Grade: ${s.grade}\n\n${window.location.href}`;
+      if (!currentResults) return; const s = currentResults.scores;
+      const text = `サイトのtoA対応度を診断しました\nAI検索: ${s.searchScore}% | toA対応度: ${s.toaScore}% | グレード: ${s.grade}\n\n${window.location.href}`;
       window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     };
 
     // ============================================
-    // Permalink Loading
+    // Permalink
     // ============================================
-
     function checkPermalink() {
-      // Check path-based permalink: /toa-audit/[id]
       const pathMatch = window.location.pathname.match(/^\/toa-audit\/([a-z0-9]+)$/);
       if (pathMatch) { loadAudit(pathMatch[1]); return; }
-      // Check query-based permalink: /toa-audit?id=[id]
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
+      const id = new URLSearchParams(window.location.search).get('id');
       if (id && /^[a-z0-9]+$/.test(id)) { loadAudit(id); return; }
     }
-
     async function loadAudit(id) {
       showLoading();
       try {
         const resp = await fetch(`/api/toa-audit/${id}`);
         const data = await resp.json();
-        if (!resp.ok || !data.success) {
-          showError(T('Audit result not found or expired.', '診断結果が見つからないか、期限切れです。'));
-          return;
-        }
-        currentAuditId = data.data.id;
-        currentResults = data.data;
+        if (!resp.ok || !data.success) { showError('診断結果が見つからないか、期限切れです。'); return; }
+        currentAuditId = data.data.id; currentResults = data.data;
         if (data.data.url) urlInput.value = data.data.url;
         renderResults(data.data);
         document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch {
-        showError(T('Failed to load audit result.', '診断結果の読み込みに失敗しました。'));
-      }
+      } catch { showError('診断結果の読み込みに失敗しました。'); }
     }
 
     // ============================================
     // Utilities
     // ============================================
+    function escapeHtml(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function csvEscape(s) { if (!s) return ''; if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes("'")) return '"' + s.replace(/"/g, '""') + '"'; return s; }
+    function groupBy(a, k) { const g = {}; for (const i of a) { (g[i[k]] = g[i[k]] || []).push(i); } return g; }
+    function downloadText(c, f, m) { const b = new Blob([c], {type:m}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = f; a.click(); URL.revokeObjectURL(a.href); }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function csvEscape(str) {
-      if (!str) return '';
-      // Guard against CSV formula injection (Excel/Sheets)
-      if (/^[=+\-@\t\r]/.test(str)) {
-        str = "'" + str;
-      }
-      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes("'")) {
-        return '"' + str.replace(/"/g, '""') + '"';
-      }
-      return str;
-    }
-
-    function groupBy(arr, key) {
-      const groups = {};
-      for (const item of arr) {
-        const k = item[key];
-        if (!groups[k]) groups[k] = [];
-        groups[k].push(item);
-      }
-      return groups;
-    }
-
-    function downloadText(content, filename, mime) {
-      const blob = new Blob([content], { type: mime });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
-
-    // Init
     checkPermalink();
   })();
   </script>
