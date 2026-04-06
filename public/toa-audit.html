@@ -255,8 +255,12 @@
     .toa-action-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--color-primary); color: #fff; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
     .toa-action-body { flex: 1; } .toa-action-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 2px; } .toa-action-detail { font-size: 0.8125rem; color: var(--color-text-muted); }
     .toa-checks-section { margin-bottom: var(--spacing-lg); }
-    .toa-category-header { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; padding: 8px 0; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--color-border); user-select: none; }
+    .toa-category-header { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; padding: 10px 0; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--color-border); user-select: none; }
     .toa-category-header:hover { color: var(--color-primary); }
+    .toa-cat-score { margin-left: auto; display: flex; align-items: center; gap: 8px; font-weight: 400; font-size: 0.75rem; }
+    .toa-cat-bar { width: 48px; height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden; }
+    .toa-cat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+    .toa-cat-ratio { min-width: 36px; text-align: right; font-family: var(--font-mono); font-weight: 600; }
     .toa-category-arrow { transition: transform 0.2s; font-size: 0.75rem; }
     .toa-category-arrow.open { transform: rotate(90deg); }
     .toa-category-body { padding: 8px 0; } .toa-category-body.hidden { display: none; }
@@ -318,75 +322,67 @@
 
     <main class="toa-page">
 
-      <!-- [1] HERO — 最大の視覚的重み -->
+      <!-- [1] HERO — toA市場の定義から入る -->
       <section class="toa-section toa-hero" id="hero">
-        <div class="toa-hero-label">無料AIチェックツール</div>
-        <h1>AIエージェント時代、<br>あなたのサイトは<span class="toa-hl">準備OK</span>？</h1>
-        <p class="toa-hero-sub">URLを貼るだけ、たった30秒。<br>サイトのAI対応度をやさしくチェックします。</p>
+        <div class="toa-hero-label">toA診断 ― AIエージェントが顧客になる時代の準備度チェック</div>
+        <h1>AIエージェントは、あなたのサイトで<br><span class="toa-hl">認証・操作・取引</span>できますか？</h1>
+        <p class="toa-hero-sub">toA（to Agent）診断は、AIに引用されるかではなく、AIエージェントに<strong>使われ、依頼され、取引される</strong>準備があるかを測ります。</p>
         <form class="toa-form" id="audit-form" aria-label="サイトチェックフォーム">
           <label for="audit-url" class="sr-only">チェックするサイトのURL</label>
           <input type="text" id="audit-url" placeholder="yoursite.com" required autocomplete="url">
-          <button type="submit" id="audit-submit">いますぐ無料チェック →</button>
+          <button type="submit" id="audit-submit">無料でtoA診断する →</button>
         </form>
-        <p class="toa-form-meta">登録なし ・ 無料 ・ 30秒で結果がわかる</p>
-
-        <!-- 3ステップ図解 -->
-        <div class="toa-steps">
-          <div class="toa-step-card">
-            <div class="toa-step-num">1</div>
-            <div class="toa-step-title">URLを入力</div>
-            <div class="toa-step-desc">診断したいサイトのURLを貼るだけ</div>
-          </div>
-          <div class="toa-step-card">
-            <div class="toa-step-num">2</div>
-            <div class="toa-step-title">自動分析</div>
-            <div class="toa-step-desc">48項目以上を約30秒でチェック</div>
-          </div>
-          <div class="toa-step-card">
-            <div class="toa-step-num">3</div>
-            <div class="toa-step-title">結果＋改善案</div>
-            <div class="toa-step-desc">スコアと優先すべき改善点を表示</div>
-          </div>
-        </div>
+        <p class="toa-form-meta">登録なし ・ 無料 ・ 30秒で結果がわかる ・ 48項目以上を自動チェック</p>
       </section>
 
-      <!-- [2] なぜ今これが重要か + toA簡易説明 -->
-      <section class="toa-section toa-section-alt" id="why">
+      <!-- [2] toAとは何か（短い定義 + 5条件） -->
+      <section class="toa-section toa-section-alt" id="what-is-toa">
         <div class="toa-narrow">
-          <p class="toa-p" style="font-size:0.8125rem;">
-            <strong style="color:var(--color-text)">toA（to Agent）とは：</strong>あなたのサイトがAIエージェントに「発見」「理解」「操作」されるための準備度を測る指標です。
-          </p>
-          <h2 class="toa-h2">AIに引用されるだけでは、もう足りない。</h2>
-          <div class="toa-why-cards">
-            <div class="toa-why-card">
-              <div class="toa-why-card-icon">&#128270;</div>
-              <h3>〜2025年：検索される時代</h3>
-              <p>AIがユーザーの質問に回答し、あなたのサイトを「引用」する。認知度は上がるが、取引は発生しない。</p>
+          <h2 class="toa-h2">toA（to Agent）とは？</h2>
+          <p class="toa-p">toC（消費者向け）でもtoB（企業向け）でもない。<strong style="color:var(--color-text)">AIエージェントそのものが顧客になる市場</strong> ―― それがtoAです。<br>この診断は、AIエージェントがあなたのサイトを発見・理解・操作・取引できるかを測ります。AIOはその一部にすぎません。</p>
+          <p class="toa-p" style="font-size:0.8125rem;margin-bottom:var(--spacing-sm);"><strong style="color:var(--color-text)">AIエージェントが自律的に動くための5条件:</strong></p>
+          <div class="toa-5cards">
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128100;</div>
+              <div class="toa-5card-title">アイデンティティ</div>
+              <div class="toa-5card-desc">「自分は誰か」を証明する手段（APIキー、OAuth）</div>
             </div>
-            <div class="toa-why-card toa-active">
-              <div class="toa-why-card-icon">&#129302;</div>
-              <h3>2026年〜：操作される時代</h3>
-              <p>AIエージェントが自律的にサイトを「操作」する。認証・購入・API連携まで自動で完了する。</p>
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128187;</div>
+              <div class="toa-5card-title">実行環境</div>
+              <div class="toa-5card-desc">安全にコードを実行できるサンドボックス</div>
+            </div>
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128295;</div>
+              <div class="toa-5card-title">ツール</div>
+              <div class="toa-5card-desc">外部サービスを操作する手段（API、MCP、ブラウザ）</div>
+            </div>
+            <div class="toa-5card">
+              <div class="toa-5card-icon">&#128451;</div>
+              <div class="toa-5card-title">記憶</div>
+              <div class="toa-5card-desc">経験を蓄積し、次の行動に活かす力</div>
+            </div>
+            <div class="toa-5card" style="border-color:var(--color-primary);background:rgba(255,107,53,0.04);">
+              <div class="toa-5card-icon">&#128176;</div>
+              <div class="toa-5card-title" style="color:var(--color-primary);">経済活動</div>
+              <div class="toa-5card-desc">対価を支払い・受け取る仕組み ― <strong>HumanAdsが提供するインフラ</strong></div>
             </div>
           </div>
-          <div class="toa-stats">
-            <div class="toa-stat"><div class="toa-stat-num">200+</div><div class="toa-stat-label">toAサービスを確認</div></div>
-            <div class="toa-stat"><div class="toa-stat-num">10%</div><div class="toa-stat-label">AIエージェント経由売上<br><small style="font-size:0.625rem;">(一部ブランド / Fortune報道)</small></div></div>
-          </div>
+          <p class="toa-p" style="text-align:center;font-size:0.8125rem;">toA診断は、この5つすべての準備状況を測定します。</p>
         </div>
       </section>
 
       <!-- [3] 3層モデル（ピラミッド型・クリック展開） -->
       <section class="toa-section" id="model">
         <div class="toa-narrow">
-          <h2 class="toa-h2">AIエージェント対応の3つのレベル</h2>
+          <h2 class="toa-h2">toA診断が測る3つのレベル</h2>
           <p class="toa-p">下のレベルが揃っていないと、上のレベルは機能しません。</p>
           <div class="toa-pyramid">
             <div class="toa-pyramid-layer toa-pyramid-l3" onclick="this.classList.toggle('open')">
               <div class="toa-pyramid-icon">&#9889;</div>
               <div class="toa-pyramid-body">
-                <div class="toa-pyramid-title" style="color:#8b5cf6">レベル3：AIがサイトで「操作できる」か</div>
-                <div class="toa-pyramid-desc">API連携・認証・決済・安全装置</div>
+                <div class="toa-pyramid-title" style="color:#8b5cf6">レベル3：AIがサイトで「操作・取引できる」か</div>
+                <div class="toa-pyramid-desc">API連携・認証・決済・購入・契約・安全装置</div>
                 <div class="toa-pyramid-detail">API / MCP / WebMCP / OAuth / 決済API / ガードレール / ヒューマンハンドオフ</div>
               </div>
               <div class="toa-pyramid-arrow">&#9654;</div>
@@ -416,11 +412,11 @@
       <!-- [4] 他ツールとの違い（簡易比較・6行） -->
       <section class="toa-section toa-section-alt" id="comparison">
         <div class="toa-narrow">
-          <h2 class="toa-h2">他のAI対策ツールとの違い</h2>
-          <p class="toa-p">従来のAI最適化（AIO）ツールはレベル1〜2をカバー。toA診断はレベル3まで診断します。</p>
+          <h2 class="toa-h2">toA診断は、AIOでは見えない領域まで診る</h2>
+          <p class="toa-p">従来のAIO（AI最適化）は「AIに引用されるか」を測定します。toA診断はさらに踏み込み、AIエージェントがサイトで認証・操作・購入・取引できるかまでチェックします。</p>
           <div class="toa-compare">
             <div class="toa-compare-row toa-compare-header">
-              <div>カテゴリ</div><div>AIO</div><div>toA</div>
+              <div>診断カテゴリ</div><div>AIO</div><div>toA</div>
             </div>
             <div class="toa-compare-row">
               <div>AI検索への露出（クロール許可・サイトマップ）</div>
@@ -443,7 +439,7 @@
               <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
             </div>
             <div class="toa-compare-row toa-compare-highlight">
-              <div><strong>機械可読な価格・決済・CAPTCHA摩擦</strong></div>
+              <div><strong>機械可読な価格・決済・購入フロー</strong></div>
               <div class="toa-compare-check toa-cmp-no" aria-label="非対応">&#8212;</div>
               <div class="toa-compare-check toa-cmp-yes" aria-label="対応">&#10003;</div>
             </div>
@@ -467,10 +463,11 @@
                 <div class="toa-sample-value toa-score-green">72%</div>
               </div>
               <div class="toa-sample-score toa-sample-score-purple">
-                <div class="toa-sample-label">toA対応度スコア</div>
+                <div class="toa-sample-label">AIエージェント対応度</div>
                 <div class="toa-sample-value toa-score-purple">28%</div>
               </div>
             </div>
+            <p style="text-align:center;font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:var(--spacing-md);">「見つかるが、取引できない」 ―― この差を可視化します。</p>
             <div class="toa-sample-actions">
               <p style="font-weight:600;margin-bottom:8px;">改善が必要な項目 TOP 3:</p>
               <div class="toa-sample-action">
@@ -489,7 +486,7 @@
             <div class="toa-sample-note">* サンプルデータです。実際の結果はサイトにより異なります。</div>
           </div>
           <div class="toa-center" style="margin-top:var(--spacing-lg)">
-            <button style="padding:14px 32px;font-size:1rem;font-weight:700;color:#fff;background:var(--color-primary);border:none;border-radius:16px;cursor:pointer;" onclick="document.getElementById('audit-url').focus();document.getElementById('hero').scrollIntoView({behavior:'smooth'})">あなたのサイトもチェックしてみる →</button>
+            <button style="padding:14px 32px;font-size:1rem;font-weight:700;color:#fff;background:var(--color-primary);border:none;border-radius:16px;cursor:pointer;" onclick="document.getElementById('audit-url').focus();document.getElementById('hero').scrollIntoView({behavior:'smooth'})">あなたのサイトもtoA診断してみる →</button>
           </div>
         </div>
       </section>
@@ -500,7 +497,7 @@
           <h2 class="toa-h2">診断結果</h2>
           <div class="toa-result" id="result-area">
             <div class="toa-result-placeholder" id="result-placeholder">
-              上のフォームにURLを入力して診断を実行してください。
+              上のフォームにURLを入力してtoA診断を実行してください。
             </div>
           </div>
         </div>
@@ -509,7 +506,20 @@
       <!-- [7] なぜ「今」対応すべきなのか（タイムライン） -->
       <section class="toa-section toa-section-alt" id="market">
         <div class="toa-narrow">
-          <h2 class="toa-h2">なぜ「今」対応すべきなのか</h2>
+          <h2 class="toa-h2">なぜ「今」toAに備えるべきなのか</h2>
+          <p class="toa-p">AIエージェントが顧客として行動する世界は、もう始まっています。</p>
+          <div class="toa-why-cards" style="margin-bottom:var(--spacing-lg);">
+            <div class="toa-why-card">
+              <div class="toa-why-card-icon">&#128270;</div>
+              <h3>〜2025年：AIに引用される時代</h3>
+              <p>AIがユーザーの質問に回答し、あなたのサイトを「引用」する。認知度は上がるが、取引は発生しない。</p>
+            </div>
+            <div class="toa-why-card toa-active">
+              <div class="toa-why-card-icon">&#129302;</div>
+              <h3>2026年〜：AIエージェントが顧客になる時代</h3>
+              <p>AIエージェントが自律的にサイトを「操作」する。認証・購入・契約・支払いまで自動で完了する。</p>
+            </div>
+          </div>
           <div class="toa-timeline">
             <div class="toa-timeline-item">
               <div class="toa-timeline-date">2026.02</div>
@@ -540,42 +550,19 @@
               </div>
             </div>
           </div>
+          <div class="toa-stats">
+            <div class="toa-stat"><div class="toa-stat-num">200+</div><div class="toa-stat-label">toAサービスを確認</div></div>
+            <div class="toa-stat"><div class="toa-stat-num">10%</div><div class="toa-stat-label">AIエージェント経由売上<br><small style="font-size:0.625rem;">(一部ブランド / Fortune報道)</small></div></div>
+          </div>
         </div>
       </section>
 
-      <!-- [8] toAとは？（詳細版・カード型） -->
+      <!-- [8] toA詳細 + HumanAdsの接続 -->
       <section class="toa-section" id="about-toa">
         <div class="toa-narrow">
-          <h2 class="toa-h2">toA（to Agent）とは？</h2>
-          <p class="toa-p">toC（消費者向け）でもtoB（企業向け）でもない。<strong style="color:var(--color-text)">AIエージェントそのものが顧客になる市場</strong> ―― それが「toA」です。エージェントが自律的に動くには5つの条件が必要です。</p>
-          <div class="toa-5cards">
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128100;</div>
-              <div class="toa-5card-title">アイデンティティ</div>
-              <div class="toa-5card-desc">「自分は誰か」を証明する手段（API キー、OAuth）</div>
-            </div>
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128187;</div>
-              <div class="toa-5card-title">実行環境</div>
-              <div class="toa-5card-desc">安全にコードを実行できるサンドボックス</div>
-            </div>
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128295;</div>
-              <div class="toa-5card-title">ツール</div>
-              <div class="toa-5card-desc">外部サービスを操作する手段（API、MCP、ブラウザ）</div>
-            </div>
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128451;</div>
-              <div class="toa-5card-title">記憶</div>
-              <div class="toa-5card-desc">経験を蓄積し、次の行動に活かす力</div>
-            </div>
-            <div class="toa-5card">
-              <div class="toa-5card-icon">&#128176;</div>
-              <div class="toa-5card-title">経済活動</div>
-              <div class="toa-5card-desc">対価を支払い・受け取る仕組み</div>
-            </div>
-          </div>
-          <p class="toa-p"><a href="/" class="toa-link">HumanAds</a>はAIエージェントと人間が取引するマーケットプレイスとして「経済活動」のインフラを提供。toA診断は、この5つすべての準備状況を測定します。</p>
+          <h2 class="toa-h2">HumanAdsが見ているのは「AI検索」ではなく「AIエージェント経済圏」</h2>
+          <p class="toa-p"><a href="/" class="toa-link">HumanAds</a>は、AIエージェントと人間が取引する時代のインフラをつくっています。toA診断は、その経済圏への入口として、あなたのサイトがAIエージェントを「顧客」として迎えられるかを測るものです。</p>
+          <p class="toa-p">AIに引用されることがゴールではありません。AIエージェントが認証し、操作し、購入し、支払いを完了する ―― その一連のフローに対応できているかどうか。それがtoAの診断軸です。</p>
           <p><a href="/blog/toa-ai-agent-services-new-market" class="toa-link">「toA ― AIエージェントサービスという新たな市場」を読む &#8594;</a></p>
         </div>
       </section>
@@ -587,7 +574,11 @@
           <div class="toa-faq">
             <details>
               <summary>toA診断とは何ですか？</summary>
-              <div class="toa-faq-answer">あなたのWebサイトがAIエージェントに「発見」「理解」「操作」されるための準備ができているかを測定する無料の診断ツールです。URLを入力するだけで、約30秒で結果が出ます。</div>
+              <div class="toa-faq-answer">toA（to Agent）診断は、AIエージェントがあなたのサイトを「発見・理解・操作・取引」できるかを測る無料ツールです。従来のAIO（AI最適化）がカバーする「AIに引用されるか」だけでなく、認証・購入・決済までの準備度を48項目以上でチェックします。URLを入力するだけで約30秒で結果が出ます。</div>
+            </details>
+            <details>
+              <summary>AIO診断との違いは何ですか？</summary>
+              <div class="toa-faq-answer">AIOは「AIに引用されるか」を見ます。toA診断はさらに、AIエージェントがサイトで認証・操作・取引できるかまでチェックします。AI検索対策はtoAの一部にすぎません。</div>
             </details>
             <details>
               <summary>無料ですか？費用はかかりますか？</summary>
@@ -598,12 +589,8 @@
               <div class="toa-faq-answer">自動診断は約30秒です。手動チェックリスト（16項目）はサイトの規模に応じて10〜30分程度です。</div>
             </details>
             <details>
-              <summary>既存のAIO・SEOツールとの違いは？</summary>
-              <div class="toa-faq-answer">既存のAI最適化（AIO）ツールは「AIに引用されるか」を測定します。toA診断はさらに踏み込み、AIエージェントがサイトで認証・操作・取引できるかまでチェックします。レベル1-2は既存ツールと共通ですが、レベル3はtoA診断独自の領域です。</div>
-            </details>
-            <details>
               <summary>スコアが2つに分かれているのはなぜ？</summary>
-              <div class="toa-faq-answer">「AI検索スコア 85% / toA対応度 20%」は「見つかるが使えない」状態を意味します。2つに分けることで、どこに投資すべきかが一目でわかります。1つの数字にまとめるとこの重要な差が隠れてしまいます。</div>
+              <div class="toa-faq-answer">「AI検索スコア 85% / AIエージェント対応度 20%」は「見つかるが取引できない」状態を意味します。2つに分けることで、AI検索対策とtoA対応のどちらに投資すべきかが一目でわかります。</div>
             </details>
             <details>
               <summary>メディアサイトですが、AIOだけで十分では？</summary>
@@ -619,12 +606,12 @@
 
       <!-- [10] 最終CTA -->
       <section class="toa-section toa-final-cta" id="final-cta">
-        <h2>ここまで読んだら、あとは<span class="toa-hl">チェック</span>するだけ。</h2>
-        <p style="font-size:0.9375rem;color:var(--color-text-muted);margin-bottom:var(--spacing-lg);">登録なし・無料。30秒で結果がわかります。</p>
+        <h2>AIエージェントを<span class="toa-hl">顧客</span>として迎える準備はできていますか？</h2>
+        <p style="font-size:0.9375rem;color:var(--color-text-muted);margin-bottom:var(--spacing-lg);">登録なし・無料。30秒でtoA対応度がわかります。</p>
         <form class="toa-form" id="audit-form-bottom" onsubmit="return handleBottomForm(event)">
           <label for="audit-url-bottom" class="sr-only">チェックするサイトのURL</label>
           <input type="text" id="audit-url-bottom" placeholder="yoursite.com" required autocomplete="url">
-          <button type="submit">いますぐ無料チェック →</button>
+          <button type="submit">無料でtoA診断する →</button>
         </form>
       </section>
 
@@ -711,14 +698,23 @@
       document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       try {
+        const ac = new AbortController();
+        const tid = setTimeout(() => ac.abort(), 90000);
         const resp = await fetch('/api/toa-audit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url }),
+          signal: ac.signal,
         });
+        clearTimeout(tid);
         const data = await resp.json();
         if (!resp.ok || !data.success) {
-          showError(data.error?.message || data.error?.details || '診断に失敗しました。もう一度お試しください。');
+          const msg = data.error?.message || data.error?.details || '';
+          if (msg.includes('RATE_LIMITED') || msg.includes('Too many')) {
+            showError('リクエスト回数の上限に達しました。しばらく待ってからお試しください。');
+          } else {
+            showError(msg || 'チェックに失敗しました。もう一度お試しください。');
+          }
           return;
         }
         currentAuditId = data.data.id;
@@ -726,10 +722,15 @@
         if (data.data.permalink) history.replaceState(null, '', data.data.permalink);
         renderResults(data.data);
       } catch (err) {
-        showError('ネットワークエラーです。URLを確認してもう一度お試しください。');
+        console.error('[toA Audit] fetch error:', err);
+        if (err && err.name === 'AbortError') {
+          showError('チェックがタイムアウトしました（90秒）。対象サイトの応答が遅い可能性があります。');
+        } else {
+          showError('通信エラーが発生しました（' + (err && err.message ? err.message : 'unknown') + '）。ページを再読み込みしてもう一度お試しください。');
+        }
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'いますぐ無料チェック →';
+        submitBtn.textContent = '無料でtoA診断する →';
       }
     }
 
@@ -818,6 +819,81 @@
       resultArea.innerHTML = `<div class="toa-error">${escapeHtml(msg)}</div><div class="toa-result-placeholder">問題を修正してもう一度お試しください。</div>`;
     }
 
+
+    // ============================================
+    // Radar Chart Builder
+    // ============================================
+
+    function buildRadarChart(s) {
+      // 6 axes = hexagon
+      const axes = [
+        { key: 'ai_discovery',      label: '発見可能性',  color: '#10b981' },
+        { key: 'ai_comprehension',   label: '理解度',     color: '#3b82f6' },
+        { key: 'agent_transaction',  label: '取引対応',   color: '#f59e0b' },
+        { key: 'toa_infra',         label: 'インフラ',   color: '#8b5cf6' },
+        { key: 'searchScore',       label: 'AI検索',     color: '#06b6d4' },
+        { key: 'toaScore',          label: 'toA対応度',  color: '#ec4899' },
+      ];
+      const n = axes.length;
+      const cx = 200, cy = 180, maxR = 120;
+      const angleStep = (2 * Math.PI) / n;
+      const startAngle = -Math.PI / 2;
+
+      function polar(i, r) {
+        const a = startAngle + i * angleStep;
+        return [Math.round((cx + r * Math.cos(a)) * 10) / 10, Math.round((cy + r * Math.sin(a)) * 10) / 10];
+      }
+
+      // Grid hexagons
+      let grid = '';
+      for (const pct of [25, 50, 75, 100]) {
+        const r = maxR * pct / 100;
+        const pts = [];
+        for (let i = 0; i < n; i++) pts.push(polar(i, r).join(','));
+        grid += '<polygon points="' + pts.join(' ') + '" fill="none" stroke="' + (pct === 100 ? '#d1d5db' : '#e5e7eb') + '" stroke-width="1"/>';
+      }
+
+      // Axis lines + labels
+      let labels = '';
+      for (let i = 0; i < n; i++) {
+        const [ex, ey] = polar(i, maxR);
+        labels += '<line x1="' + cx + '" y1="' + cy + '" x2="' + ex + '" y2="' + ey + '" stroke="#e5e7eb" stroke-width="1"/>';
+
+        // Label positioning with generous offset to prevent clipping
+        const labelR = maxR + 32;
+        const [lx, ly] = polar(i, labelR);
+        const angle = startAngle + i * angleStep;
+        const anchor = Math.abs(Math.cos(angle)) < 0.1 ? 'middle' : Math.cos(angle) > 0 ? 'start' : 'end';
+        const dy = Math.sin(angle) < -0.3 ? -4 : Math.sin(angle) > 0.3 ? 14 : 4;
+
+        labels += '<text x="' + lx + '" y="' + (ly + dy) + '" text-anchor="' + anchor + '" font-size="11" font-family="\'Noto Sans JP\',system-ui,sans-serif" fill="#6b7280">' + axes[i].label + '</text>';
+        const val = s[axes[i].key] || 0;
+        labels += '<text x="' + lx + '" y="' + (ly + dy + 14) + '" text-anchor="' + anchor + '" font-size="11" font-family="monospace" fill="' + axes[i].color + '" font-weight="700">' + val + '%</text>';
+      }
+
+      // Data polygon (filled area)
+      const dataPts = [];
+      for (let i = 0; i < n; i++) {
+        const val = Math.max(2, Math.min(100, s[axes[i].key] || 0));
+        dataPts.push(polar(i, maxR * val / 100).join(','));
+      }
+      const dataFill = '<polygon points="' + dataPts.join(' ') + '" fill="rgba(232,93,58,0.15)" stroke="var(--color-primary,#E85D3A)" stroke-width="2.5" stroke-linejoin="round"/>';
+
+      // Data dots
+      let dots = '';
+      for (let i = 0; i < n; i++) {
+        const val = Math.max(2, Math.min(100, s[axes[i].key] || 0));
+        const [dx, dy] = polar(i, maxR * val / 100);
+        dots += '<circle cx="' + dx + '" cy="' + dy + '" r="5" fill="' + axes[i].color + '" stroke="#fff" stroke-width="2"/>';
+      }
+
+      return '<div class="toa-radar-wrap"><div class="toa-radar-card">' +
+        '<div class="toa-radar-title">サイト診断レーダー</div>' +
+        '<svg viewBox="0 0 400 360" style="width:100%;max-width:400px;height:auto;" xmlns="http://www.w3.org/2000/svg">' +
+        grid + labels + dataFill + dots +
+        '</svg></div></div>';
+    }
+
     // ============================================
     // Render Results
     // ============================================
@@ -831,11 +907,11 @@
       html += `<div class="toa-scores">
         <div class="toa-score-card"><div class="toa-score-card-label">AI検索スコア</div><div class="toa-score-card-value toa-score-green">${s.searchScore}%</div>
           <div class="toa-score-sub"><span class="toa-score-sub-item">発見率 ${s.ai_discovery}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.ai_discovery}%;background:#10b981"></span></span></span><span class="toa-score-sub-item">理解度 ${s.ai_comprehension}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.ai_comprehension}%;background:#3b82f6"></span></span></span></div></div>
-        <div class="toa-score-card"><div class="toa-score-card-label">toA対応度スコア</div><div class="toa-score-card-value toa-score-purple">${s.toaScore}%</div>
+        <div class="toa-score-card"><div class="toa-score-card-label">AIエージェント対応度</div><div class="toa-score-card-value toa-score-purple">${s.toaScore}%</div>
           <div class="toa-score-sub"><span class="toa-score-sub-item">取引 ${s.agent_transaction}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.agent_transaction}%;background:#f59e0b"></span></span></span><span class="toa-score-sub-item">インフラ ${s.toa_infra}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.toa_infra}%;background:#8b5cf6"></span></span></span></div></div>
       </div>`;
       html += `<div class="toa-overall">総合評価: <span class="toa-grade toa-grade-${gradeClass}">${s.grade}</span> (${s.overall}%)${s.hasBlockerUnchecked ? ' <span style="color:#ef4444;font-size:0.8125rem;">&#9888; ブロッカー未解決</span>' : ''}</div>`;
-      html += buildRadarChart(s);
+      try { html += buildRadarChart(s); } catch (e) { console.warn('Radar chart skipped:', e); }
       html += `<div class="toa-summary">${escapeHtml(data.summary)}</div>`;
 
       if (data.topActions && data.topActions.length > 0) {
@@ -850,7 +926,12 @@
       const categories = groupBy(data.autoResults, 'category');
       for (const [cat, checks] of Object.entries(categories)) {
         const passCount = checks.filter(c => c.status === 'pass').length;
-        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)} <span style="color:var(--color-text-muted);font-weight:400;font-size:0.75rem;">${passCount}/${checks.length}</span></div><div class="toa-category-body hidden">`;
+        const infoCount = checks.filter(c => c.status === 'info').length;
+        const scorable = checks.length - infoCount;
+        const pct = scorable > 0 ? Math.round((passCount / scorable) * 100) : 100;
+        const barColor = pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : pct >= 1 ? '#ef4444' : '#6b7280';
+        const ratioColor = pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : pct >= 1 ? '#ef4444' : 'var(--color-text-muted)';
+        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}<div class="toa-cat-score"><span class="toa-cat-bar"><span class="toa-cat-bar-fill" style="width:${pct}%;background:${barColor}"></span></span><span class="toa-cat-ratio" style="color:${ratioColor}">${passCount}/${scorable}</span></div></div><div class="toa-category-body hidden">`;
         for (const c of checks) {
           const icon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : c.status === 'warn' ? '&#9888;' : '&#8226;';
           html += `<div class="toa-check-item" data-status="${c.status}"><div class="toa-status toa-status-${c.status}">${icon}</div><div class="toa-check-body"><div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div><div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}</div></div>`;
@@ -1057,16 +1138,20 @@
       if (id && /^[a-z0-9]+$/.test(id)) { loadAudit(id); return; }
     }
     async function loadAudit(id) {
-      showLoading();
+      // Show a simple loading state (not the full step-by-step since we're just fetching cached result)
+      resultArea.innerHTML = '<div style="text-align:center;padding:40px;color:var(--color-text-muted);">結果を読み込み中...</div>';
       try {
-        const resp = await fetch(`/api/toa-audit/${id}`);
+        const resp = await fetch('/api/toa-audit/' + id);
         const data = await resp.json();
-        if (!resp.ok || !data.success) { showError('診断結果が見つからないか、期限切れです。'); return; }
+        if (!resp.ok || !data.success) { showError('チェック結果が見つからないか、期限切れです。'); return; }
         currentAuditId = data.data.id; currentResults = data.data;
         if (data.data.url) urlInput.value = data.data.url;
         renderResults(data.data);
         document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch { showError('診断結果の読み込みに失敗しました。'); }
+      } catch (err) {
+        console.error('[toA Audit] loadAudit error:', err);
+        showError('結果の読み込みに失敗しました（' + (err && err.message ? err.message : 'unknown') + '）。ページを再読み込みしてください。');
+      }
     }
 
     // ============================================
