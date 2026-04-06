@@ -17,14 +17,14 @@
   <meta property="og:title" content="toA診断 — 次の顧客は人ではなくAIエージェントかもしれない">
   <meta property="og:description" content="toC でも toB でもない第三の市場、toA。あなたのサイトはAIエージェントに対応できていますか？">
   <meta property="og:url" content="https://humanadsai.com/toa-audit">
-  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta property="og:image" content="https://humanadsai.com/og-toa-audit.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="toA診断 — 次の顧客は人ではなくAIエージェントかもしれない">
   <meta name="twitter:description" content="toC でも toB でもない第三の市場、toA。あなたのサイトの対応度を30秒で無料診断。">
-  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:image" content="https://humanadsai.com/og-toa-audit.png">
   <meta name="twitter:site" content="@HumanAdsAI">
   <meta name="twitter:creator" content="@paji_a">
   <!-- JSON-LD: WebApplication -->
@@ -315,14 +315,14 @@
       <!-- HERO -->
       <section class="toa-section toa-hero" id="hero">
         <div class="toa-hero-label">toA診断 ― 第三の市場への対応度チェック</div>
-        <h1>次の顧客は、<br class="toa-br-desktop"><span class="toa-hl">人ではなくAIエージェント</span>かもしれない。</h1>
-        <p class="toa-hero-sub">認証し、操作し、決済する。自律的に動くAIエージェントに、あなたのサイトは対応できていますか？</p>
+        <h1>次の顧客は、<span class="toa-hl">AIエージェント</span>かもしれない。</h1>
+        <p class="toa-hero-sub">認証・操作・決済まで自律的にこなすAIエージェント。<br>あなたのサイトは対応できていますか？</p>
         <form class="toa-form" id="audit-form" aria-label="サイトチェックフォーム">
           <label for="audit-url" class="sr-only">診断するサイトのURL</label>
-          <input type="text" id="audit-url" placeholder="https://yoursite.com" required autocomplete="url">
+          <input type="text" id="audit-url" placeholder="yoursite.com" required autocomplete="url">
           <button type="submit" id="audit-submit">無料で診断する</button>
         </form>
-        <p class="toa-form-meta">登録不要 ・ 無料 ・ 約30秒で結果表示</p>
+        <p class="toa-form-meta">登録不要 ・ 無料 ・ 30秒で結果表示</p>
       </section>
 
       <!-- 診断結果エリア -->
@@ -797,17 +797,18 @@
       const d = currentResults;
       const s = d.scores;
 
-      const allChecks = d.autoResults.filter(c => c.status !== 'info');
+      const allChecks = d.autoResults;
       const fails = allChecks.filter(c => c.status === 'fail');
       const warns = allChecks.filter(c => c.status === 'warn');
       const passes = allChecks.filter(c => c.status === 'pass');
+      const infos = allChecks.filter(c => c.status === 'info');
 
       let md = `# toA Audit 診断結果 — 改善依頼\n\n`;
       md += `## 対象サイト\n\n`;
       md += `- **URL:** ${d.url}\n`;
       md += `- **診断日:** ${d.completedAt}\n`;
       md += `- **診断ID:** ${d.id}\n`;
-      md += `- **診断項目数:** ${allChecks.length}項目（FAIL: ${fails.length} / WARN: ${warns.length} / PASS: ${passes.length}）\n\n`;
+      md += `- **診断項目数:** ${allChecks.length}項目（FAIL: ${fails.length} / WARN: ${warns.length} / PASS: ${passes.length}${infos.length > 0 ? ` / 対象外: ${infos.length}` : ''}）\n\n`;
 
       md += `## スコア概要\n\n`;
       md += `| 指標 | スコア |\n|------|--------|\n`;
@@ -900,13 +901,10 @@
         g === "C" ? "改善の余地がある。" : "基盤の整備から着手したい。";
       const url = currentResults.url || "";
       const domain = url.replace(/^https?:\/\//, "").replace(/\/.*/, "");
-      const text = "次の顧客は、人ではなくAIエージェントかもしれない。\n\n" +
-        "自社サイトが「認証・操作・決済」まで対応できているか調べてみた。\n\n" +
-        domain + "\n" +
-        "総合 " + g + "（" + s.overall + "%）\n" +
-        "AI検索 " + s.searchScore + "% ／ エージェント対応 " + s.toaScore + "%\n\n" +
-        verdict + "\n\n" +
-        "toA診断 ― 第三の市場への対応度チェック:\nhttps://humanadsai.com/toa-audit";
+      const text = "次の顧客は、AIエージェントかもしれない。\n\n" +
+        domain + " の対応度を調べてみた。\n" +
+        "総合 " + g + "（" + s.overall + "%） AI検索 " + s.searchScore + "% ／ エージェント対応 " + s.toaScore + "%\n\n" +
+        verdict + "\n\nhttps://humanadsai.com/toa-audit";
       window.open("https://x.com/intent/tweet?text=" + encodeURIComponent(text), "_blank", "noopener,noreferrer");
     };
 

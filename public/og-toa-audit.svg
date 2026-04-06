@@ -1,0 +1,53 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#FAFAF9"/>
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- Radar chart decoration (background) -->
+  <g transform="translate(880, 200)" opacity="0.15">
+    <polygon points="0,-120 104,-60 104,60 0,120 -104,60 -104,-60" fill="none" stroke="#FF6B35" stroke-width="2"/>
+    <polygon points="0,-80 69,-40 69,40 0,80 -69,40 -69,-40" fill="none" stroke="#FF6B35" stroke-width="1.5"/>
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="none" stroke="#FF6B35" stroke-width="1"/>
+    <polygon points="0,-90 60,-30 80,50 10,100 -70,40 -50,-60" fill="rgba(255,107,53,0.12)" stroke="#FF6B35" stroke-width="2.5"/>
+    <circle cx="0" cy="-90" r="5" fill="#FF6B35"/>
+    <circle cx="60" cy="-30" r="5" fill="#FF6B35"/>
+    <circle cx="80" cy="50" r="5" fill="#FF6B35"/>
+    <circle cx="10" cy="100" r="5" fill="#FF6B35"/>
+    <circle cx="-70" cy="40" r="5" fill="#FF6B35"/>
+    <circle cx="-50" cy="-60" r="5" fill="#FF6B35"/>
+  </g>
+
+  <!-- Label -->
+  <text x="80" y="120" font-family="'IBM Plex Mono', 'JetBrains Mono', monospace" font-size="20" font-weight="600" fill="#9CA3AF" letter-spacing="0.08em">toA READINESS CHECK</text>
+
+  <!-- Main copy -->
+  <text x="80" y="220" font-family="'Noto Sans JP', 'Hiragino Sans', sans-serif" font-size="52" font-weight="700" fill="#1A1A1A">次の顧客は、</text>
+  <text x="80" y="290" font-family="'Noto Sans JP', 'Hiragino Sans', sans-serif" font-size="52" font-weight="700" fill="#FF6B35">人ではなくAIエージェント</text>
+  <text x="80" y="355" font-family="'Noto Sans JP', 'Hiragino Sans', sans-serif" font-size="52" font-weight="700" fill="#1A1A1A">かもしれない。</text>
+
+  <!-- Sub copy -->
+  <text x="80" y="420" font-family="'Noto Sans JP', 'Hiragino Sans', sans-serif" font-size="22" fill="#6B7280">あなたのサイトのAIエージェント対応度を無料診断</text>
+
+  <!-- Grade badges -->
+  <g transform="translate(80, 470)">
+    <rect x="0" y="0" width="56" height="56" rx="10" fill="#10b981" opacity="0.12"/>
+    <text x="28" y="40" font-family="'IBM Plex Mono', monospace" font-size="28" font-weight="900" fill="#10b981" text-anchor="middle">A</text>
+    <rect x="72" y="0" width="56" height="56" rx="10" fill="#3b82f6" opacity="0.12"/>
+    <text x="100" y="40" font-family="'IBM Plex Mono', monospace" font-size="28" font-weight="900" fill="#3b82f6" text-anchor="middle">B</text>
+    <rect x="144" y="0" width="56" height="56" rx="10" fill="#f59e0b" opacity="0.12"/>
+    <text x="172" y="40" font-family="'IBM Plex Mono', monospace" font-size="28" font-weight="900" fill="#f59e0b" text-anchor="middle">C</text>
+    <rect x="216" y="0" width="56" height="56" rx="10" fill="#ef4444" opacity="0.12"/>
+    <text x="244" y="40" font-family="'IBM Plex Mono', monospace" font-size="28" font-weight="900" fill="#ef4444" text-anchor="middle">D</text>
+  </g>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="580" width="1200" height="50" fill="#1A1A1A"/>
+  <text x="80" y="612" font-family="'IBM Plex Mono', monospace" font-size="18" font-weight="600" fill="#FFFFFF">humanadsai.com/toa-audit</text>
+  <text x="1120" y="612" font-family="'IBM Plex Mono', monospace" font-size="18" fill="#FF6B35" text-anchor="end">HumanAds</text>
+</svg>
