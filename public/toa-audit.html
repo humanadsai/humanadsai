@@ -489,7 +489,7 @@
             <div class="toa-sample-note">* サンプルデータです。実際の結果はサイトにより異なります。</div>
           </div>
           <div class="toa-center" style="margin-top:var(--spacing-lg)">
-            <button class="toa-form button" style="padding:14px 32px;font-size:1rem;font-weight:700;color:#fff;background:var(--color-primary);border:none;border-radius:var(--border-radius-sm);cursor:pointer;" onclick="document.getElementById('audit-url').focus();document.getElementById('hero').scrollIntoView({behavior:'smooth'})">あなたのサイトも診断してみる</button>
+            <button style="padding:14px 32px;font-size:1rem;font-weight:700;color:#fff;background:var(--color-primary);border:none;border-radius:16px;cursor:pointer;" onclick="document.getElementById('audit-url').focus();document.getElementById('hero').scrollIntoView({behavior:'smooth'})">あなたのサイトもチェックしてみる →</button>
           </div>
         </div>
       </section>
@@ -619,12 +619,12 @@
 
       <!-- [10] 最終CTA -->
       <section class="toa-section toa-final-cta" id="final-cta">
-        <h2>ここまで読んだら、あとは<span class="toa-hl">診断する</span>だけ。</h2>
-        <p style="font-size:0.9375rem;color:var(--color-text-muted);margin-bottom:var(--spacing-lg);">無料・登録不要。約30秒で結果が出ます。</p>
+        <h2>ここまで読んだら、あとは<span class="toa-hl">チェック</span>するだけ。</h2>
+        <p style="font-size:0.9375rem;color:var(--color-text-muted);margin-bottom:var(--spacing-lg);">登録なし・無料。30秒で結果がわかります。</p>
         <form class="toa-form" id="audit-form-bottom" onsubmit="return handleBottomForm(event)">
-          <label for="audit-url-bottom" class="sr-only">診断するサイトのURL</label>
+          <label for="audit-url-bottom" class="sr-only">チェックするサイトのURL</label>
           <input type="text" id="audit-url-bottom" placeholder="yoursite.com" required autocomplete="url">
-          <button type="submit">無料で診断する</button>
+          <button type="submit">いますぐ無料チェック →</button>
         </form>
       </section>
 
@@ -706,7 +706,7 @@
       urlInput.value = url;
 
       submitBtn.disabled = true;
-      submitBtn.textContent = '診断中…';
+      submitBtn.textContent = 'チェック中…';
       showLoading();
       document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -729,7 +729,7 @@
         showError('ネットワークエラーです。URLを確認してもう一度お試しください。');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = '無料で診断する';
+        submitBtn.textContent = 'いますぐ無料チェック →';
       }
     }
 
