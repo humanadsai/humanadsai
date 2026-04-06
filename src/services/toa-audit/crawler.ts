@@ -270,6 +270,20 @@ function parseRobotsTxt(content: string, statusCode: number): RobotsResult {
 // HTML Analysis via HTMLRewriter
 // ============================================
 
+export interface AgentSignals {
+  hasWebMcpForms: boolean;
+  webMcpToolNames: string[];
+  hasAiAnalytics: boolean;
+  aiAnalyticsPatterns: string[];
+  hasOAuthLink: boolean;
+  hasLoginLink: boolean;
+  hasApiKeyLink: boolean;
+  hasSignupLink: boolean;
+  hasMcpReference: boolean;
+  hasTrialLink: boolean;
+  hasContactLink: boolean;
+}
+
 export interface HtmlAnalysis {
   schema: SchemaResult;
   semantic: SemanticHtmlResult;
@@ -280,6 +294,7 @@ export interface HtmlAnalysis {
   content: ContentResult;
   links: { href: string; text: string }[];
   friction: FrictionDetection;
+  agentSignals: AgentSignals;
 }
 
 export async function analyzeHtml(response: Response, pageUrl: string): Promise<HtmlAnalysis> {
@@ -290,6 +305,12 @@ export async function analyzeHtml(response: Response, pageUrl: string): Promise<
     hasDateModified: false, hasAuthor: false, authorName: '', hasPrice: false,
   };
   const friction: FrictionDetection = { captchaProviders: [], cookieWallProviders: [] };
+  const agentSignals: AgentSignals = {
+    hasWebMcpForms: false, webMcpToolNames: [],
+    hasAiAnalytics: false, aiAnalyticsPatterns: [],
+    hasOAuthLink: false, hasLoginLink: false, hasApiKeyLink: false,
+    hasSignupLink: false, hasMcpReference: false, hasTrialLink: false, hasContactLink: false,
+  };
   const semantic: SemanticHtmlResult = { main: 0, article: 0, section: 0, nav: 0, header: 0, footer: 0, aside: 0 };
   const headings: HeadingInfo[] = [];
   const ogp: OgpResult = { title: false, description: false, image: false, url: false, type: false, twitterCard: false };
@@ -427,6 +448,13 @@ export async function analyzeHtml(response: Response, pageUrl: string): Promise<
       },
       text(text) {
         scriptSize += text.text.length;
+        // AI analytics detection in inline scripts
+        const t = text.text.toLowerCase();
+        if (/chatgpt|gptbot|claudebot|perplexitybot|google.agent|ai_visit|ai.traffic/i.test(text.text)) {
+          agentSignals.hasAiAnalytics = true;
+          if (/ai_visit/.test(text.text) && !agentSignals.aiAnalyticsPatterns.includes('ai_visit')) agentSignals.aiAnalyticsPatterns.push('ai_visit');
+          if (/ai.traffic/i.test(text.text) && !agentSignals.aiAnalyticsPatterns.includes('ai_traffic')) agentSignals.aiAnalyticsPatterns.push('ai_traffic');
+        }
       },
     })
     // Semantic HTML
@@ -466,17 +494,39 @@ export async function analyzeHtml(response: Response, pageUrl: string): Promise<
         }
       },
     })
-    // Links (for about/pricing detection)
+    // Links (for about/pricing/auth detection)
     .on('a[href]', {
       element(el) {
         currentLinkHref = el.getAttribute('href') || '';
         currentLinkText = '';
+        // Detect auth/login/signup/trial links from href
+        const h = currentLinkHref.toLowerCase();
+        if (/oauth|\/auth\//.test(h)) agentSignals.hasOAuthLink = true;
+        if (/\/login|\/signin|sign-in/.test(h)) agentSignals.hasLoginLink = true;
+        if (/\/signup|\/register|sign-up/.test(h)) agentSignals.hasSignupLink = true;
+        if (/api[-_]?key|developer|\/keys/.test(h)) agentSignals.hasApiKeyLink = true;
+        if (/\/trial|free[-_]?trial/.test(h)) agentSignals.hasTrialLink = true;
+        if (/\/contact|\/support/.test(h)) agentSignals.hasContactLink = true;
+        if (/mcp|model[-_]?context/.test(h)) agentSignals.hasMcpReference = true;
       },
       text(text) {
         currentLinkText += text.text;
         if (text.lastInTextNode) {
           links.push({ href: currentLinkHref, text: currentLinkText.trim().slice(0, 100) });
+          // Detect from link text too
+          const t = currentLinkText.toLowerCase();
+          if (/oauth/.test(t)) agentSignals.hasOAuthLink = true;
+          if (/api\s*key/.test(t)) agentSignals.hasApiKeyLink = true;
+          if (/mcp/.test(t)) agentSignals.hasMcpReference = true;
         }
+      },
+    })
+    // WebMCP form detection
+    .on('form[toolname]', {
+      element(el) {
+        agentSignals.hasWebMcpForms = true;
+        const tn = el.getAttribute('toolname') || '';
+        if (tn && !agentSignals.webMcpToolNames.includes(tn)) agentSignals.webMcpToolNames.push(tn);
       },
     });
 
@@ -521,7 +571,7 @@ export async function analyzeHtml(response: Response, pageUrl: string): Promise<
     hasPricingLink,
   };
 
-  return { schema, semantic, headings, ogp, meta, images, content: contentResult, links, friction };
+  return { schema, semantic, headings, ogp, meta, images, content: contentResult, links, friction, agentSignals };
 }
 
 function processSchemaItem(item: any, schema: SchemaResult): void {
@@ -847,6 +897,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
       content: { htmlSize: 0, scriptSize: 0, textRatio: 0, wordCount: 0, hasAboutLink: false, hasPricingLink: false },
       links: [],
       friction: { captchaProviders: [], cookieWallProviders: [] },
+      agentSignals: { hasWebMcpForms: false, webMcpToolNames: [], hasAiAnalytics: false, aiAnalyticsPatterns: [], hasOAuthLink: false, hasLoginLink: false, hasApiKeyLink: false, hasSignupLink: false, hasMcpReference: false, hasTrialLink: false, hasContactLink: false },
     };
     http = httpResult.status === 'fulfilled' ? httpResult.value : {
       statusCode: 0, redirectChain: 0, isHttps: true, ttfbMs: 0, headers: {},
@@ -873,6 +924,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
     http,
     paths,
     friction: htmlAnalysis.friction,
+    agentSignals: htmlAnalysis.agentSignals,
     links: htmlAnalysis.links,
     errors,
     crawledAt: new Date().toISOString(),
