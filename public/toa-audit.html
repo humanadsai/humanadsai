@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AIエージェント対応度診断 — あなたのサイトはAIに対応できていますか？ | HumanAds</title>
-  <meta name="description" content="AIエージェントがあなたのサイトを発見・理解・利用できるかを30秒で診断。URLを入力するだけ。無料・登録不要。">
+  <title>toA診断 — 次の顧客は人ではなくAIエージェントかもしれない | HumanAds</title>
+  <meta name="description" content="toC でも toB でもない第三の市場、toA。自律的に認証・操作・決済するAIエージェントに、あなたのサイトは対応できていますか？ 無料で診断。">
   <meta name="theme-color" content="#FAFAF9">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -14,16 +14,16 @@
   <!-- OGP -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HumanAds">
-  <meta property="og:title" content="AIエージェント対応度診断 — あなたのサイトはAIに対応できていますか？">
-  <meta property="og:description" content="AIエージェントがサイトを発見・理解・利用できるかを30秒で診断。無料・登録不要。">
+  <meta property="og:title" content="toA診断 — 次の顧客は人ではなくAIエージェントかもしれない">
+  <meta property="og:description" content="toC でも toB でもない第三の市場、toA。あなたのサイトはAIエージェントに対応できていますか？">
   <meta property="og:url" content="https://humanadsai.com/toa-audit">
   <meta property="og:image" content="https://humanadsai.com/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="AIエージェント対応度診断 — あなたのサイトはAIに対応できていますか？">
-  <meta name="twitter:description" content="AIエージェントがサイトを発見・理解・利用できるかを30秒で診断。無料・登録不要。">
+  <meta name="twitter:title" content="toA診断 — 次の顧客は人ではなくAIエージェントかもしれない">
+  <meta name="twitter:description" content="toC でも toB でもない第三の市場、toA。あなたのサイトの対応度を30秒で無料診断。">
   <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
   <meta name="twitter:site" content="@HumanAdsAI">
   <meta name="twitter:creator" content="@paji_a">
@@ -92,9 +92,16 @@
     .toa-hero { text-align: center; padding: 72px 0 56px; }
     .toa-hero-label { display: inline-block; font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: var(--spacing-sm); }
     .toa-hero h1 { font-family: 'Noto Sans JP', var(--font-family); font-size: clamp(1.375rem, 4vw, 2.25rem); font-weight: 700; line-height: 1.5; margin-bottom: var(--spacing-md); color: var(--color-text); }
-    @media (max-width: 640px) { .toa-hero h1 { font-size: 1.5rem; } }
     .toa-hero h1 .toa-hl { color: var(--color-primary); }
     .toa-hero-sub { font-size: 1rem; color: var(--color-text-muted); max-width: 480px; margin: 0 auto var(--spacing-xl); line-height: 1.8; }
+    @media (max-width: 640px) {
+      .toa-hero { padding: 40px 0 32px; }
+      .toa-hero-label { font-size: 0.6875rem; padding: 0 8px; }
+      .toa-hero h1 { font-size: 1.25rem; line-height: 1.7; padding: 0 8px; }
+      .toa-hero-sub { font-size: 0.875rem; padding: 0 12px; }
+      .toa-form-meta { font-size: 0.75rem; }
+      .toa-br-desktop { display: none; }
+    }
 
     /* CTA Form */
     .toa-form { display: flex; gap: 12px; max-width: 520px; margin: 0 auto; }
@@ -234,6 +241,43 @@
     .toa-btn-primary:hover { background: var(--color-primary-dark); color: #fff; }
     .toa-error { padding: var(--spacing-md); background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--border-radius-sm); color: #ef4444; font-size: 0.875rem; margin-bottom: var(--spacing-md); }
     .toa-score-green { color: #10b981; } .toa-score-purple { color: #8b5cf6; }
+
+    /* ========== Mobile optimizations ========== */
+    @media (max-width: 640px) {
+      .toa-section { padding: 32px 16px; }
+      .toa-section-alt { padding: 32px 16px; }
+      .toa-form { padding: 0 4px; gap: 10px; }
+      .toa-form input { padding: 12px 14px; font-size: 0.9375rem; border-radius: 10px; }
+      .toa-form button { padding: 14px 20px; font-size: 0.9375rem; border-radius: 12px; }
+      .toa-score-card { padding: var(--spacing-md); }
+      .toa-score-card-value { font-size: 2rem; }
+      .toa-score-sub { flex-direction: column; gap: 6px; }
+      .toa-overall { padding: 24px 12px; }
+      .toa-stamp { padding: 16px 28px; }
+      .toa-stamp-grade { font-size: 3.5rem; }
+      .toa-stamp-pct { font-size: 1rem; }
+      .toa-stamp-msg { font-size: 0.8125rem; }
+      .toa-radar-card { padding: var(--spacing-md); }
+      .toa-radar-card svg { max-width: 280px; height: auto; }
+      .toa-summary { padding: 12px; font-size: 0.8125rem; }
+      .toa-action-card { padding: 10px; gap: 10px; }
+      .toa-action-title { font-size: 0.8125rem; }
+      .toa-action-detail { font-size: 0.75rem; }
+      .toa-category-header { font-size: 0.8125rem; padding: 10px 0; }
+      .toa-check-item { padding: 6px 6px; font-size: 0.75rem; }
+      .toa-check-detail { font-size: 0.6875rem; }
+      .toa-check-rec { font-size: 0.6875rem; }
+      .toa-severity-badge { font-size: 0.5625rem; padding: 1px 4px; }
+      .toa-actions-bar { gap: 6px; }
+      .toa-btn-sm { padding: 8px 12px; font-size: 0.75rem; width: calc(50% - 3px); text-align: center; box-sizing: border-box; }
+      .toa-faq summary { font-size: 0.875rem; padding: 12px 0; }
+      .toa-faq .toa-faq-answer { font-size: 0.8125rem; }
+      .toa-final-cta { padding: 40px 16px; }
+      .toa-final-cta p { font-size: 1rem; }
+      .toa-h2 { font-size: 1.125rem; }
+      .toa-h3 { font-size: 0.875rem; }
+      .toa-loading-step { font-size: 0.75rem; gap: 8px; }
+    }
   </style>
 </head>
 <body>
@@ -270,15 +314,15 @@
 
       <!-- HERO -->
       <section class="toa-section toa-hero" id="hero">
-        <div class="toa-hero-label">AIエージェント対応度診断</div>
-        <h1>あなたのサイトは、<br><span class="toa-hl">AIエージェントに対応</span>できていますか？</h1>
-        <p class="toa-hero-sub">ChatGPTやGeminiなどのAIエージェントが、サイトを正しく発見・理解・利用できるかを<strong>30秒で診断</strong>します。URLを入力するだけ、登録不要です。</p>
+        <div class="toa-hero-label">toA診断 ― 第三の市場への対応度チェック</div>
+        <h1>次の顧客は、<br class="toa-br-desktop"><span class="toa-hl">人ではなくAIエージェント</span>かもしれない。</h1>
+        <p class="toa-hero-sub">認証し、操作し、決済する。自律的に動くAIエージェントに、あなたのサイトは対応できていますか？</p>
         <form class="toa-form" id="audit-form" aria-label="サイトチェックフォーム">
-          <label for="audit-url" class="sr-only">チェックするサイトのURL</label>
+          <label for="audit-url" class="sr-only">診断するサイトのURL</label>
           <input type="text" id="audit-url" placeholder="https://yoursite.com" required autocomplete="url">
-          <button type="submit" id="audit-submit">無料で診断する →</button>
+          <button type="submit" id="audit-submit">無料で診断する</button>
         </form>
-        <p class="toa-form-meta">登録不要 ・ 完全無料 ・ 30秒で結果表示</p>
+        <p class="toa-form-meta">登録不要 ・ 無料 ・ 約30秒で結果表示</p>
       </section>
 
       <!-- 診断結果エリア -->
@@ -660,8 +704,9 @@
         const barColor = scorable === 0 ? '#6b7280' : allPass ? '#10b981' : pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
         const ratioColor = scorable === 0 ? 'var(--color-text-muted)' : allPass ? '#10b981' : pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
         const barWidth = scorable === 0 ? 0 : pct;
+        const barBg = allPass ? '#10b981' : 'var(--color-border)';
         const ratioText = scorable === 0 ? '-' : `${passCount}/${scorable}`;
-        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}<div class="toa-cat-score"><span class="toa-cat-bar"><span class="toa-cat-bar-fill" style="width:${barWidth}%;background:${barColor}"></span></span><span class="toa-cat-ratio" style="color:${ratioColor}">${ratioText}</span></div></div><div class="toa-category-body hidden">`;
+        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}<div class="toa-cat-score"><span class="toa-cat-bar" style="background:${barBg}"><span class="toa-cat-bar-fill" style="width:${barWidth}%;background:${barColor}"></span></span><span class="toa-cat-ratio" style="color:${ratioColor}">${ratioText}</span></div></div><div class="toa-category-body hidden">`;
         for (const c of checks) {
           const icon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : c.status === 'warn' ? '&#9888;' : '&#8226;';
           html += `<div class="toa-check-item" data-status="${c.status}"><div class="toa-status toa-status-${c.status}">${icon}</div><div class="toa-check-body"><div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div><div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}</div></div>`;
@@ -689,9 +734,33 @@
         <button class="toa-btn-sm" onclick="window._toaExportMd()">Markdownエクスポート</button>
         <button class="toa-btn-sm" onclick="window._toaExportCsv()">CSVエクスポート</button>
         <button class="toa-btn-sm" onclick="window._toaCopyLink()">リンクをコピー</button>
-        <button class="toa-btn-sm" onclick="window._toaShareX()" style="display:inline-flex;align-items:center;gap:5px;background:#000;color:#fff;border-color:#000;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#000'"><svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Xでシェア</button>
+        <button class="toa-btn-sm" onclick="window._toaShareX()" style="display:inline-flex;align-items:center;gap:5px;background:#000;color:#fff;border-color:#000;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#000'"><svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>シェアする</button>
       </div>`;
       resultArea.innerHTML = html;
+
+      // Update OGP meta tags for share (X card preview when URL is shared)
+      updateOgp(data);
+    }
+
+    function updateOgp(data) {
+      const s = data.scores;
+      const domain = (data.url || '').replace(/^https?:\/\//, '').replace(/\/.*/, '');
+      const emoji = s.grade.startsWith('A') ? '🏆' : s.grade.startsWith('B') ? '✅' : s.grade === 'C' ? '⚡' : '🔥';
+      const title = `${emoji} ${domain} — グレード ${s.grade}（${s.overall}%）｜ toA診断`;
+      const desc = `AI検索スコア ${s.searchScore}% ｜ toA対応度 ${s.toaScore}%。あなたのサイトもAIエージェント対応度を無料チェック。`;
+
+      function setMeta(attr, key, value) {
+        let el = document.querySelector('meta[' + attr + '="' + key + '"]');
+        if (el) { el.setAttribute('content', value); }
+      }
+      setMeta('property', 'og:title', title);
+      setMeta('property', 'og:description', desc);
+      setMeta('name', 'twitter:title', title);
+      setMeta('name', 'twitter:description', desc);
+
+      // Dynamic OGP image with score (SVG → data URI for meta tag won't work for crawlers,
+      // but we update the page title which IS visible when URL is pasted)
+      document.title = title + ' | HumanAds';
     }
 
     // ============================================
@@ -853,8 +922,20 @@
     };
 
     window._toaShareX = function() {
-      if (!currentResults) return; const s = currentResults.scores;
-      const text = `サイトのtoA対応度を診断しました\nAI検索: ${s.searchScore}% | toA対応度: ${s.toaScore}% | グレード: ${s.grade}\n\n${window.location.href}`;
+      if (!currentResults) return;
+      const s = currentResults.scores;
+      const g = s.grade;
+      const emoji = g.startsWith('A') ? '🏆' : g.startsWith('B') ? '✅' : g === 'C' ? '⚡' : '🔧';
+      const verdict = g.startsWith('A') ? 'AIエージェント対応 優秀！' :
+        g.startsWith('B') ? 'AIエージェント対応 良好' :
+        g === 'C' ? '改善の余地あり' : '基盤整備が必要';
+      const url = currentResults.url || '';
+      const domain = url.replace(/^https?:\/\//, '').replace(/\/.*/, '');
+      const text = `${emoji} うちのサイト、AIエージェントに"使って"もらえるか調べてみた\n\n` +
+        `${domain}\n` +
+        `総合 ${g}（${s.overall}%）｜ AI検索 ${s.searchScore}% ｜ エージェント対応 ${s.toaScore}%\n\n` +
+        `${verdict}\n\n` +
+        `AIに"引用される"だけじゃなく"操作される"時代。\nURLを入れるだけ、30秒で分かる 👇\nhttps://humanadsai.com/toa-audit`;
       window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     };
 

@@ -713,24 +713,8 @@ export const MANUAL_CHECKS: ManualCheckDef[] = [];
 // ============================================
 
 // Checks that depend on main page HTML content (fail unreliably on self-origin)
-const HTML_DEPENDENT_CHECKS = new Set([
-  'llms-txt', 'sitemap-xml',
-  'schema-org', 'schema-sameas', 'schema-faq-howto', 'schema-product',
-  'semantic-html', 'heading-hierarchy', 'text-script-ratio',
-  'ogp', 'alt-text', 'meta-title', 'meta-description',
-  'canonical', 'hreflang', 'http-status',
-  'about-page', 'pricing-page',
-  'auto-no-captcha', 'auto-no-cookie-wall',
-  'auto-content-freshness', 'auto-author-byline', 'auto-machine-readable-price',
-  'auto-webmcp', 'auto-ai-analytics', 'auto-oauth-login', 'auto-mcp-server',
-  'auto-trial', 'auto-contact',
-]);
 
 export function evaluateChecks(data: CrawlData, siteType: SiteType = 'all'): AutoCheckResult[] {
-  // Detect if HTML fetch failed on self-origin (Worker can't fetch itself)
-  const htmlUnavailable = data.isSelfOrigin && data.http.statusCode >= 400;
-  console.log(`[toA] selfOrigin=${data.isSelfOrigin} httpCode=${data.http.statusCode} htmlUnavail=${htmlUnavailable}`);
-
   return AUTO_CHECKS.map(check => {
     // Check site type applicability
     const applicable = check.applicableSiteTypes.includes('all') || check.applicableSiteTypes.includes(siteType);
@@ -740,17 +724,6 @@ export function evaluateChecks(data: CrawlData, siteType: SiteType = 'all'): Aut
         status: 'info' as CheckStatus,
         details: 'Not applicable for this site type',
         detailsJa: 'このサイト種別には該当しない',
-        weight: 0,
-      };
-    }
-
-    // Self-origin: HTML-dependent checks can't be evaluated
-    if (htmlUnavailable && HTML_DEPENDENT_CHECKS.has(check.id)) {
-      return {
-        ...check,
-        status: 'info' as CheckStatus,
-        details: 'Skipped: self-origin HTML analysis not available (use external browser test)',
-        detailsJa: '自サイト診断のためHTMLの解析をスキップしました（外部ブラウザで確認してください）',
         weight: 0,
       };
     }

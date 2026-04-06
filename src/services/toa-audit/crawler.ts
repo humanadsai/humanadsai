@@ -795,7 +795,9 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
     smartFetchText(origin + '/sitemap.xml', origin),
     (async () => {
       const start = Date.now();
-      const resp = await smartFetch(normalizedUrl, origin);
+      // Always use external HTTP fetch for main page HTML
+      // (selfHandler can't serve static assets like HTML pages)
+      const resp = await safeFetchWithRetry(normalizedUrl);
       const ttfb = Date.now() - start;
       // Check Content-Length before consuming body (DoS prevention)
       const contentLength = parseInt(resp.headers.get('content-length') || '0', 10);
@@ -810,9 +812,8 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
       let currentUrl = normalizedUrl;
       const start = Date.now();
       for (let i = 0; i < MAX_REDIRECTS; i++) {
-        const resp = isSelfOrigin(origin) && _selfHandler
-          ? await selfFetch(currentUrl)
-          : await safeFetchWithRetry(currentUrl, { followRedirects: false }, 1);
+        // Always use external fetch for main page HTTP checks
+        const resp = await safeFetchWithRetry(currentUrl, { followRedirects: false }, 1);
         if (resp.status >= 300 && resp.status < 400) {
           redirectCount++;
           const loc = resp.headers.get('location');
