@@ -990,7 +990,7 @@
       const d = currentResults;
       let csv = 'Status,Category,Check,Severity,Details,Recommendation\n';
       for (const c of d.autoResults) {
-        csv += `${c.status},${csvEscape(c.category)},${csvEscape(c.name)},${c.severity},${csvEscape(c.details)},${csvEscape(c.recommendation || '')}\n`;
+        csv += `${csvEscape(c.status)},${csvEscape(c.category)},${csvEscape(c.name)},${csvEscape(c.severity)},${csvEscape(c.details)},${csvEscape(c.recommendation || '')}\n`;
       }
       downloadText(csv, `toa-audit-${d.id}.csv`, 'text/csv');
     };
@@ -1007,7 +1007,7 @@
       if (!currentResults) return;
       const s = currentResults.scores;
       const text = `My site's toA Readiness diagnostic:\nAI Search: ${s.searchScore}% | toA: ${s.toaScore}% | Grade: ${s.grade}\n\n${window.location.href}`;
-      window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+      window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     };
 
     // ============================================
@@ -1049,12 +1049,16 @@
 
     function escapeHtml(str) {
       if (!str) return '';
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function csvEscape(str) {
       if (!str) return '';
-      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      // Guard against CSV formula injection (Excel/Sheets)
+      if (/^[=+\-@\t\r]/.test(str)) {
+        str = "'" + str;
+      }
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes("'")) {
         return '"' + str.replace(/"/g, '""') + '"';
       }
       return str;
