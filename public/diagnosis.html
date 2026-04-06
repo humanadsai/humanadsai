@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Diagnosis — AI Agent Readiness | HumanAds</title>
+  <meta name="description" content="Multi-URL AI agent readiness diagnosis. Crawl your site's key pages, score each for AI search and toA readiness.">
+  <meta name="theme-color" content="#FAFAF9">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/diagnosis">
+  <!-- OGP -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="Site Diagnosis — AI Agent Readiness | HumanAds">
+  <meta property="og:description" content="Multi-URL AI agent readiness diagnosis. Crawl your site's key pages, score each for AI search and toA readiness.">
+  <meta property="og:url" content="https://humanadsai.com/diagnosis">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Site Diagnosis — AI Agent Readiness | HumanAds">
+  <meta name="twitter:description" content="Multi-URL AI agent readiness diagnosis. Crawl your site's key pages, score each for AI search and toA readiness.">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:site" content="@HumanAdsAI">
+  <meta name="twitter:creator" content="@paji_a">
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Site Diagnosis", "item": "https://humanadsai.com/diagnosis" }
+    ]
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
+  <script src="/js/analytics.js" defer></script>
+  <style>
+    /* ============================================
+       Site Diagnosis — Page Styles
+       ============================================ */
+    .diag-page { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); }
+    .diag-section { padding: 48px 0; }
+    .diag-narrow { max-width: var(--content-max); margin: 0 auto; }
+    .diag-wide { max-width: 960px; margin: 0 auto; }
+
+    /* Auth gate */
+    .diag-auth-gate { text-align: center; padding: 80px 20px; }
+    .diag-auth-gate h2 { font-family: var(--font-mono); font-size: 1.25rem; margin-bottom: var(--spacing-md); }
+    .diag-auth-gate p { color: var(--color-text-muted); font-size: 0.875rem; margin-bottom: var(--spacing-lg); }
+    .diag-auth-gate a { color: var(--color-primary); text-decoration: none; font-weight: 600; }
+    .diag-auth-gate a:hover { text-decoration: underline; }
+
+    /* Tabs */
+    .diag-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--color-border); margin-bottom: var(--spacing-lg); }
+    .diag-tab { padding: 12px 24px; font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; color: var(--color-text-muted); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+    .diag-tab:hover { color: var(--color-text); }
+    .diag-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .diag-tab-panel { display: none; }
+    .diag-tab-panel.active { display: block; }
+
+    /* Form */
+    .diag-form-card { padding: var(--spacing-lg); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); margin-bottom: var(--spacing-lg); }
+    .diag-form-row { display: flex; gap: 8px; margin-bottom: var(--spacing-md); }
+    .diag-form-row input { flex: 1; padding: 12px 14px; font-size: 0.9375rem; font-family: var(--font-mono); border: 2px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-background-card); color: var(--color-text); outline: none; transition: border-color 0.2s; }
+    .diag-form-row input:focus { border-color: var(--color-primary); }
+    .diag-form-row input::placeholder { color: var(--color-text-muted); opacity: 0.6; }
+    .diag-select-wrap { position: relative; }
+    .diag-select-wrap select { appearance: none; padding: 12px 36px 12px 14px; font-size: 0.875rem; font-family: var(--font-mono); border: 2px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-background-card); color: var(--color-text); cursor: pointer; outline: none; transition: border-color 0.2s; }
+    .diag-select-wrap select:focus { border-color: var(--color-primary); }
+    .diag-select-wrap::after { content: '\25BC'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.625rem; color: var(--color-text-muted); pointer-events: none; }
+    @media (max-width: 640px) { .diag-form-row { flex-direction: column; } .diag-select-wrap select { width: 100%; } }
+
+    /* Buttons */
+    .diag-btn { padding: 12px 28px; font-size: 0.9375rem; font-weight: 700; font-family: var(--font-mono); color: #fff; background: var(--color-primary); border: none; border-radius: var(--border-radius-sm); cursor: pointer; transition: background 0.2s, transform 0.1s; }
+    .diag-btn:hover { background: var(--color-primary-dark); transform: translateY(-1px); }
+    .diag-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .diag-btn-sm { padding: 6px 14px; font-size: 0.8125rem; font-family: var(--font-mono); font-weight: 500; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background-card); color: var(--color-text); cursor: pointer; transition: all 0.15s; }
+    .diag-btn-sm:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .diag-btn-danger { border-color: #ef4444; color: #ef4444; }
+    .diag-btn-danger:hover { background: rgba(239, 68, 68, 0.06); border-color: #ef4444; color: #ef4444; }
+    .diag-btn-primary-sm { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .diag-btn-primary-sm:hover { background: var(--color-primary-dark); color: #fff; }
+
+    /* Full-screen loading overlay */
+    .diag-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(250, 250, 249, 0.97); display: none; align-items: center; justify-content: center; }
+    .diag-overlay.visible { display: flex; }
+    .diag-overlay-card { max-width: 520px; width: 100%; margin: 0 20px; padding: var(--spacing-xl); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+    .diag-overlay-title { font-family: var(--font-mono); font-size: 1.125rem; font-weight: 600; text-align: center; margin-bottom: var(--spacing-lg); color: var(--color-text); word-break: break-all; }
+
+    /* Step indicator */
+    .diag-steps-track { display: flex; gap: 4px; margin-bottom: var(--spacing-lg); }
+    .diag-step-dot { flex: 1; height: 4px; border-radius: 2px; background: var(--color-border); transition: background 0.3s; }
+    .diag-step-dot.done { background: #10b981; }
+    .diag-step-dot.active { background: var(--color-primary); animation: diag-pulse 1.2s ease-in-out infinite; }
+    @keyframes diag-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .diag-steps-labels { display: flex; justify-content: space-between; margin-bottom: var(--spacing-md); }
+    .diag-step-label { font-family: var(--font-mono); font-size: 0.5625rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; text-align: center; flex: 1; }
+    .diag-step-label.active { color: var(--color-primary); font-weight: 600; }
+    .diag-step-label.done { color: #10b981; }
+
+    /* Progress bar */
+    .diag-progress-wrap { margin-bottom: var(--spacing-md); }
+    .diag-progress-bar { width: 100%; height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden; }
+    .diag-progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6); border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+    .diag-progress-info { display: flex; justify-content: space-between; margin-top: 6px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
+
+    /* Overlay message */
+    .diag-overlay-msg { text-align: center; font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: var(--spacing-md); min-height: 1.2em; }
+    .diag-overlay-cancel { display: block; margin: var(--spacing-md) auto 0; padding: 8px 20px; font-size: 0.8125rem; font-family: var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text-muted); cursor: pointer; transition: all 0.15s; }
+    .diag-overlay-cancel:hover { border-color: var(--color-text-muted); color: var(--color-text); }
+
+    /* Error */
+    .diag-error { padding: var(--spacing-md); background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--border-radius-sm); color: #ef4444; font-size: 0.875rem; margin-bottom: var(--spacing-md); }
+    .diag-error-retry { margin-top: var(--spacing-sm); }
+
+    /* Results */
+    .diag-results { display: none; }
+    .diag-results.visible { display: block; }
+
+    /* Grade + scores */
+    .diag-grade-row { display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); flex-wrap: wrap; }
+    .diag-grade-card { flex: 1; min-width: 160px; padding: var(--spacing-lg); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); text-align: center; }
+    .diag-grade-label { font-family: var(--font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--spacing-sm); }
+    .diag-grade-value { font-family: var(--font-mono); font-size: 2.5rem; font-weight: 700; }
+    .diag-grade-a { color: #10b981; } .diag-grade-b { color: #3b82f6; } .diag-grade-c { color: #f59e0b; } .diag-grade-d { color: #ef4444; } .diag-grade-f { color: #ef4444; }
+    .diag-score-green { color: #10b981; }
+    .diag-score-purple { color: #8b5cf6; }
+
+    /* Summary */
+    .diag-summary { padding: var(--spacing-md); background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-lg); font-size: 0.875rem; line-height: 1.7; white-space: pre-line; }
+
+    /* Top actions */
+    .diag-top-actions { margin-bottom: var(--spacing-lg); }
+    .diag-action-card { display: flex; gap: 12px; padding: 12px; background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); margin-bottom: 8px; align-items: flex-start; }
+    .diag-action-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--color-primary); color: #fff; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .diag-action-body { flex: 1; }
+    .diag-action-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 2px; }
+    .diag-action-detail { font-size: 0.8125rem; color: var(--color-text-muted); }
+
+    /* Pages table */
+    .diag-pages-section { margin-bottom: var(--spacing-lg); }
+    .diag-section-title { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; margin-bottom: var(--spacing-md); color: var(--color-text); }
+    .diag-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .diag-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    .diag-table th { font-family: var(--font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); padding: 8px 10px; text-align: left; border-bottom: 2px solid var(--color-border); white-space: nowrap; }
+    .diag-table td { padding: 8px 10px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+    .diag-table tr:hover td { background: rgba(0,0,0,0.015); }
+    .diag-url-cell { font-family: var(--font-mono); font-size: 0.75rem; word-break: break-all; max-width: 300px; }
+    .diag-badge { display: inline-block; font-size: 0.625rem; font-family: var(--font-mono); padding: 2px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+    .diag-badge-sitemap { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .diag-badge-internal { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .diag-badge-manual { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+    .diag-badge-root { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .diag-status-pass { color: #10b981; font-weight: 600; }
+    .diag-status-warn { color: #f59e0b; font-weight: 600; }
+    .diag-status-fail { color: #ef4444; font-weight: 600; }
+    .diag-blocker-badge { font-size: 0.625rem; font-family: var(--font-mono); padding: 1px 6px; border-radius: 4px; font-weight: 600; background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    /* URL collection summary */
+    .diag-collection-summary { display: flex; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-lg); }
+    .diag-coll-stat { padding: 12px 16px; background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); text-align: center; min-width: 100px; }
+    .diag-coll-num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--color-primary); }
+    .diag-coll-label { font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 2px; }
+
+    /* Actions bar */
+    .diag-actions-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: var(--spacing-lg) 0; }
+
+    /* History table */
+    .diag-history-empty { text-align: center; padding: 48px 20px; color: var(--color-text-muted); border: 2px dashed var(--color-border); border-radius: var(--border-radius); font-size: 0.875rem; }
+    .diag-history-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    .diag-history-table th { font-family: var(--font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); padding: 8px 10px; text-align: left; border-bottom: 2px solid var(--color-border); white-space: nowrap; }
+    .diag-history-table td { padding: 10px 10px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+    .diag-history-table tr { cursor: pointer; transition: background 0.1s; }
+    .diag-history-table tbody tr:hover td { background: rgba(0,0,0,0.02); }
+    .diag-history-status { font-family: var(--font-mono); font-size: 0.75rem; }
+    .diag-status-completed { color: #10b981; }
+    .diag-status-running { color: var(--color-primary); }
+    .diag-status-failed { color: #ef4444; }
+    .diag-pagination { display: flex; gap: 8px; justify-content: center; margin-top: var(--spacing-lg); align-items: center; }
+    .diag-page-btn { padding: 6px 12px; font-size: 0.8125rem; font-family: var(--font-mono); border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-background-card); color: var(--color-text); cursor: pointer; }
+    .diag-page-btn:hover { border-color: var(--color-primary); }
+    .diag-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .diag-page-btn.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .diag-page-info { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
+
+    /* i18n toggle */
+    .diag-lang-btn { position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 8px 14px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: 20px; cursor: pointer; color: var(--color-text); box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.15s; }
+    .diag-lang-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .diag-grade-row { flex-direction: column; }
+      .diag-grade-card { min-width: auto; }
+      .diag-tabs { overflow-x: auto; }
+      .diag-tab { padding: 10px 16px; font-size: 0.8125rem; white-space: nowrap; }
+    }
+
+    /* sr-only */
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/missions" class="desktop-nav-link">Missions</a>
+        <a href="/toa-audit" class="desktop-nav-link">toA Audit</a>
+        <a href="/blog" class="desktop-nav-link">Blog</a>
+        <a href="/faq" class="desktop-nav-link">FAQ</a>
+        <a href="/about" class="desktop-nav-link">About</a>
+      </nav>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="diag-page">
+
+      <!-- Auth gate (shown when not logged in) -->
+      <div id="auth-gate" class="diag-auth-gate" style="display:none;">
+        <h2 class="i18n" data-ja="Admin Login Required">Admin Login Required</h2>
+        <p class="i18n" data-ja="Site Diagnosisは管理者専用機能です。ログインしてください。">Site Diagnosis is an admin-only feature. Please log in to continue.</p>
+        <a href="/auth/x/login" class="i18n" data-ja="ログイン">Log in with X</a>
+      </div>
+
+      <!-- Main content (shown when logged in) -->
+      <div id="main-content" style="display:none;">
+        <section class="diag-section" style="padding-bottom: 0;">
+          <h1 style="font-family: var(--font-mono); font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 700; margin-bottom: var(--spacing-sm);">
+            <span class="i18n" data-ja="Site Diagnosis">Site Diagnosis</span>
+          </h1>
+          <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: var(--spacing-lg);" class="i18n" data-ja="複数URLを自動クロールし、各ページのAI検索スコアとtoA対応度をチェックします。">Crawl your site's key pages and score each for AI search readiness and toA readiness.</p>
+        </section>
+
+        <!-- Tabs -->
+        <div class="diag-tabs" role="tablist">
+          <button class="diag-tab active" role="tab" aria-selected="true" data-tab="new" id="tab-new">
+            <span class="i18n" data-ja="新規診断">New Diagnosis</span>
+          </button>
+          <button class="diag-tab" role="tab" aria-selected="false" data-tab="history" id="tab-history">
+            <span class="i18n" data-ja="履歴">History</span>
+          </button>
+        </div>
+
+        <!-- New Diagnosis Panel -->
+        <div class="diag-tab-panel active" id="panel-new" role="tabpanel">
+          <div class="diag-form-card">
+            <form id="diag-form">
+              <label for="diag-url" class="sr-only">URL</label>
+              <div class="diag-form-row">
+                <input type="text" id="diag-url" placeholder="https://example.com" required autocomplete="url">
+                <div class="diag-select-wrap">
+                  <select id="diag-site-type">
+                    <option value="auto">Auto-detect</option>
+                    <option value="corporate">Corporate</option>
+                    <option value="ecommerce">E-commerce</option>
+                    <option value="saas">SaaS</option>
+                    <option value="blog">Blog / Media</option>
+                    <option value="portfolio">Portfolio</option>
+                    <option value="api">API / Developer</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div id="turnstile-container"></div>
+              <button type="submit" class="diag-btn" id="diag-submit">
+                <span class="i18n" data-ja="診断を開始">Start Diagnosis</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Error display -->
+          <div id="diag-error" class="diag-error" style="display:none;">
+            <span id="diag-error-msg"></span>
+            <div class="diag-error-retry">
+              <button class="diag-btn-sm" onclick="document.getElementById('diag-error').style.display='none'" class="i18n" data-ja="閉じる">Dismiss</button>
+            </div>
+          </div>
+
+          <!-- Results area -->
+          <div id="diag-results" class="diag-results"></div>
+        </div>
+
+        <!-- History Panel -->
+        <div class="diag-tab-panel" id="panel-history" role="tabpanel">
+          <div id="history-content"></div>
+          <div id="history-pagination" class="diag-pagination" style="display:none;"></div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Full-screen loading overlay -->
+    <div id="diag-overlay" class="diag-overlay">
+      <div class="diag-overlay-card">
+        <div class="diag-overlay-title" id="overlay-title">Diagnosing...</div>
+        <div class="diag-steps-track" id="overlay-steps-track"></div>
+        <div class="diag-steps-labels" id="overlay-steps-labels"></div>
+        <div class="diag-progress-wrap">
+          <div class="diag-progress-bar">
+            <div class="diag-progress-fill" id="overlay-progress-fill"></div>
+          </div>
+          <div class="diag-progress-info">
+            <span id="overlay-page-count">0 / 0 pages</span>
+            <span id="overlay-pct">0%</span>
+          </div>
+        </div>
+        <div class="diag-overlay-msg" id="overlay-msg"></div>
+        <button class="diag-overlay-cancel" id="overlay-cancel">
+          <span class="i18n" data-ja="バックグラウンドで続行">Run in Background</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms">Terms</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy">Privacy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq">FAQ</a>
+        <span class="footer-divider">|</span>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+          <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          <span>@HumanAdsAI</span>
+        </a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service not affiliated with X Corp.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // ── State ──
+    var currentJobId = null;
+    var currentResults = null;
+    var historyList = [];
+    var pollInterval = null;
+    var historyPage = 1;
+    var turnstileWidgetId = null;
+    var turnstileToken = null;
+
+    var POLL_MS = 2500;
+    var TURNSTILE_SITE_KEY = window.TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
+    var PHASES = ['verification', 'discovery', 'crawling', 'scoring', 'saving', 'complete'];
+    var PHASE_LABELS = {
+      verification: 'Verify',
+      discovery: 'Discover',
+      crawling: 'Crawl',
+      scoring: 'Score',
+      saving: 'Save',
+      complete: 'Done'
+    };
+    var PHASE_LABELS_JA = {
+      verification: '検証',
+      discovery: '探索',
+      crawling: 'クロール',
+      scoring: 'スコア',
+      saving: '保存',
+      complete: '完了'
+    };
+
+    // ── Helpers ──
+    function esc(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    function getToken() {
+      return localStorage.getItem('session_token') || '';
+    }
+
+    function authHeaders() {
+      var token = getToken();
+      var h = { 'Content-Type': 'application/json' };
+      if (token) h['Authorization'] = 'Bearer ' + token;
+      return h;
+    }
+
+    function handleAuthError(res) {
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('session_token');
+        showAuthGate();
+        return true;
+      }
+      return false;
+    }
+
+    function showAuthGate() {
+      document.getElementById('auth-gate').style.display = '';
+      document.getElementById('main-content').style.display = 'none';
+    }
+
+    function showMainContent() {
+      document.getElementById('auth-gate').style.display = 'none';
+      document.getElementById('main-content').style.display = '';
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '-';
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function gradeClass(grade) {
+      if (!grade) return '';
+      var g = grade.toUpperCase().charAt(0);
+      if (g === 'A') return 'diag-grade-a';
+      if (g === 'B') return 'diag-grade-b';
+      if (g === 'C') return 'diag-grade-c';
+      if (g === 'D') return 'diag-grade-d';
+      return 'diag-grade-f';
+    }
+
+    function scoreColor(score) {
+      if (score >= 80) return '#10b981';
+      if (score >= 60) return '#3b82f6';
+      if (score >= 40) return '#f59e0b';
+      return '#ef4444';
+    }
+
+    function sourceBadge(source) {
+      var map = {
+        sitemap: 'diag-badge-sitemap',
+        internal: 'diag-badge-internal',
+        manual: 'diag-badge-manual',
+        root: 'diag-badge-root'
+      };
+      var cls = map[source] || 'diag-badge-internal';
+      return '<span class="diag-badge ' + cls + '">' + esc(source || 'unknown') + '</span>';
+    }
+
+    function statusBadge(status) {
+      var map = {
+        pass: 'diag-status-pass',
+        warn: 'diag-status-warn',
+        fail: 'diag-status-fail'
+      };
+      var cls = map[status] || '';
+      return '<span class="' + cls + '">' + esc(status || '-') + '</span>';
+    }
+
+    function showError(msg) {
+      var el = document.getElementById('diag-error');
+      document.getElementById('diag-error-msg').textContent = msg;
+      el.style.display = '';
+    }
+
+    function hideError() {
+      document.getElementById('diag-error').style.display = 'none';
+    }
+
+    // ── Tabs ──
+    function initTabs() {
+      var tabs = document.querySelectorAll('.diag-tab');
+      tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          tabs.forEach(function(t) {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+          });
+          tab.classList.add('active');
+          tab.setAttribute('aria-selected', 'true');
+          document.querySelectorAll('.diag-tab-panel').forEach(function(p) {
+            p.classList.remove('active');
+          });
+          var panelId = 'panel-' + tab.dataset.tab;
+          document.getElementById(panelId).classList.add('active');
+          if (tab.dataset.tab === 'history') {
+            loadHistory(1);
+          }
+        });
+      });
+    }
+
+    // ── Turnstile ──
+    function initTurnstile() {
+      if (typeof turnstile === 'undefined') {
+        setTimeout(initTurnstile, 200);
+        return;
+      }
+      turnstileWidgetId = turnstile.render('#turnstile-container', {
+        sitekey: TURNSTILE_SITE_KEY,
+        size: 'invisible',
+        callback: function(token) {
+          turnstileToken = token;
+        }
+      });
+    }
+
+    function getTurnstileToken() {
+      return new Promise(function(resolve, reject) {
+        if (turnstileToken) {
+          resolve(turnstileToken);
+          return;
+        }
+        if (typeof turnstile === 'undefined') {
+          reject(new Error('Turnstile not loaded'));
+          return;
+        }
+        turnstile.execute('#turnstile-container', {
+          callback: function(token) {
+            turnstileToken = token;
+            resolve(token);
+          },
+          'error-callback': function() {
+            reject(new Error('Turnstile challenge failed'));
+          }
+        });
+      });
+    }
+
+    function resetTurnstile() {
+      turnstileToken = null;
+      if (turnstileWidgetId !== null && typeof turnstile !== 'undefined') {
+        turnstile.reset(turnstileWidgetId);
+      }
+    }
+
+    // ── Form submit ──
+    function initForm() {
+      var form = document.getElementById('diag-form');
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        hideError();
+        var url = document.getElementById('diag-url').value.trim();
+        if (!url) return;
+        if (!/^https?:\/\//i.test(url)) {
+          url = 'https://' + url;
+          document.getElementById('diag-url').value = url;
+        }
+        startDiagnosis(url);
+      });
+    }
+
+    async function startDiagnosis(url) {
+      var btn = document.getElementById('diag-submit');
+      btn.disabled = true;
+
+      try {
+        var token = await getTurnstileToken();
+        var siteType = document.getElementById('diag-site-type').value;
+
+        var res = await fetch('/api/diagnosis', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ url: url, siteType: siteType, turnstileToken: token })
+        });
+
+        resetTurnstile();
+
+        if (handleAuthError(res)) return;
+
+        var data = await res.json();
+        if (!res.ok || !data.success) {
+          showError(data.error?.details || data.error?.message || data.error || 'Failed to start diagnosis');
+          btn.disabled = false;
+          return;
+        }
+
+        currentJobId = data.data.id || data.data.diagnosisId;
+        showOverlay(url);
+        startPolling();
+      } catch (err) {
+        showError(err.message || 'Failed to start diagnosis');
+        resetTurnstile();
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ── Overlay ──
+    function showOverlay(url) {
+      var overlay = document.getElementById('diag-overlay');
+      var domain = url;
+      try { domain = new URL(url).hostname; } catch(e) {}
+      document.getElementById('overlay-title').textContent = 'Diagnosing ' + domain + '...';
+
+      // Build step dots
+      var trackHtml = '';
+      var labelsHtml = '';
+      PHASES.forEach(function(phase) {
+        trackHtml += '<div class="diag-step-dot" data-phase="' + phase + '"></div>';
+        labelsHtml += '<span class="diag-step-label" data-phase="' + phase + '">' + PHASE_LABELS[phase] + '</span>';
+      });
+      document.getElementById('overlay-steps-track').innerHTML = trackHtml;
+      document.getElementById('overlay-steps-labels').innerHTML = labelsHtml;
+
+      document.getElementById('overlay-progress-fill').style.width = '0%';
+      document.getElementById('overlay-pct').textContent = '0%';
+      document.getElementById('overlay-page-count').textContent = '0 / 0 pages';
+      document.getElementById('overlay-msg').textContent = '';
+
+      overlay.classList.add('visible');
+    }
+
+    function hideOverlay() {
+      document.getElementById('diag-overlay').classList.remove('visible');
+    }
+
+    function updateOverlay(statusData) {
+      var pct = statusData.progress_percent || 0;
+      document.getElementById('overlay-progress-fill').style.width = pct + '%';
+      document.getElementById('overlay-pct').textContent = Math.round(pct) + '%';
+
+      var processed = statusData.processed_count || 0;
+      var total = statusData.total_count || statusData.discovered_count || 0;
+      document.getElementById('overlay-page-count').textContent = processed + ' / ' + total + ' pages';
+
+      // Update phase indicators
+      var currentStep = (statusData.current_step || '').toLowerCase();
+      var currentIdx = PHASES.indexOf(currentStep);
+      if (currentIdx === -1 && statusData.status === 'completed') currentIdx = PHASES.length - 1;
+
+      document.querySelectorAll('#overlay-steps-track .diag-step-dot').forEach(function(dot, i) {
+        dot.classList.remove('done', 'active');
+        if (i < currentIdx) dot.classList.add('done');
+        else if (i === currentIdx) dot.classList.add('active');
+      });
+      document.querySelectorAll('#overlay-steps-labels .diag-step-label').forEach(function(lbl, i) {
+        lbl.classList.remove('done', 'active');
+        if (i < currentIdx) lbl.classList.add('done');
+        else if (i === currentIdx) lbl.classList.add('active');
+      });
+
+      // Latest event message
+      if (statusData.events && statusData.events.length > 0) {
+        var lastEvent = statusData.events[statusData.events.length - 1];
+        document.getElementById('overlay-msg').textContent = lastEvent.message || lastEvent || '';
+      }
+    }
+
+    // ── Polling ──
+    function startPolling() {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(pollStatus, POLL_MS);
+      pollStatus();
+    }
+
+    function stopPolling() {
+      if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+    }
+
+    async function pollStatus() {
+      if (!currentJobId) { stopPolling(); return; }
+
+      try {
+        var res = await fetch('/api/diagnosis/' + currentJobId + '/status', {
+          headers: authHeaders()
+        });
+        if (handleAuthError(res)) { stopPolling(); return; }
+
+        var data = await res.json();
+        if (!res.ok || !data.success) return;
+
+        var s = data.data;
+        updateOverlay(s);
+
+        if (s.status === 'completed') {
+          stopPolling();
+          hideOverlay();
+          loadResults(currentJobId);
+        } else if (s.status === 'failed') {
+          stopPolling();
+          hideOverlay();
+          showError('Diagnosis failed: ' + (s.error || 'Unknown error') + '. You can retry.');
+        }
+      } catch (err) {
+        // Silently retry on network errors
+      }
+    }
+
+    // ── Load results ──
+    async function loadResults(id) {
+      var container = document.getElementById('diag-results');
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--color-text-muted);">Loading results...</div>';
+      container.classList.add('visible');
+
+      try {
+        var res = await fetch('/api/diagnosis/' + id, { headers: authHeaders() });
+        if (handleAuthError(res)) return;
+
+        var data = await res.json();
+        if (!res.ok || !data.success) {
+          container.innerHTML = '<div class="diag-error">Failed to load results.</div>';
+          return;
+        }
+
+        currentResults = data.data;
+        currentJobId = id;
+        renderResults(data.data, container);
+
+        // Switch to new tab
+        document.getElementById('tab-new').click();
+      } catch (err) {
+        container.innerHTML = '<div class="diag-error">Error loading results: ' + esc(err.message) + '</div>';
+      }
+    }
+
+    function renderResults(r, container) {
+      var scores = r.scores || {};
+      var grade = scores.grade || '-';
+      var aiScore = scores.searchScore != null ? Math.round(scores.searchScore) : '-';
+      var toaScore = scores.toaScore != null ? Math.round(scores.toaScore) : '-';
+      var summary = r.summary || '';
+      var topActions = r.topActions || [];
+      var pageResults = r.pageResults || [];
+      var targets = r.targets || [];
+      // Compute URL stats from targets
+      var sitemapCount = targets.filter(function(t) { return t.source_type === 'sitemap'; }).length;
+      var internalCount = targets.filter(function(t) { return t.source_type === 'internal_link'; }).length;
+      var skippedCount = targets.filter(function(t) { return !t.included; }).length;
+
+      var html = '';
+
+      // Grade row
+      html += '<div class="diag-grade-row">';
+      html += '<div class="diag-grade-card"><div class="diag-grade-label"><span class="i18n" data-ja="総合グレード">Overall Grade</span></div><div class="diag-grade-value ' + gradeClass(grade) + '">' + esc(grade) + '</div></div>';
+      html += '<div class="diag-grade-card"><div class="diag-grade-label"><span class="i18n" data-ja="AI検索スコア">AI Search Score</span></div><div class="diag-grade-value diag-score-green">' + aiScore + '<span style="font-size:1rem;">%</span></div></div>';
+      html += '<div class="diag-grade-card"><div class="diag-grade-label"><span class="i18n" data-ja="toA対応度">toA Readiness</span></div><div class="diag-grade-value diag-score-purple">' + toaScore + '<span style="font-size:1rem;">%</span></div></div>';
+      html += '</div>';
+
+      // Summary
+      if (summary) {
+        html += '<div class="diag-summary">' + esc(summary) + '</div>';
+      }
+
+      // Top actions
+      if (topActions.length > 0) {
+        html += '<div class="diag-top-actions">';
+        html += '<div class="diag-section-title"><span class="i18n" data-ja="優先改善項目">Top Priority Actions</span></div>';
+        topActions.forEach(function(action, i) {
+          var title = action.nameJa || action.name || '';
+          var detail = action.detailsJa || action.details || '';
+          var rec = action.recommendationJa || action.recommendation || '';
+          var sev = action.severity || '';
+          html += '<div class="diag-action-card">';
+          html += '<div class="diag-action-num">' + (i + 1) + '</div>';
+          html += '<div class="diag-action-body"><div class="diag-action-title">' + esc(title);
+          if (sev) html += ' <span class="diag-sev-badge diag-sev-' + sev + '">' + sev + '</span>';
+          html += '</div>';
+          if (detail) html += '<div class="diag-action-detail">' + esc(detail) + '</div>';
+          if (rec) html += '<div style="color:var(--color-primary);font-size:0.8125rem;margin-top:2px;">' + esc(rec) + '</div>';
+          html += '</div></div>';
+        });
+        html += '</div>';
+      }
+
+      // URL collection summary
+      if (sitemapCount || internalCount || skippedCount) {
+        html += '<div class="diag-section-title"><span class="i18n" data-ja="URL収集サマリー">URL Collection</span></div>';
+        html += '<div class="diag-collection-summary">';
+        html += '<div class="diag-coll-stat"><div class="diag-coll-num">' + sitemapCount + '</div><div class="diag-coll-label"><span class="i18n" data-ja="サイトマップ">Sitemap</span></div></div>';
+        html += '<div class="diag-coll-stat"><div class="diag-coll-num">' + internalCount + '</div><div class="diag-coll-label"><span class="i18n" data-ja="内部リンク">Internal Links</span></div></div>';
+        html += '<div class="diag-coll-stat"><div class="diag-coll-num">' + skippedCount + '</div><div class="diag-coll-label"><span class="i18n" data-ja="スキップ">Skipped</span></div></div>';
+        html += '</div>';
+      }
+
+      // Pages analyzed
+      if (pageResults.length > 0) {
+        html += '<div class="diag-pages-section">';
+        html += '<div class="diag-section-title"><span class="i18n" data-ja="診断済みページ">Pages Analyzed</span> (' + pageResults.length + ')</div>';
+        html += '<div class="diag-table-wrap"><table class="diag-table">';
+        html += '<thead><tr>';
+        html += '<th>URL</th><th><span class="i18n" data-ja="種別">Type</span></th><th><span class="i18n" data-ja="スコア">Score</span></th><th><span class="i18n" data-ja="状態">Status</span></th><th><span class="i18n" data-ja="ブロッカー">Blocker</span></th>';
+        html += '</tr></thead><tbody>';
+        pageResults.forEach(function(pg) {
+          var pgUrl = pg.url || '';
+          var pgType = pg.page_type || 'other';
+          var pgScore = pg.page_overall_score != null ? Math.round(pg.page_overall_score) : '-';
+          var pgStatus = pg.status_code || '-';
+          var pgBlocker = pg.has_blocker ? 'Yes' : '';
+          html += '<tr>';
+          html += '<td class="diag-url-cell">' + esc(pgUrl) + '</td>';
+          html += '<td>' + sourceBadge(pgType) + '</td>';
+          html += '<td style="font-family:var(--font-mono);font-weight:600;color:' + scoreColor(pgScore) + '">' + pgScore + '</td>';
+          html += '<td>' + statusBadge(pgStatus) + '</td>';
+          html += '<td>' + (pgBlocker ? '<span class="diag-blocker-badge">' + esc(pgBlocker) + '</span>' : '-') + '</td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+        html += '</div>';
+      }
+
+      // Action buttons
+      html += '<div class="diag-actions-bar">';
+      html += '<button class="diag-btn-sm diag-btn-danger" onclick="window._diagDelete(\'' + esc(currentJobId) + '\')"><span class="i18n" data-ja="削除">Delete</span></button>';
+      html += '<button class="diag-btn-sm diag-btn-primary-sm" onclick="window._diagRerun(\'' + esc(currentJobId) + '\')"><span class="i18n" data-ja="再診断">Re-diagnose</span></button>';
+      html += '</div>';
+
+      container.innerHTML = html;
+      container.classList.add('visible');
+
+      // Re-apply i18n
+      applyI18n();
+    }
+
+    // ── Delete ──
+    window._diagDelete = async function(id) {
+      if (!confirm('Delete this diagnosis?')) return;
+      try {
+        var res = await fetch('/api/diagnosis/' + id, {
+          method: 'DELETE',
+          headers: authHeaders()
+        });
+        if (handleAuthError(res)) return;
+        var data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('diag-results').innerHTML = '';
+          document.getElementById('diag-results').classList.remove('visible');
+          currentResults = null;
+          currentJobId = null;
+        } else {
+          showError('Delete failed: ' + (data.error?.message || 'Unknown error'));
+        }
+      } catch (err) {
+        showError('Delete failed: ' + err.message);
+      }
+    };
+
+    // ── Re-run ──
+    window._diagRerun = async function(id) {
+      try {
+        var token = await getTurnstileToken();
+        var res = await fetch('/api/diagnosis/' + id + '/rerun', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ turnstileToken: token })
+        });
+        resetTurnstile();
+        if (handleAuthError(res)) return;
+        var data = await res.json();
+        if (res.ok && data.success) {
+          currentJobId = data.data.id || data.data.diagnosisId || id;
+          var url = data.data.url || (currentResults && currentResults.url) || '';
+          showOverlay(url);
+          startPolling();
+        } else {
+          showError('Re-diagnosis failed: ' + (data.error?.details || data.error?.message || 'Unknown error'));
+        }
+      } catch (err) {
+        showError('Re-diagnosis failed: ' + err.message);
+        resetTurnstile();
+      }
+    };
+
+    // ── History ──
+    async function loadHistory(page) {
+      historyPage = page || 1;
+      var container = document.getElementById('history-content');
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--color-text-muted);">Loading...</div>';
+      document.getElementById('history-pagination').style.display = 'none';
+
+      try {
+        var res = await fetch('/api/diagnosis/history?page=' + historyPage + '&limit=20', {
+          headers: authHeaders()
+        });
+        if (handleAuthError(res)) return;
+
+        var data = await res.json();
+        if (!res.ok || !data.success) {
+          container.innerHTML = '<div class="diag-error">Failed to load history.</div>';
+          return;
+        }
+
+        var items = data.data.items || [];
+        var total = data.data.total || 0;
+        var limit = data.data.limit || 20;
+
+        if (items.length === 0) {
+          container.innerHTML = '<div class="diag-history-empty"><span class="i18n" data-ja="まだ診断履歴がありません。">No diagnosis history yet.</span></div>';
+          applyI18n();
+          return;
+        }
+
+        historyList = items;
+        var html = '<div class="diag-table-wrap"><table class="diag-history-table">';
+        html += '<thead><tr>';
+        html += '<th><span class="i18n" data-ja="ドメイン">Domain</span></th>';
+        html += '<th><span class="i18n" data-ja="日付">Date</span></th>';
+        html += '<th><span class="i18n" data-ja="グレード">Grade</span></th>';
+        html += '<th><span class="i18n" data-ja="AI検索">Search</span></th>';
+        html += '<th><span class="i18n" data-ja="toA">toA</span></th>';
+        html += '<th><span class="i18n" data-ja="状態">Status</span></th>';
+        html += '<th></th>';
+        html += '</tr></thead><tbody>';
+
+        items.forEach(function(item) {
+          var statusCls = 'diag-status-' + (item.status || '').replace(/[^a-z]/g, '');
+          html += '<tr data-id="' + esc(item.id) + '" onclick="window._diagLoadResult(\'' + esc(item.id) + '\')">';
+          html += '<td style="font-family:var(--font-mono);font-size:0.75rem;">' + esc(item.normalized_domain || item.input_url || '-') + '</td>';
+          html += '<td style="font-size:0.75rem;">' + formatDate(item.created_at) + '</td>';
+          html += '<td><span class="' + gradeClass(item.grade) + '" style="font-family:var(--font-mono);font-weight:700;">' + esc(item.grade || '-') + '</span></td>';
+          html += '<td style="font-family:var(--font-mono);font-size:0.75rem;">' + (item.search_score != null ? item.search_score + '%' : '-') + '</td>';
+          html += '<td style="font-family:var(--font-mono);font-size:0.75rem;">' + (item.toa_score != null ? item.toa_score + '%' : '-') + '</td>';
+          html += '<td><span class="diag-history-status ' + statusCls + '">' + esc(item.status || '-') + '</span></td>';
+          html += '<td><button class="diag-btn-sm diag-btn-danger" onclick="event.stopPropagation();window._diagDeleteHistory(\'' + esc(item.id) + '\')" style="padding:4px 8px;font-size:0.6875rem;">Del</button></td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+
+        // Pagination
+        var totalPages = Math.ceil(total / limit);
+        if (totalPages > 1) {
+          var pagHtml = '';
+          pagHtml += '<button class="diag-page-btn" onclick="window._diagHistoryPage(' + (historyPage - 1) + ')"' + (historyPage <= 1 ? ' disabled' : '') + '>&laquo;</button>';
+          for (var p = 1; p <= totalPages; p++) {
+            pagHtml += '<button class="diag-page-btn' + (p === historyPage ? ' active' : '') + '" onclick="window._diagHistoryPage(' + p + ')">' + p + '</button>';
+          }
+          pagHtml += '<button class="diag-page-btn" onclick="window._diagHistoryPage(' + (historyPage + 1) + ')"' + (historyPage >= totalPages ? ' disabled' : '') + '>&raquo;</button>';
+          var pagEl = document.getElementById('history-pagination');
+          pagEl.innerHTML = pagHtml;
+          pagEl.style.display = 'flex';
+        }
+
+        applyI18n();
+      } catch (err) {
+        container.innerHTML = '<div class="diag-error">Error: ' + esc(err.message) + '</div>';
+      }
+    }
+
+    window._diagHistoryPage = function(page) {
+      loadHistory(page);
+    };
+
+    window._diagLoadResult = function(id) {
+      loadResults(id);
+    };
+
+    window._diagDeleteHistory = async function(id) {
+      if (!confirm('Delete this diagnosis?')) return;
+      try {
+        var res = await fetch('/api/diagnosis/' + id, {
+          method: 'DELETE',
+          headers: authHeaders()
+        });
+        if (handleAuthError(res)) return;
+        var data = await res.json();
+        if (res.ok && data.success) {
+          loadHistory(historyPage);
+        } else {
+          alert('Delete failed');
+        }
+      } catch (err) {
+        alert('Delete failed: ' + err.message);
+      }
+    };
+
+    // ── Cancel overlay ──
+    function initOverlayCancel() {
+      document.getElementById('overlay-cancel').addEventListener('click', function() {
+        hideOverlay();
+        stopPolling();
+        // Job continues in background; user can find it in history
+      });
+    }
+
+    // ── i18n ──
+    var LANG_KEY = 'diagnosis_lang';
+    var currentLang = 'en';
+
+    function applyI18n() {
+      document.querySelectorAll('.i18n').forEach(function(el) {
+        if (!el.dataset.en) el.dataset.en = el.textContent;
+        el.textContent = currentLang === 'ja' ? (el.dataset.ja || el.dataset.en) : el.dataset.en;
+      });
+      var toggle = document.getElementById('langToggle');
+      if (toggle) toggle.textContent = currentLang === 'ja' ? 'EN' : 'JA';
+      document.documentElement.lang = currentLang === 'ja' ? 'ja' : 'en';
+    }
+
+    function initI18n() {
+      var isJa = (navigator.language || '').startsWith('ja');
+      var stored = localStorage.getItem(LANG_KEY);
+      currentLang = stored || (isJa ? 'ja' : 'en');
+
+      var btn = document.createElement('button');
+      btn.id = 'langToggle';
+      btn.className = 'diag-lang-btn';
+      btn.textContent = currentLang === 'ja' ? 'EN' : 'JA';
+      btn.addEventListener('click', function() {
+        currentLang = currentLang === 'ja' ? 'en' : 'ja';
+        localStorage.setItem(LANG_KEY, currentLang);
+        applyI18n();
+      });
+      document.body.appendChild(btn);
+
+      applyI18n();
+    }
+
+    // ── Init ──
+    document.addEventListener('DOMContentLoaded', function() {
+      initTabs();
+      initForm();
+      initOverlayCancel();
+      initTurnstile();
+      initI18n();
+
+      // Auth check
+      var token = getToken();
+      if (!token) {
+        // Also try cookie-based auth via /api/me
+        fetch('/api/me', { credentials: 'include' })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.success && data.data && data.data.user && data.data.user.is_admin) {
+              showMainContent();
+            } else {
+              showAuthGate();
+            }
+          })
+          .catch(function() { showAuthGate(); });
+      } else {
+        // Verify token
+        fetch('/api/me', { headers: authHeaders(), credentials: 'include' })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.success && data.data && data.data.user && data.data.user.is_admin) {
+              showMainContent();
+            } else if (data.success && data.data && data.data.xConnected) {
+              // Logged in but not admin
+              showMainContent();
+            } else {
+              showAuthGate();
+            }
+          })
+          .catch(function() { showAuthGate(); });
+      }
+
+      // Check URL params for resuming a job
+      var params = new URLSearchParams(window.location.search);
+      var resumeId = params.get('id');
+      if (resumeId) {
+        currentJobId = resumeId;
+        loadResults(resumeId);
+      }
+    });
+
+  })();
+  </script>
+</body>
+</html>
