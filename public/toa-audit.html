@@ -90,19 +90,21 @@
 
     /* Hero — largest visual weight */
     .toa-hero { text-align: center; padding: 72px 0 56px; }
-    .toa-hero h1 { font-family: 'Noto Sans JP', var(--font-family); font-size: clamp(1.5rem, 4.5vw, 2.5rem); font-weight: 700; line-height: 1.4; margin-bottom: var(--spacing-md); color: var(--color-text); }
+    .toa-hero-label { display: inline-block; font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: var(--spacing-sm); }
+    .toa-hero h1 { font-family: 'Noto Sans JP', var(--font-family); font-size: clamp(1.375rem, 4vw, 2.25rem); font-weight: 700; line-height: 1.5; margin-bottom: var(--spacing-md); color: var(--color-text); }
+    @media (max-width: 640px) { .toa-hero h1 { font-size: 1.5rem; } }
     .toa-hero h1 .toa-hl { color: var(--color-primary); }
-    .toa-hero-sub { font-size: 1.0625rem; color: var(--color-text-muted); max-width: 540px; margin: 0 auto var(--spacing-xl); line-height: 1.7; }
+    .toa-hero-sub { font-size: 1rem; color: var(--color-text-muted); max-width: 480px; margin: 0 auto var(--spacing-xl); line-height: 1.8; }
 
     /* CTA Form */
-    .toa-form { display: flex; gap: 8px; max-width: 520px; margin: 0 auto; }
-    .toa-form input { flex: 1; padding: 14px 16px; font-size: 1rem; font-family: var(--font-mono); border: 2px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-background-card); color: var(--color-text); outline: none; transition: border-color 0.2s; }
+    .toa-form { display: flex; gap: 12px; max-width: 520px; margin: 0 auto; }
+    .toa-form input { flex: 1; padding: 14px 16px; font-size: 1rem; font-family: var(--font-mono); border: 2px solid var(--color-border); border-radius: 12px; background: var(--color-background-card); color: var(--color-text); outline: none; transition: border-color 0.2s; }
     .toa-form input:focus { border-color: var(--color-primary); }
     .toa-form input::placeholder { color: var(--color-text-muted); opacity: 0.6; }
-    .toa-form button { padding: 14px 28px; font-size: 1rem; font-weight: 700; color: #fff; background: var(--color-primary); border: none; border-radius: var(--border-radius-sm); cursor: pointer; white-space: nowrap; transition: background 0.2s, transform 0.1s; }
+    .toa-form button { padding: 14px 28px; font-size: 1rem; font-weight: 700; color: #fff; background: var(--color-primary); border: none; border-radius: 16px; cursor: pointer; white-space: nowrap; transition: background 0.2s, transform 0.1s; }
     .toa-form button:hover { background: var(--color-primary-dark); transform: translateY(-1px); }
     .toa-form button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    @media (max-width: 640px) { .toa-form { flex-direction: column; } .toa-form button { width: 100%; } }
+    @media (max-width: 640px) { .toa-form { flex-direction: column; gap: 12px; } .toa-form button { width: 100%; } }
     .toa-form-meta { font-size: 0.8125rem; color: var(--color-text-muted); margin-top: var(--spacing-md); text-align: center; }
 
     /* 3-Step Flow */
@@ -258,10 +260,17 @@
     .toa-category-arrow { transition: transform 0.2s; font-size: 0.75rem; }
     .toa-category-arrow.open { transform: rotate(90deg); }
     .toa-category-body { padding: 8px 0; } .toa-category-body.hidden { display: none; }
-    .toa-check-item { display: flex; gap: 8px; padding: 6px 0; font-size: 0.8125rem; align-items: flex-start; border-bottom: 1px solid var(--color-border); }
+    .toa-check-item { display: flex; gap: 8px; padding: 6px 8px; font-size: 0.8125rem; align-items: flex-start; border-bottom: 1px solid var(--color-border); border-radius: 4px; margin-bottom: 2px; }
     .toa-check-item:last-child { border-bottom: none; }
+    .toa-check-item[data-status="pass"] { background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; }
+    .toa-check-item[data-status="fail"] { background: rgba(239, 68, 68, 0.05); border-left: 3px solid #ef4444; }
+    .toa-check-item[data-status="warn"] { background: rgba(245, 158, 11, 0.05); border-left: 3px solid #f59e0b; }
     .toa-status { flex-shrink: 0; width: 20px; text-align: center; font-size: 0.75rem; font-weight: 700; }
     .toa-status-pass { color: #10b981; } .toa-status-fail { color: #ef4444; } .toa-status-warn { color: #f59e0b; } .toa-status-info { color: #6b7280; }
+    /* Radar chart */
+    .toa-radar-wrap { display: flex; justify-content: center; margin-bottom: var(--spacing-lg); }
+    .toa-radar-card { background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: var(--spacing-lg); text-align: center; width: 100%; max-width: 420px; }
+    .toa-radar-title { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--spacing-sm); }
     .toa-check-body { flex: 1; } .toa-check-name { font-weight: 500; } .toa-check-detail { color: var(--color-text-muted); font-size: 0.75rem; margin-top: 2px; } .toa-check-rec { color: var(--color-primary); font-size: 0.75rem; margin-top: 2px; }
     .toa-severity-badge { font-size: 0.625rem; font-family: var(--font-mono); padding: 1px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
     .toa-sev-blocker { background: rgba(239, 68, 68, 0.1); color: #ef4444; } .toa-sev-important { background: rgba(245, 158, 11, 0.1); color: #f59e0b; } .toa-sev-nice_to_have { background: rgba(107, 114, 128, 0.1); color: #6b7280; } .toa-sev-experimental { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
@@ -311,14 +320,15 @@
 
       <!-- [1] HERO — 最大の視覚的重み -->
       <section class="toa-section toa-hero" id="hero">
-        <h1>あなたのサイト、<br>AIエージェントに<span class="toa-hl">対応</span>できていますか？</h1>
-        <p class="toa-hero-sub">URLを入れるだけ。30秒で<strong style="color:var(--color-text)">AI対応度スコア</strong>と<strong style="color:var(--color-text)">改善ポイント</strong>が分かります。</p>
-        <form class="toa-form" id="audit-form" aria-label="サイト診断フォーム">
-          <label for="audit-url" class="sr-only">診断するサイトのURL</label>
+        <div class="toa-hero-label">無料AIチェックツール</div>
+        <h1>AIエージェント時代、<br>あなたのサイトは<span class="toa-hl">準備OK</span>？</h1>
+        <p class="toa-hero-sub">URLを貼るだけ、たった30秒。<br>サイトのAI対応度をやさしくチェックします。</p>
+        <form class="toa-form" id="audit-form" aria-label="サイトチェックフォーム">
+          <label for="audit-url" class="sr-only">チェックするサイトのURL</label>
           <input type="text" id="audit-url" placeholder="yoursite.com" required autocomplete="url">
-          <button type="submit" id="audit-submit">無料で診断する</button>
+          <button type="submit" id="audit-submit">いますぐ無料チェック →</button>
         </form>
-        <p class="toa-form-meta">登録不要 ・ 完全無料 ・ 約30秒で結果表示</p>
+        <p class="toa-form-meta">登録なし ・ 無料 ・ 30秒で結果がわかる</p>
 
         <!-- 3ステップ図解 -->
         <div class="toa-steps">
@@ -825,6 +835,7 @@
           <div class="toa-score-sub"><span class="toa-score-sub-item">取引 ${s.agent_transaction}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.agent_transaction}%;background:#f59e0b"></span></span></span><span class="toa-score-sub-item">インフラ ${s.toa_infra}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.toa_infra}%;background:#8b5cf6"></span></span></span></div></div>
       </div>`;
       html += `<div class="toa-overall">総合評価: <span class="toa-grade toa-grade-${gradeClass}">${s.grade}</span> (${s.overall}%)${s.hasBlockerUnchecked ? ' <span style="color:#ef4444;font-size:0.8125rem;">&#9888; ブロッカー未解決</span>' : ''}</div>`;
+      html += buildRadarChart(s);
       html += `<div class="toa-summary">${escapeHtml(data.summary)}</div>`;
 
       if (data.topActions && data.topActions.length > 0) {
@@ -842,7 +853,7 @@
         html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')"><span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)} <span style="color:var(--color-text-muted);font-weight:400;font-size:0.75rem;">${passCount}/${checks.length}</span></div><div class="toa-category-body hidden">`;
         for (const c of checks) {
           const icon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : c.status === 'warn' ? '&#9888;' : '&#8226;';
-          html += `<div class="toa-check-item"><div class="toa-status toa-status-${c.status}">${icon}</div><div class="toa-check-body"><div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div><div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}</div></div>`;
+          html += `<div class="toa-check-item" data-status="${c.status}"><div class="toa-status toa-status-${c.status}">${icon}</div><div class="toa-check-body"><div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div><div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}</div></div>`;
         }
         html += `</div>`;
       }
@@ -1012,6 +1023,22 @@
         const btn = document.querySelector('[onclick="window._toaCopyClaudeCode()"]');
         if (btn) { btn.textContent = 'コピー済み！'; setTimeout(() => { btn.textContent = 'Claude Code用にコピー'; }, 2000); }
       });
+
+      // Show preview textarea
+      let preview = document.getElementById('claude-code-preview');
+      if (!preview) {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'margin-top:16px;';
+        wrapper.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:13px;font-weight:600;color:#6b21a8;">Claude Code 用プロンプト（プレビュー）</span>
+          <button onclick="document.getElementById('claude-code-preview').parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:16px;color:#888;">✕</button>
+        </div>
+        <textarea id="claude-code-preview" readonly style="width:100%;height:300px;font-family:monospace;font-size:12px;padding:12px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;resize:vertical;white-space:pre;"></textarea>`;
+        const actionsBar = document.querySelector('.toa-actions-bar');
+        actionsBar.parentElement.insertBefore(wrapper, actionsBar.nextSibling);
+        preview = document.getElementById('claude-code-preview');
+      }
+      preview.value = md;
     };
 
     window._toaShareX = function() {
