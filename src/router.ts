@@ -416,7 +416,7 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
       return handleToaAuditCreate(request, env);
     }
 
-    const toaAuditMatch = path.match(/^\/api\/toa-audit\/([a-z0-9]+)$/);
+    const toaAuditMatch = path.match(/^\/api\/toa-audit\/([a-z0-9][a-z0-9-]+[a-z0-9])$/);
     if (toaAuditMatch && method === 'GET') {
       return handleToaAuditGet(request, env, toaAuditMatch[1]);
     }
@@ -619,7 +619,7 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
     // (env.ASSETS not available with wrangler assets config)
     // ============================================
 
-    const toaAuditPageMatch = path.match(/^\/toa-audit\/([a-z0-9]+)$/);
+    const toaAuditPageMatch = path.match(/^\/toa-audit\/([a-z0-9][a-z0-9-]+[a-z0-9])$/);
     if (toaAuditPageMatch && method === 'GET') {
       return new Response(null, {
         status: 302,
