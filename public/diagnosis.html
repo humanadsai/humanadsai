@@ -270,7 +270,7 @@
         <!-- New Diagnosis Panel -->
         <div class="diag-tab-panel active" id="panel-new" role="tabpanel">
           <div class="diag-form-card">
-            <form id="diag-form">
+            <form id="diag-form" toolname="run_site_diagnosis" tooldescription="Run a free website diagnosis to check SEO, performance, and AI readiness">
               <label for="diag-url" class="sr-only">URL</label>
               <div class="diag-form-row">
                 <input type="text" id="diag-url" placeholder="https://example.com" required autocomplete="url">
@@ -384,7 +384,7 @@
     var turnstileToken = null;
 
     var POLL_MS = 2500;
-    var TURNSTILE_SITE_KEY = window.TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
+    var TURNSTILE_SITE_KEY = '0x4AAAAAAC1VrvEr4o5Mk4UC';
     var PHASES = ['verification', 'discovery', 'crawling', 'scoring', 'saving', 'complete'];
     var PHASE_LABELS = {
       verification: 'Verify',
