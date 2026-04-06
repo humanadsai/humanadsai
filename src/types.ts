@@ -44,6 +44,9 @@ export interface Env {
   OPENROUTER_API_KEY?: string;
   // OpenAI API Key for image generation (gpt-image)
   OPENAI_API_KEY?: string;
+  // Cloudflare Turnstile (human verification)
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 // ============================================

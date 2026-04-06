@@ -163,6 +163,16 @@ import {
 // toA Audit API
 import { handleToaAuditCreate, handleToaAuditGet } from './api/toa-audit/index';
 
+// Diagnosis API (multi-URL, admin-only)
+import {
+  handleDiagnosisCreate,
+  handleDiagnosisStatus,
+  handleDiagnosisGet,
+  handleDiagnosisHistory,
+  handleDiagnosisDelete,
+  handleDiagnosisRerun,
+} from './api/diagnosis/index';
+
 /**
  * メインルーター
  */
@@ -412,6 +422,30 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
     }
 
     // ============================================
+    // Diagnosis API (admin-only, Turnstile-protected)
+    // ============================================
+
+    if (path === '/api/diagnosis' && method === 'POST') {
+      return handleDiagnosisCreate(request, env);
+    }
+    if (path === '/api/diagnosis/history' && method === 'GET') {
+      return handleDiagnosisHistory(request, env);
+    }
+    const diagStatusMatch = path.match(/^\/api\/diagnosis\/([a-z0-9]+)\/status$/);
+    if (diagStatusMatch && method === 'GET') {
+      return handleDiagnosisStatus(request, env, diagStatusMatch[1]);
+    }
+    const diagRerunMatch = path.match(/^\/api\/diagnosis\/([a-z0-9]+)\/rerun$/);
+    if (diagRerunMatch && method === 'POST') {
+      return handleDiagnosisRerun(request, env, diagRerunMatch[1]);
+    }
+    const diagMatch = path.match(/^\/api\/diagnosis\/([a-z0-9]+)$/);
+    if (diagMatch) {
+      if (method === 'GET') return handleDiagnosisGet(request, env, diagMatch[1]);
+      if (method === 'DELETE') return handleDiagnosisDelete(request, env, diagMatch[1]);
+    }
+
+    // ============================================
     // Public API (/api/...)
     // ============================================
 
@@ -590,6 +624,15 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
       return new Response(null, {
         status: 302,
         headers: { 'Location': `/toa-audit?id=${toaAuditPageMatch[1]}` },
+      });
+    }
+
+    // Diagnosis permalink — /diagnosis/:id → redirect to /diagnosis?id=:id
+    const diagPageMatch = path.match(/^\/diagnosis\/([a-z0-9]+)$/);
+    if (diagPageMatch && method === 'GET') {
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': `/diagnosis?id=${diagPageMatch[1]}` },
       });
     }
 

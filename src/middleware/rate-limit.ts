@@ -5,7 +5,8 @@ import { writeAuditLog, extractAuditInfo } from '../services/audit';
 export type RateLimitType = 'ip' | 'apiKey' | 'deals:create' | 'deals:deposit'
   | 'auth:login' | 'auth:email_login' | 'email:send'
   | 'operator:register' | 'operator:verify' | 'account:delete'
-  | 'toa-audit';
+  | 'toa-audit'
+  | 'diagnosis';
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -40,7 +41,7 @@ export async function checkRateLimit(
     return response.json<RateLimitResult>();
   } catch {
     // Financial/sensitive and abuse-prone operations should fail closed
-    const failClosedTypes: RateLimitType[] = ['deals:create', 'deals:deposit', 'toa-audit'];
+    const failClosedTypes: RateLimitType[] = ['deals:create', 'deals:deposit', 'toa-audit', 'diagnosis'];
     if (failClosedTypes.includes(type)) {
       console.error(`Rate limit check failed (fail-closed) for ${type}:${key}`);
       return { allowed: false, remaining: 0, retryAfter: 60 };

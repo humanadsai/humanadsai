@@ -55,7 +55,7 @@ const BLOCKED_HOSTNAMES = [
 
 const MAX_REDIRECTS = 5;
 
-function isPrivateUrl(urlStr: string): boolean {
+export function isPrivateUrl(urlStr: string): boolean {
   try {
     const u = new URL(urlStr);
     const host = u.hostname.toLowerCase();
@@ -86,7 +86,7 @@ export function normalizeUrl(input: string): string {
   return parsed.origin + parsed.pathname;
 }
 
-function getOrigin(url: string): string {
+export function getOrigin(url: string): string {
   return new URL(url).origin;
 }
 
@@ -94,7 +94,7 @@ function getOrigin(url: string): string {
 // Safe Fetch
 // ============================================
 
-async function safeFetch(url: string, options?: RequestInit & { followRedirects?: boolean }): Promise<Response> {
+export async function safeFetch(url: string, options?: RequestInit & { followRedirects?: boolean }): Promise<Response> {
   const { followRedirects = true, ...fetchOptions } = options || {};
 
   let currentUrl = url;
@@ -141,7 +141,7 @@ async function safeFetch(url: string, options?: RequestInit & { followRedirects?
   throw new Error('Too many redirects');
 }
 
-async function safeFetchText(url: string): Promise<{ text: string; status: number }> {
+export async function safeFetchText(url: string): Promise<{ text: string; status: number }> {
   try {
     const resp = await safeFetch(url);
     // Read body as stream, limit to MAX_BODY_SIZE
@@ -269,7 +269,7 @@ function parseRobotsTxt(content: string, statusCode: number): RobotsResult {
 // HTML Analysis via HTMLRewriter
 // ============================================
 
-interface HtmlAnalysis {
+export interface HtmlAnalysis {
   schema: SchemaResult;
   semantic: SemanticHtmlResult;
   headings: HeadingInfo[];
@@ -280,7 +280,7 @@ interface HtmlAnalysis {
   links: { href: string; text: string }[];
 }
 
-async function analyzeHtml(response: Response, pageUrl: string): Promise<HtmlAnalysis> {
+export async function analyzeHtml(response: Response, pageUrl: string): Promise<HtmlAnalysis> {
   const schema: SchemaResult = {
     found: false, types: [], hasOrganization: false, hasSameAs: false,
     sameAsUrls: [], hasFaq: false, hasProduct: false, hasHowTo: false,
@@ -553,6 +553,55 @@ async function discoverPaths(origin: string): Promise<PathDiscoveryResult> {
 }
 
 // ============================================
+// Retry helper for 5xx errors (handles Cloudflare 522/523/524)
+// ============================================
+
+async function safeFetchWithRetry(url: string, options?: RequestInit & { followRedirects?: boolean }, maxRetries = 2): Promise<Response> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const resp = await safeFetch(url, options);
+      if (resp.status < 500 || attempt === maxRetries) return resp;
+      // 5xx → retry after short delay
+      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+    } catch (e: any) {
+      lastError = e;
+      if (attempt === maxRetries) throw e;
+      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+    }
+  }
+  throw lastError || new Error('Retry exhausted');
+}
+
+async function safeFetchTextWithRetry(url: string): Promise<{ text: string; status: number }> {
+  try {
+    const resp = await safeFetchWithRetry(url);
+    const reader = resp.body?.getReader();
+    if (!reader) return { text: '', status: resp.status };
+    let chunks: Uint8Array[] = [];
+    let totalSize = 0;
+    while (totalSize < MAX_BODY_SIZE) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      totalSize += value.length;
+    }
+    reader.cancel().catch(() => {});
+    const merged = new Uint8Array(Math.min(totalSize, MAX_BODY_SIZE));
+    let offset = 0;
+    for (const chunk of chunks) {
+      const copyLen = Math.min(chunk.length, MAX_BODY_SIZE - offset);
+      merged.set(chunk.subarray(0, copyLen), offset);
+      offset += copyLen;
+      if (offset >= MAX_BODY_SIZE) break;
+    }
+    return { text: new TextDecoder().decode(merged), status: resp.status };
+  } catch {
+    return { text: '', status: 0 };
+  }
+}
+
+// ============================================
 // Main Crawler
 // ============================================
 
@@ -561,15 +610,14 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
   const origin = getOrigin(normalizedUrl);
   const errors: string[] = [];
 
-  // Parallel fetches
+  // Parallel fetches (with retry for 5xx like Cloudflare 522)
   const [robotsRaw, llmsRaw, sitemapRaw, mainPageResp, httpResult, pathsResult] = await Promise.allSettled([
-    safeFetchText(origin + '/robots.txt'),
-    safeFetchText(origin + '/llms.txt'),
-    safeFetchText(origin + '/sitemap.xml'),
+    safeFetchTextWithRetry(origin + '/robots.txt'),
+    safeFetchTextWithRetry(origin + '/llms.txt'),
+    safeFetchTextWithRetry(origin + '/sitemap.xml'),
     (async () => {
       const start = Date.now();
-      // safeFetch follows redirects with SSRF checks on each hop
-      const resp = await safeFetch(normalizedUrl);
+      const resp = await safeFetchWithRetry(normalizedUrl);
       const ttfb = Date.now() - start;
       // Check Content-Length before consuming body (DoS prevention)
       const contentLength = parseInt(resp.headers.get('content-length') || '0', 10);
@@ -578,13 +626,13 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
       }
       return { resp, ttfb };
     })(),
-    // HTTP check — count redirects using manual mode (safeFetch still checks SSRF per hop)
+    // HTTP check — count redirects using manual mode
     (async () => {
       let redirectCount = 0;
       let currentUrl = normalizedUrl;
       const start = Date.now();
       for (let i = 0; i < MAX_REDIRECTS; i++) {
-        const resp = await safeFetch(currentUrl, { followRedirects: false });
+        const resp = await safeFetchWithRetry(currentUrl, { followRedirects: false }, 1);
         if (resp.status >= 300 && resp.status < 400) {
           redirectCount++;
           const loc = resp.headers.get('location');
@@ -693,6 +741,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
     content: htmlAnalysis.content,
     http,
     paths,
+    links: htmlAnalysis.links,
     errors,
     crawledAt: new Date().toISOString(),
   };

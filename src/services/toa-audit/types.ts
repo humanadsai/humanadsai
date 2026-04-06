@@ -138,6 +138,7 @@ export interface CrawlData {
   content: ContentResult;
   http: HttpResult;
   paths: PathDiscoveryResult;
+  links?: { href: string; text: string }[];
   errors: string[];
   crawledAt: string;
 }
