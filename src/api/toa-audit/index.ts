@@ -5,7 +5,8 @@
 import type { Env } from '../../types';
 import { success, errors, generateRequestId } from '../../utils/response';
 import { checkRateLimit } from '../../middleware/rate-limit';
-import { crawlUrl, normalizeUrl } from '../../services/toa-audit/crawler';
+import { crawlUrl, normalizeUrl, setSelfHandler } from '../../services/toa-audit/crawler';
+import { handleRequest } from '../../router';
 import {
   evaluateChecks,
   calculateScores,
@@ -95,7 +96,8 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
       "SELECT id, auto_results, scores, grade, has_blocker, summary, top_actions, duration_ms, created_at, completed_at FROM toa_audits WHERE url = ? AND status = 'completed' AND created_at > datetime('now', '-1 hour') ORDER BY created_at DESC LIMIT 1"
     ).bind(normalizedUrl).first<any>();
 
-    if (cached) {
+    if (cached && !['F', 'D'].includes(cached.grade)) {
+      // Skip cached F/D-grade results (likely from self-fetch 522 errors)
       const scores = JSON.parse(cached.scores);
       const autoResults = JSON.parse(cached.auto_results);
       const topActions = JSON.parse(cached.top_actions || '[]');
@@ -123,9 +125,24 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
     console.error('Cache check failed:', e);
   }
 
+  // Check for existing result to update (preserves permalink across re-diagnoses)
+  let existingId: string | null = null;
+  try {
+    const existing = await env.DB.prepare(
+      "SELECT id FROM toa_audits WHERE url = ? AND status = 'completed' AND expires_at > datetime('now') ORDER BY created_at DESC LIMIT 1"
+    ).bind(normalizedUrl).first<{ id: string }>();
+    if (existing) existingId = existing.id;
+  } catch { /* ignore */ }
+
   // Run crawl + scoring
   const startTime = Date.now();
-  const auditId = generateAuditId();
+  const auditId = existingId || generateAuditId();
+
+  // Set up self-handler so the crawler can fetch our own pages internally
+  const selfOrigin = new URL(request.url).origin;
+  setSelfHandler(selfOrigin, async (req: Request) => {
+    return handleRequest(req, env);
+  });
 
   try {
     const crawlData = await crawlUrl(url);
@@ -136,24 +153,41 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
     const manualChecks = getManualChecks(siteType);
     const durationMs = Date.now() - startTime;
 
-    // Save to D1
+    // Save to D1 — UPDATE existing record or INSERT new one
     try {
-      await env.DB.prepare(
-        `INSERT INTO toa_audits (id, url, site_type, status, auto_results, scores, grade, has_blocker, summary, top_actions, duration_ms, ip_hash, completed_at, expires_at)
-         VALUES (?, ?, ?, 'completed', ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now', '+30 days'))`
-      ).bind(
-        auditId,
-        normalizedUrl,
-        siteType,
-        JSON.stringify(autoResults),
-        JSON.stringify(scores),
-        scores.grade,
-        scores.hasBlockerUnchecked ? 1 : 0,
-        summary,
-        JSON.stringify(topActions),
-        durationMs,
-        await hashIp(ip),
-      ).run();
+      if (existingId) {
+        await env.DB.prepare(
+          `UPDATE toa_audits SET site_type = ?, auto_results = ?, scores = ?, grade = ?, has_blocker = ?, summary = ?, top_actions = ?, duration_ms = ?, ip_hash = ?, completed_at = datetime('now'), expires_at = datetime('now', '+30 days') WHERE id = ?`
+        ).bind(
+          siteType,
+          JSON.stringify(autoResults),
+          JSON.stringify(scores),
+          scores.grade,
+          scores.hasBlockerUnchecked ? 1 : 0,
+          summary,
+          JSON.stringify(topActions),
+          durationMs,
+          await hashIp(ip),
+          existingId,
+        ).run();
+      } else {
+        await env.DB.prepare(
+          `INSERT INTO toa_audits (id, url, site_type, status, auto_results, scores, grade, has_blocker, summary, top_actions, duration_ms, ip_hash, completed_at, expires_at)
+           VALUES (?, ?, ?, 'completed', ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now', '+30 days'))`
+        ).bind(
+          auditId,
+          normalizedUrl,
+          siteType,
+          JSON.stringify(autoResults),
+          JSON.stringify(scores),
+          scores.grade,
+          scores.hasBlockerUnchecked ? 1 : 0,
+          summary,
+          JSON.stringify(topActions),
+          durationMs,
+          await hashIp(ip),
+        ).run();
+      }
     } catch (e) {
       console.error('Failed to save audit:', e);
       // Non-fatal: return results even if save fails
@@ -187,10 +221,17 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
 
     // Save failure (with sanitized message only)
     try {
-      await env.DB.prepare(
-        `INSERT INTO toa_audits (id, url, site_type, status, error_message, duration_ms, ip_hash)
-         VALUES (?, ?, ?, 'failed', ?, ?, ?)`
-      ).bind(auditId, normalizedUrl, siteType, safeMsg, Date.now() - startTime, await hashIp(ip)).run();
+      if (existingId) {
+        // Update existing record to failed status
+        await env.DB.prepare(
+          `UPDATE toa_audits SET status = 'failed', error_message = ?, duration_ms = ?, ip_hash = ? WHERE id = ?`
+        ).bind(safeMsg, Date.now() - startTime, await hashIp(ip), existingId).run();
+      } else {
+        await env.DB.prepare(
+          `INSERT INTO toa_audits (id, url, site_type, status, error_message, duration_ms, ip_hash)
+           VALUES (?, ?, ?, 'failed', ?, ?, ?)`
+        ).bind(auditId, normalizedUrl, siteType, safeMsg, Date.now() - startTime, await hashIp(ip)).run();
+      }
     } catch { /* ignore */ }
 
     return errors.internalError(requestId);

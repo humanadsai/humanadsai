@@ -49,6 +49,10 @@ export interface SchemaResult {
   hasSoftwareApp: boolean;
   hasArticle: boolean;
   rawBlocks: unknown[];
+  hasDateModified: boolean;
+  hasAuthor: boolean;
+  authorName: string;
+  hasPrice: boolean;
 }
 
 export interface HeadingInfo {
@@ -120,6 +124,13 @@ export interface PathDiscoveryResult {
   swaggerPath: boolean;
   developerPath: boolean;
   wellKnownAiPlugin: boolean;
+  openapiPath: boolean;
+}
+
+/** CAPTCHA and cookie wall detection from HTML */
+export interface FrictionDetection {
+  captchaProviders: string[];
+  cookieWallProviders: string[];
 }
 
 /** Raw crawl data from all fetches */
@@ -138,9 +149,11 @@ export interface CrawlData {
   content: ContentResult;
   http: HttpResult;
   paths: PathDiscoveryResult;
+  friction: FrictionDetection;
   links?: { href: string; text: string }[];
   errors: string[];
   crawledAt: string;
+  isSelfOrigin: boolean;
 }
 
 /** Check result severity */

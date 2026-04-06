@@ -1,6 +1,6 @@
 // ============================================
 // toA Audit — Scoring Engine
-// 25 auto checks + 23 manual checks + dual scoring
+// 32 auto checks + 16 manual checks + dual scoring
 // ============================================
 
 import type {
@@ -27,7 +27,7 @@ const SEVERITY_WEIGHTS: Record<Severity, number> = {
 };
 
 // ============================================
-// Auto Check Definitions (25 items)
+// Auto Check Definitions (32 items)
 // ============================================
 
 interface CheckDef {
@@ -454,10 +454,169 @@ const AUTO_CHECKS: CheckDef[] = [
       return { status: 'fail', details: 'No API/docs endpoints found at standard paths', detailsJa: '標準パスにAPI/docsエンドポイント未検出', recommendation: 'Expose API documentation at /docs or /api', recommendationJa: '/docsまたは/apiにAPIドキュメントを公開' };
     },
   },
+
+  // ========== Auto-detected (formerly manual) ==========
+  {
+    id: 'auto-no-captcha',
+    category: 'Friction',
+    name: 'No CAPTCHA on critical paths',
+    nameJa: '主要導線にCAPTCHAなし',
+    layer: 'actionability',
+    severity: 'blocker',
+    applicableSiteTypes: ['all'],
+    evaluate: (d) => {
+      if (d.friction.captchaProviders.length === 0) {
+        return { status: 'pass', details: 'No CAPTCHA scripts detected', detailsJa: 'CAPTCHAスクリプト未検出' };
+      }
+      return {
+        status: 'fail',
+        details: `CAPTCHA detected: ${d.friction.captchaProviders.join(', ')}`,
+        detailsJa: `CAPTCHA検出: ${d.friction.captchaProviders.join(', ')}`,
+        recommendation: 'Provide CAPTCHA-free paths for programmatic access (API key / token auth)',
+        recommendationJa: 'プログラマティックアクセス用のCAPTCHA不要パスを提供（APIキー/トークン認証）',
+      };
+    },
+  },
+  {
+    id: 'auto-no-cookie-wall',
+    category: 'Friction',
+    name: 'No cookie consent wall blocking content',
+    nameJa: 'Cookie同意ウォールがコンテンツを遮断しない',
+    layer: 'actionability',
+    severity: 'important',
+    applicableSiteTypes: ['all'],
+    evaluate: (d) => {
+      if (d.friction.cookieWallProviders.length === 0) {
+        return { status: 'pass', details: 'No cookie consent manager detected', detailsJa: 'Cookie同意マネージャー未検出' };
+      }
+      return {
+        status: 'warn',
+        details: `Cookie consent manager detected: ${d.friction.cookieWallProviders.join(', ')} — may block AI agents`,
+        detailsJa: `Cookie同意マネージャー検出: ${d.friction.cookieWallProviders.join(', ')} — AIエージェントをブロックする可能性`,
+        recommendation: 'Ensure cookie wall does not block content for bot user-agents',
+        recommendationJa: 'ボットUser-Agentに対してCookieウォールがコンテンツを遮断しないようにする',
+      };
+    },
+  },
+  {
+    id: 'auto-openapi',
+    category: 'API Integration',
+    name: 'OpenAPI/Swagger spec available',
+    nameJa: 'OpenAPI/Swagger仕様が利用可能',
+    layer: 'actionability',
+    severity: 'important',
+    applicableSiteTypes: ['saas', 'api_product'],
+    evaluate: (d) => {
+      const found = [
+        d.paths.openapiPath && '/openapi.json',
+        d.paths.swaggerPath && '/swagger',
+      ].filter(Boolean);
+      if (found.length > 0) {
+        return { status: 'pass', details: `OpenAPI spec found: ${found.join(', ')}`, detailsJa: `OpenAPI仕様検出: ${found.join(', ')}` };
+      }
+      return {
+        status: 'fail',
+        details: 'No OpenAPI/Swagger spec found at standard paths',
+        detailsJa: '標準パスにOpenAPI/Swagger仕様未検出',
+        recommendation: 'Publish OpenAPI spec at /openapi.json or /swagger',
+        recommendationJa: '/openapi.jsonまたは/swaggerにOpenAPI仕様を公開',
+      };
+    },
+  },
+  {
+    id: 'auto-content-freshness',
+    category: 'Provenance',
+    name: 'Content freshness signals (dateModified)',
+    nameJa: 'コンテンツ鮮度シグナル(dateModified)',
+    layer: 'comprehension',
+    severity: 'nice_to_have',
+    applicableSiteTypes: ['all'],
+    evaluate: (d) => {
+      if (d.schema.hasDateModified) {
+        return { status: 'pass', details: 'dateModified found in structured data', detailsJa: '構造化データにdateModified検出' };
+      }
+      return {
+        status: 'fail',
+        details: 'No dateModified in structured data',
+        detailsJa: '構造化データにdateModifiedなし',
+        recommendation: 'Add dateModified to your JSON-LD schema (Article, WebPage, etc.)',
+        recommendationJa: 'JSON-LDスキーマにdateModifiedを追加（Article, WebPage等）',
+      };
+    },
+  },
+  {
+    id: 'auto-author-byline',
+    category: 'Provenance',
+    name: 'Author byline with credentials',
+    nameJa: '資格付きの著者情報',
+    layer: 'comprehension',
+    severity: 'nice_to_have',
+    applicableSiteTypes: ['media', 'docs'],
+    evaluate: (d) => {
+      if (d.schema.hasAuthor) {
+        return { status: 'pass', details: `Author found: ${d.schema.authorName || '(structured data)'}`, detailsJa: `著者情報検出: ${d.schema.authorName || '(構造化データ)'}` };
+      }
+      return {
+        status: 'fail',
+        details: 'No author information in structured data',
+        detailsJa: '構造化データに著者情報なし',
+        recommendation: 'Add author with name and credentials to your JSON-LD schema',
+        recommendationJa: 'JSON-LDスキーマに著者名・資格情報を追加',
+      };
+    },
+  },
+  {
+    id: 'auto-machine-readable-price',
+    category: 'Economics',
+    name: 'Pricing is machine-readable (structured data)',
+    nameJa: '価格が機械可読(構造化データ)',
+    layer: 'economics',
+    severity: 'important',
+    applicableSiteTypes: ['saas', 'ec', 'marketplace'],
+    evaluate: (d) => {
+      if (d.schema.hasPrice) {
+        return { status: 'pass', details: 'Price found in Product/Offer structured data', detailsJa: 'Product/Offer構造化データに価格検出' };
+      }
+      if (d.schema.hasProduct) {
+        return { status: 'warn', details: 'Product schema found but no price data', detailsJa: 'Productスキーマあり但し価格データなし', recommendation: 'Add price/offers to Product schema', recommendationJa: 'Productスキーマにprice/offersを追加' };
+      }
+      return {
+        status: 'fail',
+        details: 'No machine-readable pricing in structured data',
+        detailsJa: '構造化データに機械可読な価格なし',
+        recommendation: 'Add Product/Offer schema with price to your pages',
+        recommendationJa: 'ページにProduct/Offerスキーマ（価格付き）を追加',
+      };
+    },
+  },
+  {
+    id: 'auto-rate-limit-header',
+    category: 'Reliability',
+    name: 'Rate limit info in response headers',
+    nameJa: 'レスポンスヘッダーにレート制限情報',
+    layer: 'actionability',
+    severity: 'nice_to_have',
+    applicableSiteTypes: ['saas', 'api_product'],
+    evaluate: (d) => {
+      const rateLimitHeaders = Object.keys(d.http.headers).filter(k =>
+        k.startsWith('x-ratelimit') || k.startsWith('ratelimit') || k === 'retry-after'
+      );
+      if (rateLimitHeaders.length > 0) {
+        return { status: 'pass', details: `Rate limit headers: ${rateLimitHeaders.join(', ')}`, detailsJa: `レート制限ヘッダー検出: ${rateLimitHeaders.join(', ')}` };
+      }
+      return {
+        status: 'fail',
+        details: 'No rate limit headers in response',
+        detailsJa: 'レスポンスにレート制限ヘッダーなし',
+        recommendation: 'Add X-RateLimit-Limit/Remaining/Reset headers to API responses',
+        recommendationJa: 'APIレスポンスにX-RateLimit-Limit/Remaining/Resetヘッダーを追加',
+      };
+    },
+  },
 ];
 
 // ============================================
-// Manual Check Definitions (23 items)
+// Manual Check Definitions (16 items — 7 moved to auto)
 // ============================================
 
 export const MANUAL_CHECKS: ManualCheckDef[] = [
@@ -466,23 +625,21 @@ export const MANUAL_CHECKS: ManualCheckDef[] = [
   { id: 'manual-api-key', category: 'Agent Authentication', name: 'API key self-service provisioning', nameJa: 'APIキーのセルフサービス発行', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product'] },
   { id: 'manual-machine-signup', category: 'Agent Authentication', name: 'Signup flow works without CAPTCHA', nameJa: 'CAPTCHA無しのサインアップ', layer: 'actionability', severity: 'blocker', applicableSiteTypes: ['saas', 'ec', 'marketplace'] },
 
-  // CAPTCHA / Cookie Wall
-  { id: 'manual-no-captcha', category: 'Friction', name: 'No CAPTCHA on critical paths', nameJa: '主要導線にCAPTCHAなし', layer: 'actionability', severity: 'blocker', applicableSiteTypes: ['all'] },
-  { id: 'manual-no-cookie-wall', category: 'Friction', name: 'No cookie consent wall blocking content', nameJa: 'Cookie同意ウォールがコンテンツを遮断しない', layer: 'actionability', severity: 'important', applicableSiteTypes: ['all'] },
+  // CAPTCHA / Cookie Wall → moved to auto (auto-no-captcha, auto-no-cookie-wall)
 
   // API / MCP / WebMCP
   { id: 'manual-rest-api', category: 'API Integration', name: 'REST/GraphQL API available', nameJa: 'REST/GraphQL APIが利用可能', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product', 'marketplace'] },
   { id: 'manual-mcp-server', category: 'API Integration', name: 'MCP server published', nameJa: 'MCPサーバーを公開している', layer: 'actionability', severity: 'experimental', applicableSiteTypes: ['saas', 'api_product'] },
   { id: 'manual-webmcp', category: 'API Integration', name: 'WebMCP form annotations present', nameJa: 'WebMCPフォームアノテーションあり', layer: 'actionability', severity: 'experimental', applicableSiteTypes: ['all'] },
-  { id: 'manual-openapi', category: 'API Integration', name: 'OpenAPI/Swagger spec available', nameJa: 'OpenAPI/Swagger仕様が利用可能', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product'] },
+  // manual-openapi → moved to auto (auto-openapi)
 
   // State & Reliability
   { id: 'manual-idempotent', category: 'Reliability', name: 'API operations are idempotent', nameJa: 'API操作がべき等', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product', 'marketplace'] },
   { id: 'manual-retry', category: 'Reliability', name: 'Retry-safe with clear error codes', nameJa: '明確なエラーコードでリトライ安全', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product'] },
-  { id: 'manual-rate-limit-header', category: 'Reliability', name: 'Rate limit info in response headers', nameJa: 'レスポンスヘッダーにレート制限情報', layer: 'actionability', severity: 'nice_to_have', applicableSiteTypes: ['saas', 'api_product'] },
+  // manual-rate-limit-header → moved to auto (auto-rate-limit-header)
 
   // Pricing / Economics
-  { id: 'manual-machine-readable-price', category: 'Economics', name: 'Pricing is machine-readable (structured data or API)', nameJa: '価格が機械可読(構造化データまたはAPI)', layer: 'economics', severity: 'important', applicableSiteTypes: ['saas', 'ec', 'marketplace'] },
+  // manual-machine-readable-price → moved to auto (auto-machine-readable-price)
   { id: 'manual-payment-api', category: 'Economics', name: 'Programmatic payment/checkout possible', nameJa: 'プログラマティックな決済/チェックアウトが可能', layer: 'economics', severity: 'important', applicableSiteTypes: ['ec', 'marketplace', 'saas'] },
   { id: 'manual-trial-no-cc', category: 'Economics', name: 'Free trial without credit card', nameJa: 'クレジットカード不要の無料トライアル', layer: 'economics', severity: 'nice_to_have', applicableSiteTypes: ['saas'] },
 
@@ -497,15 +654,30 @@ export const MANUAL_CHECKS: ManualCheckDef[] = [
 
   // Provenance
   { id: 'manual-original-research', category: 'Provenance', name: 'Original research/data published', nameJa: 'オリジナルリサーチ/データの公開', layer: 'comprehension', severity: 'nice_to_have', applicableSiteTypes: ['all'] },
-  { id: 'manual-author-byline', category: 'Provenance', name: 'Author byline with credentials', nameJa: '資格付きの著者情報', layer: 'comprehension', severity: 'nice_to_have', applicableSiteTypes: ['media', 'docs'] },
-  { id: 'manual-content-freshness', category: 'Provenance', name: 'Content freshness signals (dateModified)', nameJa: 'コンテンツ鮮度シグナル(dateModified)', layer: 'comprehension', severity: 'nice_to_have', applicableSiteTypes: ['all'] },
+  // manual-author-byline, manual-content-freshness → moved to auto
 ];
 
 // ============================================
 // Scoring Engine
 // ============================================
 
+// Checks that depend on main page HTML content (fail unreliably on self-origin)
+const HTML_DEPENDENT_CHECKS = new Set([
+  'llms-txt', 'sitemap-xml',
+  'schema-org', 'schema-sameas', 'schema-faq-howto', 'schema-product',
+  'semantic-html', 'heading-hierarchy', 'text-script-ratio',
+  'ogp', 'alt-text', 'meta-title', 'meta-description',
+  'canonical', 'hreflang', 'http-status',
+  'about-page', 'pricing-page',
+  'auto-no-captcha', 'auto-no-cookie-wall',
+  'auto-content-freshness', 'auto-author-byline', 'auto-machine-readable-price',
+]);
+
 export function evaluateChecks(data: CrawlData, siteType: SiteType = 'all'): AutoCheckResult[] {
+  // Detect if HTML fetch failed on self-origin (Worker can't fetch itself)
+  const htmlUnavailable = data.isSelfOrigin && data.http.statusCode >= 400;
+  console.log(`[toA] selfOrigin=${data.isSelfOrigin} httpCode=${data.http.statusCode} htmlUnavail=${htmlUnavailable}`);
+
   return AUTO_CHECKS.map(check => {
     // Check site type applicability
     const applicable = check.applicableSiteTypes.includes('all') || check.applicableSiteTypes.includes(siteType);
@@ -515,6 +687,17 @@ export function evaluateChecks(data: CrawlData, siteType: SiteType = 'all'): Aut
         status: 'info' as CheckStatus,
         details: 'Not applicable for this site type',
         detailsJa: 'このサイト種別には該当しない',
+        weight: 0,
+      };
+    }
+
+    // Self-origin: HTML-dependent checks can't be evaluated
+    if (htmlUnavailable && HTML_DEPENDENT_CHECKS.has(check.id)) {
+      return {
+        ...check,
+        status: 'info' as CheckStatus,
+        details: 'Skipped: self-origin HTML analysis not available (use external browser test)',
+        detailsJa: '自サイト診断のためHTMLの解析をスキップしました（外部ブラウザで確認してください）',
         weight: 0,
       };
     }

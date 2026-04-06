@@ -19,6 +19,7 @@ import type {
   ContentResult,
   HttpResult,
   PathDiscoveryResult,
+  FrictionDetection,
 } from './types';
 
 const USER_AGENT = 'toA-Auditor/1.0 (+https://humanadsai.com/toa-audit)';
@@ -278,6 +279,7 @@ export interface HtmlAnalysis {
   images: ImageResult;
   content: ContentResult;
   links: { href: string; text: string }[];
+  friction: FrictionDetection;
 }
 
 export async function analyzeHtml(response: Response, pageUrl: string): Promise<HtmlAnalysis> {
@@ -285,7 +287,9 @@ export async function analyzeHtml(response: Response, pageUrl: string): Promise<
     found: false, types: [], hasOrganization: false, hasSameAs: false,
     sameAsUrls: [], hasFaq: false, hasProduct: false, hasHowTo: false,
     hasSoftwareApp: false, hasArticle: false, rawBlocks: [],
+    hasDateModified: false, hasAuthor: false, authorName: '', hasPrice: false,
   };
+  const friction: FrictionDetection = { captchaProviders: [], cookieWallProviders: [] };
   const semantic: SemanticHtmlResult = { main: 0, article: 0, section: 0, nav: 0, header: 0, footer: 0, aside: 0 };
   const headings: HeadingInfo[] = [];
   const ogp: OgpResult = { title: false, description: false, image: false, url: false, type: false, twitterCard: false };
@@ -387,8 +391,40 @@ export async function analyzeHtml(response: Response, pageUrl: string): Promise<
         }
       },
     })
-    // Script size
+    // Script size + CAPTCHA/cookie wall detection
     .on('script:not([type="application/ld+json"])', {
+      element(el) {
+        const src = (el.getAttribute('src') || '').toLowerCase();
+        // CAPTCHA detection
+        if (src.includes('recaptcha') || src.includes('google.com/recaptcha')) {
+          if (!friction.captchaProviders.includes('reCAPTCHA')) friction.captchaProviders.push('reCAPTCHA');
+        }
+        if (src.includes('hcaptcha.com')) {
+          if (!friction.captchaProviders.includes('hCaptcha')) friction.captchaProviders.push('hCaptcha');
+        }
+        if (src.includes('challenges.cloudflare.com') || src.includes('turnstile')) {
+          if (!friction.captchaProviders.includes('Turnstile')) friction.captchaProviders.push('Turnstile');
+        }
+        // Cookie consent manager detection
+        if (src.includes('cookiebot') || src.includes('consent.cookiebot.com')) {
+          if (!friction.cookieWallProviders.includes('Cookiebot')) friction.cookieWallProviders.push('Cookiebot');
+        }
+        if (src.includes('onetrust') || src.includes('cookielaw.org') || src.includes('optanon')) {
+          if (!friction.cookieWallProviders.includes('OneTrust')) friction.cookieWallProviders.push('OneTrust');
+        }
+        if (src.includes('cookieconsent') || src.includes('cookie-consent')) {
+          if (!friction.cookieWallProviders.includes('CookieConsent')) friction.cookieWallProviders.push('CookieConsent');
+        }
+        if (src.includes('cookieyes') || src.includes('cookie-script')) {
+          if (!friction.cookieWallProviders.includes('CookieYes')) friction.cookieWallProviders.push('CookieYes');
+        }
+        if (src.includes('iubenda')) {
+          if (!friction.cookieWallProviders.includes('iubenda')) friction.cookieWallProviders.push('iubenda');
+        }
+        if (src.includes('termly.io')) {
+          if (!friction.cookieWallProviders.includes('Termly')) friction.cookieWallProviders.push('Termly');
+        }
+      },
       text(text) {
         scriptSize += text.text.length;
       },
@@ -485,7 +521,7 @@ export async function analyzeHtml(response: Response, pageUrl: string): Promise<
     hasPricingLink,
   };
 
-  return { schema, semantic, headings, ogp, meta, images, content: contentResult, links };
+  return { schema, semantic, headings, ogp, meta, images, content: contentResult, links, friction };
 }
 
 function processSchemaItem(item: any, schema: SchemaResult): void {
@@ -511,6 +547,32 @@ function processSchemaItem(item: any, schema: SchemaResult): void {
       }
     }
   }
+  // dateModified detection
+  if (item.dateModified) {
+    schema.hasDateModified = true;
+  }
+  // Author detection
+  if (item.author) {
+    schema.hasAuthor = true;
+    const author = Array.isArray(item.author) ? item.author[0] : item.author;
+    if (typeof author === 'string' && !schema.authorName) {
+      schema.authorName = author;
+    } else if (author?.name && !schema.authorName) {
+      schema.authorName = author.name;
+    }
+  }
+  // Price detection (Product/Offer)
+  if (item.offers) {
+    const offers = Array.isArray(item.offers) ? item.offers : [item.offers];
+    for (const offer of offers) {
+      if (offer.price || offer.lowPrice || offer.highPrice) {
+        schema.hasPrice = true;
+      }
+    }
+  }
+  if (item.price || item.lowPrice) {
+    schema.hasPrice = true;
+  }
   // Limit rawBlocks to prevent oversized responses
   if (schema.rawBlocks.length < 5) {
     schema.rawBlocks.push(item);
@@ -528,6 +590,7 @@ async function discoverPaths(origin: string): Promise<PathDiscoveryResult> {
     { path: '/swagger', key: 'swaggerPath' as const },
     { path: '/developer', key: 'developerPath' as const },
     { path: '/.well-known/ai-plugin.json', key: 'wellKnownAiPlugin' as const },
+    { path: '/openapi.json', key: 'openapiPath' as const },
   ];
 
   const result: PathDiscoveryResult = {
@@ -536,12 +599,15 @@ async function discoverPaths(origin: string): Promise<PathDiscoveryResult> {
     swaggerPath: false,
     developerPath: false,
     wellKnownAiPlugin: false,
+    openapiPath: false,
   };
 
   const results = await Promise.allSettled(
     paths.map(async ({ path, key }) => {
       try {
-        const resp = await safeFetch(origin + path, { method: 'HEAD' });
+        const resp = isSelfOrigin(origin) && _selfHandler
+          ? await selfFetch(origin + path)
+          : await safeFetch(origin + path, { method: 'HEAD' });
         if (resp.status >= 200 && resp.status < 400) {
           result[key] = true;
         }
@@ -607,19 +673,60 @@ async function safeFetchTextWithRetry(url: string): Promise<{ text: string; stat
 // Fallback to workers.dev subdomain which avoids the loop.
 // ============================================
 
-const SELF_ORIGINS = ['https://humanadsai.com', 'https://www.humanadsai.com'];
-const WORKERS_DEV_ORIGIN = 'https://humanadsai.humanadsai.workers.dev';
+// ============================================
+// Self-origin handling
+// CF Workers can't fetch their own domain (522).
+// When a selfHandler is provided, use it instead of network fetch.
+// ============================================
 
-function resolveOrigin(origin: string): string {
-  if (SELF_ORIGINS.includes(origin)) return WORKERS_DEV_ORIGIN;
-  return origin;
+const SELF_ORIGINS = ['https://humanadsai.com', 'https://www.humanadsai.com'];
+
+type SelfHandler = (request: Request) => Promise<Response>;
+let _selfHandler: SelfHandler | null = null;
+let _selfOrigin: string | null = null;
+
+export function setSelfHandler(origin: string, handler: SelfHandler): void {
+  _selfOrigin = origin;
+  _selfHandler = handler;
 }
 
-function resolveUrl(url: string, originalOrigin: string): string {
-  if (SELF_ORIGINS.includes(originalOrigin)) {
-    return url.replace(originalOrigin, WORKERS_DEV_ORIGIN);
+function isSelfOrigin(origin: string): boolean {
+  return SELF_ORIGINS.includes(origin) || origin === _selfOrigin;
+}
+
+async function selfFetch(url: string): Promise<Response> {
+  if (_selfHandler) {
+    return _selfHandler(new Request(url, { headers: { 'User-Agent': USER_AGENT } }));
   }
-  return url;
+  throw new Error('Self-fetch not available');
+}
+
+async function smartFetch(url: string, origin: string, options?: RequestInit & { followRedirects?: boolean }): Promise<Response> {
+  if (isSelfOrigin(origin) && _selfHandler) {
+    const resp = await selfFetch(url);
+    // selfHandler returns data for routes handled by the Worker (robots.txt, APIs, etc.)
+    // but returns 404 JSON for static HTML (env.ASSETS unavailable)
+    // In that case, return a minimal valid response rather than the 404
+    if (resp.status >= 400) {
+      // For HTML pages, try to at least return what we can
+      return resp;
+    }
+    return resp;
+  }
+  return safeFetchWithRetry(url, options);
+}
+
+async function smartFetchText(url: string, origin: string): Promise<{ text: string; status: number }> {
+  if (isSelfOrigin(origin) && _selfHandler) {
+    try {
+      const resp = await selfFetch(url);
+      const text = await resp.text();
+      return { text: text.slice(0, MAX_BODY_SIZE), status: resp.status };
+    } catch {
+      return { text: '', status: 0 };
+    }
+  }
+  return safeFetchTextWithRetry(url);
 }
 
 // ============================================
@@ -629,18 +736,16 @@ function resolveUrl(url: string, originalOrigin: string): string {
 export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
   const normalizedUrl = normalizeUrl(inputUrl);
   const origin = getOrigin(normalizedUrl);
-  const fetchOrigin = resolveOrigin(origin);
-  const fetchUrl = resolveUrl(normalizedUrl, origin);
   const errors: string[] = [];
 
-  // Parallel fetches (use fetchOrigin/fetchUrl for self-origin fallback)
+  // Parallel fetches (smartFetch handles self-origin internally)
   const [robotsRaw, llmsRaw, sitemapRaw, mainPageResp, httpResult, pathsResult] = await Promise.allSettled([
-    safeFetchTextWithRetry(fetchOrigin + '/robots.txt'),
-    safeFetchTextWithRetry(fetchOrigin + '/llms.txt'),
-    safeFetchTextWithRetry(fetchOrigin + '/sitemap.xml'),
+    smartFetchText(origin + '/robots.txt', origin),
+    smartFetchText(origin + '/llms.txt', origin),
+    smartFetchText(origin + '/sitemap.xml', origin),
     (async () => {
       const start = Date.now();
-      const resp = await safeFetchWithRetry(fetchUrl);
+      const resp = await smartFetch(normalizedUrl, origin);
       const ttfb = Date.now() - start;
       // Check Content-Length before consuming body (DoS prevention)
       const contentLength = parseInt(resp.headers.get('content-length') || '0', 10);
@@ -652,10 +757,12 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
     // HTTP check — count redirects using manual mode
     (async () => {
       let redirectCount = 0;
-      let currentUrl = fetchUrl;
+      let currentUrl = normalizedUrl;
       const start = Date.now();
       for (let i = 0; i < MAX_REDIRECTS; i++) {
-        const resp = await safeFetchWithRetry(currentUrl, { followRedirects: false }, 1);
+        const resp = isSelfOrigin(origin) && _selfHandler
+          ? await selfFetch(currentUrl)
+          : await safeFetchWithRetry(currentUrl, { followRedirects: false }, 1);
         if (resp.status >= 300 && resp.status < 400) {
           redirectCount++;
           const loc = resp.headers.get('location');
@@ -666,7 +773,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
         } else {
           // Only expose security-relevant headers (not full header dump)
           const safeHeaders: Record<string, string> = {};
-          for (const key of ['x-robots-tag', 'content-type', 'strict-transport-security', 'content-security-policy', 'x-frame-options', 'x-content-type-options']) {
+          for (const key of ['x-robots-tag', 'content-type', 'strict-transport-security', 'content-security-policy', 'x-frame-options', 'x-content-type-options', 'x-ratelimit-limit', 'x-ratelimit-remaining', 'x-ratelimit-reset', 'ratelimit-limit', 'ratelimit-remaining', 'ratelimit-reset', 'retry-after']) {
             const val = resp.headers.get(key);
             if (val) safeHeaders[key] = val;
           }
@@ -687,7 +794,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
         headers: {},
       } as HttpResult;
     })(),
-    discoverPaths(fetchOrigin),
+    discoverPaths(origin),
   ]);
 
   // Parse robots.txt
@@ -731,7 +838,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
   } else {
     errors.push('Failed to fetch main page: ' + (mainPageResp.reason?.message || 'unknown'));
     htmlAnalysis = {
-      schema: { found: false, types: [], hasOrganization: false, hasSameAs: false, sameAsUrls: [], hasFaq: false, hasProduct: false, hasHowTo: false, hasSoftwareApp: false, hasArticle: false, rawBlocks: [] },
+      schema: { found: false, types: [], hasOrganization: false, hasSameAs: false, sameAsUrls: [], hasFaq: false, hasProduct: false, hasHowTo: false, hasSoftwareApp: false, hasArticle: false, rawBlocks: [], hasDateModified: false, hasAuthor: false, authorName: '', hasPrice: false },
       semantic: { main: 0, article: 0, section: 0, nav: 0, header: 0, footer: 0, aside: 0 },
       headings: [],
       ogp: { title: false, description: false, image: false, url: false, type: false, twitterCard: false },
@@ -739,6 +846,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
       images: { total: 0, withAlt: 0, withoutAlt: 0, altCoverage: 0 },
       content: { htmlSize: 0, scriptSize: 0, textRatio: 0, wordCount: 0, hasAboutLink: false, hasPricingLink: false },
       links: [],
+      friction: { captchaProviders: [], cookieWallProviders: [] },
     };
     http = httpResult.status === 'fulfilled' ? httpResult.value : {
       statusCode: 0, redirectChain: 0, isHttps: true, ttfbMs: 0, headers: {},
@@ -746,7 +854,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
   }
 
   const paths = pathsResult.status === 'fulfilled' ? pathsResult.value : {
-    apiPath: false, docsPath: false, swaggerPath: false, developerPath: false, wellKnownAiPlugin: false,
+    apiPath: false, docsPath: false, swaggerPath: false, developerPath: false, wellKnownAiPlugin: false, openapiPath: false,
   };
 
   return {
@@ -764,8 +872,10 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
     content: htmlAnalysis.content,
     http,
     paths,
+    friction: htmlAnalysis.friction,
     links: htmlAnalysis.links,
     errors,
     crawledAt: new Date().toISOString(),
+    isSelfOrigin: isSelfOrigin(origin),
   };
 }
