@@ -35,7 +35,8 @@ export default {
           path.startsWith('/api/admin/') ||
           path === '/api/payout-wallets' ||
           path === '/api/claim/verify' ||
-          path === '/api/email/unsubscribe';
+          path === '/api/email/unsubscribe' ||
+          path.startsWith('/api/diagnosis');
 
         if (needsCsrfCheck) {
           const origin = request.headers.get('Origin');
@@ -89,12 +90,12 @@ export default {
       // CSP はHTMLレスポンスにのみ適用
       const cspHeader = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://analytics.ahrefs.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://analytics.ahrefs.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://challenges.cloudflare.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com https://www.gstatic.com",
         "font-src 'self' https://fonts.gstatic.com",
         "img-src 'self' data: https://pbs.twimg.com https://*.twimg.com https://translate.google.com https://www.gstatic.com https://fonts.gstatic.com",
         "connect-src 'self' https://*.publicnode.com https://*.infura.io https://*.walletconnect.com wss://*.walletconnect.com https://translate.googleapis.com https://translate-pa.googleapis.com",
-        "frame-src 'self' https://translate.google.com",
+        "frame-src 'self' https://translate.google.com https://challenges.cloudflare.com",
         "frame-ancestors 'none'",
         "form-action 'self'",
         "base-uri 'self'",
