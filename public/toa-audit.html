@@ -797,77 +797,42 @@
       const d = currentResults;
       const s = d.scores;
 
-      // Group failed/warn items by priority
-      const blockers = d.autoResults.filter(c => c.status === 'fail' && c.severity === 'blocker');
-      const importantFails = d.autoResults.filter(c => c.status === 'fail' && c.severity === 'important');
-      const warns = d.autoResults.filter(c => c.status === 'warn');
-      const passes = d.autoResults.filter(c => c.status === 'pass');
+      const allChecks = d.autoResults.filter(c => c.status !== 'info');
+      const fails = allChecks.filter(c => c.status === 'fail');
+      const warns = allChecks.filter(c => c.status === 'warn');
+      const passes = allChecks.filter(c => c.status === 'pass');
 
       let md = `# toA Audit 診断結果 — 改善依頼\n\n`;
       md += `## 対象サイト\n\n`;
       md += `- **URL:** ${d.url}\n`;
       md += `- **診断日:** ${d.completedAt}\n`;
-      md += `- **診断ID:** ${d.id}\n\n`;
+      md += `- **診断ID:** ${d.id}\n`;
+      md += `- **診断項目数:** ${allChecks.length}項目（FAIL: ${fails.length} / WARN: ${warns.length} / PASS: ${passes.length}）\n\n`;
 
       md += `## スコア概要\n\n`;
       md += `| 指標 | スコア |\n|------|--------|\n`;
       md += `| **総合グレード** | **${s.grade}** (${s.overall}%) |\n`;
       md += `| AI検索スコア | ${s.searchScore}% |\n`;
-      md += `| toA対応度スコア | ${s.toaScore}% |\n`;
+      md += `| AIエージェント対応度 | ${s.toaScore}% |\n`;
       md += `| ├ 発見率 (Discovery) | ${s.ai_discovery}% |\n`;
       md += `| ├ 理解度 (Comprehension) | ${s.ai_comprehension}% |\n`;
       md += `| ├ 取引 (Transaction) | ${s.agent_transaction}% |\n`;
-      md += `| └ インフラ (Infrastructure) | ${s.toa_infra}% |\n`;
-      md += `| Blocker未解決 | ${s.hasBlockerUnchecked ? 'あり' : 'なし'} |\n\n`;
+      md += `| └ インフラ (Infrastructure) | ${s.toa_infra}% |\n\n`;
 
       md += `## AI評価コメント\n\n${d.summary}\n\n`;
 
-      // Blockers
-      if (blockers.length > 0) {
-        md += `## Blocker（最優先で修正）\n\n`;
-        for (const c of blockers) {
-          md += `### ${c.nameJa || c.name}\n\n`;
-          md += `- **ステータス:** FAIL\n`;
-          md += `- **重要度:** blocker\n`;
-          md += `- **カテゴリ:** ${c.category}\n`;
-          md += `- **レイヤー:** ${c.layer}\n`;
-          md += `- **検出内容:** ${c.detailsJa || c.details}\n`;
-          if (c.recommendationJa || c.recommendation) md += `- **推奨対応:** ${c.recommendationJa || c.recommendation}\n`;
+      // All checks grouped by category
+      md += `## 全診断結果（${allChecks.length}項目）\n\n`;
+      const catGroups = {};
+      for (const c of allChecks) { (catGroups[c.category] = catGroups[c.category] || []).push(c); }
+      for (const [cat, checks] of Object.entries(catGroups)) {
+        const catPasses = checks.filter(c => c.status === 'pass').length;
+        md += `### ${cat}（${catPasses}/${checks.length}）\n\n`;
+        for (const c of checks) {
+          const icon = c.status === 'pass' ? 'PASS' : c.status === 'fail' ? 'FAIL' : 'WARN';
+          md += `- **[${icon}]** ${c.nameJa || c.name} [${c.severity}] — ${c.detailsJa || c.details}`;
+          if (c.status !== 'pass' && (c.recommendationJa || c.recommendation)) md += `\n  - 推奨対応: ${c.recommendationJa || c.recommendation}`;
           md += `\n`;
-        }
-      }
-
-      // Important fails
-      if (importantFails.length > 0) {
-        md += `## Important（次に修正）\n\n`;
-        for (const c of importantFails) {
-          md += `### ${c.nameJa || c.name}\n\n`;
-          md += `- **ステータス:** FAIL\n`;
-          md += `- **重要度:** important\n`;
-          md += `- **カテゴリ:** ${c.category}\n`;
-          md += `- **レイヤー:** ${c.layer}\n`;
-          md += `- **検出内容:** ${c.detailsJa || c.details}\n`;
-          if (c.recommendationJa || c.recommendation) md += `- **推奨対応:** ${c.recommendationJa || c.recommendation}\n`;
-          md += `\n`;
-        }
-      }
-
-      // Warnings
-      if (warns.length > 0) {
-        md += `## Warning（改善推奨）\n\n`;
-        for (const c of warns) {
-          md += `- **${c.nameJa || c.name}** [${c.severity}] — ${c.detailsJa || c.details}`;
-          if (c.recommendationJa || c.recommendation) md += ` → ${c.recommendationJa || c.recommendation}`;
-          md += `\n`;
-        }
-        md += `\n`;
-      }
-
-      // Passes (compact)
-      if (passes.length > 0) {
-        md += `## Pass（問題なし: ${passes.length}項目）\n\n`;
-        for (const c of passes) {
-          md += `- ${c.nameJa || c.name} — ${c.detailsJa || c.details}\n`;
         }
         md += `\n`;
       }
@@ -889,11 +854,16 @@
 
       md += `---\n\n`;
       md += `## Claude Codeへの依頼テンプレート\n\n`;
-      md += `上記の診断結果に基づき、以下の改善を実施してください。\n\n`;
+      md += `上記の診断結果（${allChecks.length}項目）に基づき、以下の改善を実施してください。\n\n`;
       md += `**優先順位:**\n`;
-      if (blockers.length > 0) md += `1. Blockerの修正（${blockers.length}件）— グレードがB+以下にキャップされる原因\n`;
-      if (importantFails.length > 0) md += `${blockers.length > 0 ? '2' : '1'}. Important FAILの修正（${importantFails.length}件）\n`;
-      if (warns.length > 0) md += `${blockers.length + importantFails.length > 0 ? '3' : '1'}. Warningの改善（${warns.length}件）\n`;
+      const blockers = fails.filter(c => c.severity === 'blocker');
+      const importantFails = fails.filter(c => c.severity === 'important');
+      const otherFails = fails.filter(c => c.severity !== 'blocker' && c.severity !== 'important');
+      let priority = 1;
+      if (blockers.length > 0) md += `${priority++}. Blockerの修正（${blockers.length}件）— グレードがB+以下にキャップされる原因\n`;
+      if (importantFails.length > 0) md += `${priority++}. Important FAILの修正（${importantFails.length}件）\n`;
+      if (otherFails.length > 0) md += `${priority++}. その他のFAIL修正（${otherFails.length}件）\n`;
+      if (warns.length > 0) md += `${priority++}. Warningの改善（${warns.length}件）\n`;
       md += `\n**対象URL:** ${d.url}\n`;
       md += `**現在のグレード:** ${s.grade} → 目標: ${s.grade === 'F' ? 'C以上' : s.grade === 'D' ? 'B以上' : s.grade === 'C' ? 'B+以上' : 'A以上'}\n`;
       md += `\n各項目の「推奨対応」に従って修正を進めてください。\n`;
@@ -925,18 +895,19 @@
       if (!currentResults) return;
       const s = currentResults.scores;
       const g = s.grade;
-      const verdict = g.startsWith('A') ? '十分に対応できている。' :
-        g.startsWith('B') ? '概ね良好。あと少し。' :
-        g === 'C' ? '改善の余地がある。' : '基盤の整備から着手したい。';
-      const url = currentResults.url || '';
-      const domain = url.replace(/^https?:\/\//, '').replace(/\/.*/, '');
-      const text = `自社サイトが「AIエージェントに使われる準備」をどこまでできているか、調べてみた。\n\n` +
-        `${domain}\n` +
-        `総合 ${g}（${s.overall}%）\n` +
-        `AI検索 ${s.searchScore}% ／ エージェント対応 ${s.toaScore}%\n\n` +
-        `${verdict}\n\n` +
-        `AIに"引用される"時代から、"操作される"時代へ。\n30秒でわかる無料チェック:\nhttps://humanadsai.com/toa-audit`;
-      window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+      const verdict = g.startsWith("A") ? "十分に対応できている。" :
+        g.startsWith("B") ? "概ね良好。改善余地はわずか。" :
+        g === "C" ? "改善の余地がある。" : "基盤の整備から着手したい。";
+      const url = currentResults.url || "";
+      const domain = url.replace(/^https?:\/\//, "").replace(/\/.*/, "");
+      const text = "次の顧客は、人ではなくAIエージェントかもしれない。\n\n" +
+        "自社サイトが「認証・操作・決済」まで対応できているか調べてみた。\n\n" +
+        domain + "\n" +
+        "総合 " + g + "（" + s.overall + "%）\n" +
+        "AI検索 " + s.searchScore + "% ／ エージェント対応 " + s.toaScore + "%\n\n" +
+        verdict + "\n\n" +
+        "toA診断 ― 第三の市場への対応度チェック:\nhttps://humanadsai.com/toa-audit";
+      window.open("https://x.com/intent/tweet?text=" + encodeURIComponent(text), "_blank", "noopener,noreferrer");
     };
 
     // ============================================
