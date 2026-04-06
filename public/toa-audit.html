@@ -925,17 +925,17 @@
       if (!currentResults) return;
       const s = currentResults.scores;
       const g = s.grade;
-      const emoji = g.startsWith('A') ? '🏆' : g.startsWith('B') ? '✅' : g === 'C' ? '⚡' : '🔧';
-      const verdict = g.startsWith('A') ? 'AIエージェント対応 優秀！' :
-        g.startsWith('B') ? 'AIエージェント対応 良好' :
-        g === 'C' ? '改善の余地あり' : '基盤整備が必要';
+      const verdict = g.startsWith('A') ? '十分に対応できている。' :
+        g.startsWith('B') ? '概ね良好。あと少し。' :
+        g === 'C' ? '改善の余地がある。' : '基盤の整備から着手したい。';
       const url = currentResults.url || '';
       const domain = url.replace(/^https?:\/\//, '').replace(/\/.*/, '');
-      const text = `${emoji} うちのサイト、AIエージェントに"使って"もらえるか調べてみた\n\n` +
+      const text = `自社サイトが「AIエージェントに使われる準備」をどこまでできているか、調べてみた。\n\n` +
         `${domain}\n` +
-        `総合 ${g}（${s.overall}%）｜ AI検索 ${s.searchScore}% ｜ エージェント対応 ${s.toaScore}%\n\n` +
+        `総合 ${g}（${s.overall}%）\n` +
+        `AI検索 ${s.searchScore}% ／ エージェント対応 ${s.toaScore}%\n\n` +
         `${verdict}\n\n` +
-        `AIに"引用される"だけじゃなく"操作される"時代。\nURLを入れるだけ、30秒で分かる 👇\nhttps://humanadsai.com/toa-audit`;
+        `AIに"引用される"時代から、"操作される"時代へ。\n30秒でわかる無料チェック:\nhttps://humanadsai.com/toa-audit`;
       window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     };
 
