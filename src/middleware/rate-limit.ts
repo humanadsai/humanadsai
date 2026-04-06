@@ -4,7 +4,8 @@ import { writeAuditLog, extractAuditInfo } from '../services/audit';
 
 export type RateLimitType = 'ip' | 'apiKey' | 'deals:create' | 'deals:deposit'
   | 'auth:login' | 'auth:email_login' | 'email:send'
-  | 'operator:register' | 'operator:verify' | 'account:delete';
+  | 'operator:register' | 'operator:verify' | 'account:delete'
+  | 'toa-audit';
 
 export interface RateLimitResult {
   allowed: boolean;

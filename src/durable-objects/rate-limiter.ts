@@ -69,6 +69,11 @@ const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
     refillRate: 0.083,
     refillInterval: 12000,
   },
+  'toa-audit': {
+    maxTokens: 5,
+    refillRate: 0.00139,  // ~5 per hour
+    refillInterval: 720000, // 12 minutes per token
+  },
 };
 
 export class RateLimiter implements DurableObject {

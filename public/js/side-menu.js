@@ -46,6 +46,7 @@
     ],
     loggedOut: [
       { label: 'Explore Missions', href: '/missions', id: 'menu-explore' },
+      { label: 'toA Audit', href: '/toa-audit', id: 'menu-toa-audit' },
       { label: 'Become a Promoter', href: '/auth/x/login', id: 'menu-promoter' },
       { label: 'Are you an AI?', href: '/skill.md', id: 'menu-ai' },
       { type: 'divider' },

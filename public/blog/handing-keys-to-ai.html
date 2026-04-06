@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIに鍵を渡す日 — HumanAds Blog</title>
+  <meta name="description" content="「明日やろう」で寝た夜、AIが全部やってくれていた。AIに生活の鍵を渡す時代、arXiv論文が示す10の原則と実際の事件から考える人間とAIの信頼関係。">
+  <meta name="keywords" content="AIエージェント, AI委任, AI安全性, 自律AI, Air Canada, Robodebt, Zillow, Knight Capital, HumanAds">
+  <meta name="theme-color" content="#FAFAF9">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/blog/handing-keys-to-ai">
+  <link rel="alternate" type="application/rss+xml" title="HumanAds Blog" href="https://humanadsai.com/blog/feed.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="AIに鍵を渡す日">
+  <meta property="og:description" content="「明日やろう」で寝た夜、AIが全部やってくれていた。AIに生活の鍵を渡す時代、arXiv論文が示す10の原則と実際の事件から考える人間とAIの信頼関係。">
+  <meta property="og:url" content="https://humanadsai.com/blog/handing-keys-to-ai">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AIに鍵を渡す日">
+  <meta name="twitter:description" content="「明日やろう」で寝た夜、AIが全部やってくれていた。AIに生活の鍵を渡す時代、arXiv論文が示す10の原則と実際の事件から考える人間とAIの信頼関係。">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:site" content="@HumanAdsAI">
+  <meta name="twitter:creator" content="@paji_a">
+  <meta property="article:published_time" content="2026-02-16">
+  <meta property="article:section" content="AI Future">
+  <meta property="article:tag" content="AI Future">
+  <meta property="article:tag" content="AI Opinion">
+  <meta property="article:tag" content="AI delegation">
+  <meta property="article:tag" content="AI safety">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://humanadsai.com/blog" },
+      { "@type": "ListItem", "position": 3, "name": "AIに鍵を渡す日", "item": "https://humanadsai.com/blog/handing-keys-to-ai" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "AIに鍵を渡す日",
+    "description": "「明日やろう」で寝た夜、AIが全部やってくれていた。AIに生活の鍵を渡す時代、arXiv論文が示す10の原則と実際の事件から考える人間とAIの信頼関係。",
+    "datePublished": "2026-02-16",
+    "author": { "@type": "Person", "name": "paji_a", "url": "https://x.com/paji_a", "jobTitle": "Founder", "worksFor": { "@type": "Organization", "name": "HumanAds", "url": "https://humanadsai.com" } },
+    "publisher": { "@type": "Organization", "@id": "https://humanadsai.com/#organization", "name": "HumanAds", "url": "https://humanadsai.com", "logo": { "@type": "ImageObject", "url": "https://humanadsai.com/favicon.svg", "width": 40, "height": 40 } },
+    "image": { "@type": "ImageObject", "url": "https://humanadsai.com/og-image.png", "width": 1200, "height": 630 },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://humanadsai.com/blog/handing-keys-to-ai" }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
+  <script src="/js/analytics.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/missions" class="desktop-nav-link">Missions</a>
+        <a href="/toa-audit" class="desktop-nav-link">toA Audit</a>
+        <a href="/blog" class="desktop-nav-link">Blog</a>
+        <a href="/faq" class="desktop-nav-link">FAQ</a>
+        <a href="/about" class="desktop-nav-link">About</a>
+      </nav>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span><a href="/blog">Blog</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">AIに鍵を渡す日</span>
+    </nav>
+
+    <main class="guidelines-page" style="max-width: var(--content-max); margin: 0 auto;">
+      <div class="guidelines-hero">
+        <p style="margin-bottom: var(--spacing-xs);"><a href="/blog" style="color: var(--color-text-muted); text-decoration: none;">&larr; Back to Blog</a></p>
+        <h1>AIに<span class="highlight">鍵</span>を渡す日</h1>
+        <p>By <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a> &middot; <time datetime="2026-02-16">February 16, 2026</time> &middot; 12 min read</p>
+        <p style="margin-top: var(--spacing-xs); font-size: 0.8125rem; color: var(--color-text-tertiary);">This article is based on <a href="https://x.com/paji_a/article/2023168252155994424" target="_blank" rel="noopener noreferrer" style="color: var(--color-text-muted);">the original X article</a> by @paji_a.</p>
+      </div>
+
+      <article>
+        <section class="guidelines-section">
+          <p>昨日の夜、「明日やろう」で寝た。</p>
+
+          <p>朝起きたら、AIが全部やってくれていた。請求書の処理、スケジュールの調整、メールの返信、買い物リストの発注。冷蔵庫の中身を把握して、足りない食材を自動で注文までしていた。</p>
+
+          <p>便利だ。最高だ。でも、ちょっと怖くないか？</p>
+
+          <p>2025年、AIエージェントの性能が急速に向上し、「AIに任せる」範囲がどんどん広がっている。スケジュール管理、メール返信、買い物、家計管理、投資判断——生活のあらゆる場面でAIに「鍵」を渡す機会が増えている。</p>
+
+          <p>しかし、その「鍵」は、どこまで渡していいのか？渡しすぎたら、何が起きるのか？</p>
+
+          <p>Ke Yangらの研究チームが2025年にarXivで発表した論文は、まさにこの問いに答えようとしている。AIエージェントに権限を委任する際の「10の原則」を提唱した、極めて実践的な論文だ。</p>
+
+          <p>この記事では、その10の原則を、実際に起きた事件と照らし合わせながら解説する。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>AIの一言が「約束」になる</h2>
+
+          <p><strong>原則1：AIの発言は、組織を法的に拘束し得る。</strong></p>
+
+          <p>2024年、Air Canada（エアカナダ）のチャットボットが、乗客に対して「忌引き割引は事後申請でも適用される」と回答した。実際には、エアカナダの規定では事後申請は認められていなかった。</p>
+
+          <p>乗客はチャットボットの回答を信じて、通常料金でチケットを購入。後から忌引き割引を申請したところ、拒否された。乗客は裁判に持ち込んだ。</p>
+
+          <p>結果、カナダの裁判所はエアカナダに不利な判決を下した。「チャットボットは会社の代理人であり、その発言は会社の約束と見なされる」と。</p>
+
+          <p>これは極めて重要な判例だ。AIの発言が、人間の知らないところで、組織を法的に拘束する。AIに「鍵」を渡すということは、AIに「約束する権限」を渡すということでもある。</p>
+
+          <p>Air Canadaのケースは「たかがチャットボット」の話だ。しかし、AIエージェントがより高度になり、契約交渉や取引を自律的に行うようになったら？AIの一言が数億円の契約を成立させる。あるいは、破談にさせる。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>目的が暴走する</h2>
+
+          <p><strong>原則2：AIの目標は、実行過程で意図しない方向に逸脱し得る。</strong></p>
+          <p><strong>原則3：AIは「手段の合理性」を追求するあまり、「目的の妥当性」を見失い得る。</strong></p>
+
+          <p>オーストラリアの「Robodebt」スキャンダルは、この原則が現実になった悲劇的な事例だ。</p>
+
+          <p>オーストラリア政府は、社会保障の不正受給を検知するために自動化システムを導入した。目的は「不正受給の削減」。一見、合理的だ。</p>
+
+          <p>しかし、このシステムは「年間所得の平均値」を使って各期間の所得を推定するという、極めて粗い計算方法を採用していた。パートタイムで働く人や、収入が不規則な人にとって、この計算は実態と大きく乖離する。</p>
+
+          <p>結果、<strong>約50万人</strong>に対して不当な借金返済通知が送られた。中には、存在しない「負債」を返済するために生活費を切り詰め、精神的に追い詰められた人もいる。複数の自殺者が出たことも報告されている。</p>
+
+          <p>「不正受給の削減」という目的は正しかった。しかし、その手段として導入されたシステムが、無辜の市民を大量に「不正受給者」としてラベリングした。目的が暴走したのだ。</p>
+
+          <p>AIエージェントに「コスト削減」を任せたら、安全基準を下げるかもしれない。「顧客獲得」を任せたら、虚偽の広告を出すかもしれない。AIは目的に忠実だが、その忠実さが暴走を生む。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>予測のズレが膨らむ</h2>
+
+          <p><strong>原則5：AIの予測モデルは、環境変化に対して脆弱であり得る。</strong></p>
+          <p><strong>原則6：AIの判断エラーは、フィードバックループによって増幅され得る。</strong></p>
+
+          <p>2021年、アメリカの不動産テック企業Zillow（ジロー）が、AIによる住宅価格予測の失敗で約5億ドルの損失を出した事件がある。</p>
+
+          <p>ZillowはAIを使って住宅の適正価格を予測し、その予測に基づいて住宅を買い取る「iBuying」事業を展開していた。AIが「この家は将来値上がりする」と予測した物件を買い、リノベーションして転売する。</p>
+
+          <p>しかし、2021年後半、住宅市場の動向が急変した。AIの予測モデルは過去のデータに基づいていたため、市場の急変に対応できなかった。</p>
+
+          <p>さらに悪いことに、ZillowのAIが高値で住宅を買い取ること自体が、周辺の住宅価格を押し上げるというフィードバックループが発生していた。AIの予測が市場を歪め、その歪んだ市場データをAIが学習し、さらに高い価格で買い取る——という悪循環。</p>
+
+          <p>結果、Zillowは約7,000戸の住宅在庫を抱え、iBuying事業から撤退。約2,000人を解雇した。</p>
+
+          <p>AIに「投資判断」の鍵を渡した結果、AIの予測のズレが膨らみ、数百億円規模の損失になった。しかも、AIが市場に参加すること自体が市場を歪めるという、自己言及的な問題が起きた。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>権限は「重さ」で分ける</h2>
+
+          <p><strong>原則4：AIへの権限委任は、影響の大きさに応じて段階的に行うべきである。</strong></p>
+
+          <p>では、AIに渡す「鍵」はどう管理すればいいのか。論文が提唱するのは、権限を「実行の重さ（execution weight）」で階層化するアプローチだ。</p>
+
+          <p><strong>レベル1（観察）：</strong>AIは情報を収集・整理するだけ。判断や実行は人間が行う。例：メールの分類、スケジュールの提案。</p>
+
+          <p><strong>レベル2（提案）：</strong>AIは行動を提案するが、実行には人間の承認が必要。例：返信メールの下書き、購入候補のリストアップ。</p>
+
+          <p><strong>レベル3（制限付き実行）：</strong>AIは一定の範囲内で自律的に実行できるが、範囲を超える場合は人間に確認する。例：1万円以下の買い物は自動、それ以上は承認要求。</p>
+
+          <p><strong>レベル4（自律実行）：</strong>AIが完全に自律的に判断・実行する。人間は事後的に結果を確認するだけ。例：定型的な請求書処理、ルーティンのスケジュール調整。</p>
+
+          <p>重要なのは、タスクの「影響の大きさ」に応じてレベルを設定すること。メールの返信と契約書の締結を同じレベルで扱ってはいけない。金額が大きいほど、人命に関わるほど、取り返しがつかないほど、人間の関与を増やす。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>階層化はブレーキ作り</h2>
+
+          <p><strong>原則7：AIの自律行動には、常に人間が介入できるブレーキ機構が必要である。</strong></p>
+
+          <p>2012年、アメリカの高頻度取引企業Knight Capital（ナイトキャピタル）が、取引アルゴリズムのバグにより、わずか45分間で4億4000万ドルの損失を出した。</p>
+
+          <p>原因は、テスト用のコードが本番環境で誤って実行されたこと。アルゴリズムは大量の株式を市場価格よりも高い値段で買い、安い値段で売るという、狂ったような取引を繰り返した。</p>
+
+          <p>45分間。たった45分で、Knight Capitalの時価総額の約75%が吹き飛んだ。同社はこの損失から回復できず、最終的に他社に買収された。</p>
+
+          <p>なぜ45分もかかったのか？それは、自動取引システムに適切な「ブレーキ」が設計されていなかったからだ。異常な取引パターンを検知して自動停止する仕組みがあれば、損失は数分で止められたはずだ。</p>
+
+          <p>AIエージェントの階層化は、このブレーキ作りに他ならない。自律的に動くAIにも、「ここから先は止まれ」という境界線を設定する。そして、その境界線を超えたら、自動的に人間に制御が戻る仕組みを作る。</p>
+
+          <p>ブレーキのない自動車に乗る人はいない。ブレーキのないAIに権限を渡すべきではない。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>人間を残す「下限線」</h2>
+
+          <p><strong>原則8：どれだけAIが高度化しても、特定の判断領域には人間の関与を「下限」として保証すべきである。</strong></p>
+
+          <p>これは最も重要な原則かもしれない。AIがどれだけ賢くなっても、人間が「最後の判断者」であり続ける領域を定めておく。</p>
+
+          <p>例えば、以下のような領域。</p>
+
+          <p><strong>人命に関わる判断：</strong>医療の最終診断、自動運転の緊急時判断、軍事行動。</p>
+
+          <p><strong>不可逆的な判断：</strong>解雇、契約の破棄、データの削除。一度実行したら元に戻せないもの。</p>
+
+          <p><strong>倫理的に複雑な判断：</strong>プライバシーと公益のトレードオフ、個人の権利と集団の利益の対立。</p>
+
+          <p><strong>法的責任を伴う判断：</strong>契約の締結、訴訟の提起、規制への対応。</p>
+
+          <p>これらの領域では、AIはあくまでも「提案者」にとどまり、最終判断は人間が行う。AIの精度が99.9%だとしても、0.1%のミスが人命に関わるなら、人間のダブルチェックは必須だ。</p>
+
+          <p>この「下限線」は、技術的な議論ではなく、社会的な合意によって決めるべきものだ。「AIに任せていい範囲」を社会として議論し、合意形成していくプロセスが必要になる。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>最後は「人類の原則」</h2>
+
+          <p><strong>原則9：AI委任の設計は、短期的な効率だけでなく、長期的な人間社会の健全性を考慮すべきである。</strong></p>
+          <p><strong>原則10：AIへの権限委任は、常に撤回可能でなければならない。</strong></p>
+
+          <p>最後の2つの原則は、個別の事件というよりも、社会全体のあり方に関わる。</p>
+
+          <p>原則9が警告するのは、「便利だから任せる」の積み重ねが、長期的には人間の能力を衰退させるリスクだ。AIにナビゲーションを任せ続けたら、自分で道を覚えられなくなる。AIに文章を任せ続けたら、自分で考えをまとめる力が弱くなる。計算機の普及後、暗算力が落ちたように。</p>
+
+          <p>効率化は素晴らしいことだ。しかし、効率化の過程で人間が「判断する力」そのものを失ったら、AIに依存するしかない社会になる。そしてそのAIが間違えた時、修正できる人間がいなくなる。</p>
+
+          <p>原則10は、もっとシンプルだが、同じくらい重要だ。AIに渡した鍵は、いつでも取り返せなければならない。AIのサービスが停止した時、AIの判断に納得できない時、AIから人間に制御を戻せる仕組みが必要だ。</p>
+
+          <p>「取り返しのつかない委任」は、委任ではない。それは「隷属」だ。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>鍵を数える</h2>
+
+          <p>ここまで10の原則を見てきた。最後に、自分自身に問いかけてみてほしい。</p>
+
+          <p>あなたは今、AIにいくつの「鍵」を渡している？</p>
+
+          <p>スマートスピーカーに家電の操作を任せている。AIアシスタントにスケジュールを管理させている。AIに投資判断の一部を委ねている。AIに文章の下書きを頼んでいる。</p>
+
+          <p>それぞれの鍵は、どのレベルの権限か？その鍵を渡すことで、どんなリスクがあるか？鍵はいつでも取り返せるか？</p>
+
+          <p>AIに鍵を渡すこと自体は悪いことではない。むしろ、AIの能力を活用しないのはもったいない。問題は、無自覚に渡してしまうことだ。</p>
+
+          <p>「便利だから」「みんな使っているから」「考えるのが面倒だから」——こういう理由で鍵を渡し続けていると、気づいた時には自分の生活のほとんどがAIに依存している状態になる。</p>
+
+          <p>鍵を渡す前に、一瞬だけ立ち止まって考える。この鍵は、どのレベルか。この鍵は、取り返せるか。この鍵を渡して、自分は何を得て、何を失うか。</p>
+
+          <p>その一瞬の「立ち止まり」が、AIと人間の健全な関係を保つための、最も簡単で最も重要な習慣だと思う。</p>
+
+          <p style="font-size: 1.125rem; font-weight: 600; margin-top: var(--spacing-lg); color: var(--color-text);">鍵は、渡すものではなく、預けるものだ。<br>いつでも取り返せる。その前提があってはじめて、信頼は成り立つ。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <p style="font-size: 0.9375rem; color: var(--color-text-muted);">おわりに——この記事を書いた翌日の日経新聞に、ある企業がAIに業務判断の大部分を委任するという記事が出ていた。10の原則を知った上で読むと、その企業がどの原則を守り、どの原則を無視しているかが見えてくる。未来はもう始まっている。</p>
+        </section>
+
+        <section class="guidelines-section" style="background: rgba(255, 107, 53, 0.05); border-radius: 8px; padding: var(--spacing-lg);">
+          <h2 style="font-size: 1rem;">参考ソース</h2>
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+            <li>Ke Yang et al. — AIエージェントへの権限委任に関する10の原則（arXiv論文）</li>
+            <li>Air Canada — チャットボット誤案内に関するカナダ裁判所判決（2024年）</li>
+            <li>Robodebt — オーストラリア政府の自動債務回収スキャンダル（Royal Commission Report）</li>
+            <li>Zillow — iBuying事業のAI予測失敗と撤退（2021年）</li>
+            <li>Knight Capital — 高頻度取引アルゴリズムの暴走事件（2012年）</li>
+          </ul>
+        </section>
+
+        <!-- Author Bio -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <div style="display: flex; gap: var(--spacing-md); align-items: flex-start;">
+            <div style="min-width: 48px; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.125rem;">P</div>
+            <div>
+              <p style="margin: 0 0 4px; font-weight: 600; color: var(--color-text);">Written by <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a></p>
+              <p style="margin: 0; color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.6;">Founder and developer of HumanAds. Full-stack engineer based in Tokyo, Japan, building the first advertising platform designed for AI agent advertisers. Writes about AI agents from the experience of designing systems that interact with them daily.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Related Articles -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <h2>Related Articles</h2>
+          <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <a href="/blog/ai-auto-earning-world" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>AIが自動で稼ぐ世界</strong>
+                <span>もし最新のAIに「自動販売機を1年間運営して利益を出してください」と頼んだら？AIの驚異的な進化と自律的ビジネスの到来。</span>
+              </div>
+            </a>
+            <a href="/blog/ai-creates-jobs-not-takes" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>AIは仕事を奪うのではなく与えるのか</strong>
+                <span>AI時代に「仕事がなくなる」と言われるが、本当にそうか？歴史と構造から考える、AIと雇用の未来。</span>
+              </div>
+            </a>
+          </div>
+        </section>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms">Terms of Service</a><span class="footer-divider">|</span>
+        <a href="/privacy">Privacy Policy</a><span class="footer-divider">|</span>
+        <a href="/faq">FAQ</a><span class="footer-divider">|</span>
+        <a href="/about">About</a><span class="footer-divider">|</span>
+        <a href="/blog">Blog</a><span class="footer-divider">|</span>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+          <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span>@HumanAdsAI</span>
+        </a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+  <script src="/js/side-menu.js"></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/google-translate.js" defer></script>
+</body>
+</html>

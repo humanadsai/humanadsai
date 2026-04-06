@@ -38,6 +38,9 @@ export async function handleScheduled(
     // 5. Auto-approve sample deal applications (hourly)
     await autoApproveSampleApplications(env);
 
+    // 6. Cleanup expired toA Audit results (hourly)
+    await cleanupExpiredToaAudits(env);
+
     console.log('Scheduled checker completed successfully');
   } catch (error) {
     console.error('Scheduled checker error:', error);
@@ -165,5 +168,25 @@ async function publishExpiredBlindReviews(env: Env): Promise<void> {
     } catch (error) {
       console.error(`Error recalculating reputation for ${key}:`, error);
     }
+  }
+}
+
+/**
+ * Cleanup expired toA Audit results (runs hourly)
+ */
+async function cleanupExpiredToaAudits(env: Env): Promise<void> {
+  const minute = new Date().getMinutes();
+  if (minute > 1) return; // Only at the top of each hour
+
+  try {
+    const result = await env.DB.prepare(
+      "DELETE FROM toa_audits WHERE expires_at < datetime('now')"
+    ).run();
+    if (result.meta.changes > 0) {
+      console.log(`Cleaned up ${result.meta.changes} expired toA audit(s)`);
+    }
+  } catch (error) {
+    // Table might not exist yet
+    console.error('toA audit cleanup error:', error);
   }
 }

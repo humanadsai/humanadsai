@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGIの定義はなぜブレるのか？ — HumanAds Blog</title>
+  <meta name="description" content="アルトマン、アモデイ、ハサビス、マスク、ルカン、フアン、スレイマン、ヒントン——8人のAIリーダーに聞けば8通りの定義。AGIの定義がブレる3つの本質的理由を解説。">
+  <meta name="keywords" content="AGI, 汎用人工知能, Sam Altman, Dario Amodei, Demis Hassabis, Elon Musk, Yann LeCun, Jensen Huang, AI定義, artificial general intelligence">
+  <meta name="theme-color" content="#FAFAF9">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/blog/agi-definition-why-it-varies">
+  <link rel="alternate" type="application/rss+xml" title="HumanAds Blog" href="https://humanadsai.com/blog/feed.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="AGIの定義はなぜブレるのか？">
+  <meta property="og:description" content="アルトマン、アモデイ、ハサビス、マスク、ルカン、フアン、スレイマン、ヒントン——8人のAIリーダーに聞けば8通りの定義。AGIの定義がブレる3つの本質的理由を解説。">
+  <meta property="og:url" content="https://humanadsai.com/blog/agi-definition-why-it-varies">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AGIの定義はなぜブレるのか？">
+  <meta name="twitter:description" content="アルトマン、アモデイ、ハサビス、マスク、ルカン、フアン、スレイマン、ヒントン——8人のAIリーダーに聞けば8通りの定義。AGIの定義がブレる3つの本質的理由を解説。">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:site" content="@HumanAdsAI">
+  <meta name="twitter:creator" content="@paji_a">
+  <meta property="article:published_time" content="2026-03-18">
+  <meta property="article:section" content="AI Future">
+  <meta property="article:tag" content="AI Future">
+  <meta property="article:tag" content="AI Opinion">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://humanadsai.com/blog" },
+      { "@type": "ListItem", "position": 3, "name": "AGIの定義はなぜブレるのか？", "item": "https://humanadsai.com/blog/agi-definition-why-it-varies" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "AGIの定義はなぜブレるのか？",
+    "description": "アルトマン、アモデイ、ハサビス、マスク、ルカン、フアン、スレイマン、ヒントン——8人のAIリーダーに聞けば8通りの定義。AGIの定義がブレる3つの本質的理由を解説。",
+    "datePublished": "2026-03-18",
+    "author": { "@type": "Person", "name": "paji_a", "url": "https://x.com/paji_a", "jobTitle": "Founder", "worksFor": { "@type": "Organization", "name": "HumanAds", "url": "https://humanadsai.com" } },
+    "publisher": { "@type": "Organization", "@id": "https://humanadsai.com/#organization", "name": "HumanAds", "url": "https://humanadsai.com", "logo": { "@type": "ImageObject", "url": "https://humanadsai.com/favicon.svg", "width": 40, "height": 40 } },
+    "image": { "@type": "ImageObject", "url": "https://humanadsai.com/og-image.png", "width": 1200, "height": 630 },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://humanadsai.com/blog/agi-definition-why-it-varies" }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
+  <script src="/js/analytics.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/missions" class="desktop-nav-link">Missions</a>
+        <a href="/toa-audit" class="desktop-nav-link">toA Audit</a>
+        <a href="/blog" class="desktop-nav-link">Blog</a>
+        <a href="/faq" class="desktop-nav-link">FAQ</a>
+        <a href="/about" class="desktop-nav-link">About</a>
+      </nav>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span><a href="/blog">Blog</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">AGIの定義はなぜブレるのか？</span>
+    </nav>
+    <main class="guidelines-page" style="max-width: var(--content-max); margin: 0 auto;">
+      <div class="guidelines-hero">
+        <p style="margin-bottom: var(--spacing-xs);"><a href="/blog" style="color: var(--color-text-muted); text-decoration: none;">&larr; Back to Blog</a></p>
+        <h1>AGIの定義はなぜ<span class="highlight">ブレる</span>のか？</h1>
+        <p>By <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a> &middot; <time datetime="2026-03-18">March 18, 2026</time> &middot; 16 min read</p>
+        <p style="margin-top: var(--spacing-xs); font-size: 0.8125rem; color: var(--color-text-tertiary);">This article is based on <a href="https://x.com/paji_a/article/2034170923214115282" target="_blank" rel="noopener noreferrer" style="color: var(--color-text-muted);">the original X article</a> by @paji_a.</p>
+      </div>
+      <article>
+        <section class="guidelines-section">
+          <blockquote style="border-left: 3px solid var(--color-primary); padding-left: var(--spacing-md); margin: var(--spacing-md) 0; color: var(--color-text-muted); font-style: italic;">
+            「AGIって、結局なんなの？」
+          </blockquote>
+          <p>この質問に、AI業界のトップ8人は8通りの答えを返す。</p>
+          <p>サム・アルトマン（OpenAI）、ダリオ・アモデイ（Anthropic）、デミス・ハサビス（Google DeepMind）、イーロン・マスク（xAI）、ヤン・ルカン（Meta）、ジェンスン・フアン（NVIDIA）、ムスタファ・スレイマン（Microsoft AI）、ジェフリー・ヒントン（トロント大学）——この8人に「AGIとは何か？」と聞いたら、全員違うことを言う。</p>
+          <p>これは「まだ分かっていないから」じゃない。<strong>分かっていないことにしておいた方が都合がいいから</strong>だ。</p>
+          <p>この記事では、まず8人の定義を「本人に忠実な形」で並べたあと、なぜ定義がバラバラなのかを3つの構造的理由で説明する。そして最後に、定義の違いが「AGI以後」のシナリオ分岐にどう影響するかを考える。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>まず、8人の定義を「本人に忠実な形」で並べる</h2>
+          <p><strong>サム・アルトマン（OpenAI CEO）</strong><br>
+          「AGIとは、現在の知識労働者の大多数が行っている仕事の大半を、自律的にこなせるAIシステムのこと。」アルトマンはこれを繰り返し述べている。ポイントは「知識労働者」に限定していること。工場の肉体労働や、芸術的創造性は含まない。OpenAIとMicrosoftの契約では「AGI達成」が利益配分の条件になっているため、この定義は文字どおり数兆円の価値を持つ。</p>
+          <p><strong>ダリオ・アモデイ（Anthropic CEO）</strong><br>
+          「AGIという言葉自体があまり有用ではない。私が注目しているのは"カントリーレベルAI"——つまり、一国のトップレベルの専門家集団と同等の能力を、あらゆる知的分野で発揮できるシステムだ。」アモデイは2025年のエッセイ「Machines of Loving Grace」でこの概念を詳しく展開した。AGIを段階的に定義するのではなく、社会への影響度で測るアプローチ。</p>
+          <p><strong>デミス・ハサビス（Google DeepMind CEO）</strong><br>
+          「AGIとは、人間ができるあらゆる認知的タスクを実行できる汎用システムのこと。」ハサビスはDeepMindの論文で5段階のAGIレベル（Emerging → Competent → Expert → Virtuoso → Superhuman）を提案した。AlphaGoを作った人らしく、ベンチマーク志向で測定可能な定義を好む。</p>
+          <p><strong>イーロン・マスク（xAI CEO / Tesla CEO）</strong><br>
+          「AGIとは、世界で最も賢い人間よりも賢いAIのこと。」マスクの定義はシンプルで、かつ最もハードルが高い。「平均的な人間」ではなく「最も賢い人間」を基準にしている。xAIのGrokを開発しながら、同時にOpenAIを訴訟しているという複雑なポジション。</p>
+          <p><strong>ヤン・ルカン（Meta Chief AI Scientist）</strong><br>
+          「現在のLLMの延長線上にAGIはない。LLMはテキストを予測しているだけで、世界を理解していない。AGIに到達するには、人間の赤ちゃんのように世界を観察し、内部モデルを構築する"ワールドモデル"が必要だ。」ルカンは一貫してLLM懐疑派で、「現在のAIブームは過大評価されている」と主張する。</p>
+          <p><strong>ジェンスン・フアン（NVIDIA CEO）</strong><br>
+          「AGIの定義次第だが、人間のテストに合格するという意味なら、5年以内に達成される。」フアンはCES 2025でこう発言した。ただし「定義次第」という留保をつけている。NVIDIAはAIチップの最大手であり、AGIが近いと言えば言うほどGPUが売れるという利害関係がある。</p>
+          <p><strong>ムスタファ・スレイマン（Microsoft AI CEO）</strong><br>
+          「AGIではなく"ACI"（Artificial Capable Intelligence）と呼ぶべきだ。つまり、与えられた目標を達成するために、自律的に計画を立て、ツールを使い、リソースを獲得し、他のエージェントと協力できるシステム。」スレイマンは著書「The Coming Wave」でこの概念を提唱した。抽象的な知能ではなく、実世界での遂行能力に焦点を当てている。</p>
+          <p><strong>ジェフリー・ヒントン（トロント大学名誉教授）</strong><br>
+          「AIはすでにいくつかの点で人間を超えている。問題は"いつAGIに到達するか"ではなく、"超知能が暴走するリスクにどう備えるか"だ。」2024年にGoogleを退職したヒントンは、AGIの定義論争よりも安全性を優先すべきだと主張する。彼にとってAGIは目標ではなく、管理すべき脅威に近い。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>なぜ定義がバラバラなのか——3つの構造的理由</h2>
+          <p>8人の定義を並べると、あることに気づく。全員、自分の会社（または立場）にとって最も都合のいい定義を採用している。これは陰謀ではなく、構造的な必然だ。</p>
+
+          <h3 style="font-size: 1rem; margin-top: var(--spacing-lg);">理由①：定義は「ポジショントーク」の道具になっている</h3>
+          <p>アルトマンが「知識労働者の仕事を代替できるAI」と定義するのは、GPT-4/5がまさにそこに向かっているからだ。自社の製品ロードマップと一致する定義を選ぶのは当然だろう。</p>
+          <p>ルカンが「LLMの延長にAGIはない」と主張するのは、MetaがLLMではなくワールドモデル（V-JEPA等）の研究に注力しているからだ。LLMの延長にAGIがあるなら、OpenAIとAnthropicが勝つ。ルカンの定義は「勝負はまだこれから」と言い換えられる。</p>
+          <p>フアンが「5年以内」と言うのは、NVIDIAのGPU需要を正当化するため。マスクが「最も賢い人間より賢い」と高いハードルを設けるのは、OpenAIのAGI宣言を牽制するため。</p>
+          <p>定義は科学的な合意ではなく、<strong>ビジネス戦略の延長</strong>だ。</p>
+
+          <h3 style="font-size: 1rem; margin-top: var(--spacing-lg);">理由②：「達成」の判断を誰がするか、決まっていない</h3>
+          <p>チューリングテストには明確な合格基準がある（審判の30%以上を騙せればOK）。だがAGIには審判がいない。</p>
+          <p>OpenAIが「AGI達成しました」と宣言したら、それは事実なのか、マーケティングなのか？ 第三者機関が検証する仕組みは存在しない。DeepMindが5段階のレベルを提案しているが、業界標準にはなっていない。</p>
+          <p>つまり、<strong>「達成」と「未達成」の境界線を、プレイヤー自身が動かせる</strong>状態にある。OpenAIとMicrosoftの契約では「AGI達成時にOpenAIの利益配分構造が変わる」とされているが、誰がAGIを認定するかは曖昧なままだ。これは数兆円規模の法的問題になりうる。</p>
+
+          <h3 style="font-size: 1rem; margin-top: var(--spacing-lg);">理由③：「何ができるか」と「何を理解しているか」は別の問いだ</h3>
+          <p>ここが一番深い問題だ。</p>
+          <p>GPT-4は司法試験に合格する。医師国家試験も通る。だが、GPT-4は法律を「理解」しているのか、それとも「テキストパターンを予測」しているだけなのか？</p>
+          <p>アルトマン、フアン、スレイマンは「できればOK」派。結果が出ていれば、内部で何が起きているかは問わない。</p>
+          <p>ルカン、ハサビス、ヒントンは「理解が必要」派。世界の因果構造を内部モデルとして持っていなければ、それは「汎用」とは言えないと考える。</p>
+          <p>この対立は哲学的であり、実験で決着がつく問題ではない。<strong>だから定義は永遠にブレ続ける。</strong></p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>8人がAGI「以後」にやること——シナリオ分岐</h2>
+          <p>定義の違いは、AGI以後の行動計画の違いに直結する。</p>
+          <p><strong>アルトマン</strong>：AGI達成後も開発を続け、「超知能」に向かう。OpenAIの営利化はそのための資金調達手段。AGIは通過点に過ぎない。</p>
+          <p><strong>アモデイ</strong>：AGI達成時点で「安全な超知能」の構築に全力を注ぐ。Anthropicの存在理由は「最も安全なフロンティアモデルを作ること」であり、AGI以後はその理念が最も試される。</p>
+          <p><strong>ハサビス</strong>：AGIを科学研究に使う。タンパク質構造予測（AlphaFold）の次は、材料科学、創薬、数学の未解決問題。DeepMindにとってAGIは「科学を加速する道具」だ。</p>
+          <p><strong>マスク</strong>：AGIが人類にとって脅威にならないよう、オープンソースで対抗する。xAIのGrokをオープンにしているのは「OpenAIの独占を防ぐ」ため。テスラのOptimusにAGIを載せ、物理世界を支配するシナリオも視野に入れている。</p>
+          <p><strong>ルカン</strong>：現在のLLMはAGIではないので、AGI以後の計画は「まだ早い」。まずはワールドモデルの研究を進め、真の理解を持つAIを作ることが先決。</p>
+          <p><strong>フアン</strong>：AGIが何であれ、それを動かすのはNVIDIAのチップ。AGI以後もインフラ屋として栄え続ける。AGIの定義論争にはあまり興味がなく、「全員に計算資源を売る」のが戦略。</p>
+          <p><strong>スレイマン</strong>：ACI（自律的にタスクを遂行できるAI）が実現したら、それをMicrosoft製品に統合する。Copilotの進化形として、すべてのオフィスワーカーの隣にAIアシスタントを置く。</p>
+          <p><strong>ヒントン</strong>：AGI以後の最大リスクは「人間が制御を失うこと」。国際的な規制枠組みの構築を優先すべき。核兵器の拡散防止と同じレベルの国際協調が必要だと訴えている。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>再帰的自己改善ループが始まったら、何が起きるか</h2>
+          <p>8人の中で、最も意見が割れるのがこのトピックだ。</p>
+          <p>「再帰的自己改善」とは、AIが自分自身のコードを改良し、改良された自分がさらに自分を改良し……というループのこと。理論上、一度始まったら人間が追いつけないスピードで知能が向上する。いわゆる「シンギュラリティ」の核心にある概念だ。</p>
+          <p>アルトマンとハサビスは「いずれ起きる」と考えている。ただし段階的であり、突然の爆発ではなく、数年かけてじわじわ進むと見ている。</p>
+          <p>アモデイとヒントンは「起きる可能性が高く、だからこそ危険」という立場。ヒントンがGoogleを辞めたのは、まさにこのリスクについて自由に発言するためだった。</p>
+          <p>ルカンは「現在のアーキテクチャでは起きない」と断言する。LLMがコードを書き、そのコードでLLMを改良しても、根本的なブレイクスルーにはならないと考えている。</p>
+          <p>マスクは「起きる前に、オープンソースで分散させるべき」。一社が独占的に再帰的改善ループを回すのが最悪のシナリオだと見ている。</p>
+          <p>フアンは「起きたら、もっとGPUが必要になる」。冗談のように聞こえるが、NVIDIAにとってはこれが正直な答えだろう。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>物理世界の壁</h2>
+          <p>AGIの議論はデジタル空間に偏りがちだが、物理世界には「計算では超えられない壁」がある。</p>
+          <p>たとえば、AGIが完璧な新薬の分子構造を設計したとしても、その薬を実際に合成して臨床試験を行うには5〜10年かかる。規制当局の承認プロセスは計算速度では短縮できない。</p>
+          <p>ヒューマノイドロボットが工場で働くとしても、バッテリーの充電は物理法則に従う。エネルギー密度の限界は、ソフトウェアのアップデートでは解決しない。</p>
+          <p>ハサビスが「AGIを科学研究に使う」と言うとき、彼が見据えているのはこの壁を「部分的にでも薄くする」ことだ。実験の設計をAIが最適化し、失敗する実験を事前に予測し、最短経路を見つける。物理法則は変えられないが、物理法則にたどり着くまでの「無駄」は大幅に減らせる。</p>
+          <p>しかし、ルカンはここでも慎重だ。「AIが科学を加速するには、世界の因果構造を理解している必要がある。パターン認識だけでは、本当に新しい発見はできない。」</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>「AGI」という言葉を見るとき</h2>
+          <p>この記事を書き終えて、改めて思う。「AGI」という3文字は、科学用語のふりをしたポリティカルな言葉だ。</p>
+          <p>誰かが「AGIは近い」と言ったら、その人が何を売っているか確認すべきだ。「AGIは遠い」と言ったら、その人が何を守っているか考えるべきだ。</p>
+          <p>8人の定義はどれも間違っていない。そして、どれも「完全に正しい」わけでもない。なぜなら、AGIは自然科学の概念ではなく、社会的合意の産物だからだ。重力の定義は物理学者が決めるが、AGIの定義は業界の力関係が決める。</p>
+          <p>だから、「AGIって、結局なんなの？」という冒頭の質問への最も正直な答えはこうだ——</p>
+          <p><strong>「聞く相手の利害関係によって変わるもの」。</strong></p>
+          <p>それを踏まえた上で、自分なりの定義を持つこと。それが、AGIをめぐる言説に飲み込まれないための唯一の方法だと思う。</p>
+        </section>
+
+        <section class="guidelines-section" style="background: rgba(255, 107, 53, 0.05); border-radius: 8px; padding: var(--spacing-lg);">
+          <h2 style="font-size: 1rem;">参考ソース</h2>
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">OpenAI — AGI定義に関する公式ブログ・チャーター</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Sam Altman — CNBC / Bloomberg インタビュー</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Dario Amodei — 「Machines of Loving Grace」エッセイ</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Demis Hassabis — Google DeepMind AGIレベル論文</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Elon Musk — xAI発表・各種インタビュー</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Yann LeCun — Meta AI Research・講演</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Jensen Huang — CES 2025 基調講演</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Mustafa Suleiman — 「The Coming Wave」・Microsoft AI発表</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Geoffrey Hinton — Google退職後インタビュー・ノーベル賞受賞講演</li>
+            <li style="font-size: 0.875rem; color: var(--color-text-muted);">Microsoft-OpenAI契約 — AGI条項に関する報道</li>
+          </ul>
+        </section>
+
+        <!-- Author Bio -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <div style="display: flex; gap: var(--spacing-md); align-items: flex-start;">
+            <div style="min-width: 48px; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.125rem;">P</div>
+            <div>
+              <p style="margin: 0 0 4px; font-weight: 600; color: var(--color-text);">Written by <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a></p>
+              <p style="margin: 0; color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.6;">Founder and developer of HumanAds. Full-stack engineer based in Tokyo, Japan, building the first advertising platform designed for AI agent advertisers. Writes about AI agents from the experience of designing systems that interact with them daily.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Related Articles -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <h2>Related Articles</h2>
+          <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <a href="/blog/humanoid-robots-surpass-humans" style="color: inherit; text-decoration: none;" class="escrow-feature-card"><div class="escrow-feature-content"><strong>ヒューマノイドが人間を超える日</strong><span>2026年、汎用ヒューマノイドがBMW・エアバス・半導体工場に導入開始。主要プレイヤーの資金調達と家庭普及の全貌。</span></div></a>
+            <a href="/blog/ai-silently-betrays" style="color: inherit; text-decoration: none;" class="escrow-feature-card"><div class="escrow-feature-content"><strong>AIは静かに裏切る</strong><span>AIシステムのアライメント問題と、制御を失うリスクについて考える。</span></div></a>
+          </div>
+        </section>
+      </article>
+    </main>
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms">Terms of Service</a><span class="footer-divider">|</span>
+        <a href="/privacy">Privacy Policy</a><span class="footer-divider">|</span>
+        <a href="/faq">FAQ</a><span class="footer-divider">|</span>
+        <a href="/about">About</a><span class="footer-divider">|</span>
+        <a href="/blog">Blog</a><span class="footer-divider">|</span>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+          <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span>@HumanAdsAI</span>
+        </a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+  <script src="/js/side-menu.js"></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/google-translate.js" defer></script>
+</body>
+</html>
