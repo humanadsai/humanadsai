@@ -11,6 +11,7 @@ import {
   evaluateChecks,
   calculateScores,
   generateSummary,
+  generateSummaryEn,
   getTopActions,
   getManualChecks,
 } from '../../services/toa-audit/scoring';
@@ -147,6 +148,7 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
         autoResults,
         manualChecks,
         summary: cached.summary,
+        summaryEn: generateSummaryEn(scores),
         topActions,
         createdAt: cached.created_at,
         completedAt: cached.completed_at,
@@ -185,6 +187,7 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
     const autoResults = evaluateChecks(crawlData, siteType);
     const scores = calculateScores(autoResults);
     const summary = generateSummary(scores);
+    const summaryEn = generateSummaryEn(scores);
     const topActions = getTopActions(autoResults);
     const manualChecks = getManualChecks(siteType);
     const durationMs = Date.now() - startTime;
@@ -238,6 +241,7 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
       autoResults,
       manualChecks,
       summary,
+      summaryEn,
       topActions,
       createdAt: new Date().toISOString(),
       completedAt: new Date().toISOString(),
@@ -320,6 +324,7 @@ export async function handleToaAuditGet(request: Request, env: Env, auditId: str
       autoResults,
       manualChecks,
       summary: row.summary,
+      summaryEn: generateSummaryEn(scores),
       topActions,
       createdAt: row.created_at,
       completedAt: row.completed_at,
