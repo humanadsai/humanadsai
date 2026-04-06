@@ -602,22 +602,45 @@ async function safeFetchTextWithRetry(url: string): Promise<{ text: string; stat
 }
 
 // ============================================
+// Self-origin detection & fallback
+// Workers fetching their own custom domain often get 522.
+// Fallback to workers.dev subdomain which avoids the loop.
+// ============================================
+
+const SELF_ORIGINS = ['https://humanadsai.com', 'https://www.humanadsai.com'];
+const WORKERS_DEV_ORIGIN = 'https://humanadsai.humanadsai.workers.dev';
+
+function resolveOrigin(origin: string): string {
+  if (SELF_ORIGINS.includes(origin)) return WORKERS_DEV_ORIGIN;
+  return origin;
+}
+
+function resolveUrl(url: string, originalOrigin: string): string {
+  if (SELF_ORIGINS.includes(originalOrigin)) {
+    return url.replace(originalOrigin, WORKERS_DEV_ORIGIN);
+  }
+  return url;
+}
+
+// ============================================
 // Main Crawler
 // ============================================
 
 export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
   const normalizedUrl = normalizeUrl(inputUrl);
   const origin = getOrigin(normalizedUrl);
+  const fetchOrigin = resolveOrigin(origin);
+  const fetchUrl = resolveUrl(normalizedUrl, origin);
   const errors: string[] = [];
 
-  // Parallel fetches (with retry for 5xx like Cloudflare 522)
+  // Parallel fetches (use fetchOrigin/fetchUrl for self-origin fallback)
   const [robotsRaw, llmsRaw, sitemapRaw, mainPageResp, httpResult, pathsResult] = await Promise.allSettled([
-    safeFetchTextWithRetry(origin + '/robots.txt'),
-    safeFetchTextWithRetry(origin + '/llms.txt'),
-    safeFetchTextWithRetry(origin + '/sitemap.xml'),
+    safeFetchTextWithRetry(fetchOrigin + '/robots.txt'),
+    safeFetchTextWithRetry(fetchOrigin + '/llms.txt'),
+    safeFetchTextWithRetry(fetchOrigin + '/sitemap.xml'),
     (async () => {
       const start = Date.now();
-      const resp = await safeFetchWithRetry(normalizedUrl);
+      const resp = await safeFetchWithRetry(fetchUrl);
       const ttfb = Date.now() - start;
       // Check Content-Length before consuming body (DoS prevention)
       const contentLength = parseInt(resp.headers.get('content-length') || '0', 10);
@@ -629,7 +652,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
     // HTTP check — count redirects using manual mode
     (async () => {
       let redirectCount = 0;
-      let currentUrl = normalizedUrl;
+      let currentUrl = fetchUrl;
       const start = Date.now();
       for (let i = 0; i < MAX_REDIRECTS; i++) {
         const resp = await safeFetchWithRetry(currentUrl, { followRedirects: false }, 1);
@@ -664,7 +687,7 @@ export async function crawlUrl(inputUrl: string): Promise<CrawlData> {
         headers: {},
       } as HttpResult;
     })(),
-    discoverPaths(origin),
+    discoverPaths(fetchOrigin),
   ]);
 
   // Parse robots.txt
