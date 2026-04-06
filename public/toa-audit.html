@@ -323,9 +323,9 @@
 
       <!-- [1] HERO -->
       <section class="toa-section toa-hero" id="hero">
-        <div class="toa-badge">TOA / AI AGENT READINESS</div>
+        <div class="toa-badge notranslate" translate="no">TOA / AI AGENT READINESS</div>
         <h1 class="i18n" data-ja="AIエージェントは、あなたのサイトを使えますか。">Can AI agents actually use your site?</h1>
-        <p class="toa-hero-sub i18n" data-ja="認証、操作、取引。AIに引用されるかではなく、実際に使えるかを診断します。">Authenticate, operate, transact. Not whether AI can cite you — whether agents can use you.</p>
+        <p class="toa-hero-sub i18n" data-ja="認証、操作、取引。AIに引用されるかではなく、実際に使えるかを診断。">Authenticate, operate, transact. Not whether AI can cite you — whether agents can use you.</p>
         <form class="toa-form" id="audit-form" toolname="run_toa_audit" tooldescription="Analyze a website URL for AI agent readiness across 16 categories">
           <input type="text" id="audit-url" placeholder="example.com" required autocomplete="url" aria-label="Website URL">
           <button type="submit" id="audit-submit" class="i18n" data-ja="無料で診断する">Diagnose — Free</button>
@@ -336,7 +336,7 @@
       <!-- [2] PROBLEM -->
       <section class="toa-section" id="problem">
         <div class="toa-section-narrow">
-          <h2 class="toa-h2"><span class="i18n" data-ja="AIに引用されるだけでは不十分。AIはあなたのサイトを">Cited by AI is not enough. Can AI </span><em class="i18n" data-ja="使える">use</em><span class="i18n" data-ja="のか？"> your site?</span></h2>
+          <h2 class="toa-h2"><span class="i18n" data-ja="AIに引用されるだけでは足りない。AIはあなたのサイトを">Cited by AI is not enough. Can AI </span><em class="i18n" data-ja="使える">use</em><span class="i18n" data-ja="のか？"> your site?</span></h2>
           <div class="toa-columns">
             <div class="toa-column-card">
               <h3 style="color: var(--color-text-muted);" class="i18n" data-ja="〜2025年">Until 2025</h3>
@@ -351,9 +351,9 @@
               <h3 style="color: var(--color-primary);" class="i18n" data-ja="2026年〜">2026 onward</h3>
               <ul>
                 <li class="i18n" data-ja="AIが自律的に「行動」する">AI "acts" autonomously</li>
-                <li><span class="i18n" data-ja="あなたのサイトが">Your site gets </span><strong style="color: var(--color-text);" class="i18n" data-ja="操作される">operated</strong></li>
+                <li><span class="i18n" data-ja="あなたのサイトが">Your site gets </span><strong style="color: var(--color-text);" class="i18n" data-ja="利用される">operated</strong></li>
                 <li class="i18n" data-ja="取引が完了する">Transactions complete</li>
-                <li>→ <strong style="color: var(--color-text);">toA</strong></li>
+                <li>→ <strong style="color: var(--color-text);" class="notranslate" translate="no">toA</strong></li>
               </ul>
             </div>
           </div>
@@ -378,7 +378,7 @@
       <section class="toa-section" id="model">
         <div class="toa-section-narrow">
           <h2 class="toa-h2 i18n" data-ja="3層モデル">The 3-Layer Model</h2>
-          <p class="toa-p i18n" data-ja="下層が欠けると、上層は機能しない。">If the base layers are missing, the upper layers can't function.</p>
+          <p class="toa-p i18n" data-ja="下層が欠けると、上層は機能しません。">If the base layers are missing, the upper layers can't function.</p>
           <div class="toa-layers">
             <div class="toa-layer toa-layer-3">
               <div class="toa-layer-title i18n" style="color: #8b5cf6;" data-ja="レイヤー3：実行可能性＋安全性">Layer 3: Actionability + Safety</div>
@@ -526,7 +526,7 @@
         <p class="toa-hero-sub i18n" data-ja="無料。登録不要。約30秒で結果が出ます。">Free. No signup. Results in ~30 seconds.</p>
         <form class="toa-form" id="audit-form-bottom" onsubmit="return handleBottomForm(event)">
           <input type="text" id="audit-url-bottom" placeholder="example.com" required autocomplete="url" aria-label="Website URL">
-          <button type="submit" class="i18n" data-ja="診断する">Diagnose</button>
+          <button type="submit" class="i18n" data-ja="無料で診断する">Diagnose</button>
         </form>
         <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: var(--spacing-md);">
           Made with &#9824; by <a href="/" class="toa-link">HumanAds</a>
@@ -584,6 +584,20 @@
       var toggle = document.getElementById('toaLangToggle');
       if (toggle) toggle.textContent = l === 'ja' ? 'EN' : 'JA';
       document.documentElement.lang = l === 'ja' ? 'ja' : 'en';
+      // JA mode: block Google Translate from re-translating our correct JA text
+      if (l === 'ja') {
+        document.documentElement.classList.add('notranslate');
+        document.documentElement.setAttribute('translate', 'no');
+        // Reset Google Translate to original if already active
+        var combo = document.querySelector('.goog-te-combo');
+        if (combo && combo.value !== 'en') {
+          combo.value = 'en';
+          combo.dispatchEvent(new Event('change'));
+        }
+      } else {
+        document.documentElement.classList.remove('notranslate');
+        document.documentElement.removeAttribute('translate');
+      }
       window._toaLang = l;
     }
 
