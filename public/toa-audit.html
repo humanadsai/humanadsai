@@ -82,9 +82,9 @@
     /* ============================================
        toA Audit — UX Redesign Styles
        ============================================ */
-    .toa-page { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); }
+    .toa-page { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); overflow-x: hidden; }
     .toa-section { padding: 60px 0; }
-    .toa-section-alt { background: var(--color-background-light); margin: 0 calc(-1 * var(--gutter)); padding-left: var(--gutter); padding-right: var(--gutter); }
+    .toa-section-alt { background: var(--color-background-light); margin: 0 calc(-1 * var(--gutter)); padding-left: var(--gutter); padding-right: var(--gutter); overflow-x: hidden; }
     .toa-narrow { max-width: var(--content-max); margin: 0 auto; }
     .toa-wide { max-width: 900px; margin: 0 auto; }
 
@@ -245,7 +245,7 @@
     /* ========== Mobile optimizations ========== */
     @media (max-width: 640px) {
       .toa-section { padding: 32px 16px; }
-      .toa-section-alt { padding: 32px 16px; }
+      .toa-section-alt { margin: 0 -16px; padding: 32px 16px; }
       .toa-form { padding: 0 4px; gap: 10px; }
       .toa-form input { padding: 12px 14px; font-size: 0.9375rem; border-radius: 10px; }
       .toa-form button { padding: 14px 20px; font-size: 0.9375rem; border-radius: 12px; }
@@ -742,12 +742,12 @@
       }
 
       html += `<div class="toa-actions-bar">
-        <button class="toa-btn-sm" onclick="window._toaRescan()" style="display:inline-flex;align-items:center;gap:5px;">&#8635; もう一度スキャン</button>
         <button class="toa-btn-sm toa-btn-primary" onclick="window._toaCopyClaudeCode()" style="background:#6b21a8;border-color:#6b21a8;">Claude Code用にコピー</button>
         <button class="toa-btn-sm" onclick="window._toaExportMd()">Markdownエクスポート</button>
         <button class="toa-btn-sm" onclick="window._toaExportCsv()">CSVエクスポート</button>
         <button class="toa-btn-sm" onclick="window._toaCopyLink()">リンクをコピー</button>
         <button class="toa-btn-sm" onclick="window._toaShareX()" style="display:inline-flex;align-items:center;gap:5px;background:#000;color:#fff;border-color:#000;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#000'"><svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>シェアする</button>
+        <button class="toa-btn-sm" onclick="window._toaRescan()" style="display:inline-flex;align-items:center;gap:5px;">&#8635; もう一度スキャン</button>
       </div>`;
       resultArea.innerHTML = html;
 
