@@ -147,7 +147,8 @@ export async function handleToaAuditCreate(request: Request, env: Env): Promise<
     const existing = await env.DB.prepare(
       "SELECT id FROM toa_audits WHERE url = ? AND status = 'completed' AND expires_at > datetime('now') ORDER BY created_at DESC LIMIT 1"
     ).bind(normalizedUrl).first<{ id: string }>();
-    if (existing) existingId = existing.id;
+    // Only reuse if it's already a domain-based slug (contains hyphen)
+    if (existing && existing.id.includes('-')) existingId = existing.id;
   } catch { /* ignore */ }
 
   // Run crawl + scoring
