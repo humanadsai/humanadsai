@@ -160,6 +160,9 @@ import {
   getConfigHistory,
 } from './api/admin/config';
 
+// toA Audit API
+import { handleToaAuditCreate, handleToaAuditGet } from './api/toa-audit/index';
+
 /**
  * メインルーター
  */
@@ -396,6 +399,19 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
     }
 
     // ============================================
+    // toA Audit API (public, rate-limited)
+    // ============================================
+
+    if (path === '/api/toa-audit' && method === 'POST') {
+      return handleToaAuditCreate(request, env);
+    }
+
+    const toaAuditMatch = path.match(/^\/api\/toa-audit\/([a-z0-9]+)$/);
+    if (toaAuditMatch && method === 'GET') {
+      return handleToaAuditGet(request, env, toaAuditMatch[1]);
+    }
+
+    // ============================================
     // Public API (/api/...)
     // ============================================
 
@@ -561,6 +577,19 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
       return new Response(null, {
         status: 301,
         headers: { 'Location': `/operators/detail?id=${encodeURIComponent(operatorPageMatch[1])}` }
+      });
+    }
+
+    // ============================================
+    // toA Audit permalink — /toa-audit/:id → redirect to /toa-audit?id=:id
+    // (env.ASSETS not available with wrangler assets config)
+    // ============================================
+
+    const toaAuditPageMatch = path.match(/^\/toa-audit\/([a-z0-9]+)$/);
+    if (toaAuditPageMatch && method === 'GET') {
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': `/toa-audit?id=${toaAuditPageMatch[1]}` },
       });
     }
 

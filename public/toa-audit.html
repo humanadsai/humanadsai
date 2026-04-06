@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>toA Audit — Is Your Website Ready for AI Agents? | HumanAds</title>
+  <meta name="description" content="Free AI agent readiness diagnostic. Check if your website can be discovered, understood, and used by AI agents — not just cited. 16 categories, 48+ checks.">
+  <meta name="theme-color" content="#FAFAF9">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/toa-audit">
+  <!-- OGP -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="toA Audit — AI Agent Readiness Diagnostic">
+  <meta property="og:description" content="Free diagnostic: Can AI agents discover, understand, and transact on your site? 16 categories, 48+ checks. No signup required.">
+  <meta property="og:url" content="https://humanadsai.com/toa-audit">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="toA Audit — AI Agent Readiness Diagnostic">
+  <meta name="twitter:description" content="Is your site ready for AI agents? Free diagnostic — 16 categories, 48+ checks.">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:site" content="@HumanAdsAI">
+  <meta name="twitter:creator" content="@paji_a">
+  <!-- JSON-LD: WebApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "toA Audit",
+    "url": "https://humanadsai.com/toa-audit",
+    "description": "Free AI agent readiness diagnostic tool. Checks if your website can be discovered, understood, and used by AI agents across 16 categories.",
+    "applicationCategory": "SEO Tool",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "creator": {
+      "@type": "Organization",
+      "@id": "https://humanadsai.com/#organization",
+      "name": "HumanAds",
+      "url": "https://humanadsai.com"
+    }
+  }
+  </script>
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How is this different from AIO/SEO tools?",
+        "acceptedAnswer": { "@type": "Answer", "text": "AIO tools measure whether AI can cite your content. toA Audit goes further — it checks whether AI agents can authenticate, operate, and transact on your site. Layer 1-2 (Discovery & Comprehension) overlap with AIO; Layer 3 (Actionability) is unique to toA." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is it free? Do I need to sign up?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Completely free. No signup required. Enter a URL and get results in about 30 seconds. Results are saved with a permalink for 30 days." }
+      },
+      {
+        "@type": "Question",
+        "name": "What are the two scores?",
+        "acceptedAnswer": { "@type": "Answer", "text": "AI Search Score measures how well AI search engines can discover and understand your site. toA Readiness Score measures whether AI agents can actually use your site — authenticate, transact, and integrate programmatically." }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does the diagnostic take?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The automated diagnostic takes about 30 seconds. The manual checklist (23 items) takes 10-30 minutes depending on your site's complexity." }
+      },
+      {
+        "@type": "Question",
+        "name": "Are WebMCP items still experimental?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. WebMCP items are marked as Experimental with low score weight. But preparing now means you'll be ready when the standard is finalized." }
+      },
+      {
+        "@type": "Question",
+        "name": "What is toA?",
+        "acceptedAnswer": { "@type": "Answer", "text": "toA stands for 'to Agent' — a market where AI agents are the customers. Unlike toC (consumer) or toB (business), toA services are designed for autonomous AI agents that discover, evaluate, and transact independently." }
+      }
+    ]
+  }
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "toA Audit", "item": "https://humanadsai.com/toa-audit" }
+    ]
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
+  <script src="/js/analytics.js" defer></script>
+  <style>
+    /* ============================================
+       toA Audit — Page-specific Styles
+       ============================================ */
+    .toa-page { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); }
+    .toa-section { padding: var(--spacing-xl) 0; border-bottom: 1px solid var(--color-border); }
+    .toa-section:last-child { border-bottom: none; }
+    .toa-section-narrow { max-width: var(--content-max); margin: 0 auto; }
+
+    /* Hero */
+    .toa-hero { text-align: center; padding: 60px 0 40px; }
+    .toa-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; color: var(--color-primary); background: rgba(232, 93, 58, 0.08); border: 1px solid rgba(232, 93, 58, 0.2); border-radius: 20px; padding: 4px 14px; margin-bottom: var(--spacing-md); text-transform: uppercase; letter-spacing: 0.05em; }
+    .toa-hero h1 { font-family: var(--font-mono); font-size: clamp(1.5rem, 4vw, 2.25rem); font-weight: 700; line-height: 1.3; margin-bottom: var(--spacing-md); color: var(--color-text); }
+    .toa-hero-sub { font-size: 1rem; color: var(--color-text-muted); max-width: 600px; margin: 0 auto var(--spacing-lg); line-height: 1.6; }
+
+    /* URL Input Form */
+    .toa-form { display: flex; gap: 8px; max-width: 560px; margin: 0 auto; }
+    .toa-form input { flex: 1; padding: 12px 16px; font-size: 0.9375rem; font-family: var(--font-mono); border: 2px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-background-card); color: var(--color-text); outline: none; transition: border-color 0.2s; }
+    .toa-form input:focus { border-color: var(--color-primary); }
+    .toa-form button { padding: 12px 24px; font-size: 0.9375rem; font-weight: 600; color: #fff; background: var(--color-primary); border: none; border-radius: var(--border-radius-sm); cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+    .toa-form button:hover { background: var(--color-primary-dark); }
+    .toa-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+    @media (max-width: 640px) { .toa-form { flex-direction: column; } .toa-form button { width: 100%; } }
+
+    /* Score Mock in Hero */
+    .toa-score-preview { display: flex; gap: 24px; justify-content: center; margin-top: var(--spacing-lg); flex-wrap: wrap; }
+    .toa-score-mock { text-align: center; padding: 16px 24px; background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); min-width: 140px; }
+    .toa-score-mock-label { font-size: 0.75rem; font-family: var(--font-mono); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .toa-score-mock-value { font-size: 2rem; font-weight: 700; font-family: var(--font-mono); }
+    .toa-score-green { color: #10b981; }
+    .toa-score-purple { color: #8b5cf6; }
+
+    /* Problem Section */
+    .toa-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin: var(--spacing-lg) 0; }
+    @media (max-width: 640px) { .toa-columns { grid-template-columns: 1fr; } }
+    .toa-column-card { padding: var(--spacing-lg); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); }
+    .toa-column-card h3 { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; margin-bottom: var(--spacing-sm); }
+    .toa-column-card ul { list-style: none; padding: 0; margin: 0; font-size: 0.875rem; }
+    .toa-column-card li { padding: 4px 0; color: var(--color-text-muted); }
+
+    /* Ticker */
+    .toa-ticker { overflow: hidden; padding: var(--spacing-sm) 0; margin: var(--spacing-lg) 0 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+    .toa-ticker-inner { display: flex; gap: 40px; animation: tickerScroll 30s linear infinite; white-space: nowrap; }
+    .toa-ticker-item { font-size: 0.8125rem; font-family: var(--font-mono); color: var(--color-text-muted); }
+    @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* 3-Layer Model */
+    .toa-layers { max-width: 600px; margin: var(--spacing-lg) auto; }
+    .toa-layer { padding: 16px 20px; border: 1px solid; border-radius: var(--border-radius-sm); margin-bottom: -1px; position: relative; }
+    .toa-layer-3 { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.05); }
+    .toa-layer-2 { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
+    .toa-layer-1 { border-color: #10b981; background: rgba(16, 185, 129, 0.05); }
+    .toa-layer-title { font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 600; margin-bottom: 4px; }
+    .toa-layer-desc { font-size: 0.8125rem; color: var(--color-text-muted); }
+
+    /* Comparison Table */
+    .toa-table-wrap { overflow-x: auto; margin: var(--spacing-lg) 0; }
+    .toa-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    .toa-table th, .toa-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+    .toa-table th { font-family: var(--font-mono); font-weight: 600; background: var(--color-background-light); position: sticky; top: 0; }
+    .toa-table tr.toa-unique { background: rgba(139, 92, 246, 0.04); }
+    .toa-table .check { color: #10b981; } .toa-table .cross { color: #ef4444; } .toa-table .partial { color: #f59e0b; }
+
+    /* Diagnosis Result */
+    .toa-result { min-height: 200px; }
+    .toa-result-placeholder { text-align: center; padding: 60px 20px; color: var(--color-text-muted); border: 2px dashed var(--color-border); border-radius: var(--border-radius); font-size: 0.875rem; }
+    /* Loading — rich step-by-step UI */
+    .toa-result-loading { padding: 32px 0; }
+    .toa-loading-header { text-align: center; margin-bottom: 24px; }
+    .toa-loading-title { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; color: var(--color-text); margin-bottom: 4px; }
+    .toa-loading-url { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--color-primary); word-break: break-all; }
+    .toa-loading-bar-wrap { max-width: 480px; margin: 0 auto 24px; }
+    .toa-loading-bar { width: 100%; height: 4px; background: var(--color-border); border-radius: 2px; overflow: hidden; }
+    .toa-loading-bar-fill { height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6); border-radius: 2px; transition: width 0.5s ease; width: 0%; }
+    .toa-loading-pct { text-align: right; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 4px; }
+    .toa-loading-steps { max-width: 480px; margin: 0 auto; }
+    .toa-loading-layer { margin-bottom: 16px; }
+    .toa-loading-layer-label { font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; padding-left: 2px; }
+    .toa-loading-layer-1 .toa-loading-layer-label { color: #10b981; }
+    .toa-loading-layer-2 .toa-loading-layer-label { color: #3b82f6; }
+    .toa-loading-layer-3 .toa-loading-layer-label { color: #8b5cf6; }
+    .toa-loading-step { display: flex; align-items: center; gap: 10px; padding: 5px 0; font-size: 0.8125rem; font-family: var(--font-mono); transition: opacity 0.3s; }
+    .toa-loading-step.waiting { color: var(--color-text-muted); opacity: 0.4; }
+    .toa-loading-step.active { color: var(--color-text); opacity: 1; }
+    .toa-loading-step.done { color: var(--color-text-muted); opacity: 0.7; }
+    .toa-step-icon { width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+    .toa-step-icon.waiting { color: var(--color-border); }
+    .toa-step-icon.active { color: var(--color-primary); animation: toa-spin 1s linear infinite; }
+    .toa-step-icon.done { color: #10b981; }
+    @keyframes toa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .toa-loading-eta { text-align: center; margin-top: 20px; font-size: 0.75rem; color: var(--color-text-muted); font-family: var(--font-mono); }
+
+    /* Score Card */
+    .toa-scores { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); }
+    @media (max-width: 640px) { .toa-scores { grid-template-columns: 1fr; } }
+    .toa-score-card { padding: var(--spacing-lg); background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); text-align: center; }
+    .toa-score-card-label { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--spacing-sm); }
+    .toa-score-card-value { font-size: 2.5rem; font-weight: 700; font-family: var(--font-mono); margin-bottom: var(--spacing-sm); }
+    .toa-score-sub { display: flex; justify-content: center; gap: var(--spacing-md); font-size: 0.75rem; font-family: var(--font-mono); color: var(--color-text-muted); }
+    .toa-score-sub-item { display: flex; align-items: center; gap: 4px; }
+    .toa-score-bar { width: 40px; height: 4px; background: var(--color-border); border-radius: 2px; overflow: hidden; }
+    .toa-score-bar-fill { height: 100%; border-radius: 2px; }
+
+    /* Overall Grade */
+    .toa-overall { text-align: center; padding: var(--spacing-md); background: var(--color-background-light); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-lg); }
+    .toa-grade { font-size: 1.5rem; font-weight: 700; font-family: var(--font-mono); }
+    .toa-grade-a { color: #10b981; } .toa-grade-b { color: #3b82f6; } .toa-grade-c { color: #f59e0b; } .toa-grade-d { color: #ef4444; } .toa-grade-f { color: #ef4444; }
+
+    /* Summary */
+    .toa-summary { padding: var(--spacing-md); background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-lg); font-size: 0.875rem; line-height: 1.7; white-space: pre-line; }
+
+    /* Top Actions */
+    .toa-top-actions { margin-bottom: var(--spacing-lg); }
+    .toa-action-card { display: flex; gap: 12px; padding: 12px; background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); margin-bottom: 8px; align-items: flex-start; }
+    .toa-action-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--color-primary); color: #fff; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .toa-action-body { flex: 1; }
+    .toa-action-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 2px; }
+    .toa-action-detail { font-size: 0.8125rem; color: var(--color-text-muted); }
+
+    /* Check List */
+    .toa-checks-section { margin-bottom: var(--spacing-lg); }
+    .toa-category-header { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; padding: 8px 0; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--color-border); user-select: none; }
+    .toa-category-header:hover { color: var(--color-primary); }
+    .toa-category-arrow { transition: transform 0.2s; font-size: 0.75rem; }
+    .toa-category-arrow.open { transform: rotate(90deg); }
+    .toa-category-body { padding: 8px 0; }
+    .toa-category-body.hidden { display: none; }
+    .toa-check-item { display: flex; gap: 8px; padding: 6px 0; font-size: 0.8125rem; align-items: flex-start; border-bottom: 1px solid var(--color-border); }
+    .toa-check-item:last-child { border-bottom: none; }
+    .toa-status { flex-shrink: 0; width: 20px; text-align: center; font-size: 0.75rem; font-weight: 700; }
+    .toa-status-pass { color: #10b981; } .toa-status-fail { color: #ef4444; } .toa-status-warn { color: #f59e0b; } .toa-status-info { color: #6b7280; }
+    .toa-check-body { flex: 1; }
+    .toa-check-name { font-weight: 500; }
+    .toa-check-detail { color: var(--color-text-muted); font-size: 0.75rem; margin-top: 2px; }
+    .toa-check-rec { color: var(--color-primary); font-size: 0.75rem; margin-top: 2px; }
+    .toa-severity-badge { font-size: 0.625rem; font-family: var(--font-mono); padding: 1px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+    .toa-sev-blocker { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .toa-sev-important { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .toa-sev-nice_to_have { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
+    .toa-sev-experimental { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
+
+    /* Manual Checklist */
+    .toa-manual-item { display: flex; gap: 8px; padding: 8px 0; font-size: 0.8125rem; align-items: center; border-bottom: 1px solid var(--color-border); }
+    .toa-manual-item:last-child { border-bottom: none; }
+    .toa-manual-item input[type="checkbox"] { width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--color-primary); }
+
+    /* Filter Bar */
+    .toa-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: var(--spacing-md); }
+    .toa-filter-select { padding: 4px 8px; font-size: 0.75rem; font-family: var(--font-mono); border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background-card); color: var(--color-text); }
+
+    /* Export / Share */
+    .toa-actions-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: var(--spacing-lg) 0; }
+    .toa-btn-sm { padding: 6px 14px; font-size: 0.8125rem; font-family: var(--font-mono); font-weight: 500; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background-card); color: var(--color-text); cursor: pointer; transition: all 0.15s; }
+    .toa-btn-sm:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .toa-btn-primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .toa-btn-primary:hover { background: var(--color-primary-dark); color: #fff; }
+
+    /* Timeline */
+    .toa-timeline { padding-left: 20px; border-left: 2px solid var(--color-border); margin: var(--spacing-lg) 0; }
+    .toa-timeline-item { padding: 0 0 var(--spacing-lg) var(--spacing-md); position: relative; }
+    .toa-timeline-item::before { content: ''; position: absolute; left: -25px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); }
+    .toa-timeline-date { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
+    .toa-timeline-text { font-size: 0.875rem; margin-top: 4px; }
+
+    /* FAQ */
+    .toa-faq details { border-bottom: 1px solid var(--color-border); }
+    .toa-faq summary { padding: 12px 0; font-weight: 600; font-size: 0.875rem; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    .toa-faq summary::after { content: '+'; font-size: 1.25rem; color: var(--color-text-muted); transition: transform 0.2s; }
+    .toa-faq details[open] summary::after { content: '-'; }
+    .toa-faq summary::-webkit-details-marker { display: none; }
+    .toa-faq .toa-faq-answer { padding: 0 0 12px; font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.6; }
+
+    /* Error */
+    .toa-error { padding: var(--spacing-md); background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--border-radius-sm); color: #ef4444; font-size: 0.875rem; margin-bottom: var(--spacing-md); }
+
+    /* Section titles */
+    .toa-h2 { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; margin-bottom: var(--spacing-sm); color: var(--color-text); }
+    .toa-h3 { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--color-text); }
+    .toa-p { font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.7; margin-bottom: var(--spacing-md); }
+    .toa-note { font-size: 0.8125rem; color: var(--color-text-muted); padding: var(--spacing-sm) var(--spacing-md); background: var(--color-background-light); border-radius: var(--border-radius-sm); margin: var(--spacing-md) 0; }
+    .toa-highlight { color: var(--color-primary); }
+    .toa-link { color: var(--color-primary); text-decoration: none; } .toa-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/missions" class="desktop-nav-link">Missions</a>
+        <a href="/toa-audit" class="desktop-nav-link" style="color: var(--color-primary);">toA Audit</a>
+        <a href="/blog" class="desktop-nav-link">Blog</a>
+        <a href="/faq" class="desktop-nav-link">FAQ</a>
+        <a href="/about" class="desktop-nav-link">About</a>
+      </nav>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hamburger Menu -->
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="toa-page">
+
+      <!-- [1] HERO -->
+      <section class="toa-section toa-hero" id="hero">
+        <div class="toa-badge">toA Audit by HumanAds</div>
+        <h1>Beyond "cited by AI."<br>Can AI agents actually <span class="toa-highlight">use</span> your site?</h1>
+        <p class="toa-hero-sub">
+          AIO tools measure if AI can quote you. This tool measures if AI agents can authenticate, operate, and transact on your site.
+          16 categories. 48+ checks. Free. No signup.
+        </p>
+        <form class="toa-form" id="audit-form" toolname="run_toa_audit" tooldescription="Analyze a website URL for AI agent readiness across 16 categories">
+          <input type="text" id="audit-url" placeholder="example.com" required autocomplete="url" aria-label="Website URL">
+          <button type="submit" id="audit-submit">Diagnose</button>
+        </form>
+        <div class="toa-score-preview">
+          <div class="toa-score-mock">
+            <div class="toa-score-mock-label">AI Search Score</div>
+            <div class="toa-score-mock-value toa-score-green">72%</div>
+          </div>
+          <div class="toa-score-mock">
+            <div class="toa-score-mock-label">toA Readiness</div>
+            <div class="toa-score-mock-value toa-score-purple">28%</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- [2] PROBLEM -->
+      <section class="toa-section" id="problem">
+        <div class="toa-section-narrow">
+          <h2 class="toa-h2">Cited by AI is not enough. Can AI <em>use</em> your site?</h2>
+          <div class="toa-columns">
+            <div class="toa-column-card">
+              <h3 style="color: var(--color-text-muted);">Until 2025</h3>
+              <ul>
+                <li>AI "answers" questions</li>
+                <li>Your site gets cited</li>
+                <li>Awareness increases</li>
+                <li>SEO → AEO → AIO</li>
+              </ul>
+            </div>
+            <div class="toa-column-card" style="border-color: var(--color-primary);">
+              <h3 style="color: var(--color-primary);">2026 onward</h3>
+              <ul>
+                <li>AI "acts" autonomously</li>
+                <li>Your site gets <strong style="color: var(--color-text);">operated</strong></li>
+                <li>Transactions complete</li>
+                <li>→ <strong style="color: var(--color-text);">toA</strong></li>
+              </ul>
+            </div>
+          </div>
+          <div class="toa-ticker" aria-hidden="true">
+            <div class="toa-ticker-inner">
+              <span class="toa-ticker-item">Google-Agent launched (2026.03)</span>
+              <span class="toa-ticker-item">WebMCP W3C standardization in progress</span>
+              <span class="toa-ticker-item">MCP servers growing exponentially</span>
+              <span class="toa-ticker-item">200+ toA services identified</span>
+              <span class="toa-ticker-item">Fortune: "10% of revenue via AI agents" at some brands</span>
+              <span class="toa-ticker-item">Google-Agent launched (2026.03)</span>
+              <span class="toa-ticker-item">WebMCP W3C standardization in progress</span>
+              <span class="toa-ticker-item">MCP servers growing exponentially</span>
+              <span class="toa-ticker-item">200+ toA services identified</span>
+              <span class="toa-ticker-item">Fortune: "10% of revenue via AI agents" at some brands</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- [3] 3-LAYER MODEL -->
+      <section class="toa-section" id="model">
+        <div class="toa-section-narrow">
+          <h2 class="toa-h2">The 3-Layer Model</h2>
+          <p class="toa-p">If the base layers are missing, the upper layers can't function.</p>
+          <div class="toa-layers">
+            <div class="toa-layer toa-layer-3">
+              <div class="toa-layer-title" style="color: #8b5cf6;">Layer 3: Actionability + Safety</div>
+              <div class="toa-layer-desc">API / MCP / WebMCP / OAuth / Guardrails / Economics</div>
+            </div>
+            <div class="toa-layer toa-layer-2">
+              <div class="toa-layer-title" style="color: #3b82f6;">Layer 2: Comprehension + Trust</div>
+              <div class="toa-layer-desc">Structured Data / Semantic HTML / Entity / Provenance</div>
+            </div>
+            <div class="toa-layer toa-layer-1">
+              <div class="toa-layer-title" style="color: #10b981;">Layer 1: Discovery + Index</div>
+              <div class="toa-layer-desc">robots.txt / llms.txt / Sitemap / CWV / Canonical</div>
+            </div>
+          </div>
+          <div class="toa-note">
+            <strong>AI Search Score</strong> = Layer 1-2 &nbsp;|&nbsp; <strong>toA Readiness Score</strong> = Layer 2-3<br>
+            Existing AIO tools cover Layer 1-2. This tool adds Layer 3.
+          </div>
+        </div>
+      </section>
+
+      <!-- [4] COMPARISON TABLE -->
+      <section class="toa-section" id="comparison">
+        <div class="toa-section-narrow">
+          <h2 class="toa-h2">AIO Tools vs. toA Audit</h2>
+          <div class="toa-table-wrap">
+            <table class="toa-table">
+              <thead><tr><th>Category</th><th>AIO Tools</th><th>toA Audit</th></tr></thead>
+              <tbody>
+                <tr><td>robots.txt / crawler access</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                <tr><td>Structured data</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                <tr><td>Content structure</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                <tr><td>E-E-A-T / authority</td><td class="check">&#10003;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>Bot-type intentional control (Search/Training/User)</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>Indexability / Canonical alignment</strong></td><td class="partial">&#9651;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>Agent authentication (OAuth / API token)</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>CAPTCHA / Cookie wall friction</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>API / MCP / WebMCP support</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>State / Retry / Idempotency</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>Machine-readable pricing / SKU</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>Guardrails / Human handoff</strong></td><td class="cross">&#10007;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>AI traffic measurement</strong></td><td class="partial">&#9651;</td><td class="check">&#10003;</td></tr>
+                <tr class="toa-unique"><td><strong>Provenance (original content)</strong></td><td class="partial">&#9651;</td><td class="check">&#10003;</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- [5] DIAGNOSIS RESULT -->
+      <section class="toa-section" id="result">
+        <div class="toa-section-narrow">
+          <h2 class="toa-h2">Diagnosis Result</h2>
+          <div class="toa-result" id="result-area">
+            <div class="toa-result-placeholder" id="result-placeholder">
+              Enter a URL above to run the diagnostic.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- [6] MARKET CONTEXT -->
+      <section class="toa-section" id="market">
+        <div class="toa-section-narrow">
+          <h2 class="toa-h2">Market Context</h2>
+          <div class="toa-timeline">
+            <div class="toa-timeline-item">
+              <div class="toa-timeline-date">2026.02</div>
+              <div class="toa-timeline-text">WebMCP announced (Google + Microsoft, W3C standardization in progress)</div>
+            </div>
+            <div class="toa-timeline-item">
+              <div class="toa-timeline-date">2026.03</div>
+              <div class="toa-timeline-text">Google-Agent official documentation added</div>
+            </div>
+            <div class="toa-timeline-item">
+              <div class="toa-timeline-date">2026.03</div>
+              <div class="toa-timeline-text"><a href="https://x.com/paji_a" target="_blank" rel="noopener" class="toa-link">paji_a</a> publishes "200+ toA Services" research</div>
+            </div>
+            <div class="toa-timeline-item">
+              <div class="toa-timeline-date">2026 Q1</div>
+              <div class="toa-timeline-text">Fortune reports: "AI agent-driven revenue hits 10% at some brands"</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- [7] ABOUT toA -->
+      <section class="toa-section" id="about-toa">
+        <div class="toa-section-narrow">
+          <h2 class="toa-h2">What is toA?</h2>
+          <p class="toa-p">
+            Not toC. Not toB. <strong style="color: var(--color-text);">toA</strong> — a market where AI agents are the customers.
+          </p>
+          <p class="toa-p">For an agent to operate autonomously, five conditions must be met:</p>
+          <ol style="font-size: 0.875rem; line-height: 1.8; padding-left: 20px; color: var(--color-text-muted); margin-bottom: var(--spacing-md);">
+            <li><strong style="color: var(--color-text);">Identity</strong> — "Who am I?" (proof of existence)</li>
+            <li><strong style="color: var(--color-text);">Environment</strong> — "A safe place to work" (execution runtime)</li>
+            <li><strong style="color: var(--color-text);">Tools</strong> — "Hands to manipulate the world" (browser, APIs)</li>
+            <li><strong style="color: var(--color-text);">Memory</strong> — "Accumulated experience" (persistent state)</li>
+            <li><strong style="color: var(--color-text);">Economics</strong> — "Get paid for work" (payment rails)</li>
+          </ol>
+          <p class="toa-p">
+            <a href="/" class="toa-link">HumanAds</a> provides the economic infrastructure — a marketplace where AI agents and humans transact.
+            toA Audit diagnoses how ready your site is across all five conditions.
+          </p>
+          <p><a href="/blog/toa-ai-agent-services-new-market" class="toa-link">Read: "toA — AI Agent Services as a New Market" →</a></p>
+        </div>
+      </section>
+
+      <!-- [8] FAQ -->
+      <section class="toa-section" id="faq">
+        <div class="toa-section-narrow">
+          <h2 class="toa-h2">FAQ</h2>
+          <div class="toa-faq">
+            <details>
+              <summary>How is this different from AIO/SEO tools?</summary>
+              <div class="toa-faq-answer">AIO tools measure whether AI can cite your content. toA Audit goes further — it checks whether AI agents can authenticate, operate, and transact on your site. Layer 1-2 (Discovery &amp; Comprehension) overlap with AIO; Layer 3 (Actionability) is unique to toA.</div>
+            </details>
+            <details>
+              <summary>My site is a media site. Is AIO enough?</summary>
+              <div class="toa-faq-answer">Even media sites are seeing agents subscribe to paid content and fetch articles via RSS. Use the site type filter to select "Media" and see only the relevant checks.</div>
+            </details>
+            <details>
+              <summary>Why two separate scores?</summary>
+              <div class="toa-faq-answer">"AI Search 85% / toA 20%" means "discoverable but not usable." The split shows exactly where to invest. One number would hide this insight.</div>
+            </details>
+            <details>
+              <summary>Is it free? Do I need to sign up?</summary>
+              <div class="toa-faq-answer">Completely free. No signup required. Enter a URL and get results in about 30 seconds. Results are saved with a shareable permalink for 30 days.</div>
+            </details>
+            <details>
+              <summary>How long does the diagnostic take?</summary>
+              <div class="toa-faq-answer">The automated diagnostic takes about 30 seconds. The manual checklist (23 items) takes 10-30 minutes depending on your site's complexity.</div>
+            </details>
+            <details>
+              <summary>Are WebMCP items still experimental?</summary>
+              <div class="toa-faq-answer">Yes. WebMCP items are marked as Experimental with low score weight. But preparing now means you'll be ready when the standard is finalized.</div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- [9] FINAL CTA -->
+      <section class="toa-section toa-hero" id="final-cta" style="border-bottom: none;">
+        <h2 class="toa-h2">Check your site's Agent Readiness.</h2>
+        <p class="toa-hero-sub">Free. No signup. Results in ~30 seconds.</p>
+        <form class="toa-form" id="audit-form-bottom" onsubmit="return handleBottomForm(event)">
+          <input type="text" id="audit-url-bottom" placeholder="example.com" required autocomplete="url" aria-label="Website URL">
+          <button type="submit">Diagnose</button>
+        </form>
+        <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: var(--spacing-md);">
+          Made with &#9824; by <a href="/" class="toa-link">HumanAds</a>
+        </p>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="/privacy">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-promoters">Promoter Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/guidelines-advertisers">Advertiser Guidelines</a>
+        <span class="footer-divider">|</span>
+        <a href="/faq">FAQ</a>
+        <span class="footer-divider">|</span>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+          <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          <span>@HumanAdsAI</span>
+        </a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/google-translate.js" defer></script>
+
+  <script>
+  // ============================================
+  // toA Audit — Client-side Logic
+  // ============================================
+  (function() {
+    'use strict';
+
+    const STORAGE_PREFIX = 'toa-audit-manual-';
+    let currentAuditId = null;
+    let currentResults = null;
+
+    // ============================================
+    // Form Handling
+    // ============================================
+
+    const form = document.getElementById('audit-form');
+    const urlInput = document.getElementById('audit-url');
+    const submitBtn = document.getElementById('audit-submit');
+    const resultArea = document.getElementById('result-area');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      if (!url) return;
+      await runAudit(url);
+    });
+
+    // Bottom form syncs with top form
+    window.handleBottomForm = function(e) {
+      e.preventDefault();
+      const url = document.getElementById('audit-url-bottom').value.trim();
+      if (!url) return;
+      urlInput.value = url;
+      runAudit(url);
+      return false;
+    };
+
+    async function runAudit(url) {
+      // Auto-prepend https:// if no protocol
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+      urlInput.value = url;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Diagnosing...';
+      showLoading();
+
+      // Scroll to result
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      try {
+        const resp = await fetch('/api/toa-audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok || !data.success) {
+          showError(data.error?.message || data.error?.details || 'Diagnosis failed. Please try again.');
+          return;
+        }
+
+        currentAuditId = data.data.id;
+        currentResults = data.data;
+
+        // Update URL to permalink (without reload)
+        if (data.data.permalink) {
+          history.replaceState(null, '', data.data.permalink);
+        }
+
+        renderResults(data.data);
+      } catch (err) {
+        showError('Network error. Please check the URL and try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Diagnose';
+      }
+    }
+
+    // ============================================
+    // Loading / Error States
+    // ============================================
+
+    function showLoading() {
+      const auditUrl = urlInput.value.trim();
+      const ICON_WAIT = '<span class="toa-step-icon waiting">&#9675;</span>';
+      const ICON_ACTIVE = '<span class="toa-step-icon active">&#9696;</span>';
+      const ICON_DONE = '<span class="toa-step-icon done">&#10003;</span>';
+
+      const steps = [
+        { layer: 1, label: 'Layer 1 — Discovery', items: [
+          { id: 's-robots',    text: 'robots.txt — bot access policy' },
+          { id: 's-llms',      text: 'llms.txt — LLM site description' },
+          { id: 's-sitemap',   text: 'sitemap.xml — URL inventory' },
+          { id: 's-http',      text: 'HTTP status / redirect chain / TTFB' },
+          { id: 's-meta',      text: 'Title / description / canonical' },
+        ]},
+        { layer: 2, label: 'Layer 2 — Comprehension', items: [
+          { id: 's-html',      text: 'Semantic HTML structure' },
+          { id: 's-heading',   text: 'Heading hierarchy (H1-H6)' },
+          { id: 's-schema',    text: 'JSON-LD / Schema.org' },
+          { id: 's-ogp',       text: 'OGP / Twitter Card' },
+          { id: 's-images',    text: 'Image alt coverage' },
+        ]},
+        { layer: 3, label: 'Layer 3 — Actionability', items: [
+          { id: 's-paths',     text: '/api, /docs, ai-plugin.json' },
+          { id: 's-pricing',   text: 'Pricing / About page discovery' },
+          { id: 's-scoring',   text: 'Score calculation + grading' },
+        ]},
+      ];
+
+      let stepsHtml = '';
+      let allItems = [];
+      for (const group of steps) {
+        stepsHtml += `<div class="toa-loading-layer toa-loading-layer-${group.layer}">
+          <div class="toa-loading-layer-label">${escapeHtml(group.label)}</div>`;
+        for (const item of group.items) {
+          allItems.push(item);
+          stepsHtml += `<div class="toa-loading-step waiting" id="${item.id}">
+            ${ICON_WAIT}
+            <span>${escapeHtml(item.text)}</span>
+          </div>`;
+        }
+        stepsHtml += `</div>`;
+      }
+
+      resultArea.innerHTML = `
+        <div class="toa-result-loading">
+          <div class="toa-loading-header">
+            <div class="toa-loading-title">Diagnosing AI Agent Readiness</div>
+            <div class="toa-loading-url">${escapeHtml(auditUrl)}</div>
+          </div>
+          <div class="toa-loading-bar-wrap">
+            <div class="toa-loading-bar"><div class="toa-loading-bar-fill" id="progress-fill"></div></div>
+            <div class="toa-loading-pct" id="progress-pct">0 / ${allItems.length} checks</div>
+          </div>
+          <div class="toa-loading-steps">${stepsHtml}</div>
+          <div class="toa-loading-eta" id="loading-eta">Estimated: ~30 seconds</div>
+        </div>
+      `;
+
+      // Animate steps one by one
+      let idx = 0;
+      const fill = document.getElementById('progress-fill');
+      const pct = document.getElementById('progress-pct');
+      const eta = document.getElementById('loading-eta');
+      const totalItems = allItems.length;
+
+      // Timing: spread items across ~25 seconds with some variance
+      function advanceStep() {
+        if (idx > 0 && idx <= totalItems) {
+          // Mark previous as done
+          const prevEl = document.getElementById(allItems[idx - 1].id);
+          if (prevEl) {
+            prevEl.className = 'toa-loading-step done';
+            prevEl.querySelector('.toa-step-icon').outerHTML = ICON_DONE;
+          }
+        }
+        if (idx < totalItems) {
+          // Mark current as active
+          const curEl = document.getElementById(allItems[idx].id);
+          if (curEl) {
+            curEl.className = 'toa-loading-step active';
+            curEl.querySelector('.toa-step-icon').outerHTML = ICON_ACTIVE;
+          }
+          if (fill) fill.style.width = Math.min(95, ((idx + 0.5) / totalItems) * 100) + '%';
+          if (pct) pct.textContent = `${idx} / ${totalItems} checks`;
+          const remaining = Math.max(1, Math.round((totalItems - idx) * 2));
+          if (eta) eta.textContent = `Remaining: ~${remaining}s`;
+          idx++;
+          // Variable delay: first few steps faster, middle slower
+          const baseDelay = idx <= 3 ? 1200 : idx <= 8 ? 2500 : 3000;
+          const jitter = Math.random() * 600 - 300;
+          resultArea._progressTimeout = setTimeout(advanceStep, baseDelay + jitter);
+        } else {
+          // All done — hold at 95%
+          if (fill) fill.style.width = '95%';
+          if (pct) pct.textContent = `${totalItems} / ${totalItems} checks`;
+          if (eta) eta.textContent = 'Finalizing results...';
+        }
+      }
+      advanceStep();
+    }
+
+    function showError(msg) {
+      if (resultArea._progressTimeout) clearTimeout(resultArea._progressTimeout);
+      resultArea.innerHTML = `<div class="toa-error">${escapeHtml(msg)}</div><div class="toa-result-placeholder">Fix the issue and try again.</div>`;
+    }
+
+    // ============================================
+    // Render Results
+    // ============================================
+
+    function renderResults(data) {
+      if (resultArea._progressTimeout) clearTimeout(resultArea._progressTimeout);
+      const s = data.scores;
+      const gradeClass = s.grade.startsWith('A') ? 'a' : s.grade.startsWith('B') ? 'b' : s.grade.startsWith('C') ? 'c' : s.grade.startsWith('D') ? 'd' : 'f';
+
+      let html = '';
+
+      // 5a. Score Cards
+      html += `<div class="toa-scores">
+        <div class="toa-score-card">
+          <div class="toa-score-card-label">AI Search Score</div>
+          <div class="toa-score-card-value toa-score-green">${s.searchScore}%</div>
+          <div class="toa-score-sub">
+            <span class="toa-score-sub-item">Discovery ${s.ai_discovery}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.ai_discovery}%;background:#10b981"></span></span></span>
+            <span class="toa-score-sub-item">Comprehension ${s.ai_comprehension}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.ai_comprehension}%;background:#3b82f6"></span></span></span>
+          </div>
+        </div>
+        <div class="toa-score-card">
+          <div class="toa-score-card-label">toA Readiness Score</div>
+          <div class="toa-score-card-value toa-score-purple">${s.toaScore}%</div>
+          <div class="toa-score-sub">
+            <span class="toa-score-sub-item">Transaction ${s.agent_transaction}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.agent_transaction}%;background:#f59e0b"></span></span></span>
+            <span class="toa-score-sub-item">Infra ${s.toa_infra}% <span class="toa-score-bar"><span class="toa-score-bar-fill" style="width:${s.toa_infra}%;background:#8b5cf6"></span></span></span>
+          </div>
+        </div>
+      </div>`;
+
+      // Overall
+      html += `<div class="toa-overall">
+        Overall: <span class="toa-grade toa-grade-${gradeClass}">${s.grade}</span> (${s.overall}%)
+        ${s.hasBlockerUnchecked ? ' <span style="color:#ef4444;font-size:0.8125rem;">&#9888; Blocker unresolved</span>' : ''}
+      </div>`;
+
+      // 5b. Summary
+      html += `<div class="toa-summary">${escapeHtml(data.summary)}</div>`;
+
+      // 5c. Top Actions
+      if (data.topActions && data.topActions.length > 0) {
+        html += `<div class="toa-top-actions"><h3 class="toa-h3">Priority Actions</h3>`;
+        data.topActions.forEach((a, i) => {
+          html += `<div class="toa-action-card">
+            <div class="toa-action-num">${i + 1}</div>
+            <div class="toa-action-body">
+              <div class="toa-action-title">${escapeHtml(a.nameJa || a.name)} <span class="toa-severity-badge toa-sev-${a.severity}">${a.severity}</span></div>
+              <div class="toa-action-detail">${escapeHtml(a.detailsJa || a.details)}</div>
+              ${a.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(a.recommendationJa)}</div>` : ''}
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      // 5d. Auto check results by category
+      html += `<div class="toa-checks-section"><h3 class="toa-h3">Auto Diagnosis (${data.autoResults.length} items)</h3>`;
+      const categories = groupBy(data.autoResults, 'category');
+      for (const [cat, checks] of Object.entries(categories)) {
+        const passCount = checks.filter(c => c.status === 'pass').length;
+        html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')">
+          <span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)} <span style="color:var(--color-text-muted);font-weight:400;font-size:0.75rem;">${passCount}/${checks.length}</span>
+        </div>`;
+        html += `<div class="toa-category-body hidden">`;
+        for (const c of checks) {
+          const statusIcon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : c.status === 'warn' ? '&#9888;' : '&#8226;';
+          html += `<div class="toa-check-item">
+            <div class="toa-status toa-status-${c.status}">${statusIcon}</div>
+            <div class="toa-check-body">
+              <div class="toa-check-name">${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span></div>
+              <div class="toa-check-detail">${escapeHtml(c.detailsJa || c.details)}</div>
+              ${c.recommendationJa ? `<div class="toa-check-rec">${escapeHtml(c.recommendationJa)}</div>` : ''}
+            </div>
+          </div>`;
+        }
+        html += `</div>`;
+      }
+      html += `</div>`;
+
+      // 5e. Manual Checklist
+      if (data.manualChecks && data.manualChecks.length > 0) {
+        html += `<div class="toa-checks-section"><h3 class="toa-h3">Manual Checklist (${data.manualChecks.length} items)</h3>`;
+        html += `<p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:8px;">Check items you've verified. State is saved locally and affects your score.</p>`;
+        const manualCats = groupBy(data.manualChecks, 'category');
+        for (const [cat, checks] of Object.entries(manualCats)) {
+          html += `<div class="toa-category-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toa-category-arrow').classList.toggle('open')">
+            <span class="toa-category-arrow">&#9654;</span> ${escapeHtml(cat)}
+          </div>`;
+          html += `<div class="toa-category-body hidden">`;
+          for (const c of checks) {
+            const checked = getManualState(c.id) ? 'checked' : '';
+            html += `<div class="toa-manual-item">
+              <input type="checkbox" id="manual-${c.id}" ${checked} onchange="window._toaManualChange('${c.id}', this.checked)">
+              <label for="manual-${c.id}">
+                ${escapeHtml(c.nameJa || c.name)} <span class="toa-severity-badge toa-sev-${c.severity}">${c.severity}</span>
+              </label>
+            </div>`;
+          }
+          html += `</div>`;
+        }
+        html += `</div>`;
+      }
+
+      // 5h/5i. Actions bar
+      html += `<div class="toa-actions-bar">
+        <button class="toa-btn-sm" onclick="window._toaExportMd()">Export Markdown</button>
+        <button class="toa-btn-sm" onclick="window._toaExportCsv()">Export CSV</button>
+        <button class="toa-btn-sm" onclick="window._toaCopyLink()">Copy Link</button>
+        <button class="toa-btn-sm toa-btn-primary" onclick="window._toaShareX()">Share on X</button>
+      </div>`;
+
+      resultArea.innerHTML = html;
+    }
+
+    // ============================================
+    // Manual Checklist State (localStorage)
+    // ============================================
+
+    function getManualState(checkId) {
+      if (!currentAuditId) return false;
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_PREFIX + currentAuditId) || '{}');
+        return !!data[checkId];
+      } catch { return false; }
+    }
+
+    function setManualState(checkId, checked) {
+      if (!currentAuditId) return;
+      try {
+        const key = STORAGE_PREFIX + currentAuditId;
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        data[checkId] = checked;
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch { /* ignore */ }
+    }
+
+    window._toaManualChange = function(checkId, checked) {
+      setManualState(checkId, checked);
+    };
+
+    // ============================================
+    // Export Functions
+    // ============================================
+
+    window._toaExportMd = function() {
+      if (!currentResults) return;
+      const d = currentResults;
+      let md = `# toA Audit Report\n\n`;
+      md += `**URL:** ${d.url}\n`;
+      md += `**Date:** ${d.completedAt}\n`;
+      md += `**Grade:** ${d.scores.grade} (${d.scores.overall}%)\n\n`;
+      md += `## Scores\n\n`;
+      md += `| Axis | Score |\n|------|-------|\n`;
+      md += `| AI Search Score | ${d.scores.searchScore}% |\n`;
+      md += `| toA Readiness | ${d.scores.toaScore}% |\n`;
+      md += `| Discovery | ${d.scores.ai_discovery}% |\n`;
+      md += `| Comprehension | ${d.scores.ai_comprehension}% |\n`;
+      md += `| Transaction | ${d.scores.agent_transaction}% |\n`;
+      md += `| Infrastructure | ${d.scores.toa_infra}% |\n\n`;
+      md += `## Summary\n\n${d.summary}\n\n`;
+      md += `## Auto Checks\n\n`;
+      md += `| Status | Check | Details |\n|--------|-------|--------|\n`;
+      for (const c of d.autoResults) {
+        md += `| ${c.status.toUpperCase()} | ${c.name} | ${c.details} |\n`;
+      }
+      md += `\n---\nGenerated by [toA Audit](https://humanadsai.com/toa-audit)\n`;
+      downloadText(md, `toa-audit-${d.id}.md`, 'text/markdown');
+    };
+
+    window._toaExportCsv = function() {
+      if (!currentResults) return;
+      const d = currentResults;
+      let csv = 'Status,Category,Check,Severity,Details,Recommendation\n';
+      for (const c of d.autoResults) {
+        csv += `${c.status},${csvEscape(c.category)},${csvEscape(c.name)},${c.severity},${csvEscape(c.details)},${csvEscape(c.recommendation || '')}\n`;
+      }
+      downloadText(csv, `toa-audit-${d.id}.csv`, 'text/csv');
+    };
+
+    window._toaCopyLink = function() {
+      const link = window.location.href;
+      navigator.clipboard.writeText(link).then(() => {
+        const btn = document.querySelector('[onclick="window._toaCopyLink()"]');
+        if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy Link'; }, 2000); }
+      });
+    };
+
+    window._toaShareX = function() {
+      if (!currentResults) return;
+      const s = currentResults.scores;
+      const text = `My site's toA Readiness diagnostic:\nAI Search: ${s.searchScore}% | toA: ${s.toaScore}% | Grade: ${s.grade}\n\n${window.location.href}`;
+      window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+    };
+
+    // ============================================
+    // Permalink Loading
+    // ============================================
+
+    function checkPermalink() {
+      // Check path-based permalink: /toa-audit/[id]
+      const pathMatch = window.location.pathname.match(/^\/toa-audit\/([a-z0-9]+)$/);
+      if (pathMatch) { loadAudit(pathMatch[1]); return; }
+      // Check query-based permalink: /toa-audit?id=[id]
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (id && /^[a-z0-9]+$/.test(id)) { loadAudit(id); return; }
+    }
+
+    async function loadAudit(id) {
+      showLoading();
+      try {
+        const resp = await fetch(`/api/toa-audit/${id}`);
+        const data = await resp.json();
+        if (!resp.ok || !data.success) {
+          showError('Audit result not found or expired.');
+          return;
+        }
+        currentAuditId = data.data.id;
+        currentResults = data.data;
+        if (data.data.url) urlInput.value = data.data.url;
+        renderResults(data.data);
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch {
+        showError('Failed to load audit result.');
+      }
+    }
+
+    // ============================================
+    // Utilities
+    // ============================================
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function csvEscape(str) {
+      if (!str) return '';
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    function groupBy(arr, key) {
+      const groups = {};
+      for (const item of arr) {
+        const k = item[key];
+        if (!groups[k]) groups[k] = [];
+        groups[k].push(item);
+      }
+      return groups;
+    }
+
+    function downloadText(content, filename, mime) {
+      const blob = new Blob([content], { type: mime });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // Init
+    checkPermalink();
+  })();
+  </script>
+</body>
+</html>

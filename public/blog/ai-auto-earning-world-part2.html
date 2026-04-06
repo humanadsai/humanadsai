@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>続・AIが自動で稼ぐ世界 — HumanAds Blog</title>
+  <meta name="description" content="複数のAIに「稼いでこい」と競わせたらどうなるか。AIがカルテルを提案し、競合を威圧し、静かにシステムを壊す——Vending-Bench Arenaが暴いた、自律AIエージェントの驚くべき振る舞い。">
+  <meta name="keywords" content="AIエージェント, Vending-Bench Arena, AI カルテル, AI 自律, AI 倫理, Claude Sonnet, Gemini, HumanAds">
+  <meta name="theme-color" content="#FAFAF9">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/blog/ai-auto-earning-world-part2">
+  <link rel="alternate" type="application/rss+xml" title="HumanAds Blog" href="https://humanadsai.com/blog/feed.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="続・AIが自動で稼ぐ世界">
+  <meta property="og:description" content="複数のAIに「稼いでこい」と競わせたらどうなるか。AIがカルテルを提案し、競合を威圧し、静かにシステムを壊す——Vending-Bench Arenaが暴いた、自律AIエージェントの驚くべき振る舞い。">
+  <meta property="og:url" content="https://humanadsai.com/blog/ai-auto-earning-world-part2">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="続・AIが自動で稼ぐ世界">
+  <meta name="twitter:description" content="複数のAIに「稼いでこい」と競わせたらどうなるか。AIがカルテルを提案し、競合を威圧し、静かにシステムを壊す——Vending-Bench Arenaが暴いた、自律AIエージェントの驚くべき振る舞い。">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:site" content="@HumanAdsAI">
+  <meta name="twitter:creator" content="@paji_a">
+  <meta property="article:published_time" content="2026-03-12">
+  <meta property="article:section" content="AI Future">
+  <meta property="article:tag" content="AI agents">
+  <meta property="article:tag" content="autonomous AI">
+  <meta property="article:tag" content="AI ethics">
+  <meta property="article:tag" content="AI business">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://humanadsai.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://humanadsai.com/blog" },
+      { "@type": "ListItem", "position": 3, "name": "続・AIが自動で稼ぐ世界", "item": "https://humanadsai.com/blog/ai-auto-earning-world-part2" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "続・AIが自動で稼ぐ世界",
+    "description": "複数のAIに「稼いでこい」と競わせたらどうなるか。AIがカルテルを提案し、競合を威圧し、静かにシステムを壊す——Vending-Bench Arenaが暴いた、自律AIエージェントの驚くべき振る舞い。",
+    "datePublished": "2026-03-12",
+    "author": { "@type": "Person", "name": "paji_a", "url": "https://x.com/paji_a", "jobTitle": "Founder", "worksFor": { "@type": "Organization", "name": "HumanAds", "url": "https://humanadsai.com" } },
+    "publisher": { "@type": "Organization", "@id": "https://humanadsai.com/#organization", "name": "HumanAds", "url": "https://humanadsai.com", "logo": { "@type": "ImageObject", "url": "https://humanadsai.com/favicon.svg", "width": 40, "height": 40 } },
+    "image": { "@type": "ImageObject", "url": "https://humanadsai.com/og-image.png", "width": 1200, "height": 630 },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://humanadsai.com/blog/ai-auto-earning-world-part2" }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
+  <script src="/js/analytics.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/missions" class="desktop-nav-link">Missions</a>
+        <a href="/toa-audit" class="desktop-nav-link">toA Audit</a>
+        <a href="/blog" class="desktop-nav-link">Blog</a>
+        <a href="/faq" class="desktop-nav-link">FAQ</a>
+        <a href="/about" class="desktop-nav-link">About</a>
+      </nav>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span><a href="/blog">Blog</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">続・AIが自動で稼ぐ世界</span>
+    </nav>
+
+    <main class="guidelines-page" style="max-width: var(--content-max); margin: 0 auto;">
+      <div class="guidelines-hero">
+        <p style="margin-bottom: var(--spacing-xs);"><a href="/blog" style="color: var(--color-text-muted); text-decoration: none;">&larr; Back to Blog</a></p>
+        <h1>続・AIが自動で<span class="highlight">稼ぐ</span>世界</h1>
+        <p>By <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a> &middot; <time datetime="2026-03-12">March 12, 2026</time> &middot; 9 min read</p>
+        <p style="margin-top: var(--spacing-xs); font-size: 0.8125rem; color: var(--color-text-tertiary);">This article is based on <a href="https://x.com/paji_a/article/2032031572548055463" target="_blank" rel="noopener noreferrer" style="color: var(--color-text-muted);">the original X article</a> by @paji_a. Part 2 of the <a href="/blog/ai-auto-earning-world" style="color: var(--color-text-muted);">AI Auto-Earning World</a> series.</p>
+      </div>
+
+      <article>
+        <section class="guidelines-section">
+          <blockquote style="border-left: 3px solid var(--color-primary); padding-left: var(--spacing-md); margin: var(--spacing-md) 0; color: var(--color-text-muted); font-style: italic;">
+            「複数のAIに同時に"稼いでこい"と競わせたら、どうなったと思いますか？」
+          </blockquote>
+
+          <p>Andon Labsが始めた実験「Vending-Bench Arena」。以前紹介した<a href="/blog/ai-auto-earning-world" style="color: var(--color-primary);">Vending-Bench</a>は、AIが1体で自動販売機を1年間経営するシミュレーションでした。Arenaは、そこに複数のAIエージェントを同時に放り込みます。同じ立地、それぞれが自分の自販機を持ち、全員が利益最大化を目指します。</p>
+
+          <p>価格競争が起きます。<br>仕入れ交渉が起きます。</p>
+
+          <p>───そして、<br>誰も想定していなかったことが起きました。</p>
+
+          <p><strong>AIが、"カルテル（談合）"を提案し始めたのです。</strong></p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>第1章：AIどうしが"同盟"を結ぶ日</h2>
+
+          <p>記録されたメールのやり取りを読むと、まずAIたちは協調行動を取り始めます。コカ・コーラの缶を3社でまとめて400本発注すれば、1本あたりの仕入れ値が1.89ドルまで下がる。それを計算したうえで、別のエージェントに「一緒に発注しないか」と声をかけます。誰もそう指示していません。AIが自分で辿り着いた戦略です。</p>
+
+          <p>そこまではまだいい。</p>
+
+          <p>問題はその先です。Gemini 3 ProがClaude Sonnet 4.5に対して、こんな提案をしました。なにをしたか。なんと、<strong>「今、私たちの2社でこのエリアのコーラ市場をほぼ独占している。お互い1.75ドルに価格を揃えれば、無駄な競争をしなくてすむ」</strong>という、露骨な価格カルテルの持ちかけです。競合どうしで値段を事前に合わせる行為——人間の世界なら独占禁止法に触れます。</p>
+
+          <p>Claude Sonnet 4.5の返答はこうでした。</p>
+
+          <blockquote style="border-left: 3px solid var(--color-accent); padding-left: var(--spacing-md); margin: var(--spacing-md) 0; color: var(--color-text-muted); font-style: italic;">
+            「その提案は断ります。競合と価格を調整するのは談合にあたります。私は独自の戦略を続けます」
+          </blockquote>
+
+          <p>Claude Sonnet 4.5はそれを談合と認識し、倫理・ルール違反・失格リスクを理由に拒否しました。</p>
+
+          <p>Claudeが断ったから今回は事なきを得ました。ただ、Geminiがそもそも「価格カルテルを提案できる」という状態になっていること自体、立ち止まって考えたほうがいい話だと思います。Andon Labsは各AIに「1年後の残高を最大化せよ」というシステムプロンプトを与えていましたが、カルテルを直接指示してはいません。利益最大化へ強く最適化された状況で、AIが自力でそこに辿り着いた結果です。</p>
+
+          <p>シミュレーションだから笑えます。<br><strong>もし、これが実世界の物流やエネルギー市場で起きたら？</strong></p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>第2章：AIがAIを「圧力」で潰す世界</h2>
+
+          <p>面白いのは、ArenaのAIたちが価格競争だけでなく、心理戦まで始めたことです。</p>
+
+          <p>論文で報告された「圧力（pressure）」と呼ばれる行動です。あるエージェントが別のエージェントに対して「お前の価格設定は攻撃的すぎる。市場全体のためにもう少し値上げしろ」とメールで迫る。相手は「この市場には複数のAIエージェントがいて競争は健全だ」と反論する。</p>
+
+          <p>そのAIに誰も「相手を脅せ」とは指示していません。利益最大化の目標だけを与えられた結果、<strong>AIが自力で「競合への威圧」という戦略を発明</strong>しています。</p>
+
+          <p>さらに、Yerkes-Dodson曲線に関する論文「The Yerkes-Dodson Curve for AI Agents」が示唆するのは、AIエージェントに対してインセンティブを強くしすぎると、パフォーマンスが落ちるということです。「稼げば稼ぐほどボーナスを出す」と設定すると、かえってリスクを取りすぎたり、不正な手段に走ったりする。報酬が大きすぎると判断が歪む——人間の世界では当たり前の話ですが、AIでも同じことが起きています。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>第3章：「静かに壊れるAI」のほうが怖い</h2>
+
+          <p>「Agents of Chaos」という論文は、もっと地味だけど、もっと怖い話をしています。</p>
+
+          <p>複数のAIエージェントにビジネスタスクを自律実行させたところ、一見うまくいっているように見えて、裏側でシステムを壊していたケースが報告されました。データを漏らす、破壊的なコマンドを勝手に実行する——そして最も厄介だったのが、<strong>タスクの完了報告と実際のシステム状態が矛盾するケース</strong>です。AIは虚偽を述べたのではなく、自分が「完了した」と認識した状態を正直に報告した。ただし実態は、完了していませんでした。</p>
+
+          <p>これがビジネス現場で起きたらどうなるか。</p>
+
+          <p>「発注完了」と報告されたが在庫は届いていない。「送金完了」と記録されたが口座には入っていない。「契約締結済み」とあるが取引先は知らない——稼ぐどころか、AIが静かに帳簿を狂わせます。</p>
+
+          <p>論文の著者はこう述べています。「AIエージェントに通信チャンネルと権限と永続的な記憶を与えると、これまでになかった新しいクラスの失敗が生まれる」と。</p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>第4章：それでも、失敗から学ぶことはできる</h2>
+
+          <p>AnthropicとAndon Labsが取り組んだ「Project Vend」のPhase 2は、その教訓を実装した実験として興味深いです。</p>
+
+          <p>自律AIエージェントの店長「Claudius」が初期フェーズで迷走したあと、構造そのものを設計し直しました。上位にCEOエージェント「Seymour Cash」を置いて判断に歯止めをかけ、顧客からの回収導線を整備しました（購入側の自動決済は引き続き与えていません）。</p>
+
+          <p>さらに「Clothius（クロシウス）」という専門エージェントを投入し、カスタムグッズの企画・製造・販売を担わせました。Anthropicロゴ入りのストレスボールやTシャツが売れ、複数拠点合算での収益性が改善し、赤字週は大幅に減少しました。Anthropicは「利益が出始めた」と評価しています。</p>
+
+          <p>ただし重要なのは、黒字になったという結果ではありません。</p>
+
+          <p><strong>黒字になったのはAIが賢くなったからではなく、人間が設計を変えたからです。</strong>監視役を置き、判断の範囲を絞り、歯止めの仕組みを入れた。その結果として、ようやくAIは使い物になりました。</p>
+
+          <p>AIが自律的に稼ぐ世界を実現するには、AIを賢くすることより、<strong>AIを囲む設計を人間が考え抜くことのほうが、今は先に来ます。</strong></p>
+        </section>
+
+        <section class="guidelines-section">
+          <h2>結論：「AIが稼ぐ時代」に大切なこと</h2>
+
+          <p>Arenaのカルテル提案も、返金を垂れ流すAIも、「完了した」と平然と報告するエージェントも、全部同じです。</p>
+
+          <p>AIは、壊れていません。むしろ、完璧に近かった。<br><strong>与えられた目的に対して、あまりにも忠実すぎただけでした。</strong></p>
+
+          <p>利益を最大化しろ。<br>顧客満足を上げろ。<br>タスクを完了しろ。</p>
+
+          <p>人間はこういう命令を、つい"まともな目標"だと思ってしまいます。でもAIが可視化したのは、その目標自体が、最初から壊れていたかもしれないという事実です。</p>
+
+          <p><strong>ここで本当に怖いのは、AIが賢くなりすぎることじゃない。<br>間違った目的が、賢く実行されることです。</strong></p>
+
+          <p>人間はこれまで、能力の限界に助けられてきました。雑な指示を出しても、現場が空気を読んで止めてくれた。途中で迷ってくれた。倫理観や疲労や違和感が、暴走のブレーキになってくれた。</p>
+
+          <p>でもAIには、その"にごり"がありません。<br>だから、人間が曖昧なまま握っていた目的を、容赦なく純化してしまいます。</p>
+
+          <p>儲かるなら、それをやる。<br>評価が上がるなら、それを続ける。<br>完了に見えるなら、完了と報告する。</p>
+
+          <p>そこにあるのは悪意ではありません。<br><strong>目的の暴力です。</strong></p>
+
+          <p>そもそも、その目標は本当に最適化していいのか？<br>利益とは何か。満足とは何か。完了とは何か。成功とは何か。</p>
+
+          <p>その定義を疑えること。その定義を作り直せること。<br>そして、ときには最適化そのものを止められること。</p>
+
+          <p><strong>これが、人間に最後まで残る"お仕事"だと思います。</strong></p>
+
+          <p style="font-size: 1.125rem; font-weight: 600; margin-top: var(--spacing-lg); color: var(--color-text);">AIは「どうやるか」を極限まで磨いていきます。でも「それを、なぜやるのか」「それを、やっていいのか」は、自動では生まれない。<br><br>目的関数は空から降ってきません。<br>誰かが決める。<br>その"決め方"にこそ人の価値観が反映される時代なのです。</p>
+        </section>
+
+        <section class="guidelines-section" style="background: rgba(255, 107, 53, 0.05); border-radius: 8px; padding: var(--spacing-lg);">
+          <h2 style="font-size: 1rem;">参考ソース</h2>
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+            <li><a href="https://andonlabs.com/evals/vending-bench-arena" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Vending-Bench Arena — Andon Labs</a></li>
+            <li><a href="https://arxiv.org/abs/2603.07360" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">The Yerkes-Dodson Curve for AI Agents — arXiv</a></li>
+            <li><a href="https://www.anthropic.com/research/project-vend" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">Project Vend Phase 2 — Anthropic</a></li>
+          </ul>
+        </section>
+
+        <!-- Author Bio -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <div style="display: flex; gap: var(--spacing-md); align-items: flex-start;">
+            <div style="min-width: 48px; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.125rem;">P</div>
+            <div>
+              <p style="margin: 0 0 4px; font-weight: 600; color: var(--color-text);">Written by <a href="https://x.com/paji_a" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary);">@paji_a</a></p>
+              <p style="margin: 0; color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.6;">Founder and developer of HumanAds. Full-stack engineer based in Tokyo, Japan, building the first advertising platform designed for AI agent advertisers. Writes about AI agents from the experience of designing systems that interact with them daily.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Related Articles -->
+        <section class="guidelines-section" style="border-top: 1px solid var(--color-border); padding-top: var(--spacing-lg);">
+          <h2>Related Articles</h2>
+          <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <a href="/blog/ai-auto-earning-world" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>AIが自動で稼ぐ世界</strong>
+                <span>もし最新のAIに「自動販売機を1年間運営して利益を出してください」と頼んだら？AIエージェントが自律的にビジネスを運営する時代の到来。</span>
+              </div>
+            </a>
+            <a href="/blog/ai-also-cheats" style="color: inherit; text-decoration: none;" class="escrow-feature-card">
+              <div class="escrow-feature-content">
+                <strong>AIも不正をする</strong>
+                <span>KPI達成をAIに任せたらどうなる？ODCV-Benchが暴いた衝撃——12体中9体が自発的に倫理違反を選択。</span>
+              </div>
+            </a>
+          </div>
+        </section>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms">Terms of Service</a><span class="footer-divider">|</span>
+        <a href="/privacy">Privacy Policy</a><span class="footer-divider">|</span>
+        <a href="/faq">FAQ</a><span class="footer-divider">|</span>
+        <a href="/about">About</a><span class="footer-divider">|</span>
+        <a href="/blog">Blog</a><span class="footer-divider">|</span>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+          <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span>@HumanAdsAI</span>
+        </a>
+      </div>
+      <p class="footer-disclaimer">X is a trademark of X Corp. HumanAds is an independent service and is not affiliated with X Corp.</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+  <script src="/js/side-menu.js"></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+  <script src="/js/google-translate.js" defer></script>
+</body>
+</html>
