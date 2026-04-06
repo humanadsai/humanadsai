@@ -70,9 +70,9 @@ const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
     refillInterval: 12000,
   },
   'toa-audit': {
-    maxTokens: 60,
-    refillRate: 1,          // 1 token per interval
-    refillInterval: 60000,  // = 1 token/min = 60/hour
+    maxTokens: 200,
+    refillRate: 10,          // 10 tokens per interval
+    refillInterval: 60000,   // = 10 tokens/min = 600/hour
   },
   'diagnosis': {
     maxTokens: 10,

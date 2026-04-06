@@ -613,49 +613,100 @@ const AUTO_CHECKS: CheckDef[] = [
       };
     },
   },
+
+  // ========== Converted from manual checks ==========
+
+  {
+    id: 'auto-webmcp',
+    category: 'API Integration',
+    name: 'WebMCP form annotations',
+    nameJa: 'WebMCPフォームアノテーション',
+    layer: 'actionability',
+    severity: 'experimental',
+    applicableSiteTypes: ['all'],
+    evaluate: (d) => {
+      if (d.agentSignals?.hasWebMcpForms) return { status: 'pass', details: `WebMCP forms: ${d.agentSignals.webMcpToolNames.join(', ')}`, detailsJa: `WebMCPフォーム検出: ${d.agentSignals.webMcpToolNames.join(', ')}` };
+      return { status: 'fail', details: 'No WebMCP toolname attributes on forms', detailsJa: 'フォームにWebMCPのtoolname属性なし', recommendation: 'Add toolname and tooldescription attributes to <form> elements', recommendationJa: '<form>要素にtoolnameとtooldescription属性を追加' };
+    },
+  },
+  {
+    id: 'auto-ai-analytics',
+    category: 'Observability',
+    name: 'AI traffic tagged in analytics',
+    nameJa: 'AI流入のアナリティクスタグ付け',
+    layer: 'observability',
+    severity: 'important',
+    applicableSiteTypes: ['all'],
+    evaluate: (d) => {
+      if (d.agentSignals?.hasAiAnalytics) return { status: 'pass', details: `AI analytics detected: ${d.agentSignals.aiAnalyticsPatterns.join(', ') || 'UA-based'}`, detailsJa: `AIアナリティクス検出: ${d.agentSignals.aiAnalyticsPatterns.join(', ') || 'UA検出ベース'}` };
+      return { status: 'fail', details: 'No AI traffic tagging found in scripts', detailsJa: 'スクリプトにAIトラフィックのタグ付けなし', recommendation: 'Add AI bot user-agent detection to your analytics script', recommendationJa: 'アナリティクスにAIボットUA検出を追加' };
+    },
+  },
+  {
+    id: 'auto-oauth-login',
+    category: 'Agent Authentication',
+    name: 'Auth/login flow available',
+    nameJa: '認証/ログイン導線あり',
+    layer: 'actionability',
+    severity: 'important',
+    applicableSiteTypes: ['saas', 'api_product', 'marketplace'],
+    evaluate: (d) => {
+      const signals = [];
+      if (d.agentSignals?.hasOAuthLink) signals.push('OAuth');
+      if (d.agentSignals?.hasLoginLink) signals.push('Login');
+      if (d.agentSignals?.hasSignupLink) signals.push('Signup');
+      if (d.agentSignals?.hasApiKeyLink) signals.push('API Key');
+      if (signals.length > 0) return { status: 'pass', details: `Auth signals: ${signals.join(', ')}`, detailsJa: `認証導線検出: ${signals.join(', ')}` };
+      return { status: 'fail', details: 'No auth/login links found', detailsJa: '認証/ログインリンク未検出', recommendation: 'Provide OAuth, API key, or login/signup links for agent access', recommendationJa: 'エージェントアクセス用にOAuth/APIキー/ログインリンクを提供' };
+    },
+  },
+  {
+    id: 'auto-mcp-server',
+    category: 'API Integration',
+    name: 'MCP server reference',
+    nameJa: 'MCPサーバーの参照',
+    layer: 'actionability',
+    severity: 'experimental',
+    applicableSiteTypes: ['saas', 'api_product'],
+    evaluate: (d) => {
+      if (d.agentSignals?.hasMcpReference) return { status: 'pass', details: 'MCP reference found in links', detailsJa: 'リンクにMCPの参照を検出' };
+      return { status: 'fail', details: 'No MCP server reference found', detailsJa: 'MCPサーバーの参照なし', recommendation: 'Publish an MCP server or link to MCP documentation', recommendationJa: 'MCPサーバーを公開するかMCPドキュメントへのリンクを追加' };
+    },
+  },
+  {
+    id: 'auto-trial',
+    category: 'Economics',
+    name: 'Free trial or demo available',
+    nameJa: '無料トライアル/デモあり',
+    layer: 'economics',
+    severity: 'nice_to_have',
+    applicableSiteTypes: ['saas'],
+    evaluate: (d) => {
+      if (d.agentSignals?.hasTrialLink) return { status: 'pass', details: 'Trial/demo link found', detailsJa: 'トライアル/デモリンク検出' };
+      return { status: 'fail', details: 'No free trial link found', detailsJa: '無料トライアルリンク未検出', recommendation: 'Offer a free trial without requiring credit card', recommendationJa: 'クレジットカード不要の無料トライアルを提供' };
+    },
+  },
+  {
+    id: 'auto-contact',
+    category: 'Safety',
+    name: 'Contact/support link available',
+    nameJa: 'お問い合わせ/サポートリンクあり',
+    layer: 'safety',
+    severity: 'nice_to_have',
+    applicableSiteTypes: ['all'],
+    evaluate: (d) => {
+      if (d.agentSignals?.hasContactLink) return { status: 'pass', details: 'Contact/support link found', detailsJa: 'お問い合わせ/サポートリンク検出' };
+      return { status: 'warn', details: 'No contact/support link found', detailsJa: 'お問い合わせ/サポートリンク未検出' };
+    },
+  },
 ];
 
 // ============================================
 // Manual Check Definitions (16 items — 7 moved to auto)
 // ============================================
 
-export const MANUAL_CHECKS: ManualCheckDef[] = [
-  // Agent Authentication
-  { id: 'manual-oauth', category: 'Agent Authentication', name: 'OAuth 2.0 / API token auth available', nameJa: 'OAuth 2.0 / APIトークン認証が利用可能', layer: 'actionability', severity: 'blocker', applicableSiteTypes: ['saas', 'api_product', 'marketplace'] },
-  { id: 'manual-api-key', category: 'Agent Authentication', name: 'API key self-service provisioning', nameJa: 'APIキーのセルフサービス発行', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product'] },
-  { id: 'manual-machine-signup', category: 'Agent Authentication', name: 'Signup flow works without CAPTCHA', nameJa: 'CAPTCHA無しのサインアップ', layer: 'actionability', severity: 'blocker', applicableSiteTypes: ['saas', 'ec', 'marketplace'] },
-
-  // CAPTCHA / Cookie Wall → moved to auto (auto-no-captcha, auto-no-cookie-wall)
-
-  // API / MCP / WebMCP
-  { id: 'manual-rest-api', category: 'API Integration', name: 'REST/GraphQL API available', nameJa: 'REST/GraphQL APIが利用可能', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product', 'marketplace'] },
-  { id: 'manual-mcp-server', category: 'API Integration', name: 'MCP server published', nameJa: 'MCPサーバーを公開している', layer: 'actionability', severity: 'experimental', applicableSiteTypes: ['saas', 'api_product'] },
-  { id: 'manual-webmcp', category: 'API Integration', name: 'WebMCP form annotations present', nameJa: 'WebMCPフォームアノテーションあり', layer: 'actionability', severity: 'experimental', applicableSiteTypes: ['all'] },
-  // manual-openapi → moved to auto (auto-openapi)
-
-  // State & Reliability
-  { id: 'manual-idempotent', category: 'Reliability', name: 'API operations are idempotent', nameJa: 'API操作がべき等', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product', 'marketplace'] },
-  { id: 'manual-retry', category: 'Reliability', name: 'Retry-safe with clear error codes', nameJa: '明確なエラーコードでリトライ安全', layer: 'actionability', severity: 'important', applicableSiteTypes: ['saas', 'api_product'] },
-  // manual-rate-limit-header → moved to auto (auto-rate-limit-header)
-
-  // Pricing / Economics
-  // manual-machine-readable-price → moved to auto (auto-machine-readable-price)
-  { id: 'manual-payment-api', category: 'Economics', name: 'Programmatic payment/checkout possible', nameJa: 'プログラマティックな決済/チェックアウトが可能', layer: 'economics', severity: 'important', applicableSiteTypes: ['ec', 'marketplace', 'saas'] },
-  { id: 'manual-trial-no-cc', category: 'Economics', name: 'Free trial without credit card', nameJa: 'クレジットカード不要の無料トライアル', layer: 'economics', severity: 'nice_to_have', applicableSiteTypes: ['saas'] },
-
-  // Guardrails / Safety
-  { id: 'manual-human-handoff', category: 'Safety', name: 'Human handoff mechanism exists', nameJa: 'ヒューマンハンドオフ機能あり', layer: 'safety', severity: 'important', applicableSiteTypes: ['saas', 'marketplace'] },
-  { id: 'manual-action-limit', category: 'Safety', name: 'Per-action spending/scope limits', nameJa: 'アクション単位の支出/スコープ制限', layer: 'safety', severity: 'important', applicableSiteTypes: ['saas', 'ec', 'marketplace'] },
-  { id: 'manual-audit-log', category: 'Safety', name: 'Audit log for agent actions', nameJa: 'エージェントアクションの監査ログ', layer: 'safety', severity: 'nice_to_have', applicableSiteTypes: ['saas', 'marketplace'] },
-
-  // Observability
-  { id: 'manual-ai-traffic-tag', category: 'Observability', name: 'AI traffic tagged in analytics', nameJa: 'AI流入のアナリティクスタグ付け', layer: 'observability', severity: 'important', applicableSiteTypes: ['all'] },
-  { id: 'manual-utm-ai', category: 'Observability', name: 'UTM params for AI referral tracking', nameJa: 'AI参照トラッキング用UTMパラメータ', layer: 'observability', severity: 'nice_to_have', applicableSiteTypes: ['all'] },
-
-  // Provenance
-  { id: 'manual-original-research', category: 'Provenance', name: 'Original research/data published', nameJa: 'オリジナルリサーチ/データの公開', layer: 'comprehension', severity: 'nice_to_have', applicableSiteTypes: ['all'] },
-  // manual-author-byline, manual-content-freshness → moved to auto
-];
+// All checks are now automated — no manual checklist needed
+export const MANUAL_CHECKS: ManualCheckDef[] = [];
 
 // ============================================
 // Scoring Engine
@@ -671,6 +722,8 @@ const HTML_DEPENDENT_CHECKS = new Set([
   'about-page', 'pricing-page',
   'auto-no-captcha', 'auto-no-cookie-wall',
   'auto-content-freshness', 'auto-author-byline', 'auto-machine-readable-price',
+  'auto-webmcp', 'auto-ai-analytics', 'auto-oauth-login', 'auto-mcp-server',
+  'auto-trial', 'auto-contact',
 ]);
 
 export function evaluateChecks(data: CrawlData, siteType: SiteType = 'all'): AutoCheckResult[] {

@@ -150,6 +150,19 @@ export interface CrawlData {
   http: HttpResult;
   paths: PathDiscoveryResult;
   friction: FrictionDetection;
+  agentSignals: {
+    hasWebMcpForms: boolean;
+    webMcpToolNames: string[];
+    hasAiAnalytics: boolean;
+    aiAnalyticsPatterns: string[];
+    hasOAuthLink: boolean;
+    hasLoginLink: boolean;
+    hasApiKeyLink: boolean;
+    hasSignupLink: boolean;
+    hasMcpReference: boolean;
+    hasTrialLink: boolean;
+    hasContactLink: boolean;
+  };
   links?: { href: string; text: string }[];
   errors: string[];
   crawledAt: string;
