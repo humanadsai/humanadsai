@@ -421,6 +421,65 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
       return handleToaAuditGet(request, env, toaAuditMatch[1]);
     }
 
+    // OGP image for toA Audit results (SVG)
+    const toaOgMatch = path.match(/^\/api\/toa-audit\/([a-z0-9][a-z0-9-]+[a-z0-9])\/og\.svg$/);
+    if (toaOgMatch && method === 'GET') {
+      try {
+        const row = await env.DB.prepare(
+          "SELECT url, scores, grade FROM toa_audits WHERE id = ? AND expires_at > datetime('now')"
+        ).bind(toaOgMatch[1]).first<{ url: string; scores: string; grade: string }>();
+        if (row) {
+          const sc = JSON.parse(row.scores);
+          const domain = row.url.replace(/^https?:\/\//, '').replace(/\/.*/, '');
+          const g = row.grade;
+          const gc = g.startsWith('A') ? '#10b981' : g.startsWith('B') ? '#3b82f6' : g === 'C' ? '#f59e0b' : '#ef4444';
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a1917"/><stop offset="1" stop-color="#2c2b28"/></linearGradient></defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="40" y="40" width="1120" height="550" rx="24" fill="none" stroke="#3a3935" stroke-width="2"/>
+  <!-- Brand -->
+  <circle cx="90" cy="90" r="20" stroke="#FF6B35" stroke-width="3" fill="none"/>
+  <circle cx="83" cy="90" r="5" fill="#FF6B35"/>
+  <path d="M93 84L103 90L93 96" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="125" y="97" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#F0EFEB">HumanAds</text>
+  <text x="280" y="97" font-family="system-ui,sans-serif" font-size="18" fill="#A3A29D">toA診断</text>
+  <!-- Grade stamp -->
+  <rect x="730" y="120" width="400" height="360" rx="20" fill="none" stroke="${gc}" stroke-width="5" opacity="0.8"/>
+  <text x="930" y="220" text-anchor="middle" font-family="monospace" font-size="16" font-weight="600" letter-spacing="4" fill="${gc}" opacity="0.7">GRADE</text>
+  <text x="930" y="340" text-anchor="middle" font-family="monospace" font-size="160" font-weight="900" fill="${gc}">${g}</text>
+  <text x="930" y="400" text-anchor="middle" font-family="monospace" font-size="36" font-weight="700" fill="${gc}">${sc.overall}%</text>
+  <text x="930" y="450" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" fill="#A3A29D">${g.startsWith('A') ? 'AIエージェント対応 優秀' : g.startsWith('B') ? 'AIエージェント対応 良好' : g === 'C' ? '改善の余地あり' : '基盤整備が必要'}</text>
+  <!-- Domain -->
+  <text x="80" y="180" font-family="monospace" font-size="14" fill="#A3A29D">SITE</text>
+  <text x="80" y="220" font-family="monospace" font-size="28" font-weight="700" fill="#F0EFEB">${domain.length > 28 ? domain.slice(0, 28) + '...' : domain}</text>
+  <!-- Scores -->
+  <text x="80" y="290" font-family="monospace" font-size="14" fill="#A3A29D">AI SEARCH SCORE</text>
+  <rect x="80" y="300" width="540" height="8" rx="4" fill="#3a3935"/>
+  <rect x="80" y="300" width="${Math.round(540 * sc.searchScore / 100)}" height="8" rx="4" fill="#10b981"/>
+  <text x="630" y="310" font-family="monospace" font-size="20" font-weight="700" fill="#10b981">${sc.searchScore}%</text>
+  <text x="80" y="370" font-family="monospace" font-size="14" fill="#A3A29D">toA READINESS SCORE</text>
+  <rect x="80" y="380" width="540" height="8" rx="4" fill="#3a3935"/>
+  <rect x="80" y="380" width="${Math.round(540 * sc.toaScore / 100)}" height="8" rx="4" fill="#8b5cf6"/>
+  <text x="630" y="390" font-family="monospace" font-size="20" font-weight="700" fill="#8b5cf6">${sc.toaScore}%</text>
+  <!-- Sub scores -->
+  <text x="80" y="450" font-family="monospace" font-size="13" fill="#6b7280">発見率 ${sc.ai_discovery}%　　理解度 ${sc.ai_comprehension}%　　取引 ${sc.agent_transaction}%　　インフラ ${sc.toa_infra}%</text>
+  <!-- CTA -->
+  <rect x="80" y="500" width="320" height="48" rx="12" fill="#E85D3A"/>
+  <text x="240" y="530" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="#fff">あなたのサイトも無料チェック →</text>
+  <text x="80" y="580" font-family="system-ui,sans-serif" font-size="13" fill="#6b7280">humanadsai.com/toa-audit　　#toA診断 #AIエージェント</text>
+</svg>`;
+          return new Response(svg, {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/svg+xml; charset=utf-8',
+              'Cache-Control': 'public, max-age=86400',
+            },
+          });
+        }
+      } catch { /* fall through */ }
+      return errors.notFound(generateRequestId(), 'OG image');
+    }
+
     // ============================================
     // Diagnosis API (admin-only, Turnstile-protected)
     // ============================================
@@ -621,9 +680,50 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
 
     const toaAuditPageMatch = path.match(/^\/toa-audit\/([a-z0-9][a-z0-9-]+[a-z0-9])$/);
     if (toaAuditPageMatch && method === 'GET') {
+      const auditId = toaAuditPageMatch[1];
+      // For social crawlers (Twitterbot, etc.), serve OGP-rich HTML directly
+      const ua = (request.headers.get('User-Agent') || '').toLowerCase();
+      const isSocialBot = /twitterbot|facebookexternalhit|linkedinbot|slackbot|discordbot|telegrambot|whatsapp/i.test(ua);
+      if (isSocialBot) {
+        try {
+          const row = await env.DB.prepare(
+            "SELECT url, scores, grade FROM toa_audits WHERE id = ? AND expires_at > datetime('now')"
+          ).bind(auditId).first<{ url: string; scores: string; grade: string }>();
+          if (row) {
+            const scores = JSON.parse(row.scores);
+            const domain = row.url.replace(/^https?:\/\//, '').replace(/\/.*/, '');
+            const emoji = row.grade.startsWith('A') ? '🏆' : row.grade.startsWith('B') ? '✅' : row.grade === 'C' ? '⚡' : '🔥';
+            const ogTitle = `${emoji} ${domain} — グレード ${row.grade}（${scores.overall}%）｜ toA診断`;
+            const ogDesc = `AI検索スコア ${scores.searchScore}% ｜ toA対応度 ${scores.toaScore}%。あなたのサイトもAIエージェント対応度を無料チェック → humanadsai.com/toa-audit`;
+            const ogUrl = `https://humanadsai.com/toa-audit/${auditId}`;
+            const ogImage = `https://humanadsai.com/api/toa-audit/${auditId}/og.svg`;
+            const html = `<!DOCTYPE html><html><head>
+<meta charset="UTF-8"><title>${ogTitle}</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HumanAds toA診断">
+<meta property="og:title" content="${ogTitle}">
+<meta property="og:description" content="${ogDesc}">
+<meta property="og:url" content="${ogUrl}">
+<meta property="og:image" content="${ogImage}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${ogTitle}">
+<meta name="twitter:description" content="${ogDesc}">
+<meta name="twitter:image" content="${ogImage}">
+<meta name="twitter:site" content="@HumanAdsAI">
+<meta http-equiv="refresh" content="0;url=/toa-audit?id=${auditId}">
+</head><body><p>Redirecting...</p></body></html>`;
+            return new Response(html, {
+              status: 200,
+              headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+            });
+          }
+        } catch { /* fall through to redirect */ }
+      }
       return new Response(null, {
         status: 302,
-        headers: { 'Location': `/toa-audit?id=${toaAuditPageMatch[1]}` },
+        headers: { 'Location': `/toa-audit?id=${auditId}` },
       });
     }
 
