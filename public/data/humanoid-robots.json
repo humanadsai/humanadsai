@@ -54,7 +54,7 @@
       "ペイロード2kgと低い",
       "ベースモデルは23DoFでハンド無し"
     ],
-    "image_url": "https://www.unitree.com/images/52688de58de044358e4792a5b7c1593d_2740x1720.jpg"
+    "image_url": "/images/robots/unitree-g1.jpg"
   },
   {
     "slug": "unitree-h1",
@@ -106,7 +106,7 @@
       "標準モデルにはデクステラスハンドなし",
       "稼働時間が2時間と短い"
     ],
-    "image_url": "https://www.unitree.com/images/d01aae29f6ed4165b0b2e01c811fb3b8_1419x852.png"
+    "image_url": "/images/robots/unitree-h1.png"
   },
   {
     "slug": "unitree-h2",
@@ -158,7 +158,7 @@
       "デクステラスハンドは別売オプション",
       "70kgと重量が増加"
     ],
-    "image_url": "https://www.unitree.com/images/f951770ea2e74197a6b0c089d13efc5a_800x800.png"
+    "image_url": "/images/robots/unitree-h2.png"
   },
   {
     "slug": "unitree-r1",
@@ -213,7 +213,7 @@
       "バッテリー稼働1時間と短い",
       "ベースモデルは20DoFでハンドなし"
     ],
-    "image_url": "https://www.unitree.com/images/be9e7bde5e104a40bc1a8e8eccf71a00_1860x1550.png"
+    "image_url": "/images/robots/unitree-r1.png"
   },
   {
     "slug": "agility-digit",
@@ -262,7 +262,7 @@
       "価格が$250Kと高額",
       "SDKは非公開でカスタマイズ性が限定的"
     ],
-    "image_url": "https://cdn.prod.website-files.com/68d6ca150ffa11fdc25d7575/698c88da0a3bf08e257409ea_digit-profile.jpg"
+    "image_url": "/images/robots/agility-digit.jpg"
   },
   {
     "slug": "1x-neo",
@@ -308,7 +308,7 @@
       "SDKは非公開で開発者アクセス限定",
       "出荷前で実際の性能は未検証"
     ],
-    "image_url": "https://cdn.sanity.io/images/qka6yvsc/production/ee557c733ef09cd4628692339331fa5abc79239b-1069x2293.webp"
+    "image_url": "/images/robots/1x-neo.webp"
   },
   {
     "slug": "1x-neo-gamma",
@@ -397,7 +397,7 @@
       "SDK/APIが非公開",
       "60kgと家庭用としてはやや重い"
     ],
-    "image_url": "https://images.ctfassets.net/qx5k8y1u9drj/2z6qCDWh945rVDLS2cRRfk/60ed52a56bf8f72a0d43e161aaf23a04/Launch_-_Open_Graph_Image.jpg"
+    "image_url": "/images/robots/figure-03.jpg"
   },
   {
     "slug": "ubtech-walker-s2",
@@ -446,7 +446,7 @@
       "価格$90Kで中小企業には高額",
       "歩行速度2m/sと平均的"
     ],
-    "image_url": "https://owebsite-cdn.ubtrobot.com/resources/image/2025/07/17/698770661040197.png"
+    "image_url": "/images/robots/ubtech-walker-s2.png"
   },
   {
     "slug": "agibot-a2",
@@ -499,7 +499,7 @@
       "重量が最大85kgと重い",
       "バッテリー稼働2時間と短い"
     ],
-    "image_url": "https://www.agibot.com/public/uploads/images/20250922/7528a0359f8f7e09788972bdb5c35c2a.png"
+    "image_url": "/images/robots/agibot-a2.png"
   },
   {
     "slug": "agibot-a2w",
@@ -542,7 +542,7 @@
       "ペイロード5kgと片腕あたりの積載が低い",
       "二足歩行ではないため階段等に非対応"
     ],
-    "image_url": "https://www.agibot.com/public/uploads/images/20240911/f3a327b21c97a466b04d58503326cfad.png"
+    "image_url": "/images/robots/agibot-a2w.png"
   },
   {
     "slug": "dobot-atom-max",
@@ -589,7 +589,7 @@
       "ペイロードが非公開",
       "ホットスワップバッテリー非対応"
     ],
-    "image_url": "https://www.dobot-robots.com/media/upload/2025/07/atom/tab.jpg"
+    "image_url": "/images/robots/dobot-atom-max.jpg"
   },
   {
     "slug": "booster-t1",
@@ -694,7 +694,7 @@
       "ハンド/グリッパーなし",
       "ペイロードが非公開"
     ],
-    "image_url": "https://cn-engineai-1304599088.cos.ap-guangzhou.myqcloud.com/uploads/upload/images/20251110/9c6131e17529dabe4024043529b689a5.png"
+    "image_url": "/images/robots/engineai-pm01.png"
   },
   {
     "slug": "engineai-sa01",
@@ -742,7 +742,7 @@
       "ハンド/アームなし(脚のみ)",
       "ペイロード・速度が非公開"
     ],
-    "image_url": "https://cn-engineai-1304599088.cos.ap-guangzhou.myqcloud.com/uploads/upload/images/20251110/e21ea0bef16f2ef1a5c314e3cd44605f.png"
+    "image_url": "/images/robots/engineai-sa01.png"
   },
   {
     "slug": "fourier-gr1",
@@ -936,7 +936,7 @@
       "80kgと重量がある",
       "出荷実績がまだない"
     ],
-    "image_url": "https://neura-robotics.com/wp-content/uploads/2026/02/4NE1_Working_2-1-scaled.webp"
+    "image_url": "/images/robots/neura-4ne1.webp"
   },
   {
     "slug": "tesla-optimus-gen3",
@@ -1028,7 +1028,7 @@
       "2026年は全数Hyundai/Google向け",
       "SDKは非公開(Orbitプラットフォーム経由)"
     ],
-    "image_url": "https://bostondynamics.com/wp-content/uploads/2024/04/atlas-blue-mobile-copy.jpg"
+    "image_url": "/images/robots/boston-dynamics-atlas.jpg"
   },
   {
     "slug": "apptronik-apollo",
@@ -1072,7 +1072,7 @@
       "価格が非公開で高額の可能性",
       "ハンドのDoFが非公開"
     ],
-    "image_url": "https://cdn.prod.website-files.com/646de3abb3e62d339f089e28/64e49f4de3eef177a948c864_2%20trans%20edit%20standing.png"
+    "image_url": "/images/robots/apptronik-apollo.png"
   },
   {
     "slug": "xpeng-iron",
@@ -1158,6 +1158,6 @@
       "ボディは20DoFのみで全身動作が限定的",
       "バッテリー稼働時間が非公開"
     ],
-    "image_url": "https://images.squarespace-cdn.com/content/v1/66e8617ff9cbf43e43b040ef/1726505344156-9ISB4JVS0DOIBPBBN1SM/Sanctuary_AI_Gen7_Launch_Photo.jpg"
+    "image_url": "/images/robots/sanctuary-ai-phoenix.jpg"
   }
 ]
