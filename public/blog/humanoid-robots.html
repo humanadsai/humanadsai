@@ -59,25 +59,25 @@
     .hr-badge-pilot{background:rgba(245,158,11,.1);color:var(--hr-yellow);}
     .hr-badge-development{background:rgba(107,114,128,.1);color:var(--hr-gray);}
 
-    /* ===== LIST VIEW (一覧形式) ===== */
+    /* ===== LIST VIEW (一覧形式・画像大きめ) ===== */
     .hr-list{display:flex;flex-direction:column;gap:0;}
 
-    .hr-row{display:grid;grid-template-columns:100px 1fr auto;gap:var(--spacing-md);padding:16px 0;border-bottom:1px solid var(--color-border);align-items:start;transition:background .15s;}
+    .hr-row{display:grid;grid-template-columns:200px 1fr;gap:var(--spacing-lg);padding:20px 0;border-bottom:1px solid var(--color-border);align-items:start;transition:background .15s;}
     .hr-row:hover{background:rgba(232,93,58,.02);}
-    .hr-row.selected{background:rgba(232,93,58,.04);border-left:3px solid var(--color-primary);padding-left:13px;}
+    .hr-row.selected{background:rgba(232,93,58,.04);border-left:3px solid var(--color-primary);padding-left:17px;}
 
-    /* Image */
-    .hr-row-img{width:100px;height:100px;border-radius:var(--border-radius-sm);overflow:hidden;background:var(--color-background-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-    .hr-row-img img{width:100%;height:100%;object-fit:cover;}
-    .hr-row-img .placeholder{font-size:2rem;opacity:.3;}
+    /* Image — large */
+    .hr-row-img{width:200px;height:200px;border-radius:var(--border-radius);overflow:hidden;background:var(--color-background-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .hr-row-img img{width:100%;height:100%;object-fit:contain;padding:8px;}
+    .hr-row-img .placeholder{font-size:3.5rem;opacity:.2;}
 
     /* Main content */
     .hr-row-body{min-width:0;}
     .hr-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
-    .hr-row-name{font-family:var(--font-mono);font-size:.9375rem;font-weight:600;color:var(--color-text);}
-    .hr-row-maker{font-size:.75rem;color:var(--color-text-muted);}
-    .hr-row-flag{font-size:.875rem;}
-    .hr-row-liner{font-size:.75rem;color:var(--color-text-muted);line-height:1.5;margin-bottom:6px;}
+    .hr-row-name{font-family:var(--font-mono);font-size:1.0625rem;font-weight:700;color:var(--color-text);}
+    .hr-row-maker{font-size:.8125rem;color:var(--color-text-muted);}
+    .hr-row-flag{font-size:1rem;}
+    .hr-row-liner{font-size:.8125rem;color:var(--color-text-muted);line-height:1.6;margin-bottom:8px;}
 
     /* Inline specs bar */
     .hr-row-specs{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--font-mono);font-size:.6875rem;}
@@ -85,18 +85,18 @@
     .hr-row-spec .l{color:var(--color-text-muted);}
     .hr-row-spec .v{color:var(--color-text);font-weight:500;}
 
-    /* Right column: price + actions */
-    .hr-row-right{text-align:right;white-space:nowrap;flex-shrink:0;}
-    .hr-row-price{font-family:var(--font-mono);font-size:.875rem;font-weight:600;color:var(--color-text);margin-bottom:6px;}
-    .hr-row-price-note{font-size:.5625rem;color:var(--color-text-muted);white-space:normal;max-width:140px;margin-left:auto;}
-    .hr-row-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:8px;}
+    /* Price + actions (inline in body) */
+    .hr-row-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;}
+    .hr-row-price{font-family:var(--font-mono);font-size:1rem;font-weight:700;color:var(--color-text);}
+    .hr-row-price-note{font-size:.625rem;color:var(--color-text-muted);}
+    .hr-row-actions{display:flex;gap:6px;margin-left:auto;}
 
     .hr-btn-sm{font-family:var(--font-mono);font-size:.625rem;padding:4px 10px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-background-card);color:var(--color-text-muted);cursor:pointer;transition:all .15s;}
     .hr-btn-sm:hover{border-color:var(--color-primary);color:var(--color-primary);}
     .hr-btn-sm.added{background:var(--color-primary);color:#fff;border-color:var(--color-primary);}
 
     /* Expanded detail */
-    .hr-row-detail{display:none;grid-column:1/-1;padding:12px 0 12px 116px;font-size:.75rem;line-height:1.7;}
+    .hr-row-detail{display:none;grid-column:1/-1;padding:12px 0 12px 216px;font-size:.75rem;line-height:1.7;}
     .hr-row-detail.open{display:block;}
     .hr-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 16px;margin-bottom:10px;}
     .hr-detail-item{font-family:var(--font-mono);font-size:.6875rem;}
@@ -147,17 +147,21 @@
     .hr-footer-meta a:hover{text-decoration:underline;}
 
     @media(max-width:768px){
-      .hr-row{grid-template-columns:72px 1fr;gap:10px;}
-      .hr-row-img{width:72px;height:72px;}
-      .hr-row-right{grid-column:1/-1;text-align:left;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-      .hr-row-price{margin-bottom:0;}
+      .hr-row{grid-template-columns:140px 1fr;gap:12px;padding:16px 0;}
+      .hr-row-img{width:140px;height:140px;}
       .hr-row-detail{padding-left:0;}
       .hr-row-specs{gap:8px;}
+      .hr-row-name{font-size:.8125rem;}
       .hr-pros-cons{grid-template-columns:1fr;}
       .hr-detail-grid{grid-template-columns:1fr 1fr;}
       .hr-hero{padding:32px 0 16px;}
       .hr-hero h1{font-size:1.125rem;}
       .hr-select{font-size:.6875rem;padding:4px 6px;}
+    }
+    @media(max-width:480px){
+      .hr-row{grid-template-columns:1fr;gap:8px;}
+      .hr-row-img{width:100%;height:200px;}
+      .hr-row-img img{object-fit:contain;padding:12px;}
     }
   </style>
 </head>
@@ -309,13 +313,13 @@
               <span class="hr-row-spec"><span class="l">身長</span> <span class="v">${fmtNum(r.height_cm,'cm')}</span></span>
               <span class="hr-row-spec"><span class="l">SDK</span> <span class="v">${r.sdk_openness==='full'?'Full':r.sdk_openness==='partial'?'Partial':'—'}</span></span>
             </div>
-          </div>
-          <div class="hr-row-right">
-            <div class="hr-row-price">${fmtPrice(r.price_usd)}</div>
-            ${r.price_note?`<div class="hr-row-price-note">${esc(r.price_note)}</div>`:''}
-            <div class="hr-row-actions">
-              <button class="hr-btn-sm${sel?' added':''}" onclick="toggleCompare('${esc(r.slug)}',event)">${sel?'✓ 比較中':'+ 比較'}</button>
-              <button class="hr-btn-sm" onclick="toggleDetail('${esc(r.slug)}',event)">詳細</button>
+            <div class="hr-row-right">
+              <div class="hr-row-price">${fmtPrice(r.price_usd)}</div>
+              ${r.price_note?`<div class="hr-row-price-note">${esc(r.price_note)}</div>`:''}
+              <div class="hr-row-actions">
+                <button class="hr-btn-sm${sel?' added':''}" onclick="toggleCompare('${esc(r.slug)}',event)">${sel?'✓ 比較中':'+ 比較'}</button>
+                <button class="hr-btn-sm" onclick="toggleDetail('${esc(r.slug)}',event)">詳細</button>
+              </div>
             </div>
           </div>
           <div class="hr-row-detail" id="detail-${esc(r.slug)}">
