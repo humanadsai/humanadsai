@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ヒューマノイドロボット比較 2026年版 — 全機種スペック一覧 | HumanAds</title>
+  <meta name="description" content="2026年最新のヒューマノイドロボット全機種を比較。価格・DoF・積載量・バッテリー・SDKを一覧で確認。フィルタ・ソート・比較機能で最適な1台を見つけよう。">
+  <meta name="keywords" content="ヒューマノイドロボット, 比較, 2026, Unitree, Figure, Tesla Optimus, Boston Dynamics Atlas, humanoid robot comparison">
+  <meta name="theme-color" content="#FAFAF9">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://humanadsai.com/blog/humanoid-robots">
+  <link rel="alternate" type="application/rss+xml" title="HumanAds Blog" href="https://humanadsai.com/blog/feed.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="HumanAds">
+  <meta property="og:title" content="ヒューマノイドロボット比較 2026年版 — 全機種スペック一覧">
+  <meta property="og:description" content="24機種を価格・DoF・積載量・バッテリー・SDKで比較。フィルタ・ソートで最適な1台を。">
+  <meta property="og:url" content="https://humanadsai.com/blog/humanoid-robots">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ヒューマノイドロボット比較 2026年版">
+  <meta name="twitter:description" content="24機種をスペック比較。フィルタ・ソート・比較機能付き。">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:site" content="@HumanAdsAI">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://humanadsai.com/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://humanadsai.com/blog"},{"@type":"ListItem","position":3,"name":"ヒューマノイドロボット比較","item":"https://humanadsai.com/blog/humanoid-robots"}]}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
+  <script src="/js/analytics.js" defer></script>
+  <style>
+    :root { --hr-green: #10b981; --hr-blue: #3b82f6; --hr-yellow: #f59e0b; --hr-gray: #6b7280; --hr-red: #ef4444; }
+    .hr-page { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); }
+    .hr-page *, .hr-page *::before, .hr-page *::after { box-sizing: border-box; }
+
+    /* Hero */
+    .hr-hero { text-align: center; padding: 48px 0 24px; }
+    .hr-hero h1 { font-family: 'Noto Sans JP', var(--font-family); font-size: clamp(1.25rem, 3.5vw, 2rem); font-weight: 700; line-height: 1.5; color: var(--color-text); margin-bottom: var(--spacing-sm); }
+    .hr-hero-sub { font-size: 0.9375rem; color: var(--color-text-muted); max-width: 600px; margin: 0 auto var(--spacing-md); line-height: 1.7; }
+    .hr-hero-meta { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); }
+
+    /* Sticky Filter Bar */
+    .hr-filters { position: sticky; top: 0; z-index: 100; background: var(--color-background); border-bottom: 1px solid var(--color-border); padding: 12px 0; margin-bottom: var(--spacing-lg); }
+    .hr-filters-inner { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .hr-filter-group { display: flex; gap: 4px; align-items: center; }
+    .hr-filter-label { font-family: var(--font-mono); font-size: 0.625rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px; white-space: nowrap; }
+    .hr-select { font-family: var(--font-mono); font-size: 0.75rem; padding: 5px 8px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background-card); color: var(--color-text); cursor: pointer; }
+    .hr-select:focus { border-color: var(--color-primary); outline: none; }
+    .hr-view-toggle { display: flex; gap: 2px; margin-left: auto; }
+    .hr-view-btn { padding: 5px 10px; font-family: var(--font-mono); font-size: 0.6875rem; border: 1px solid var(--color-border); background: var(--color-background-card); color: var(--color-text-muted); cursor: pointer; transition: all 0.15s; }
+    .hr-view-btn:first-child { border-radius: 6px 0 0 6px; }
+    .hr-view-btn:last-child { border-radius: 0 6px 6px 0; }
+    .hr-view-btn.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .hr-result-count { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--color-text-muted); }
+
+    /* Status badges */
+    .hr-badge { font-family: var(--font-mono); font-size: 0.5625rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+    .hr-badge-shipping { background: rgba(16,185,129,0.1); color: var(--hr-green); }
+    .hr-badge-preorder { background: rgba(59,130,246,0.1); color: var(--hr-blue); }
+    .hr-badge-pilot { background: rgba(245,158,11,0.1); color: var(--hr-yellow); }
+    .hr-badge-development { background: rgba(107,114,128,0.1); color: var(--hr-gray); }
+
+    /* Country flags */
+    .hr-flag { font-size: 0.875rem; }
+
+    /* Card Grid View */
+    .hr-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--spacing-md); }
+    .hr-card { background: var(--color-background-card); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: var(--spacing-md); transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer; position: relative; }
+    .hr-card:hover { border-color: var(--color-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .hr-card.selected { border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(232,93,58,0.2); }
+    .hr-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .hr-card-name { font-family: var(--font-mono); font-size: 0.9375rem; font-weight: 600; color: var(--color-text); }
+    .hr-card-maker { font-size: 0.75rem; color: var(--color-text-muted); }
+    .hr-card-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0; }
+    .hr-spec { font-family: var(--font-mono); font-size: 0.6875rem; }
+    .hr-spec-label { color: var(--color-text-muted); }
+    .hr-spec-value { color: var(--color-text); font-weight: 500; }
+    .hr-card-liner { font-size: 0.75rem; color: var(--color-text-muted); line-height: 1.6; margin-top: 8px; }
+    .hr-card-actions { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+    .hr-compare-btn { font-family: var(--font-mono); font-size: 0.625rem; padding: 4px 10px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-background-card); color: var(--color-text-muted); cursor: pointer; transition: all 0.15s; }
+    .hr-compare-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .hr-compare-btn.added { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .hr-expand-btn { font-family: var(--font-mono); font-size: 0.625rem; padding: 4px 10px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-background-card); color: var(--color-text-muted); cursor: pointer; margin-left: auto; }
+    .hr-expand-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+    /* Expanded card details */
+    .hr-card-detail { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); font-size: 0.75rem; line-height: 1.7; }
+    .hr-card-detail.open { display: block; }
+    .hr-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+    .hr-detail-item { font-family: var(--font-mono); font-size: 0.6875rem; }
+    .hr-detail-item .label { color: var(--color-text-muted); }
+    .hr-detail-item .val { color: var(--color-text); }
+    .hr-pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+    .hr-pros-cons h4 { font-family: var(--font-mono); font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .hr-pros h4 { color: var(--hr-green); }
+    .hr-cons h4 { color: var(--hr-red); }
+    .hr-pros-cons ul { list-style: none; padding: 0; margin: 0; }
+    .hr-pros-cons li { font-size: 0.6875rem; color: var(--color-text-muted); padding: 2px 0; padding-left: 14px; position: relative; }
+    .hr-pros li::before { content: '+'; position: absolute; left: 0; color: var(--hr-green); font-weight: 700; }
+    .hr-cons li::before { content: '-'; position: absolute; left: 0; color: var(--hr-red); font-weight: 700; }
+
+    /* Table View */
+    .hr-table-wrap { overflow-x: auto; display: none; }
+    .hr-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.6875rem; }
+    .hr-table th { position: sticky; top: 0; background: var(--color-background-light); padding: 8px 10px; text-align: left; font-weight: 600; color: var(--color-text-muted); font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 2px solid var(--color-border); cursor: pointer; white-space: nowrap; user-select: none; }
+    .hr-table th:hover { color: var(--color-primary); }
+    .hr-table th .sort-arrow { margin-left: 3px; opacity: 0.3; }
+    .hr-table th.sorted .sort-arrow { opacity: 1; color: var(--color-primary); }
+    .hr-table td { padding: 8px 10px; border-bottom: 1px solid var(--color-border); color: var(--color-text); white-space: nowrap; }
+    .hr-table tr:hover { background: rgba(232,93,58,0.03); }
+    .hr-table .name-cell { font-weight: 600; white-space: normal; min-width: 120px; }
+
+    /* Compare Drawer */
+    .hr-drawer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: var(--color-background-card); border-top: 2px solid var(--color-primary); box-shadow: 0 -4px 20px rgba(0,0,0,0.1); transform: translateY(100%); transition: transform 0.3s ease; max-height: 60vh; overflow-y: auto; }
+    .hr-drawer.open { transform: translateY(0); }
+    .hr-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 12px var(--gutter); border-bottom: 1px solid var(--color-border); position: sticky; top: 0; background: var(--color-background-card); z-index: 1; }
+    .hr-drawer-title { font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 600; }
+    .hr-drawer-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--color-text-muted); padding: 4px 8px; }
+    .hr-drawer-body { padding: var(--spacing-md) var(--gutter); }
+    .hr-compare-grid { display: grid; gap: var(--spacing-md); }
+    .hr-compare-col { text-align: center; }
+    .hr-compare-col h3 { font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 600; margin-bottom: 4px; }
+    .hr-compare-col .maker { font-size: 0.6875rem; color: var(--color-text-muted); margin-bottom: 8px; }
+    .hr-compare-specs { text-align: left; }
+    .hr-compare-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--color-border); font-family: var(--font-mono); font-size: 0.6875rem; }
+    .hr-compare-row .label { color: var(--color-text-muted); }
+    .hr-compare-row .val { color: var(--color-text); font-weight: 500; }
+    .hr-compare-row .val.best { color: var(--hr-green); font-weight: 700; }
+
+    /* Radar chart in drawer */
+    .hr-radar-wrap { display: flex; justify-content: center; margin: var(--spacing-md) 0; }
+
+    /* Buying Guide */
+    .hr-guide { margin-top: var(--spacing-xl); padding-top: var(--spacing-xl); border-top: 2px solid var(--color-border); }
+    .hr-guide h2 { font-family: 'Noto Sans JP', var(--font-family); font-size: 1.25rem; font-weight: 700; margin-bottom: var(--spacing-md); }
+    .hr-guide-item { border-bottom: 1px solid var(--color-border); }
+    .hr-guide-item summary { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 500; padding: 12px 0; cursor: pointer; color: var(--color-text); list-style: none; display: flex; align-items: center; gap: 8px; }
+    .hr-guide-item summary::before { content: '▶'; font-size: 0.625rem; transition: transform 0.2s; }
+    .hr-guide-item[open] summary::before { transform: rotate(90deg); }
+    .hr-guide-item summary::-webkit-details-marker { display: none; }
+    .hr-guide-answer { font-size: 0.8125rem; color: var(--color-text-muted); line-height: 1.7; padding: 0 0 12px 20px; }
+
+    /* Footer meta */
+    .hr-footer-meta { text-align: center; padding: var(--spacing-xl) 0; margin-top: var(--spacing-xl); border-top: 1px solid var(--color-border); }
+    .hr-footer-meta p { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: var(--spacing-sm); line-height: 1.7; }
+    .hr-footer-meta a { color: var(--color-primary); text-decoration: none; }
+    .hr-footer-meta a:hover { text-decoration: underline; }
+
+    /* Floating compare bar */
+    .hr-compare-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 150; background: var(--color-primary); color: #fff; padding: 10px 20px; border-radius: 24px; font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(232,93,58,0.4); display: none; align-items: center; gap: 8px; transition: all 0.2s; }
+    .hr-compare-bar:hover { box-shadow: 0 6px 20px rgba(232,93,58,0.5); transform: translateX(-50%) translateY(-2px); }
+    .hr-compare-bar .count { background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 10px; }
+
+    @media (max-width: 640px) {
+      .hr-hero { padding: 32px 0 16px; }
+      .hr-hero h1 { font-size: 1.125rem; }
+      .hr-cards { grid-template-columns: 1fr; }
+      .hr-filters-inner { gap: 6px; }
+      .hr-select { font-size: 0.6875rem; padding: 4px 6px; }
+      .hr-filter-label { font-size: 0.5625rem; }
+      .hr-pros-cons { grid-template-columns: 1fr; }
+      .hr-compare-grid { grid-template-columns: 1fr !important; }
+    }
+    @media (min-width: 768px) {
+      .hr-compare-grid { grid-template-columns: repeat(var(--compare-cols, 2), 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/>
+          <circle cx="14" cy="20" r="4" fill="#FF6B35"/>
+          <path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">HumanAds</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/missions" class="desktop-nav-link">Missions</a>
+        <a href="/toa-audit" class="desktop-nav-link">toA診断</a>
+        <a href="/blog" class="desktop-nav-link" style="color: var(--color-primary);">Blog</a>
+        <a href="/faq" class="desktop-nav-link">FAQ</a>
+        <a href="/about" class="desktop-nav-link">About</a>
+      </nav>
+      <div class="header-right">
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+      </div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/blog">Blog</a><span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">ヒューマノイドロボット比較</span>
+    </div>
+
+    <main class="hr-page">
+      <section class="hr-hero">
+        <h1>ヒューマノイドロボット比較<br>2026年版 全機種スペック一覧</h1>
+        <p class="hr-hero-sub">工場の自動化担当から研究者、投資家まで。用途・予算・入手性で絞り込み、最適な機体を見つけよう。</p>
+        <p class="hr-hero-meta">最終更新: 2026-04-07 ・ <span id="robot-count">24</span>機種 ・ <span id="maker-count">16</span>メーカー</p>
+      </section>
+
+      <!-- Sticky Filter Bar -->
+      <div class="hr-filters">
+        <div class="hr-filters-inner">
+          <div class="hr-filter-group">
+            <span class="hr-filter-label">用途</span>
+            <select class="hr-select" id="f-category">
+              <option value="">すべて</option>
+              <option value="industrial">産業</option>
+              <option value="research">研究</option>
+              <option value="education">教育</option>
+              <option value="logistics">物流</option>
+              <option value="healthcare">医療</option>
+              <option value="home">家庭</option>
+              <option value="entertainment">エンタメ</option>
+            </select>
+          </div>
+          <div class="hr-filter-group">
+            <span class="hr-filter-label">予算</span>
+            <select class="hr-select" id="f-price">
+              <option value="">すべて</option>
+              <option value="0-20000">〜$20K</option>
+              <option value="20000-50000">$20K-50K</option>
+              <option value="50000-100000">$50K-100K</option>
+              <option value="100000-999999999">$100K+</option>
+            </select>
+          </div>
+          <div class="hr-filter-group">
+            <span class="hr-filter-label">入手性</span>
+            <select class="hr-select" id="f-status">
+              <option value="">すべて</option>
+              <option value="shipping">出荷中</option>
+              <option value="preorder">予約可</option>
+              <option value="pilot">パイロット</option>
+              <option value="development">開発中</option>
+            </select>
+          </div>
+          <div class="hr-filter-group">
+            <span class="hr-filter-label">国</span>
+            <select class="hr-select" id="f-country">
+              <option value="">すべて</option>
+              <option value="CN">🇨🇳 中国</option>
+              <option value="US">🇺🇸 米国</option>
+              <option value="NO">🇳🇴 ノルウェー</option>
+              <option value="DE">🇩🇪 ドイツ</option>
+              <option value="CA">🇨🇦 カナダ</option>
+              <option value="JP">🇯🇵 日本</option>
+            </select>
+          </div>
+          <div class="hr-filter-group">
+            <span class="hr-filter-label">SDK</span>
+            <select class="hr-select" id="f-sdk">
+              <option value="">すべて</option>
+              <option value="full">フルオープン</option>
+              <option value="partial">一部公開</option>
+            </select>
+          </div>
+          <div class="hr-filter-group">
+            <span class="hr-filter-label">ソート</span>
+            <select class="hr-select" id="f-sort">
+              <option value="name">名前</option>
+              <option value="price-asc">価格↑</option>
+              <option value="price-desc">価格↓</option>
+              <option value="dof-desc">DoF↓</option>
+              <option value="payload-desc">積載量↓</option>
+              <option value="runtime-desc">稼働時間↓</option>
+            </select>
+          </div>
+          <span class="hr-result-count" id="result-count"></span>
+          <div class="hr-view-toggle">
+            <button class="hr-view-btn active" id="view-card">カード</button>
+            <button class="hr-view-btn" id="view-table">テーブル</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Grid -->
+      <div class="hr-cards" id="card-grid"></div>
+
+      <!-- Table View -->
+      <div class="hr-table-wrap" id="table-wrap">
+        <table class="hr-table" id="robot-table">
+          <thead>
+            <tr>
+              <th>機体名</th><th>メーカー</th><th>国</th><th>状態</th>
+              <th>価格(USD)</th><th>DoF</th><th>積載(kg)</th>
+              <th>稼働(h)</th><th>速度(m/s)</th><th>SDK</th><th>比較</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Floating Compare Bar -->
+      <div class="hr-compare-bar" id="compare-bar" onclick="openDrawer()">
+        比較する <span class="count" id="compare-count">0</span>
+      </div>
+
+      <!-- Compare Drawer -->
+      <div class="hr-drawer" id="compare-drawer">
+        <div class="hr-drawer-header">
+          <span class="hr-drawer-title">機種比較</span>
+          <button class="hr-drawer-close" onclick="closeDrawer()">✕</button>
+        </div>
+        <div class="hr-drawer-body" id="drawer-body"></div>
+      </div>
+
+      <!-- Buying Guide -->
+      <section class="hr-guide">
+        <h2>購入前に確認すべき10項目</h2>
+        <details class="hr-guide-item"><summary>1. 用途の明確化</summary><div class="hr-guide-answer">「研究用のSDK重視」と「工場の搬送用」では最適な機体がまったく異なる。まず用途を明確にし、必須スペック（積載量、稼働時間、SDK）の優先順位をつける。</div></details>
+        <details class="hr-guide-item"><summary>2. 予算 = 本体価格 + 運用コスト</summary><div class="hr-guide-answer">本体価格に加え、年間保守費（通常本体の10-20%）、バッテリー交換費、保険、設置環境整備費を含めた総コストで比較する。RaaS（Robot as a Service）モデルも検討。</div></details>
+        <details class="hr-guide-item"><summary>3. SDK・開発環境の成熟度</summary><div class="hr-guide-answer">ROS2対応は研究用途のデファクト。Python/C++ SDKの有無、ドキュメントの質（英語/中国語のみか）、コミュニティの活発さ（Discord/GitHub）を確認。</div></details>
+        <details class="hr-guide-item"><summary>4. 入手性とリードタイム</summary><div class="hr-guide-answer">「shipping」でも受注生産で3-6ヶ月待ちの場合がある。予約金の条件、キャンセルポリシー、国際配送の可否を事前確認。</div></details>
+        <details class="hr-guide-item"><summary>5. 安全認証</summary><div class="hr-guide-answer">工場導入にはCEマーキングやISO認証が必要な場合がある。研究用途でも大学の安全委員会が認証を要求することが多い。E-stopの有無は必須確認事項。</div></details>
+        <details class="hr-guide-item"><summary>6. バッテリーと稼働時間</summary><div class="hr-guide-answer">公称稼働時間は多くの場合「待機含む」。実負荷時は半分以下になることも。ホットスワップ対応なら運用の柔軟性が大きく上がる。</div></details>
+        <details class="hr-guide-item"><summary>7. 積載量と作業能力</summary><div class="hr-guide-answer">ペイロードはアーム単体の値と全身の値が混在するため注意。実際の作業に必要な「持ち上げ＋移動」の複合能力を確認する。</div></details>
+        <details class="hr-guide-item"><summary>8. ハンドの巧緻性（Dexterity）</summary><div class="hr-guide-answer">DoF数だけでなく、把持力・触覚センサーの有無・オプション対応を確認。ベースモデルにハンドが含まれない機種も多い。</div></details>
+        <details class="hr-guide-item"><summary>9. サポート体制と部品供給</summary><div class="hr-guide-answer">故障時の対応速度、交換部品の入手性、現地サポートの有無。特に海外メーカーの場合、日本国内のサポート拠点の確認が重要。</div></details>
+        <details class="hr-guide-item"><summary>10. ロードマップと将来性</summary><div class="hr-guide-answer">メーカーの資金調達状況、出荷実績、次世代モデルの予定を確認。スタートアップの場合は事業継続リスクも考慮する。</div></details>
+      </section>
+
+      <!-- Footer Meta -->
+      <div class="hr-footer-meta">
+        <p><strong>最終更新:</strong> 2026年4月7日</p>
+        <p>本データは公式公開情報に基づきます。正確性を保証するものではありません。</p>
+        <p>関連記事: <a href="/blog/humanoid-robots-surpass-humans">ヒューマノイドが人間を超える日</a></p>
+        <p>抜け・誤りの報告は <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer">@HumanAdsAI</a> まで</p>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="/terms">利用規約</a><span class="footer-divider">|</span>
+        <a href="/privacy">プライバシーポリシー</a><span class="footer-divider">|</span>
+        <a href="/faq">FAQ</a><span class="footer-divider">|</span>
+        <a href="/contact">お問い合わせ</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer" class="footer-x-link">
+          <svg class="footer-x-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span>@HumanAdsAI</span>
+        </a>
+      </div>
+      <p class="footer-disclaimer">XはX Corp.の商標です。HumanAdsはX Corp.とは関係のない独立したサービスです。</p>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+
+  <script>
+  (function(){
+    'use strict';
+
+    // ============================================
+    // Data (embedded for performance)
+    // ============================================
+    let ROBOTS = [];
+    fetch('/data/humanoid-robots.json').then(r=>r.json()).then(data=>{ROBOTS=data;init();}).catch(()=>{document.getElementById('card-grid').innerHTML='<p style="color:var(--color-text-muted)">データの読み込みに失敗しました。</p>';});
+
+    const FLAGS = {CN:'🇨🇳',US:'🇺🇸',NO:'🇳🇴',DE:'🇩🇪',CA:'🇨🇦',JP:'🇯🇵',PL:'🇵🇱',KR:'🇰🇷'};
+    const STATUS_JA = {shipping:'出荷中',preorder:'予約可',pilot:'パイロット',development:'開発中'};
+
+    let compareSet = new Set();
+    let currentView = 'card';
+
+    // ============================================
+    // Helpers
+    // ============================================
+    function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function fmtPrice(p){if(!p)return'—';if(Array.isArray(p)){if(p[0]===p[1])return'$'+p[0].toLocaleString();return'$'+p[0].toLocaleString()+' - $'+p[1].toLocaleString();}return'$'+p.toLocaleString();}
+    function fmtDof(d){if(!d&&d!==0)return'—';if(Array.isArray(d))return d[0]===d[1]?String(d[0]):d[0]+'-'+d[1];return String(d);}
+    function fmtNum(n,u){if(n===null||n===undefined)return'—';if(Array.isArray(n))return n[0]===n[1]?n[0]+u:n[0]+'-'+n[1]+u;return n+u;}
+    function getMinPrice(r){if(!r.price_usd)return Infinity;return Array.isArray(r.price_usd)?r.price_usd[0]:r.price_usd;}
+    function getMaxDof(r){if(!r.dof_total&&r.dof_total!==0)return 0;return Array.isArray(r.dof_total)?r.dof_total[1]:r.dof_total;}
+    function getMaxPayload(r){if(!r.payload_kg&&r.payload_kg!==0)return 0;return Array.isArray(r.payload_kg)?r.payload_kg[1]:r.payload_kg;}
+
+    // ============================================
+    // Filter & Sort
+    // ============================================
+    function getFiltered(){
+      let list = [...ROBOTS];
+      const cat = document.getElementById('f-category').value;
+      const price = document.getElementById('f-price').value;
+      const status = document.getElementById('f-status').value;
+      const country = document.getElementById('f-country').value;
+      const sdk = document.getElementById('f-sdk').value;
+      const sort = document.getElementById('f-sort').value;
+
+      if(cat) list = list.filter(r => r.category && r.category.includes(cat));
+      if(price){const[min,max]=price.split('-').map(Number);list=list.filter(r=>{if(!r.price_usd)return false;const p=getMinPrice(r);return p>=min&&p<=max;});}
+      if(status) list = list.filter(r => r.status === status);
+      if(country) list = list.filter(r => r.country === country);
+      if(sdk) list = list.filter(r => r.sdk_openness === sdk);
+
+      switch(sort){
+        case 'price-asc': list.sort((a,b)=>getMinPrice(a)-getMinPrice(b)); break;
+        case 'price-desc': list.sort((a,b)=>getMinPrice(b)-getMinPrice(a)); break;
+        case 'dof-desc': list.sort((a,b)=>getMaxDof(b)-getMaxDof(a)); break;
+        case 'payload-desc': list.sort((a,b)=>getMaxPayload(b)-getMaxPayload(a)); break;
+        case 'runtime-desc': list.sort((a,b)=>(b.runtime_hours||0)-(a.runtime_hours||0)); break;
+        default: list.sort((a,b)=>a.name.localeCompare(b.name));
+      }
+      return list;
+    }
+
+    // ============================================
+    // Render Cards
+    // ============================================
+    function renderCards(list){
+      const grid = document.getElementById('card-grid');
+      if(list.length===0){grid.innerHTML='<p style="color:var(--color-text-muted);text-align:center;padding:40px 0;">条件に合う機体がありません。フィルタを変更してください。</p>';return;}
+      let html='';
+      for(const r of list){
+        const inCompare = compareSet.has(r.slug);
+        html+=`<div class="hr-card${inCompare?' selected':''}" id="card-${esc(r.slug)}">
+          <div class="hr-card-head">
+            <span class="hr-flag">${FLAGS[r.country]||''}</span>
+            <span class="hr-card-name">${esc(r.name)}</span>
+            <span class="hr-badge hr-badge-${r.status}">${STATUS_JA[r.status]||r.status}</span>
+          </div>
+          <div class="hr-card-maker">${esc(r.manufacturer)}</div>
+          <div class="hr-card-specs">
+            <div class="hr-spec"><span class="hr-spec-label">価格</span> <span class="hr-spec-value">${fmtPrice(r.price_usd)}</span></div>
+            <div class="hr-spec"><span class="hr-spec-label">DoF</span> <span class="hr-spec-value">${fmtDof(r.dof_total)}</span></div>
+            <div class="hr-spec"><span class="hr-spec-label">積載</span> <span class="hr-spec-value">${fmtNum(r.payload_kg,'kg')}</span></div>
+            <div class="hr-spec"><span class="hr-spec-label">稼働</span> <span class="hr-spec-value">${fmtNum(r.runtime_hours,'h')}</span></div>
+            <div class="hr-spec"><span class="hr-spec-label">速度</span> <span class="hr-spec-value">${fmtNum(r.max_speed_ms,'m/s')}</span></div>
+            <div class="hr-spec"><span class="hr-spec-label">SDK</span> <span class="hr-spec-value">${r.sdk_openness==='full'?'フルオープン':r.sdk_openness==='partial'?'一部公開':r.sdk_openness==='closed'?'非公開':'—'}</span></div>
+          </div>
+          <div class="hr-card-liner">${esc(r.one_liner)}</div>
+          <div class="hr-card-actions">
+            <button class="hr-compare-btn${inCompare?' added':''}" onclick="toggleCompare('${esc(r.slug)}',event)">${inCompare?'✓ 比較中':'+ 比較に追加'}</button>
+            <button class="hr-expand-btn" onclick="toggleDetail('${esc(r.slug)}',event)">詳細 ▼</button>
+          </div>
+          <div class="hr-card-detail" id="detail-${esc(r.slug)}">
+            <div class="hr-detail-grid">
+              <div class="hr-detail-item"><span class="label">身長</span> <span class="val">${fmtNum(r.height_cm,'cm')}</span></div>
+              <div class="hr-detail-item"><span class="label">体重</span> <span class="val">${fmtNum(r.weight_kg,'kg')}</span></div>
+              <div class="hr-detail-item"><span class="label">ハンドDoF</span> <span class="val">${fmtDof(r.dof_hands)}</span></div>
+              <div class="hr-detail-item"><span class="label">バッテリー</span> <span class="val">${fmtNum(r.battery_wh,'Wh')}</span></div>
+              <div class="hr-detail-item"><span class="label">ホットスワップ</span> <span class="val">${r.hot_swap?'対応':'非対応'}</span></div>
+              <div class="hr-detail-item"><span class="label">計算基盤</span> <span class="val">${esc(r.compute)||'—'}</span></div>
+              <div class="hr-detail-item"><span class="label">SDK</span> <span class="val">${r.sdk?r.sdk.join(', '):'—'}</span></div>
+              <div class="hr-detail-item"><span class="label">出荷実績</span> <span class="val">${esc(r.units_shipped)||'—'}</span></div>
+              ${r.funding_total_usd?`<div class="hr-detail-item"><span class="label">調達額</span> <span class="val">$${(r.funding_total_usd/1e6).toFixed(0)}M</span></div>`:''}
+              ${r.price_note?`<div class="hr-detail-item"><span class="label">価格備考</span> <span class="val">${esc(r.price_note)}</span></div>`:''}
+            </div>
+            ${r.pros||r.cons?`<div class="hr-pros-cons">
+              ${r.pros?`<div class="hr-pros"><h4>Pros</h4><ul>${r.pros.map(p=>'<li>'+esc(p)+'</li>').join('')}</ul></div>`:''}
+              ${r.cons?`<div class="hr-cons"><h4>Cons</h4><ul>${r.cons.map(c=>'<li>'+esc(c)+'</li>').join('')}</ul></div>`:''}
+            </div>`:''}
+          </div>
+        </div>`;
+      }
+      grid.innerHTML=html;
+    }
+
+    // ============================================
+    // Render Table
+    // ============================================
+    function renderTable(list){
+      const tbody = document.getElementById('table-body');
+      let html='';
+      for(const r of list){
+        const inCompare = compareSet.has(r.slug);
+        html+=`<tr>
+          <td class="name-cell">${FLAGS[r.country]||''} ${esc(r.name)}</td>
+          <td>${esc(r.manufacturer)}</td>
+          <td>${FLAGS[r.country]||r.country}</td>
+          <td><span class="hr-badge hr-badge-${r.status}">${STATUS_JA[r.status]}</span></td>
+          <td>${fmtPrice(r.price_usd)}</td>
+          <td>${fmtDof(r.dof_total)}</td>
+          <td>${fmtNum(r.payload_kg,'')}</td>
+          <td>${fmtNum(r.runtime_hours,'')}</td>
+          <td>${fmtNum(r.max_speed_ms,'')}</td>
+          <td>${r.sdk_openness==='full'?'Full':r.sdk_openness==='partial'?'Partial':'—'}</td>
+          <td><button class="hr-compare-btn${inCompare?' added':''}" onclick="toggleCompare('${esc(r.slug)}',event)">${inCompare?'✓':'+'}</button></td>
+        </tr>`;
+      }
+      tbody.innerHTML=html;
+    }
+
+    // ============================================
+    // Compare
+    // ============================================
+    window.toggleCompare = function(slug, e){
+      if(e)e.stopPropagation();
+      if(compareSet.has(slug)){compareSet.delete(slug);}
+      else{if(compareSet.size>=4)return;compareSet.add(slug);}
+      updateCompareBar();
+      refresh();
+      syncUrl();
+    };
+
+    function updateCompareBar(){
+      const bar = document.getElementById('compare-bar');
+      const count = document.getElementById('compare-count');
+      count.textContent = compareSet.size;
+      bar.style.display = compareSet.size > 0 ? 'flex' : 'none';
+    }
+
+    window.openDrawer = function(){
+      if(compareSet.size < 1) return;
+      renderDrawer();
+      document.getElementById('compare-drawer').classList.add('open');
+    };
+
+    window.closeDrawer = function(){
+      document.getElementById('compare-drawer').classList.remove('open');
+    };
+
+    function renderDrawer(){
+      const selected = ROBOTS.filter(r => compareSet.has(r.slug));
+      const body = document.getElementById('drawer-body');
+      const cols = selected.length;
+      body.parentElement.previousElementSibling; // drawer header
+      document.querySelector('.hr-compare-grid')?.remove;
+
+      const specs = [
+        {label:'価格',fn:r=>fmtPrice(r.price_usd),cmp:(a,b)=>getMinPrice(a)<getMinPrice(b)?-1:1},
+        {label:'DoF',fn:r=>fmtDof(r.dof_total),cmp:(a,b)=>getMaxDof(b)-getMaxDof(a)},
+        {label:'積載(kg)',fn:r=>fmtNum(r.payload_kg,''),cmp:(a,b)=>getMaxPayload(b)-getMaxPayload(a)},
+        {label:'稼働(h)',fn:r=>fmtNum(r.runtime_hours,''),cmp:(a,b)=>(b.runtime_hours||0)-(a.runtime_hours||0)},
+        {label:'速度(m/s)',fn:r=>fmtNum(r.max_speed_ms,''),cmp:(a,b)=>(b.max_speed_ms||0)-(a.max_speed_ms||0)},
+        {label:'身長(cm)',fn:r=>fmtNum(r.height_cm,''),cmp:null},
+        {label:'体重(kg)',fn:r=>fmtNum(r.weight_kg,''),cmp:null},
+        {label:'バッテリー(Wh)',fn:r=>fmtNum(r.battery_wh,''),cmp:(a,b)=>(b.battery_wh||0)-(a.battery_wh||0)},
+        {label:'ハンドDoF',fn:r=>fmtDof(r.dof_hands),cmp:null},
+        {label:'ホットスワップ',fn:r=>r.hot_swap?'✓':'—',cmp:null},
+        {label:'SDK公開度',fn:r=>r.sdk_openness==='full'?'フル':r.sdk_openness==='partial'?'一部':'—',cmp:null},
+        {label:'出荷実績',fn:r=>r.units_shipped||'—',cmp:null},
+      ];
+
+      // Build radar chart
+      const radarHtml = buildCompareRadar(selected);
+
+      let html = radarHtml;
+      html += '<div style="overflow-x:auto;"><table class="hr-table" style="width:100%;"><thead><tr><th></th>';
+      for(const r of selected) html += `<th style="text-align:center;">${FLAGS[r.country]} ${esc(r.name)}<br><span style="font-weight:400;font-size:0.5625rem;">${esc(r.manufacturer)}</span></th>`;
+      html += '</tr></thead><tbody>';
+
+      for(const spec of specs){
+        html += `<tr><td style="color:var(--color-text-muted);">${spec.label}</td>`;
+        // Find best
+        let bestIdx = -1;
+        if(spec.cmp && selected.length > 1){
+          const sorted = [...selected].sort(spec.cmp);
+          bestIdx = selected.indexOf(sorted[0]);
+        }
+        selected.forEach((r,i) => {
+          const val = spec.fn(r);
+          const isBest = i === bestIdx && val !== '—';
+          html += `<td style="text-align:center;${isBest?'color:var(--hr-green);font-weight:700;':''}">${esc(val)}</td>`;
+        });
+        html += '</tr>';
+      }
+      html += '</tbody></table></div>';
+      body.innerHTML = html;
+    }
+
+    function buildCompareRadar(selected){
+      if(selected.length < 2) return '';
+      const axes = [
+        {label:'DoF',fn:r=>Math.min(100,getMaxDof(r)/80*100)},
+        {label:'積載',fn:r=>{const p=getMaxPayload(r);return p?Math.min(100,p/50*100):0;}},
+        {label:'稼働',fn:r=>Math.min(100,(r.runtime_hours||0)/10*100)},
+        {label:'速度',fn:r=>Math.min(100,(r.max_speed_ms||0)/4*100)},
+        {label:'コスパ',fn:r=>{const p=getMinPrice(r);return p&&p<Infinity?Math.min(100,(1-p/300000)*100):0;}},
+      ];
+      const n=axes.length, cx=160, cy=140, maxR=100;
+      const step=2*Math.PI/n, start=-Math.PI/2;
+      const colors=['#E85D3A','#3b82f6','#10b981','#f59e0b'];
+
+      function polar(i,r){const a=start+i*step;return[Math.round((cx+r*Math.cos(a))*10)/10,Math.round((cy+r*Math.sin(a))*10)/10];}
+
+      let svg='<svg viewBox="0 0 320 280" style="width:100%;max-width:320px;height:auto;" xmlns="http://www.w3.org/2000/svg">';
+      // Grid
+      for(const pct of [25,50,75,100]){const r=maxR*pct/100;const pts=[];for(let i=0;i<n;i++)pts.push(polar(i,r).join(','));svg+=`<polygon points="${pts.join(' ')}" fill="none" stroke="#e5e7eb" stroke-width="1"/>`;}
+      // Labels
+      for(let i=0;i<n;i++){const[ex,ey]=polar(i,maxR);svg+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="#e5e7eb" stroke-width="1"/>`;const lr=maxR+20;const[lx,ly]=polar(i,lr);const a=start+i*step;const anchor=Math.abs(Math.cos(a))<0.1?'middle':Math.cos(a)>0?'start':'end';const dy=Math.sin(a)<-0.3?-2:Math.sin(a)>0.3?12:4;svg+=`<text x="${lx}" y="${ly+dy}" text-anchor="${anchor}" font-size="10" fill="#6b7280" font-family="system-ui">${axes[i].label}</text>`;}
+      // Data
+      selected.forEach((r,idx)=>{const pts=[];for(let i=0;i<n;i++){const val=Math.max(2,axes[i].fn(r));pts.push(polar(i,maxR*val/100).join(','));}svg+=`<polygon points="${pts.join(' ')}" fill="${colors[idx%4]}22" stroke="${colors[idx%4]}" stroke-width="2" stroke-linejoin="round"/>`;});
+      // Legend
+      selected.forEach((r,idx)=>{svg+=`<rect x="10" y="${250+idx*16}" width="10" height="10" rx="2" fill="${colors[idx%4]}"/><text x="24" y="${259+idx*16}" font-size="9" fill="#6b7280" font-family="monospace">${esc(r.name)}</text>`;});
+
+      svg+='</svg>';
+      return `<div class="hr-radar-wrap">${svg}</div>`;
+    }
+
+    // ============================================
+    // View Toggle
+    // ============================================
+    document.getElementById('view-card').addEventListener('click',()=>{currentView='card';document.getElementById('view-card').classList.add('active');document.getElementById('view-table').classList.remove('active');document.getElementById('card-grid').style.display='';document.getElementById('table-wrap').style.display='none';});
+    document.getElementById('view-table').addEventListener('click',()=>{currentView='table';document.getElementById('view-table').classList.add('active');document.getElementById('view-card').classList.remove('active');document.getElementById('card-grid').style.display='none';document.getElementById('table-wrap').style.display='block';});
+
+    // ============================================
+    // Expand Detail
+    // ============================================
+    window.toggleDetail = function(slug, e){
+      if(e)e.stopPropagation();
+      const detail = document.getElementById('detail-'+slug);
+      if(detail) detail.classList.toggle('open');
+    };
+
+    // ============================================
+    // URL Sync
+    // ============================================
+    function syncUrl(){
+      const params = new URLSearchParams(window.location.search);
+      if(compareSet.size > 0) params.set('compare', [...compareSet].join(','));
+      else params.delete('compare');
+      const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      history.replaceState(null, '', newUrl);
+    }
+
+    function loadFromUrl(){
+      const params = new URLSearchParams(window.location.search);
+      const compare = params.get('compare');
+      if(compare) compare.split(',').forEach(s => { if(s && ROBOTS.find(r=>r.slug===s)) compareSet.add(s); });
+    }
+
+    // ============================================
+    // Refresh
+    // ============================================
+    function refresh(){
+      const list = getFiltered();
+      document.getElementById('result-count').textContent = list.length + '機種';
+      renderCards(list);
+      renderTable(list);
+    }
+
+    // ============================================
+    // Init
+    // ============================================
+    function init(){
+      document.getElementById('robot-count').textContent = ROBOTS.length;
+      const makers = new Set(ROBOTS.map(r=>r.manufacturer));
+      document.getElementById('maker-count').textContent = makers.size;
+
+      loadFromUrl();
+      updateCompareBar();
+      refresh();
+
+      // Filter event listeners
+      ['f-category','f-price','f-status','f-country','f-sdk','f-sort'].forEach(id=>{
+        document.getElementById(id).addEventListener('change', refresh);
+      });
+
+      // Auto-open drawer if compare params present
+      if(compareSet.size >= 2) setTimeout(openDrawer, 500);
+    }
+
+  })();
+  </script>
+</body>
+</html>
