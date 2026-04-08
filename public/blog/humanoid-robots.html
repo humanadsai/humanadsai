@@ -35,13 +35,13 @@
     .hr-page{max-width:var(--container-max);margin:0 auto;padding:0 var(--gutter);}
     .hr-page *,.hr-page *::before,.hr-page *::after{box-sizing:border-box;}
 
-    .hr-hero{text-align:center;padding:48px 0 28px;}
-    .hr-hero h1{font-family:'Noto Sans JP',var(--font-family);font-size:clamp(1.5rem,4vw,2.25rem);font-weight:800;line-height:1.4;color:var(--color-text);margin-bottom:12px;}
-    .hr-hero-sub{font-size:1rem;color:var(--color-text-muted);max-width:640px;margin:0 auto 16px;line-height:1.7;}
-    .hr-hero-meta{font-family:var(--font-mono);font-size:.8125rem;color:var(--color-text-muted);}
+    .hr-hero{text-align:center;padding:20px 0 12px;}
+    .hr-hero h1{font-family:'Noto Sans JP',var(--font-family);font-size:clamp(1rem,2.5vw,1.375rem);font-weight:700;line-height:1.4;color:var(--color-text);margin-bottom:6px;}
+    .hr-hero-sub{font-size:.8125rem;color:var(--color-text-muted);max-width:640px;margin:0 auto 8px;line-height:1.5;}
+    .hr-hero-meta{font-family:var(--font-mono);font-size:.6875rem;color:var(--color-text-muted);}
 
     /* Scoring legend */
-    .hr-legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0 8px;font-family:var(--font-mono);font-size:.8125rem;}
+    .hr-legend{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0 0;font-family:var(--font-mono);font-size:.6875rem;}
     .hr-legend-item{display:flex;align-items:center;gap:4px;}
 
     /* Filters */
@@ -182,7 +182,7 @@
       .hr-rank{width:44px;height:44px;font-size:1.5rem;border-radius:10px;}
       .hr-pros-cons{grid-template-columns:1fr;}
       .hr-detail-grid{grid-template-columns:1fr 1fr;}
-      .hr-hero h1{font-size:1.25rem;}
+      .hr-hero h1{font-size:1rem;}
     }
   </style>
 </head>
@@ -199,14 +199,14 @@
 
     <main class="hr-page">
       <section class="hr-hero">
-        <h1>ヒューマノイドロボット比較<br>2026年版 独自評価付き全機種一覧</h1>
-        <p class="hr-hero-sub">24機種を6軸レーダーチャートで独自評価。DoF・積載・稼働時間・速度・AI性能・市場成熟度を数値化し、S〜Dランクで格付け。</p>
+        <h1>ヒューマノイドロボット比較 2026 — 独自6軸評価</h1>
+        <p class="hr-hero-sub">DoF・積載・稼働・速度・AI性能・市場成熟度でS〜Dランク格付け</p>
         <p class="hr-hero-meta">最終更新: 2026-04-07 ・ <span id="robot-count">24</span>機種 ・ <span id="maker-count">16</span>メーカー</p>
         <div class="hr-legend">
-          <span class="hr-legend-item"><span class="hr-rank hr-rank-s" style="width:28px;height:28px;font-size:1rem;border-radius:6px;">S</span> 75+</span>
-          <span class="hr-legend-item"><span class="hr-rank hr-rank-a" style="width:28px;height:28px;font-size:1rem;border-radius:6px;">A</span> 60-74</span>
-          <span class="hr-legend-item"><span class="hr-rank hr-rank-b" style="width:28px;height:28px;font-size:1rem;border-radius:6px;">B</span> 45-59</span>
-          <span class="hr-legend-item"><span class="hr-rank hr-rank-c" style="width:28px;height:28px;font-size:1rem;border-radius:6px;">C</span> 30-44</span>
+          <span class="hr-legend-item"><span class="hr-rank hr-rank-s" style="width:22px;height:22px;font-size:.75rem;border-radius:5px;">S</span>75+</span>
+          <span class="hr-legend-item"><span class="hr-rank hr-rank-a" style="width:22px;height:22px;font-size:.75rem;border-radius:5px;">A</span>60+</span>
+          <span class="hr-legend-item"><span class="hr-rank hr-rank-b" style="width:22px;height:22px;font-size:.75rem;border-radius:5px;">B</span>45+</span>
+          <span class="hr-legend-item"><span class="hr-rank hr-rank-c" style="width:22px;height:22px;font-size:.75rem;border-radius:5px;">C</span>30+</span>
         </div>
       </section>
 
