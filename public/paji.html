@@ -296,6 +296,37 @@
     .final-cta p{font-size:1rem;color:var(--text-mute);margin-bottom:32px;}
     .final-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
 
+    /* Dev Roadmap / Checklist (for Hajime) */
+    .roadmap{background:var(--bg);border-top:1px solid var(--border);padding:60px 0;}
+    .roadmap-header{text-align:center;margin-bottom:32px;}
+    .roadmap-label{display:inline-block;font-family:var(--font-mono);font-size:.6875rem;color:var(--purple);text-transform:uppercase;letter-spacing:.15em;margin-bottom:12px;padding:6px 14px;background:rgba(167,139,250,.12);border-radius:999px;}
+    .roadmap-header h2{font-size:clamp(1.25rem,2.5vw,1.75rem);font-weight:800;margin-bottom:8px;}
+    .roadmap-header p{font-size:.875rem;color:var(--text-mute);max-width:600px;margin:0 auto;line-height:1.7;}
+    .roadmap-meta{display:flex;justify-content:center;gap:16px;margin-top:16px;font-family:var(--font-mono);font-size:.75rem;color:var(--text-dim);flex-wrap:wrap;}
+    .roadmap-meta span{padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:6px;}
+    .roadmap-progress{max-width:400px;margin:16px auto 0;}
+    .roadmap-progress-bar{width:100%;height:8px;background:var(--bg-3);border-radius:4px;overflow:hidden;}
+    .roadmap-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:4px;transition:width .4s;}
+    .roadmap-progress-text{text-align:center;font-family:var(--font-mono);font-size:.75rem;color:var(--text-mute);margin-top:6px;}
+
+    .roadmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;}
+    .rm-cat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+    .rm-cat-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+    .rm-cat-icon{width:32px;height:32px;border-radius:8px;background:rgba(167,139,250,.12);display:flex;align-items:center;justify-content:center;font-size:1rem;}
+    .rm-cat-title{font-size:.9375rem;font-weight:700;color:var(--text);flex:1;}
+    .rm-cat-count{font-family:var(--font-mono);font-size:.6875rem;color:var(--text-dim);}
+    .rm-list{list-style:none;display:flex;flex-direction:column;gap:6px;}
+    .rm-item{display:flex;align-items:flex-start;gap:8px;font-size:.8125rem;color:var(--text-mute);line-height:1.5;cursor:pointer;padding:3px 0;transition:color .15s;user-select:none;}
+    .rm-item:hover{color:var(--text);}
+    .rm-check{width:16px;height:16px;border:1.5px solid var(--border-2);border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s;background:var(--bg-3);}
+    .rm-item.done .rm-check{background:var(--accent);border-color:var(--accent);}
+    .rm-item.done .rm-check::after{content:'✓';color:#000;font-size:.75rem;font-weight:900;}
+    .rm-item.done{color:var(--text-dim);text-decoration:line-through;}
+    .rm-priority{font-family:var(--font-mono);font-size:.5625rem;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0;margin-top:3px;}
+    .rm-p1{background:rgba(248,113,113,.15);color:var(--red);}
+    .rm-p2{background:rgba(251,191,36,.15);color:var(--yellow);}
+    .rm-p3{background:rgba(94,229,255,.12);color:var(--cyan);}
+
     /* Footer */
     footer{padding:40px 0;border-top:1px solid var(--border);text-align:center;color:var(--text-dim);font-size:.8125rem;}
     footer a{color:var(--text-mute);}
@@ -635,6 +666,28 @@
     </div>
   </section>
 
+  <!-- Dev Roadmap (for Hajime) -->
+  <section class="roadmap" id="roadmap">
+    <div class="container">
+      <div class="roadmap-header">
+        <span class="roadmap-label">Dev Roadmap ・ Hajime向け</span>
+        <h2>プラットフォーム構築タスク</h2>
+        <p>始（PAJI）をプラットフォームとして提供するために必要な開発・外部連携・営業・運用タスクの網羅チェックリスト。チェック状態はブラウザに保存されます。</p>
+        <div class="roadmap-meta">
+          <span id="rm-total">全 0 タスク</span>
+          <span style="color:var(--red);">🔴 P1 最重要</span>
+          <span style="color:var(--yellow);">🟡 P2 重要</span>
+          <span style="color:var(--cyan);">🔵 P3 将来</span>
+        </div>
+        <div class="roadmap-progress">
+          <div class="roadmap-progress-bar"><div class="roadmap-progress-fill" id="rm-fill"></div></div>
+          <div class="roadmap-progress-text" id="rm-text">0 / 0 (0%)</div>
+        </div>
+      </div>
+      <div class="roadmap-grid" id="roadmap-grid"></div>
+    </div>
+  </section>
+
   <footer>
     <div class="container">
       <p>始（PAJI） — AIカンパニー創業支援サービス</p>
@@ -863,6 +916,203 @@
     } else {
       startChatDemo();
     }
+
+    // ============================================
+    // Dev Roadmap Checklist
+    // ============================================
+    const ROADMAP = [
+      {icon:'🏗',title:'インフラ・コア基盤',items:[
+        {p:1,t:'Cloudflare Workers + D1 + Durable Objects 設計'},
+        {p:1,t:'マルチエージェント・オーケストレーター実装'},
+        {p:1,t:'LLM ルーティング（OpenAI/Anthropic/Google 抽象化）'},
+        {p:1,t:'エージェント間メッセージパッシング'},
+        {p:1,t:'長期メモリ・ベクトルDB（Pinecone/pgvector）'},
+        {p:1,t:'承認ワークフロー・エンジン（多段承認対応）'},
+        {p:1,t:'監査ログ基盤（全アクション記録）'},
+        {p:1,t:'ロールバック機構（重要操作の差し戻し）'},
+        {p:1,t:'権限・ロール管理（代表/共同創業/経理/外部）'},
+        {p:2,t:'Webhook 受信ハンドラ（外部イベント連携）'},
+        {p:2,t:'レート制限・コスト監視'},
+        {p:2,t:'セッション・コンテキスト永続化'},
+      ]},
+      {icon:'🤖',title:'AIエージェント（CxO）',items:[
+        {p:1,t:'CEO エージェント（戦略・VMV・事業計画）'},
+        {p:1,t:'COO エージェント（運用・SLA・タスク起票）'},
+        {p:1,t:'CTO エージェント（コード生成・デプロイ）'},
+        {p:1,t:'CMO エージェント（広告・LP・SNS）'},
+        {p:1,t:'CFO エージェント（請求・仕訳・ランウェイ）'},
+        {p:1,t:'CxO間の依存関係・委任フロー'},
+        {p:2,t:'カスタムCxO追加機能（Enterprise 用）'},
+        {p:2,t:'プロンプトテンプレート・ガードレール'},
+        {p:2,t:'Evaluator: 提案品質の自己採点'},
+        {p:3,t:'CLO（法務）/CHRO（人事）追加エージェント'},
+      ]},
+      {icon:'🔌',title:'外部サービス連携（OAuth/API）',items:[
+        {p:1,t:'Notion API（事業計画・Wiki・議事録）'},
+        {p:1,t:'Gmail API（メール下書き・送信）'},
+        {p:1,t:'Google Calendar API（会議設定）'},
+        {p:1,t:'Linear API（タスク・スプリント）'},
+        {p:1,t:'GitHub API（リポジトリ・PR・Issue）'},
+        {p:1,t:'Vercel API（デプロイ・プロジェクト）'},
+        {p:1,t:'Stripe API（サブスク・請求）'},
+        {p:1,t:'freee API（仕訳・請求書）'},
+        {p:2,t:'Figma API（デザインファイル）'},
+        {p:2,t:'Shopify API（EC 構築）'},
+        {p:2,t:'Intercom API（CS 対応）'},
+        {p:2,t:'GA4 API（アクセス解析）'},
+        {p:3,t:'クラウドサイン / DocuSign（電子契約）'},
+        {p:3,t:'Slack/Discord（通知のみ、主役ではない）'},
+      ]},
+      {icon:'📄',title:'法人運用テンプレート・DB',items:[
+        {p:1,t:'定款ドラフトテンプレ（株式会社/合同会社）'},
+        {p:1,t:'事業目的ジェネレータ（業種別）'},
+        {p:1,t:'商号候補ジェネレータ + 類似チェック'},
+        {p:1,t:'法人口座比較DB（ネット銀行/メガ/スタートアップ向け）'},
+        {p:1,t:'法人カード比較DB（用途別）'},
+        {p:1,t:'税務届出スケジューラ'},
+        {p:1,t:'利用規約・プライバシー・特商法ジェネレータ'},
+        {p:2,t:'NDA / 業務委託契約テンプレ'},
+        {p:2,t:'業種別許認可チェックリスト'},
+        {p:2,t:'労働条件通知書・就業規則テンプレ'},
+        {p:2,t:'役員報酬シミュレータ'},
+        {p:2,t:'資金調達資料テンプレ（VC向けピッチ）'},
+      ]},
+      {icon:'⚖️',title:'法務・コンプライアンス',items:[
+        {p:1,t:'サービス利用規約（PAJI 自体の）'},
+        {p:1,t:'プライバシーポリシー（個人情報保護法対応）'},
+        {p:1,t:'特定商取引法表記'},
+        {p:1,t:'データ保管・削除ポリシー'},
+        {p:2,t:'GDPR / APPI 準拠レビュー'},
+        {p:2,t:'セキュリティ監査（外部ベンダー）'},
+        {p:3,t:'SOC 2 Type II 準備（Enterprise 向け）'},
+        {p:3,t:'ISO 27001 検討'},
+      ]},
+      {icon:'🤝',title:'パートナー・士業連携',items:[
+        {p:1,t:'提携司法書士（登記申請の人的バックアップ）'},
+        {p:1,t:'提携税理士（税務申告・顧問）'},
+        {p:2,t:'提携社労士（労務・社会保険）'},
+        {p:2,t:'提携弁護士（法務レビュー）'},
+        {p:2,t:'提携弁理士（商標出願）'},
+        {p:2,t:'ネット銀行アフィリエイト提携（GMO/住信SBI 等）'},
+        {p:2,t:'法人カード提携（アメックス/楽天/UPSIDER 等）'},
+        {p:3,t:'freee / マネーフォワードのパートナープログラム'},
+        {p:3,t:'Notion / Linear / Vercel のパートナー交渉'},
+      ]},
+      {icon:'💰',title:'セールス・マーケティング',items:[
+        {p:1,t:'この特設LPの公開（完了）'},
+        {p:1,t:'Free サインアップフロー'},
+        {p:1,t:'オンボーディング体験の作り込み'},
+        {p:1,t:'Stripe 決済連携（Business/Enterprise）'},
+        {p:2,t:'ドキュメント・ヘルプセンター'},
+        {p:2,t:'ブログ・事例コンテンツ'},
+        {p:2,t:'SEO 対策（キーワード調査・構造化データ）'},
+        {p:2,t:'X / LinkedIn / YouTube 広報戦略'},
+        {p:2,t:'紹介プログラム（招待リンク）'},
+        {p:3,t:'パートナー紹介プログラム'},
+        {p:3,t:'ウェビナー・カンファレンス登壇'},
+      ]},
+      {icon:'📊',title:'運用・カスタマーサクセス',items:[
+        {p:1,t:'カスタマーサポート体制（Intercom 等）'},
+        {p:1,t:'請求・サブスク管理（Stripe）'},
+        {p:1,t:'チャーン監視・リテンション分析'},
+        {p:1,t:'KPI ダッシュボード（MRR/ARR/解約率）'},
+        {p:2,t:'使用量トラッキング・アラート'},
+        {p:2,t:'インシデント対応プロセス（SLA）'},
+        {p:2,t:'ステータスページ（status.paji.ai）'},
+        {p:3,t:'カスタマーヘルススコア'},
+      ]},
+      {icon:'🎯',title:'事業開発・投資家対応',items:[
+        {p:1,t:'ピッチデック・資金調達資料'},
+        {p:1,t:'法人設立（ドッグフーディング対象）'},
+        {p:2,t:'シード/シリーズA VC 向けアウトリーチ'},
+        {p:2,t:'エンタープライズ・セールスプレイブック'},
+        {p:2,t:'事例ケーススタディ（初期ユーザー10社）'},
+        {p:3,t:'プレスリリース・メディア露出'},
+        {p:3,t:'海外展開計画（英語/中国語版）'},
+      ]},
+      {icon:'🔒',title:'セキュリティ・信頼性',items:[
+        {p:1,t:'暗号化（転送中/保管時）'},
+        {p:1,t:'Secrets 管理（Cloudflare Workers Secrets）'},
+        {p:1,t:'OAuth トークン安全保管（暗号化）'},
+        {p:1,t:'バックアップ戦略（D1 定期スナップショット）'},
+        {p:2,t:'侵入テスト（ペネトレーションテスト）'},
+        {p:2,t:'インシデントレスポンス計画'},
+        {p:2,t:'LLM フォールバック設計'},
+        {p:2,t:'ロードテスト・スケーラビリティ検証'},
+        {p:3,t:'バグバウンティ開設'},
+      ]},
+      {icon:'🎨',title:'プロダクトUI/UX',items:[
+        {p:1,t:'ダッシュボード UI（代表取締役コンソール）'},
+        {p:1,t:'チャットインタフェース（CxO対話画面）'},
+        {p:1,t:'承認フロー UI（差し戻し・再生成）'},
+        {p:1,t:'監査ログ閲覧 UI'},
+        {p:2,t:'モバイル対応（iOS/Android PWA）'},
+        {p:2,t:'通知システム（メール/Push）'},
+        {p:2,t:'多言語対応準備（i18n 基盤）'},
+        {p:3,t:'ダークモード/ライトモード切替'},
+      ]},
+      {icon:'🧪',title:'QA・テスト',items:[
+        {p:1,t:'ユニットテスト（エージェントロジック）'},
+        {p:1,t:'統合テスト（外部API連携）'},
+        {p:2,t:'E2Eテスト（Playwright/Cypress）'},
+        {p:2,t:'LLM出力の回帰テスト（golden set）'},
+        {p:2,t:'α/β ユーザーテスト（friends & family）'},
+        {p:3,t:'継続的評価パイプライン'},
+      ]},
+    ];
+
+    function renderRoadmap(){
+      const saved = JSON.parse(localStorage.getItem('paji-roadmap') || '{}');
+      let total = 0, done = 0;
+
+      const html = ROADMAP.map((cat, ci) => {
+        const items = cat.items.map((it, ii) => {
+          const key = ci + '-' + ii;
+          const isDone = !!saved[key];
+          total++;
+          if(isDone) done++;
+          const pClass = 'rm-p' + it.p;
+          const pLabel = 'P' + it.p;
+          return `<li class="rm-item${isDone?' done':''}" data-key="${key}">
+            <div class="rm-check"></div>
+            <span class="rm-priority ${pClass}">${pLabel}</span>
+            <span>${esc(it.t)}</span>
+          </li>`;
+        }).join('');
+        return `<div class="rm-cat">
+          <div class="rm-cat-head">
+            <div class="rm-cat-icon">${cat.icon}</div>
+            <div class="rm-cat-title">${esc(cat.title)}</div>
+            <div class="rm-cat-count">${cat.items.length}</div>
+          </div>
+          <ul class="rm-list">${items}</ul>
+        </div>`;
+      }).join('');
+
+      document.getElementById('roadmap-grid').innerHTML = html;
+      updateRoadmapProgress(total, done);
+
+      document.querySelectorAll('.rm-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const key = el.dataset.key;
+          const cur = JSON.parse(localStorage.getItem('paji-roadmap') || '{}');
+          cur[key] = !cur[key];
+          localStorage.setItem('paji-roadmap', JSON.stringify(cur));
+          el.classList.toggle('done', cur[key]);
+          const newDone = Object.values(cur).filter(v => v).length;
+          updateRoadmapProgress(total, newDone);
+        });
+      });
+    }
+
+    function updateRoadmapProgress(total, done){
+      const pct = total ? Math.round(done / total * 100) : 0;
+      document.getElementById('rm-total').textContent = '全 ' + total + ' タスク';
+      document.getElementById('rm-fill').style.width = pct + '%';
+      document.getElementById('rm-text').textContent = done + ' / ' + total + ' (' + pct + '%)';
+    }
+
+    renderRoadmap();
   })();
   </script>
 </body>
