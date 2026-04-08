@@ -65,7 +65,8 @@
       "overall": 53,
       "rank": "B"
     },
-    "youtube_id": "dBs7m0gVT2E"
+    "youtube_id": "dBs7m0gVT2E",
+    "purchase_url": "https://shop.unitree.com/products/unitree-g1"
   },
   {
     "slug": "unitree-h1",
@@ -128,7 +129,8 @@
       "overall": 62,
       "rank": "A"
     },
-    "youtube_id": "0eLkBEULCbE"
+    "youtube_id": "0eLkBEULCbE",
+    "purchase_url": "https://www.unitree.com/h1"
   },
   {
     "slug": "unitree-h2",
@@ -191,7 +193,8 @@
       "overall": 55,
       "rank": "B"
     },
-    "youtube_id": "tAbA-DaQUCg"
+    "youtube_id": "tAbA-DaQUCg",
+    "purchase_url": "https://www.unitree.com/h2"
   },
   {
     "slug": "unitree-r1",
@@ -257,7 +260,8 @@
       "overall": 45,
       "rank": "B"
     },
-    "youtube_id": "nPsK5Sx2pEI"
+    "youtube_id": "nPsK5Sx2pEI",
+    "purchase_url": "https://www.unitree.com/r1"
   },
   {
     "slug": "agility-digit",
@@ -317,7 +321,8 @@
       "overall": 52,
       "rank": "B"
     },
-    "youtube_id": "gdGOWnz_3Pk"
+    "youtube_id": "gdGOWnz_3Pk",
+    "purchase_url": "https://agilityrobotics.com/robots"
   },
   {
     "slug": "1x-neo",
@@ -374,7 +379,8 @@
       "overall": 63,
       "rank": "A"
     },
-    "youtube_id": "bUrMbwkv1rs"
+    "youtube_id": "bUrMbwkv1rs",
+    "purchase_url": "https://www.1x.tech/neo"
   },
   {
     "slug": "1x-neo-gamma",
@@ -431,7 +437,8 @@
       "overall": 55,
       "rank": "B"
     },
-    "youtube_id": "kxhd24KBHIY"
+    "youtube_id": "kxhd24KBHIY",
+    "purchase_url": "https://www.1x.tech/neo"
   },
   {
     "slug": "figure-03",
@@ -485,7 +492,8 @@
       "overall": 49,
       "rank": "B"
     },
-    "youtube_id": "GrPl8YP5cKk"
+    "youtube_id": "GrPl8YP5cKk",
+    "purchase_url": "https://www.figure.ai/"
   },
   {
     "slug": "ubtech-walker-s2",
@@ -545,7 +553,8 @@
       "overall": 65,
       "rank": "A"
     },
-    "youtube_id": "y2LG_GE0VR0"
+    "youtube_id": "y2LG_GE0VR0",
+    "purchase_url": "https://www.ubtrobot.com/products/walker-s2"
   },
   {
     "slug": "agibot-a2",
@@ -609,7 +618,8 @@
       "overall": 62,
       "rank": "A"
     },
-    "youtube_id": "sSqjDPMCVzo"
+    "youtube_id": "sSqjDPMCVzo",
+    "purchase_url": "https://www.agibot.com/"
   },
   {
     "slug": "agibot-a2w",
@@ -663,7 +673,8 @@
       "overall": 46,
       "rank": "B"
     },
-    "youtube_id": null
+    "youtube_id": null,
+    "purchase_url": "https://www.agibot.com/"
   },
   {
     "slug": "dobot-atom-max",
@@ -721,7 +732,8 @@
       "overall": 45,
       "rank": "B"
     },
-    "youtube_id": "3_WR5SZ1eHM"
+    "youtube_id": "3_WR5SZ1eHM",
+    "purchase_url": "https://www.dobot-robots.com/products/atom-series"
   },
   {
     "slug": "booster-t1",
@@ -788,7 +800,8 @@
       "overall": 51,
       "rank": "B"
     },
-    "youtube_id": "gZ2QL5QULHE"
+    "youtube_id": "gZ2QL5QULHE",
+    "purchase_url": "https://www.booster.tech/"
   },
   {
     "slug": "engineai-pm01",
@@ -848,7 +861,8 @@
       "overall": 49,
       "rank": "B"
     },
-    "youtube_id": "UHhfSWJJjmQ"
+    "youtube_id": "UHhfSWJJjmQ",
+    "purchase_url": "https://www.engineai.com/"
   },
   {
     "slug": "engineai-sa01",
@@ -907,7 +921,8 @@
       "overall": 39,
       "rank": "C"
     },
-    "youtube_id": null
+    "youtube_id": null,
+    "purchase_url": "https://www.engineai.com/"
   },
   {
     "slug": "fourier-gr1",
@@ -965,7 +980,8 @@
       "overall": 54,
       "rank": "B"
     },
-    "youtube_id": "fhFsFqbiTzA"
+    "youtube_id": "fhFsFqbiTzA",
+    "purchase_url": "https://www.fftai.com/gr1"
   },
   {
     "slug": "fourier-gr2",
@@ -1025,7 +1041,8 @@
       "overall": 40,
       "rank": "C"
     },
-    "youtube_id": null
+    "youtube_id": null,
+    "purchase_url": "https://www.fftai.com/"
   },
   {
     "slug": "fourier-n1",
@@ -1078,7 +1095,8 @@
       "overall": 48,
       "rank": "B"
     },
-    "youtube_id": null
+    "youtube_id": null,
+    "purchase_url": "https://www.fftai.com/"
   },
   {
     "slug": "neura-4ne1",
@@ -1145,7 +1163,8 @@
       "overall": 57,
       "rank": "B"
     },
-    "youtube_id": "LN0_HG8dPfQ"
+    "youtube_id": "LN0_HG8dPfQ",
+    "purchase_url": "https://neura-robotics.com/4ne-1"
   },
   {
     "slug": "tesla-optimus-gen3",
@@ -1203,7 +1222,8 @@
       "overall": 53,
       "rank": "B"
     },
-    "youtube_id": "cpraXQnaOIc"
+    "youtube_id": "cpraXQnaOIc",
+    "purchase_url": "https://www.tesla.com/optimus"
   },
   {
     "slug": "boston-dynamics-atlas",
@@ -1259,7 +1279,8 @@
       "overall": 49,
       "rank": "B"
     },
-    "youtube_id": "W6onTk0GRsI"
+    "youtube_id": "W6onTk0GRsI",
+    "purchase_url": "https://bostondynamics.com/atlas/"
   },
   {
     "slug": "apptronik-apollo",
@@ -1314,7 +1335,8 @@
       "overall": 53,
       "rank": "B"
     },
-    "youtube_id": "wW_5xMDjfIA"
+    "youtube_id": "wW_5xMDjfIA",
+    "purchase_url": "https://apptronik.com/apollo"
   },
   {
     "slug": "xpeng-iron",
@@ -1369,7 +1391,8 @@
       "overall": 44,
       "rank": "C"
     },
-    "youtube_id": "FQMH8FShNxs"
+    "youtube_id": "FQMH8FShNxs",
+    "purchase_url": "https://www.xpeng.com/"
   },
   {
     "slug": "sanctuary-ai-phoenix",
@@ -1422,6 +1445,7 @@
       "overall": 36,
       "rank": "C"
     },
-    "youtube_id": "9y2YdUrkpNQ"
+    "youtube_id": "9y2YdUrkpNQ",
+    "purchase_url": "https://sanctuary.ai/phoenix/"
   }
 ]

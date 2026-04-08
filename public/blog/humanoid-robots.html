@@ -99,11 +99,14 @@
     .hr-card-price-note{font-size:.75rem;color:var(--color-text-muted);}
 
     /* Spec + Radar row */
-    .hr-card-mid{display:grid;grid-template-columns:1fr 220px;gap:20px;padding:4px 24px 20px;align-items:start;}
+    .hr-card-mid{display:grid;grid-template-columns:1fr 240px;gap:20px;padding:4px 24px 20px;align-items:start;}
     .hr-card-specs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 24px;font-family:var(--font-mono);}
     .hr-spec-item{display:flex;flex-direction:column;gap:4px;}
     .hr-spec-label{font-size:.8125rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em;}
     .hr-spec-val{font-size:1.5rem;font-weight:700;color:var(--color-text);line-height:1.2;}
+    .hr-spec-bar{width:100%;height:4px;background:var(--color-border);border-radius:2px;margin-top:3px;overflow:hidden;}
+    .hr-spec-bar-fill{height:100%;border-radius:2px;transition:width .4s;}
+    .hr-spec-tier{font-size:.5625rem;color:var(--color-text-muted);margin-top:1px;letter-spacing:.02em;}
     .hr-card-radar{display:flex;align-items:center;justify-content:center;}
 
     /* Actions bar */
@@ -294,21 +297,44 @@
     function getMinPrice(r){if(!r.price_usd)return Infinity;return Array.isArray(r.price_usd)?r.price_usd[0]:r.price_usd;}
     function num(v){if(!v&&v!==0)return 0;return Array.isArray(v)?Math.max(...v):v;}
 
+    // Relative spec bars: compute max across all robots, show percentile + tier label
+    let SPEC_MAX={};
+    function computeMaxes(){
+      SPEC_MAX={
+        dof:Math.max(...ROBOTS.map(r=>num(r.dof_total))),
+        payload:Math.max(...ROBOTS.map(r=>num(r.payload_kg))),
+        runtime:Math.max(...ROBOTS.map(r=>num(r.runtime_hours))),
+        speed:Math.max(...ROBOTS.map(r=>num(r.max_speed_ms))),
+        height:Math.max(...ROBOTS.map(r=>num(r.height_cm))),
+      };
+    }
+    function specPct(val,key){if(!val||!SPEC_MAX[key])return 0;return Math.round(num(typeof val==='number'?val:val)/SPEC_MAX[key]*100);}
+    function tierLabel(pct){if(pct>=80)return'Top';if(pct>=60)return'High';if(pct>=40)return'Mid';if(pct>=20)return'Low';return'—';}
+    function tierColor(pct){if(pct>=80)return'#10b981';if(pct>=60)return'#3b82f6';if(pct>=40)return'#f59e0b';return'#6b7280';}
+    function sdkPct(o){return o==='full'?100:o==='partial'?50:o==='closed'?20:0;}
+    function specBarHtml(val,key){
+      const v=num(val);if(!v)return'';
+      const pct=specPct(v,key);const c=tierColor(pct);
+      return`<div class="hr-spec-bar"><div class="hr-spec-bar-fill" style="width:${pct}%;background:${c};"></div></div><div class="hr-spec-tier" style="color:${c};">${tierLabel(pct)}</div>`;
+    }
+    function sdkBarHtml(openness){
+      const pct=sdkPct(openness);if(!pct)return'';
+      const c=tierColor(pct);
+      return`<div class="hr-spec-bar"><div class="hr-spec-bar-fill" style="width:${pct}%;background:${c};"></div></div><div class="hr-spec-tier" style="color:${c};">${pct>=80?'Top':pct>=50?'Mid':'Low'}</div>`;
+    }
+
     // Mini radar chart SVG for a single robot
-    function miniRadar(scores,size){
-      const n=AXES.length,cx=size/2,cy=size/2,R=size/2-20;
-      const step=2*Math.PI/n,start=-Math.PI/2;
+    function miniRadar(scores,dispSize){
+      // Use larger viewBox with padding so labels don't clip
+      const vw=240,vh=240,cx=vw/2,cy=vh/2,R=75;
+      const n=AXES.length,step=2*Math.PI/n,start=-Math.PI/2;
       function pol(i,r){const a=start+i*step;return[(cx+r*Math.cos(a)).toFixed(1),(cy+r*Math.sin(a)).toFixed(1)];}
-      let s=`<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">`;
-      // Grid
+      let s=`<svg viewBox="0 0 ${vw} ${vh}" width="${dispSize}" height="${dispSize}" xmlns="http://www.w3.org/2000/svg">`;
       [50,100].forEach(p=>{const r=R*p/100;const pts=[];for(let i=0;i<n;i++)pts.push(pol(i,r).join(','));s+=`<polygon points="${pts.join(' ')}" fill="none" stroke="var(--color-border)" stroke-width="1"/>`;});
-      // Axes
-      for(let i=0;i<n;i++){const[ex,ey]=pol(i,R);s+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--color-border)" stroke-width="0.5"/>`;const lr=R+14;const[lx,ly]=pol(i,lr);const a=start+i*step;const anc=Math.abs(Math.cos(a))<.1?'middle':Math.cos(a)>0?'start':'end';const dy=Math.sin(a)<-.3?-1:Math.sin(a)>.3?10:4;s+=`<text x="${lx}" y="${+ly+dy}" text-anchor="${anc}" font-size="9" fill="${AXES[i].color}" font-family="system-ui" font-weight="600">${AXES[i].label}</text>`;}
-      // Data
+      for(let i=0;i<n;i++){const[ex,ey]=pol(i,R);s+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--color-border)" stroke-width="0.5"/>`;const lr=R+22;const[lx,ly]=pol(i,lr);const a=start+i*step;const anc=Math.abs(Math.cos(a))<.1?'middle':Math.cos(a)>0?'start':'end';const dy=Math.sin(a)<-.3?-2:Math.sin(a)>.3?12:4;s+=`<text x="${lx}" y="${+ly+dy}" text-anchor="${anc}" font-size="11" fill="${AXES[i].color}" font-family="system-ui" font-weight="600">${AXES[i].label}</text>`;s+=`<text x="${lx}" y="${+ly+dy+12}" text-anchor="${anc}" font-size="10" fill="${AXES[i].color}" font-family="monospace" font-weight="700">${scores[AXES[i].key]||0}</text>`;}
       const pts=[];for(let i=0;i<n;i++){const v=Math.max(5,scores[AXES[i].key]||0);pts.push(pol(i,R*v/100).join(','));}
       s+=`<polygon points="${pts.join(' ')}" fill="rgba(232,93,58,.12)" stroke="var(--color-primary)" stroke-width="2" stroke-linejoin="round"/>`;
-      // Dots
-      for(let i=0;i<n;i++){const v=Math.max(5,scores[AXES[i].key]||0);const[dx,dy]=pol(i,R*v/100);s+=`<circle cx="${dx}" cy="${dy}" r="3" fill="${AXES[i].color}" stroke="#fff" stroke-width="1.5"/>`;} 
+      for(let i=0;i<n;i++){const v=Math.max(5,scores[AXES[i].key]||0);const[dx,dy]=pol(i,R*v/100);s+=`<circle cx="${dx}" cy="${dy}" r="3.5" fill="${AXES[i].color}" stroke="#fff" stroke-width="1.5"/>`;}
       s+='</svg>';
       return s;
     }
@@ -384,18 +410,19 @@
           </div>
           <div class="hr-card-mid">
             <div class="hr-card-specs">
-              <div class="hr-spec-item"><div class="hr-spec-label">DoF</div><div class="hr-spec-val">${fmtDof(r.dof_total)}</div></div>
-              <div class="hr-spec-item"><div class="hr-spec-label">積載量</div><div class="hr-spec-val">${fmtNum(r.payload_kg,'kg')}</div></div>
-              <div class="hr-spec-item"><div class="hr-spec-label">稼働時間</div><div class="hr-spec-val">${fmtNum(r.runtime_hours,'h')}</div></div>
-              <div class="hr-spec-item"><div class="hr-spec-label">速度</div><div class="hr-spec-val">${fmtNum(r.max_speed_ms,'m/s')}</div></div>
-              <div class="hr-spec-item"><div class="hr-spec-label">身長</div><div class="hr-spec-val">${fmtNum(r.height_cm,'cm')}</div></div>
-              <div class="hr-spec-item"><div class="hr-spec-label">SDK</div><div class="hr-spec-val">${r.sdk_openness==='full'?'Full Open':r.sdk_openness==='partial'?'Partial':'—'}</div></div>
+              <div class="hr-spec-item"><div class="hr-spec-label">DoF</div><div class="hr-spec-val">${fmtDof(r.dof_total)}</div>${specBarHtml(r.dof_total,'dof')}</div>
+              <div class="hr-spec-item"><div class="hr-spec-label">積載量</div><div class="hr-spec-val">${fmtNum(r.payload_kg,'kg')}</div>${specBarHtml(r.payload_kg,'payload')}</div>
+              <div class="hr-spec-item"><div class="hr-spec-label">稼働時間</div><div class="hr-spec-val">${fmtNum(r.runtime_hours,'h')}</div>${specBarHtml(r.runtime_hours,'runtime')}</div>
+              <div class="hr-spec-item"><div class="hr-spec-label">速度</div><div class="hr-spec-val">${fmtNum(r.max_speed_ms,'m/s')}</div>${specBarHtml(r.max_speed_ms,'speed')}</div>
+              <div class="hr-spec-item"><div class="hr-spec-label">身長</div><div class="hr-spec-val">${fmtNum(r.height_cm,'cm')}</div>${specBarHtml(r.height_cm,'height')}</div>
+              <div class="hr-spec-item"><div class="hr-spec-label">SDK</div><div class="hr-spec-val">${r.sdk_openness==='full'?'Full Open':r.sdk_openness==='partial'?'Partial':'—'}</div>${sdkBarHtml(r.sdk_openness)}</div>
             </div>
-            <div class="hr-card-radar">${miniRadar(sc,180)}</div>
+            <div class="hr-card-radar">${miniRadar(sc,220)}</div>
           </div>
           <div class="hr-card-actions">
             <button class="hr-btn${sel?' added':''}" onclick="toggleCompare('${esc(r.slug)}',event)">${sel?'✓ 比較中':'+ 比較に追加'}</button>
-            ${r.youtube_id?`<button class="hr-btn hr-btn-yt" onclick="toggleVideo('${esc(r.slug)}',event)">▶ 動画を見る</button>`:''}
+            ${r.youtube_id?`<button class="hr-btn hr-btn-yt" onclick="toggleVideo('${esc(r.slug)}',event)"><img src="https://img.youtube.com/vi/${esc(r.youtube_id)}/default.jpg" style="width:40px;height:30px;border-radius:3px;object-fit:cover;vertical-align:middle;"> 動画</button>`:''}
+            ${(r.status==='shipping'||r.status==='preorder')&&r.purchase_url?`<a href="${esc(r.purchase_url)}" target="_blank" rel="noopener noreferrer" class="hr-btn" style="text-decoration:none;background:var(--color-primary);color:#fff;border-color:var(--color-primary);">&#8599; 公式サイト</a>`:''}
             <button class="hr-btn" onclick="toggleDetail('${esc(r.slug)}',event)" style="margin-left:auto;">全スペック ▼</button>
           </div>
           ${r.youtube_id?`<div class="hr-card-video" id="video-${esc(r.slug)}"><iframe src="" data-src="https://www.youtube.com/embed/${esc(r.youtube_id)}?rel=0" allowfullscreen loading="lazy" title="${esc(r.name)} demo"></iframe></div>`:''}
@@ -479,6 +506,7 @@
     function init(){
       document.getElementById('robot-count').textContent=ROBOTS.length;
       document.getElementById('maker-count').textContent=new Set(ROBOTS.map(r=>r.manufacturer)).size;
+      computeMaxes();
       updateBar();refresh();
       ['f-rank','f-cat','f-price','f-status','f-country','f-sdk','f-hotswap','f-runtime','f-payload','f-sort'].forEach(id=>document.getElementById(id).addEventListener('change',refresh));
     }
