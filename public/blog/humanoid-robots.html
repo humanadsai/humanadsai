@@ -216,8 +216,13 @@
           <div class="hr-filter-group"><span class="hr-filter-label">ランク</span><select class="hr-select" id="f-rank"><option value="">すべて</option><option value="S">S</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
           <div class="hr-filter-group"><span class="hr-filter-label">用途</span><select class="hr-select" id="f-cat"><option value="">すべて</option><option value="industrial">産業</option><option value="research">研究</option><option value="education">教育</option><option value="logistics">物流</option><option value="healthcare">医療</option><option value="home">家庭</option></select></div>
           <div class="hr-filter-group"><span class="hr-filter-label">予算</span><select class="hr-select" id="f-price"><option value="">すべて</option><option value="0-20000">〜$20K</option><option value="20000-50000">$20-50K</option><option value="50000-100000">$50-100K</option><option value="100000-999999999">$100K+</option></select></div>
-          <div class="hr-filter-group"><span class="hr-filter-label">状態</span><select class="hr-select" id="f-status"><option value="">すべて</option><option value="shipping">出荷中</option><option value="preorder">予約可</option><option value="pilot">パイロット</option><option value="development">開発中</option></select></div>
-          <div class="hr-filter-group"><span class="hr-filter-label">ソート</span><select class="hr-select" id="f-sort"><option value="score-desc">スコア↓</option><option value="name">名前</option><option value="price-asc">価格↑</option><option value="price-desc">価格↓</option></select></div>
+          <div class="hr-filter-group"><span class="hr-filter-label">入手性</span><select class="hr-select" id="f-status"><option value="">すべて</option><option value="shipping">今すぐ買える</option><option value="preorder">予約受付中</option><option value="pilot">限定導入中</option><option value="development">開発中</option></select></div>
+          <div class="hr-filter-group"><span class="hr-filter-label">国</span><select class="hr-select" id="f-country"><option value="">すべて</option><option value="CN">🇨🇳 中国</option><option value="US">🇺🇸 米国</option><option value="NO">🇳🇴 ノルウェー</option><option value="DE">🇩🇪 ドイツ</option><option value="CA">🇨🇦 カナダ</option></select></div>
+          <div class="hr-filter-group"><span class="hr-filter-label">SDK</span><select class="hr-select" id="f-sdk"><option value="">すべて</option><option value="full">フルオープン (ROS2等)</option><option value="partial">一部公開</option></select></div>
+          <div class="hr-filter-group"><span class="hr-filter-label">バッテリー交換</span><select class="hr-select" id="f-hotswap"><option value="">すべて</option><option value="yes">ホットスワップ対応</option><option value="no">非対応</option></select></div>
+          <div class="hr-filter-group"><span class="hr-filter-label">稼働</span><select class="hr-select" id="f-runtime"><option value="">すべて</option><option value="4">4時間以上</option><option value="2">2時間以上</option></select></div>
+          <div class="hr-filter-group"><span class="hr-filter-label">積載</span><select class="hr-select" id="f-payload"><option value="">すべて</option><option value="20">20kg以上</option><option value="10">10kg以上</option><option value="5">5kg以上</option></select></div>
+          <div class="hr-filter-group"><span class="hr-filter-label">ソート</span><select class="hr-select" id="f-sort"><option value="score-desc">総合スコア↓</option><option value="price-asc">価格が安い順</option><option value="price-desc">価格が高い順</option><option value="dof-desc">DoF↓</option><option value="payload-desc">積載量↓</option><option value="runtime-desc">稼働時間↓</option><option value="speed-desc">速度↓</option><option value="name">名前順</option></select></div>
           <span class="hr-result-count" id="result-count"></span>
         </div>
       </div>
@@ -314,14 +319,29 @@
       const cat=document.getElementById('f-cat').value;
       const price=document.getElementById('f-price').value;
       const status=document.getElementById('f-status').value;
+      const country=document.getElementById('f-country').value;
+      const sdk=document.getElementById('f-sdk').value;
+      const hotswap=document.getElementById('f-hotswap').value;
+      const runtime=document.getElementById('f-runtime').value;
+      const payload=document.getElementById('f-payload').value;
       const sort=document.getElementById('f-sort').value;
       if(rank)list=list.filter(r=>r.scores&&r.scores.rank===rank);
       if(cat)list=list.filter(r=>r.category&&r.category.includes(cat));
       if(price){const[min,max]=price.split('-').map(Number);list=list.filter(r=>{if(!r.price_usd)return false;return getMinPrice(r)>=min&&getMinPrice(r)<=max;});}
       if(status)list=list.filter(r=>r.status===status);
+      if(country)list=list.filter(r=>r.country===country);
+      if(sdk)list=list.filter(r=>r.sdk_openness===sdk);
+      if(hotswap==='yes')list=list.filter(r=>r.hot_swap===true);
+      if(hotswap==='no')list=list.filter(r=>r.hot_swap!==true);
+      if(runtime)list=list.filter(r=>num(r.runtime_hours)>=Number(runtime));
+      if(payload)list=list.filter(r=>num(r.payload_kg)>=Number(payload));
       switch(sort){
         case'price-asc':list.sort((a,b)=>getMinPrice(a)-getMinPrice(b));break;
         case'price-desc':list.sort((a,b)=>getMinPrice(b)-getMinPrice(a));break;
+        case'dof-desc':list.sort((a,b)=>num(b.dof_total)-num(a.dof_total));break;
+        case'payload-desc':list.sort((a,b)=>num(b.payload_kg)-num(a.payload_kg));break;
+        case'runtime-desc':list.sort((a,b)=>num(b.runtime_hours)-num(a.runtime_hours));break;
+        case'speed-desc':list.sort((a,b)=>num(b.max_speed_ms)-num(a.max_speed_ms));break;
         case'name':list.sort((a,b)=>a.name.localeCompare(b.name));break;
         default:list.sort((a,b)=>(b.scores?.overall||0)-(a.scores?.overall||0));
       }
@@ -460,7 +480,7 @@
       document.getElementById('robot-count').textContent=ROBOTS.length;
       document.getElementById('maker-count').textContent=new Set(ROBOTS.map(r=>r.manufacturer)).size;
       updateBar();refresh();
-      ['f-rank','f-cat','f-price','f-status','f-sort'].forEach(id=>document.getElementById(id).addEventListener('change',refresh));
+      ['f-rank','f-cat','f-price','f-status','f-country','f-sdk','f-hotswap','f-runtime','f-payload','f-sort'].forEach(id=>document.getElementById(id).addEventListener('change',refresh));
     }
   })();
   </script>
