@@ -3,25 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ヒューマノイドロボット比較 2026年版 — 全機種スペック一覧 | HumanAds</title>
-  <meta name="description" content="2026年最新のヒューマノイドロボット全機種を比較。価格・DoF・積載量・バッテリー・SDKを一覧で確認。フィルタ・ソート・比較機能で最適な1台を見つけよう。">
-  <meta name="keywords" content="ヒューマノイドロボット, 比較, 2026, Unitree, Figure, Tesla Optimus, Boston Dynamics Atlas, humanoid robot comparison">
+  <title>ヒューマノイドロボット比較 2026年版 — 全機種スペック一覧・独自評価 | HumanAds</title>
+  <meta name="description" content="2026年最新ヒューマノイドロボット24機種を独自6軸評価でランク付け。レーダーチャート・スペック・動画付きで完全比較。">
   <meta name="theme-color" content="#FAFAF9">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="canonical" href="https://humanadsai.com/blog/humanoid-robots">
-  <link rel="alternate" type="application/rss+xml" title="HumanAds Blog" href="https://humanadsai.com/blog/feed.xml">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="HumanAds">
-  <meta property="og:title" content="ヒューマノイドロボット比較 2026年版 — 全機種スペック一覧">
-  <meta property="og:description" content="24機種を価格・DoF・積載量・バッテリー・SDKで比較。フィルタ・ソートで最適な1台を。">
+  <meta property="og:title" content="ヒューマノイドロボット比較 2026年版 — 独自評価付き全機種一覧">
+  <meta property="og:description" content="24機種を6軸レーダーチャートで独自評価。S/A/B/Cランク付き。">
   <meta property="og:url" content="https://humanadsai.com/blog/humanoid-robots">
   <meta property="og:image" content="https://humanadsai.com/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="ヒューマノイドロボット比較 2026年版">
-  <meta name="twitter:description" content="24機種をスペック比較。フィルタ・ソート・比較機能付き。">
+  <meta name="twitter:description" content="24機種を6軸レーダー+ランクで独自評価。動画付き。">
   <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
   <meta name="twitter:site" content="@HumanAdsAI">
   <script type="application/ld+json">
@@ -34,151 +32,165 @@
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="0hWciK+hCXa9pyOnZhd97A" async></script>
   <script src="/js/analytics.js" defer></script>
   <style>
-    :root{--hr-green:#10b981;--hr-blue:#3b82f6;--hr-yellow:#f59e0b;--hr-gray:#6b7280;--hr-red:#ef4444;}
     .hr-page{max-width:var(--container-max);margin:0 auto;padding:0 var(--gutter);}
     .hr-page *,.hr-page *::before,.hr-page *::after{box-sizing:border-box;}
 
-    .hr-hero{text-align:center;padding:48px 0 24px;}
-    .hr-hero h1{font-family:'Noto Sans JP',var(--font-family);font-size:clamp(1.25rem,3.5vw,2rem);font-weight:700;line-height:1.5;color:var(--color-text);margin-bottom:var(--spacing-sm);}
-    .hr-hero-sub{font-size:.9375rem;color:var(--color-text-muted);max-width:600px;margin:0 auto var(--spacing-md);line-height:1.7;}
-    .hr-hero-meta{font-family:var(--font-mono);font-size:.75rem;color:var(--color-text-muted);}
+    .hr-hero{text-align:center;padding:48px 0 28px;}
+    .hr-hero h1{font-family:'Noto Sans JP',var(--font-family);font-size:clamp(1.5rem,4vw,2.25rem);font-weight:800;line-height:1.4;color:var(--color-text);margin-bottom:12px;}
+    .hr-hero-sub{font-size:1rem;color:var(--color-text-muted);max-width:640px;margin:0 auto 16px;line-height:1.7;}
+    .hr-hero-meta{font-family:var(--font-mono);font-size:.8125rem;color:var(--color-text-muted);}
 
-    /* Sticky Filters */
-    .hr-filters{position:sticky;top:0;z-index:100;background:var(--color-background);border-bottom:1px solid var(--color-border);padding:10px 0;margin-bottom:var(--spacing-md);}
+    /* Scoring legend */
+    .hr-legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0 8px;font-family:var(--font-mono);font-size:.8125rem;}
+    .hr-legend-item{display:flex;align-items:center;gap:4px;}
+
+    /* Filters */
+    .hr-filters{position:sticky;top:0;z-index:100;background:var(--color-background);border-bottom:1px solid var(--color-border);padding:10px 0;margin-bottom:20px;}
     .hr-filters-inner{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
     .hr-filter-group{display:flex;gap:4px;align-items:center;}
-    .hr-filter-label{font-family:var(--font-mono);font-size:.5625rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
-    .hr-select{font-family:var(--font-mono);font-size:.75rem;padding:5px 8px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-background-card);color:var(--color-text);cursor:pointer;}
-    .hr-select:focus{border-color:var(--color-primary);outline:none;}
-    .hr-result-count{font-family:var(--font-mono);font-size:.6875rem;color:var(--color-text-muted);margin-left:auto;}
+    .hr-filter-label{font-family:var(--font-mono);font-size:.6875rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+    .hr-select{font-family:var(--font-mono);font-size:.8125rem;padding:6px 10px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-background-card);color:var(--color-text);cursor:pointer;}
+    .hr-result-count{font-family:var(--font-mono);font-size:.75rem;color:var(--color-text-muted);margin-left:auto;}
 
     /* Status badges */
-    .hr-badge{font-family:var(--font-mono);font-size:.5625rem;font-weight:600;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
-    .hr-badge-shipping{background:rgba(16,185,129,.1);color:var(--hr-green);}
-    .hr-badge-preorder{background:rgba(59,130,246,.1);color:var(--hr-blue);}
-    .hr-badge-pilot{background:rgba(245,158,11,.1);color:var(--hr-yellow);}
-    .hr-badge-development{background:rgba(107,114,128,.1);color:var(--hr-gray);}
+    .hr-badge{font-family:var(--font-mono);font-size:.6875rem;font-weight:600;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
+    .hr-badge-shipping{background:rgba(16,185,129,.12);color:#10b981;}
+    .hr-badge-preorder{background:rgba(59,130,246,.12);color:#3b82f6;}
+    .hr-badge-pilot{background:rgba(245,158,11,.12);color:#f59e0b;}
+    .hr-badge-development{background:rgba(107,114,128,.12);color:#6b7280;}
 
-    /* ===== LIST VIEW (一覧形式・画像大きめ) ===== */
-    .hr-list{display:flex;flex-direction:column;gap:0;}
+    /* Rank badge */
+    .hr-rank{font-family:var(--font-mono);font-size:1.75rem;font-weight:900;line-height:1;width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .hr-rank-s{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff;box-shadow:0 2px 8px rgba(245,158,11,.3);}
+    .hr-rank-a{background:linear-gradient(135deg,#34d399,#10b981);color:#fff;box-shadow:0 2px 8px rgba(16,185,129,.3);}
+    .hr-rank-b{background:linear-gradient(135deg,#60a5fa,#3b82f6);color:#fff;box-shadow:0 2px 8px rgba(59,130,246,.3);}
+    .hr-rank-c{background:rgba(107,114,128,.15);color:#6b7280;}
+    .hr-rank-d{background:rgba(107,114,128,.08);color:#9ca3af;}
 
-    .hr-row{display:grid;grid-template-columns:200px 1fr;gap:var(--spacing-lg);padding:20px 0;border-bottom:1px solid var(--color-border);align-items:start;transition:background .15s;}
-    .hr-row:hover{background:rgba(232,93,58,.02);}
-    .hr-row.selected{background:rgba(232,93,58,.04);border-left:3px solid var(--color-primary);padding-left:17px;}
+    /* Score bar */
+    .hr-score-num{font-family:var(--font-mono);font-size:1.125rem;font-weight:700;color:var(--color-text);}
+    .hr-score-bar{width:80px;height:6px;background:var(--color-border);border-radius:3px;overflow:hidden;}
+    .hr-score-bar-fill{height:100%;border-radius:3px;transition:width .3s;}
 
-    /* Image — large */
-    .hr-row-img{width:200px;height:200px;border-radius:var(--border-radius);overflow:hidden;background:var(--color-background-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-    .hr-row-img img{width:100%;height:100%;object-fit:contain;padding:8px;}
-    .hr-row-img .placeholder{font-size:3.5rem;opacity:.2;}
+    /* ===== CARD LAYOUT (visual-rich) ===== */
+    .hr-list{display:flex;flex-direction:column;gap:20px;}
 
-    /* Main content */
-    .hr-row-body{min-width:0;}
-    .hr-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
-    .hr-row-name{font-family:var(--font-mono);font-size:1.0625rem;font-weight:700;color:var(--color-text);}
-    .hr-row-maker{font-size:.8125rem;color:var(--color-text-muted);}
-    .hr-row-flag{font-size:1rem;}
-    .hr-row-liner{font-size:.8125rem;color:var(--color-text-muted);line-height:1.6;margin-bottom:8px;}
+    .hr-card{background:var(--color-background-card);border:1px solid var(--color-border);border-radius:var(--border-radius-lg);overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+    .hr-card:hover{border-color:var(--color-primary);box-shadow:0 4px 20px rgba(0,0,0,.06);}
 
-    /* Inline specs bar */
-    .hr-row-specs{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--font-mono);font-size:.6875rem;}
-    .hr-row-spec{display:flex;gap:3px;}
-    .hr-row-spec .l{color:var(--color-text-muted);}
-    .hr-row-spec .v{color:var(--color-text);font-weight:500;}
+    .hr-card-top{display:grid;grid-template-columns:220px 1fr;gap:0;}
 
-    /* Price + actions (inline in body) */
-    .hr-row-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;}
-    .hr-row-price{font-family:var(--font-mono);font-size:1rem;font-weight:700;color:var(--color-text);}
-    .hr-row-price-note{font-size:.625rem;color:var(--color-text-muted);}
-    .hr-row-actions{display:flex;gap:6px;margin-left:auto;}
+    /* Image area */
+    .hr-card-img{width:220px;height:220px;background:var(--color-background-light);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .hr-card-img img{width:100%;height:100%;object-fit:contain;padding:12px;}
+    .hr-card-img .ph{font-size:4rem;opacity:.15;}
 
-    .hr-btn-sm{font-family:var(--font-mono);font-size:.625rem;padding:4px 10px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-background-card);color:var(--color-text-muted);cursor:pointer;transition:all .15s;}
-    .hr-btn-sm:hover{border-color:var(--color-primary);color:var(--color-primary);}
-    .hr-btn-sm.added{background:var(--color-primary);color:#fff;border-color:var(--color-primary);}
+    /* Info area */
+    .hr-card-info{padding:20px 24px;display:flex;flex-direction:column;gap:8px;}
+    .hr-card-header{display:flex;align-items:flex-start;gap:12px;}
+    .hr-card-header-text{flex:1;min-width:0;}
+    .hr-card-name{font-family:var(--font-mono);font-size:1.25rem;font-weight:700;color:var(--color-text);line-height:1.3;}
+    .hr-card-maker-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;}
+    .hr-card-maker{font-size:.9375rem;color:var(--color-text-muted);}
+    .hr-card-flag{font-size:1.125rem;}
+
+    .hr-card-liner{font-size:.9375rem;color:var(--color-text-muted);line-height:1.6;}
+    .hr-card-price{font-family:var(--font-mono);font-size:1.25rem;font-weight:700;color:var(--color-primary);}
+    .hr-card-price-note{font-size:.75rem;color:var(--color-text-muted);}
+
+    /* Spec + Radar row */
+    .hr-card-mid{display:grid;grid-template-columns:1fr 200px;gap:16px;padding:0 24px 16px;align-items:start;}
+    .hr-card-specs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 16px;font-family:var(--font-mono);}
+    .hr-spec-item{display:flex;flex-direction:column;gap:2px;}
+    .hr-spec-label{font-size:.6875rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em;}
+    .hr-spec-val{font-size:1rem;font-weight:600;color:var(--color-text);}
+    .hr-card-radar{display:flex;align-items:center;justify-content:center;}
+
+    /* Actions bar */
+    .hr-card-actions{display:flex;gap:8px;padding:12px 24px;border-top:1px solid var(--color-border);background:var(--color-background-light);align-items:center;}
+    .hr-btn{font-family:var(--font-mono);font-size:.75rem;padding:8px 16px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-background-card);color:var(--color-text);cursor:pointer;transition:all .15s;font-weight:500;}
+    .hr-btn:hover{border-color:var(--color-primary);color:var(--color-primary);}
+    .hr-btn.added{background:var(--color-primary);color:#fff;border-color:var(--color-primary);}
+    .hr-btn-yt{background:#ff0000;color:#fff;border-color:#ff0000;display:inline-flex;align-items:center;gap:6px;}
+    .hr-btn-yt:hover{background:#cc0000;color:#fff;}
+
+    /* YouTube embed */
+    .hr-card-video{display:none;padding:0 24px 20px;}
+    .hr-card-video.open{display:block;}
+    .hr-card-video iframe{width:100%;aspect-ratio:16/9;border:none;border-radius:var(--border-radius);}
 
     /* Expanded detail */
-    .hr-row-detail{display:none;grid-column:1/-1;padding:12px 0 12px 216px;font-size:.75rem;line-height:1.7;}
-    .hr-row-detail.open{display:block;}
-    .hr-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 16px;margin-bottom:10px;}
-    .hr-detail-item{font-family:var(--font-mono);font-size:.6875rem;}
+    .hr-card-detail{display:none;padding:16px 24px;border-top:1px solid var(--color-border);}
+    .hr-card-detail.open{display:block;}
+    .hr-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px 20px;margin-bottom:12px;}
+    .hr-detail-item{font-family:var(--font-mono);font-size:.8125rem;}
     .hr-detail-item .lbl{color:var(--color-text-muted);}
-    .hr-detail-item .val{color:var(--color-text);}
-    .hr-pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;}
-    .hr-pros-cons h4{font-family:var(--font-mono);font-size:.625rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
-    .hr-pros h4{color:var(--hr-green);}
-    .hr-cons h4{color:var(--hr-red);}
+    .hr-detail-item .val{color:var(--color-text);font-weight:500;}
+    .hr-pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;}
+    .hr-pros-cons h4{font-family:var(--font-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+    .hr-pros h4{color:#10b981;}
+    .hr-cons h4{color:#ef4444;}
     .hr-pros-cons ul{list-style:none;padding:0;margin:0;}
-    .hr-pros-cons li{font-size:.6875rem;color:var(--color-text-muted);padding:2px 0 2px 14px;position:relative;}
-    .hr-pros li::before{content:'+';position:absolute;left:0;color:var(--hr-green);font-weight:700;}
-    .hr-cons li::before{content:'-';position:absolute;left:0;color:var(--hr-red);font-weight:700;}
+    .hr-pros-cons li{font-size:.8125rem;color:var(--color-text-muted);padding:3px 0 3px 16px;position:relative;line-height:1.5;}
+    .hr-pros li::before{content:'+';position:absolute;left:0;color:#10b981;font-weight:700;}
+    .hr-cons li::before{content:'-';position:absolute;left:0;color:#ef4444;font-weight:700;}
 
-    /* Compare floating bar */
-    .hr-compare-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:150;background:var(--color-primary);color:#fff;padding:10px 20px;border-radius:24px;font-family:var(--font-mono);font-size:.8125rem;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(232,93,58,.4);display:none;align-items:center;gap:8px;}
-    .hr-compare-bar:hover{box-shadow:0 6px 20px rgba(232,93,58,.5);transform:translateX(-50%) translateY(-2px);}
-    .hr-compare-bar .cnt{background:rgba(255,255,255,.3);padding:2px 8px;border-radius:10px;}
-
-    /* Compare Drawer */
+    /* Compare bar + drawer (keep existing) */
+    .hr-compare-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:150;background:var(--color-primary);color:#fff;padding:12px 24px;border-radius:24px;font-family:var(--font-mono);font-size:.875rem;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(232,93,58,.4);display:none;align-items:center;gap:8px;}
+    .hr-compare-bar:hover{transform:translateX(-50%) translateY(-2px);}
+    .hr-compare-bar .cnt{background:rgba(255,255,255,.3);padding:2px 10px;border-radius:10px;}
     .hr-drawer{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--color-background-card);border-top:2px solid var(--color-primary);box-shadow:0 -4px 20px rgba(0,0,0,.1);transform:translateY(100%);transition:transform .3s ease;max-height:65vh;overflow-y:auto;}
     .hr-drawer.open{transform:translateY(0);}
     .hr-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:12px var(--gutter);border-bottom:1px solid var(--color-border);position:sticky;top:0;background:var(--color-background-card);z-index:1;}
-    .hr-drawer-title{font-family:var(--font-mono);font-size:.8125rem;font-weight:600;}
-    .hr-drawer-close{background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--color-text-muted);padding:4px 8px;}
+    .hr-drawer-title{font-family:var(--font-mono);font-size:.875rem;font-weight:600;}
+    .hr-drawer-close{background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--color-text-muted);}
     .hr-drawer-body{padding:var(--spacing-md) var(--gutter);}
     .hr-radar-wrap{display:flex;justify-content:center;margin:var(--spacing-md) 0;}
-    .hr-compare-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:.6875rem;}
-    .hr-compare-table th{padding:6px 8px;text-align:center;font-weight:600;border-bottom:2px solid var(--color-border);}
-    .hr-compare-table td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--color-border);}
+    .hr-compare-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:.75rem;}
+    .hr-compare-table th{padding:8px;text-align:center;font-weight:600;border-bottom:2px solid var(--color-border);}
+    .hr-compare-table td{padding:8px;text-align:center;border-bottom:1px solid var(--color-border);}
     .hr-compare-table td:first-child{text-align:left;color:var(--color-text-muted);}
-    .hr-compare-table .best{color:var(--hr-green);font-weight:700;}
-    .hr-compare-table .robot-img{width:60px;height:60px;object-fit:cover;border-radius:6px;}
+    .hr-compare-table .best{color:#10b981;font-weight:700;}
+    .hr-compare-table .robot-img{width:60px;height:60px;object-fit:contain;border-radius:6px;}
 
-    /* Buying Guide */
-    .hr-guide{margin-top:var(--spacing-xl);padding-top:var(--spacing-xl);border-top:2px solid var(--color-border);}
-    .hr-guide h2{font-family:'Noto Sans JP',var(--font-family);font-size:1.25rem;font-weight:700;margin-bottom:var(--spacing-md);}
+    /* Guide */
+    .hr-guide{margin-top:40px;padding-top:40px;border-top:2px solid var(--color-border);}
+    .hr-guide h2{font-family:'Noto Sans JP',var(--font-family);font-size:1.375rem;font-weight:700;margin-bottom:16px;}
     .hr-guide-item{border-bottom:1px solid var(--color-border);}
-    .hr-guide-item summary{font-family:var(--font-mono);font-size:.875rem;font-weight:500;padding:12px 0;cursor:pointer;color:var(--color-text);list-style:none;display:flex;align-items:center;gap:8px;}
-    .hr-guide-item summary::before{content:'▶';font-size:.625rem;transition:transform .2s;}
+    .hr-guide-item summary{font-family:var(--font-mono);font-size:.9375rem;font-weight:500;padding:14px 0;cursor:pointer;color:var(--color-text);list-style:none;display:flex;align-items:center;gap:8px;}
+    .hr-guide-item summary::before{content:'▶';font-size:.6875rem;transition:transform .2s;}
     .hr-guide-item[open] summary::before{transform:rotate(90deg);}
     .hr-guide-item summary::-webkit-details-marker{display:none;}
-    .hr-guide-answer{font-size:.8125rem;color:var(--color-text-muted);line-height:1.7;padding:0 0 12px 20px;}
+    .hr-guide-answer{font-size:.875rem;color:var(--color-text-muted);line-height:1.7;padding:0 0 14px 22px;}
 
-    .hr-footer-meta{text-align:center;padding:var(--spacing-xl) 0;margin-top:var(--spacing-xl);border-top:1px solid var(--color-border);}
-    .hr-footer-meta p{font-size:.8125rem;color:var(--color-text-muted);margin-bottom:var(--spacing-sm);line-height:1.7;}
+    .hr-footer-meta{text-align:center;padding:40px 0;margin-top:40px;border-top:1px solid var(--color-border);}
+    .hr-footer-meta p{font-size:.875rem;color:var(--color-text-muted);margin-bottom:8px;line-height:1.7;}
     .hr-footer-meta a{color:var(--color-primary);text-decoration:none;}
     .hr-footer-meta a:hover{text-decoration:underline;}
 
     @media(max-width:768px){
-      .hr-row{grid-template-columns:140px 1fr;gap:12px;padding:16px 0;}
-      .hr-row-img{width:140px;height:140px;}
-      .hr-row-detail{padding-left:0;}
-      .hr-row-specs{gap:8px;}
-      .hr-row-name{font-size:.8125rem;}
+      .hr-card-top{grid-template-columns:1fr;}
+      .hr-card-img{width:100%;height:200px;}
+      .hr-card-mid{grid-template-columns:1fr;padding:0 16px 16px;}
+      .hr-card-radar{justify-content:flex-start;}
+      .hr-card-info{padding:16px;}
+      .hr-card-specs{grid-template-columns:repeat(2,1fr);}
+      .hr-card-actions{padding:12px 16px;flex-wrap:wrap;}
+      .hr-card-video{padding:0 16px 16px;}
+      .hr-card-detail{padding:12px 16px;}
+      .hr-card-name{font-size:1.125rem;}
+      .hr-rank{width:44px;height:44px;font-size:1.5rem;border-radius:10px;}
       .hr-pros-cons{grid-template-columns:1fr;}
       .hr-detail-grid{grid-template-columns:1fr 1fr;}
-      .hr-hero{padding:32px 0 16px;}
-      .hr-hero h1{font-size:1.125rem;}
-      .hr-select{font-size:.6875rem;padding:4px 6px;}
-    }
-    @media(max-width:480px){
-      .hr-row{grid-template-columns:1fr;gap:8px;}
-      .hr-row-img{width:100%;height:200px;}
-      .hr-row-img img{object-fit:contain;padding:12px;}
+      .hr-hero h1{font-size:1.25rem;}
     }
   </style>
 </head>
 <body>
   <div class="app">
     <header class="header">
-      <a href="/" class="logo">
-        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/><circle cx="14" cy="20" r="4" fill="#FF6B35"/><path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="logo-text">HumanAds</span>
-      </a>
-      <nav class="desktop-nav" aria-label="Main navigation">
-        <a href="/missions" class="desktop-nav-link">Missions</a>
-        <a href="/toa-audit" class="desktop-nav-link">toA診断</a>
-        <a href="/blog" class="desktop-nav-link" style="color:var(--color-primary);">Blog</a>
-        <a href="/faq" class="desktop-nav-link">FAQ</a>
-        <a href="/about" class="desktop-nav-link">About</a>
-      </nav>
+      <a href="/" class="logo"><svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/><circle cx="14" cy="20" r="4" fill="#FF6B35"/><path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text">HumanAds</span></a>
+      <nav class="desktop-nav" aria-label="Main navigation"><a href="/missions" class="desktop-nav-link">Missions</a><a href="/toa-audit" class="desktop-nav-link">toA診断</a><a href="/blog" class="desktop-nav-link" style="color:var(--color-primary);">Blog</a><a href="/faq" class="desktop-nav-link">FAQ</a><a href="/about" class="desktop-nav-link">About</a></nav>
       <div class="header-right"><button class="hamburger-btn" id="hamburger-btn" aria-label="Menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button></div>
     </header>
     <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
@@ -187,18 +199,24 @@
 
     <main class="hr-page">
       <section class="hr-hero">
-        <h1>ヒューマノイドロボット比較<br>2026年版 全機種スペック一覧</h1>
-        <p class="hr-hero-sub">工場の自動化担当から研究者、投資家まで。用途・予算・入手性で絞り込み、最適な機体を見つけよう。</p>
+        <h1>ヒューマノイドロボット比較<br>2026年版 独自評価付き全機種一覧</h1>
+        <p class="hr-hero-sub">24機種を6軸レーダーチャートで独自評価。DoF・積載・稼働時間・速度・AI性能・市場成熟度を数値化し、S〜Dランクで格付け。</p>
         <p class="hr-hero-meta">最終更新: 2026-04-07 ・ <span id="robot-count">24</span>機種 ・ <span id="maker-count">16</span>メーカー</p>
+        <div class="hr-legend">
+          <span class="hr-legend-item"><span class="hr-rank hr-rank-s" style="width:28px;height:28px;font-size:1rem;border-radius:6px;">S</span> 75+</span>
+          <span class="hr-legend-item"><span class="hr-rank hr-rank-a" style="width:28px;height:28px;font-size:1rem;border-radius:6px;">A</span> 60-74</span>
+          <span class="hr-legend-item"><span class="hr-rank hr-rank-b" style="width:28px;height:28px;font-size:1rem;border-radius:6px;">B</span> 45-59</span>
+          <span class="hr-legend-item"><span class="hr-rank hr-rank-c" style="width:28px;height:28px;font-size:1rem;border-radius:6px;">C</span> 30-44</span>
+        </div>
       </section>
 
       <div class="hr-filters">
         <div class="hr-filters-inner">
+          <div class="hr-filter-group"><span class="hr-filter-label">ランク</span><select class="hr-select" id="f-rank"><option value="">すべて</option><option value="S">S</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
           <div class="hr-filter-group"><span class="hr-filter-label">用途</span><select class="hr-select" id="f-cat"><option value="">すべて</option><option value="industrial">産業</option><option value="research">研究</option><option value="education">教育</option><option value="logistics">物流</option><option value="healthcare">医療</option><option value="home">家庭</option></select></div>
           <div class="hr-filter-group"><span class="hr-filter-label">予算</span><select class="hr-select" id="f-price"><option value="">すべて</option><option value="0-20000">〜$20K</option><option value="20000-50000">$20-50K</option><option value="50000-100000">$50-100K</option><option value="100000-999999999">$100K+</option></select></div>
           <div class="hr-filter-group"><span class="hr-filter-label">状態</span><select class="hr-select" id="f-status"><option value="">すべて</option><option value="shipping">出荷中</option><option value="preorder">予約可</option><option value="pilot">パイロット</option><option value="development">開発中</option></select></div>
-          <div class="hr-filter-group"><span class="hr-filter-label">国</span><select class="hr-select" id="f-country"><option value="">すべて</option><option value="CN">🇨🇳 中国</option><option value="US">🇺🇸 米国</option><option value="NO">🇳🇴 ノルウェー</option><option value="DE">🇩🇪 ドイツ</option><option value="CA">🇨🇦 カナダ</option></select></div>
-          <div class="hr-filter-group"><span class="hr-filter-label">ソート</span><select class="hr-select" id="f-sort"><option value="name">名前</option><option value="price-asc">価格↑</option><option value="price-desc">価格↓</option><option value="dof-desc">DoF↓</option><option value="payload-desc">積載量↓</option><option value="runtime-desc">稼働↓</option></select></div>
+          <div class="hr-filter-group"><span class="hr-filter-label">ソート</span><select class="hr-select" id="f-sort"><option value="score-desc">スコア↓</option><option value="name">名前</option><option value="price-asc">価格↑</option><option value="price-desc">価格↓</option></select></div>
           <span class="hr-result-count" id="result-count"></span>
         </div>
       </div>
@@ -206,7 +224,6 @@
       <div class="hr-list" id="robot-list"></div>
 
       <div class="hr-compare-bar" id="compare-bar" onclick="openDrawer()">比較する <span class="cnt" id="compare-count">0</span></div>
-
       <div class="hr-drawer" id="compare-drawer">
         <div class="hr-drawer-header"><span class="hr-drawer-title">機種比較</span><button class="hr-drawer-close" onclick="closeDrawer()">✕</button></div>
         <div class="hr-drawer-body" id="drawer-body"></div>
@@ -214,21 +231,21 @@
 
       <section class="hr-guide">
         <h2>購入前に確認すべき10項目</h2>
-        <details class="hr-guide-item"><summary>1. 用途の明確化</summary><div class="hr-guide-answer">「研究用のSDK重視」と「工場の搬送用」では最適な機体がまったく異なる。まず用途を明確にし、必須スペック（積載量、稼働時間、SDK）の優先順位をつける。</div></details>
-        <details class="hr-guide-item"><summary>2. 予算 = 本体価格 + 運用コスト</summary><div class="hr-guide-answer">本体価格に加え、年間保守費（通常本体の10-20%）、バッテリー交換費、保険、設置環境整備費を含めた総コストで比較する。</div></details>
-        <details class="hr-guide-item"><summary>3. SDK・開発環境の成熟度</summary><div class="hr-guide-answer">ROS2対応は研究用途のデファクト。Python/C++ SDKの有無、ドキュメントの質、コミュニティの活発さを確認。</div></details>
-        <details class="hr-guide-item"><summary>4. 入手性とリードタイム</summary><div class="hr-guide-answer">「shipping」でも受注生産で3-6ヶ月待ちの場合がある。予約金の条件、キャンセルポリシー、国際配送の可否を事前確認。</div></details>
-        <details class="hr-guide-item"><summary>5. 安全認証</summary><div class="hr-guide-answer">工場導入にはCEマーキングやISO認証が必要な場合がある。E-stopの有無は必須確認事項。</div></details>
-        <details class="hr-guide-item"><summary>6. バッテリーと稼働時間</summary><div class="hr-guide-answer">公称稼働時間は「待機含む」が多い。実負荷時は半分以下も。ホットスワップ対応で運用柔軟性が大きく変わる。</div></details>
+        <details class="hr-guide-item"><summary>1. 用途の明確化</summary><div class="hr-guide-answer">「研究用のSDK重視」と「工場の搬送用」では最適な機体がまったく異なる。まず用途を明確にし、必須スペックの優先順位をつける。</div></details>
+        <details class="hr-guide-item"><summary>2. 予算 = 本体価格 + 運用コスト</summary><div class="hr-guide-answer">年間保守費（本体の10-20%）、バッテリー交換費、保険、設置環境整備費を含めた総コストで比較。RaaSモデルも検討。</div></details>
+        <details class="hr-guide-item"><summary>3. SDK・開発環境の成熟度</summary><div class="hr-guide-answer">ROS2対応は研究のデファクト。ドキュメントの質、コミュニティの活発さ（Discord/GitHub）を確認。</div></details>
+        <details class="hr-guide-item"><summary>4. 入手性とリードタイム</summary><div class="hr-guide-answer">「shipping」でも受注生産で3-6ヶ月待ち。予約金の条件、キャンセルポリシー、国際配送を事前確認。</div></details>
+        <details class="hr-guide-item"><summary>5. 安全認証</summary><div class="hr-guide-answer">工場導入にはCEマーキングやISO認証が必要。E-stopの有無は必須確認事項。</div></details>
+        <details class="hr-guide-item"><summary>6. バッテリーと稼働時間</summary><div class="hr-guide-answer">公称稼働時間は「待機含む」が多い。実負荷時は半分以下も。ホットスワップ対応で柔軟性UP。</div></details>
         <details class="hr-guide-item"><summary>7. 積載量と作業能力</summary><div class="hr-guide-answer">ペイロードはアーム単体と全身で混在。「持ち上げ＋移動」の複合能力を確認。</div></details>
-        <details class="hr-guide-item"><summary>8. ハンドの巧緻性</summary><div class="hr-guide-answer">DoF数だけでなく、把持力・触覚センサーの有無・オプション対応を確認。ベースモデルにハンド無しの機種も多い。</div></details>
-        <details class="hr-guide-item"><summary>9. サポート体制と部品供給</summary><div class="hr-guide-answer">故障時の対応速度、交換部品の入手性、国内サポート拠点の有無。海外メーカーは特に要確認。</div></details>
+        <details class="hr-guide-item"><summary>8. ハンドの巧緻性</summary><div class="hr-guide-answer">DoF数だけでなく把持力・触覚センサーの有無を確認。ベースモデルにハンド無しの機種も多い。</div></details>
+        <details class="hr-guide-item"><summary>9. サポート体制</summary><div class="hr-guide-answer">故障時の対応速度、交換部品の入手性、国内サポート拠点の有無。海外メーカーは特に要確認。</div></details>
         <details class="hr-guide-item"><summary>10. ロードマップと将来性</summary><div class="hr-guide-answer">資金調達状況、出荷実績、次世代モデルの予定。スタートアップは事業継続リスクも考慮。</div></details>
       </section>
 
       <div class="hr-footer-meta">
         <p><strong>最終更新:</strong> 2026年4月7日</p>
-        <p>本データは公式公開情報に基づきます。正確性を保証するものではありません。</p>
+        <p>独自評価は公開スペックに基づく定量評価です。特定メーカーの推奨ではありません。</p>
         <p>関連記事: <a href="/blog/humanoid-robots-surpass-humans">ヒューマノイドが人間を超える日</a></p>
         <p>抜け・誤りの報告は <a href="https://x.com/HumanAdsAI" target="_blank" rel="noopener noreferrer">@HumanAdsAI</a> まで</p>
       </div>
@@ -252,77 +269,116 @@
     let ROBOTS=[];
     const FLAGS={CN:'🇨🇳',US:'🇺🇸',NO:'🇳🇴',DE:'🇩🇪',CA:'🇨🇦',JP:'🇯🇵',PL:'🇵🇱'};
     const STATUS_JA={shipping:'出荷中',preorder:'予約可',pilot:'パイロット',development:'開発中'};
+    const AXES=[
+      {key:'dof',label:'DoF',color:'#3b82f6'},
+      {key:'payload',label:'積載力',color:'#10b981'},
+      {key:'runtime',label:'稼働時間',color:'#f59e0b'},
+      {key:'speed',label:'速度',color:'#ef4444'},
+      {key:'intel',label:'AI性能',color:'#8b5cf6'},
+      {key:'market',label:'市場成熟度',color:'#06b6d4'},
+    ];
     let compareSet=new Set();
 
     fetch('/data/humanoid-robots.json').then(r=>r.json()).then(d=>{ROBOTS=d;init();});
 
     function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-    function fmtPrice(p){if(!p)return'—';if(Array.isArray(p)){if(p[0]===p[1])return'$'+p[0].toLocaleString();return'$'+p[0].toLocaleString()+'〜$'+p[1].toLocaleString();}return'$'+p.toLocaleString();}
+    function fmtPrice(p){if(!p)return'非公開';if(Array.isArray(p)){if(p[0]===p[1])return'$'+p[0].toLocaleString();return'$'+p[0].toLocaleString()+'〜';}return'$'+p.toLocaleString();}
     function fmtDof(d){if(!d&&d!==0)return'—';if(Array.isArray(d))return d[0]===d[1]?String(d[0]):d[0]+'-'+d[1];return String(d);}
-    function fmtNum(n,u){if(n===null||n===undefined)return'—';if(Array.isArray(n))return n[0]===n[1]?n[0]+u:n[0]+'-'+n[1]+u;return n+u;}
+    function fmtNum(n,u){if(n===null||n===undefined)return'—';if(Array.isArray(n))return Math.max(...n)+u;return n+u;}
     function getMinPrice(r){if(!r.price_usd)return Infinity;return Array.isArray(r.price_usd)?r.price_usd[0]:r.price_usd;}
-    function getMaxDof(r){if(!r.dof_total&&r.dof_total!==0)return 0;return Array.isArray(r.dof_total)?r.dof_total[1]:r.dof_total;}
-    function getMaxPayload(r){if(!r.payload_kg&&r.payload_kg!==0)return 0;return Array.isArray(r.payload_kg)?r.payload_kg[1]:r.payload_kg;}
+    function num(v){if(!v&&v!==0)return 0;return Array.isArray(v)?Math.max(...v):v;}
+
+    // Mini radar chart SVG for a single robot
+    function miniRadar(scores,size){
+      const n=AXES.length,cx=size/2,cy=size/2,R=size/2-20;
+      const step=2*Math.PI/n,start=-Math.PI/2;
+      function pol(i,r){const a=start+i*step;return[(cx+r*Math.cos(a)).toFixed(1),(cy+r*Math.sin(a)).toFixed(1)];}
+      let s=`<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">`;
+      // Grid
+      [50,100].forEach(p=>{const r=R*p/100;const pts=[];for(let i=0;i<n;i++)pts.push(pol(i,r).join(','));s+=`<polygon points="${pts.join(' ')}" fill="none" stroke="var(--color-border)" stroke-width="1"/>`;});
+      // Axes
+      for(let i=0;i<n;i++){const[ex,ey]=pol(i,R);s+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--color-border)" stroke-width="0.5"/>`;const lr=R+14;const[lx,ly]=pol(i,lr);const a=start+i*step;const anc=Math.abs(Math.cos(a))<.1?'middle':Math.cos(a)>0?'start':'end';const dy=Math.sin(a)<-.3?-1:Math.sin(a)>.3?10:4;s+=`<text x="${lx}" y="${+ly+dy}" text-anchor="${anc}" font-size="9" fill="${AXES[i].color}" font-family="system-ui" font-weight="600">${AXES[i].label}</text>`;}
+      // Data
+      const pts=[];for(let i=0;i<n;i++){const v=Math.max(5,scores[AXES[i].key]||0);pts.push(pol(i,R*v/100).join(','));}
+      s+=`<polygon points="${pts.join(' ')}" fill="rgba(232,93,58,.12)" stroke="var(--color-primary)" stroke-width="2" stroke-linejoin="round"/>`;
+      // Dots
+      for(let i=0;i<n;i++){const v=Math.max(5,scores[AXES[i].key]||0);const[dx,dy]=pol(i,R*v/100);s+=`<circle cx="${dx}" cy="${dy}" r="3" fill="${AXES[i].color}" stroke="#fff" stroke-width="1.5"/>`;} 
+      s+='</svg>';
+      return s;
+    }
 
     function getFiltered(){
       let list=[...ROBOTS];
+      const rank=document.getElementById('f-rank').value;
       const cat=document.getElementById('f-cat').value;
       const price=document.getElementById('f-price').value;
       const status=document.getElementById('f-status').value;
-      const country=document.getElementById('f-country').value;
       const sort=document.getElementById('f-sort').value;
+      if(rank)list=list.filter(r=>r.scores&&r.scores.rank===rank);
       if(cat)list=list.filter(r=>r.category&&r.category.includes(cat));
       if(price){const[min,max]=price.split('-').map(Number);list=list.filter(r=>{if(!r.price_usd)return false;return getMinPrice(r)>=min&&getMinPrice(r)<=max;});}
       if(status)list=list.filter(r=>r.status===status);
-      if(country)list=list.filter(r=>r.country===country);
       switch(sort){
         case'price-asc':list.sort((a,b)=>getMinPrice(a)-getMinPrice(b));break;
         case'price-desc':list.sort((a,b)=>getMinPrice(b)-getMinPrice(a));break;
-        case'dof-desc':list.sort((a,b)=>getMaxDof(b)-getMaxDof(a));break;
-        case'payload-desc':list.sort((a,b)=>getMaxPayload(b)-getMaxPayload(a));break;
-        case'runtime-desc':list.sort((a,b)=>(b.runtime_hours||0)-(a.runtime_hours||0));break;
-        default:list.sort((a,b)=>a.name.localeCompare(b.name));
+        case'name':list.sort((a,b)=>a.name.localeCompare(b.name));break;
+        default:list.sort((a,b)=>(b.scores?.overall||0)-(a.scores?.overall||0));
       }
       return list;
     }
 
     function renderList(list){
       const el=document.getElementById('robot-list');
-      if(!list.length){el.innerHTML='<p style="color:var(--color-text-muted);text-align:center;padding:40px 0;">条件に合う機体がありません。</p>';return;}
+      if(!list.length){el.innerHTML='<p style="color:var(--color-text-muted);text-align:center;padding:40px 0;font-size:1rem;">条件に合う機体がありません。</p>';return;}
       let h='';
       for(const r of list){
         const sel=compareSet.has(r.slug);
-        const imgHtml=r.image_url
-          ?`<img src="${esc(r.image_url)}" alt="${esc(r.name)}" loading="lazy">`
-          :`<span class="placeholder">🤖</span>`;
-        h+=`<div class="hr-row${sel?' selected':''}" id="row-${esc(r.slug)}">
-          <div class="hr-row-img">${imgHtml}</div>
-          <div class="hr-row-body">
-            <div class="hr-row-head">
-              <span class="hr-row-flag">${FLAGS[r.country]||''}</span>
-              <span class="hr-row-name">${esc(r.name)}</span>
-              <span class="hr-badge hr-badge-${r.status}">${STATUS_JA[r.status]}</span>
-              <span class="hr-row-maker">${esc(r.manufacturer)}</span>
-            </div>
-            <div class="hr-row-liner">${esc(r.one_liner)}</div>
-            <div class="hr-row-specs">
-              <span class="hr-row-spec"><span class="l">DoF</span> <span class="v">${fmtDof(r.dof_total)}</span></span>
-              <span class="hr-row-spec"><span class="l">積載</span> <span class="v">${fmtNum(r.payload_kg,'kg')}</span></span>
-              <span class="hr-row-spec"><span class="l">稼働</span> <span class="v">${fmtNum(r.runtime_hours,'h')}</span></span>
-              <span class="hr-row-spec"><span class="l">速度</span> <span class="v">${fmtNum(r.max_speed_ms,'m/s')}</span></span>
-              <span class="hr-row-spec"><span class="l">身長</span> <span class="v">${fmtNum(r.height_cm,'cm')}</span></span>
-              <span class="hr-row-spec"><span class="l">SDK</span> <span class="v">${r.sdk_openness==='full'?'Full':r.sdk_openness==='partial'?'Partial':'—'}</span></span>
-            </div>
-            <div class="hr-row-right">
-              <div class="hr-row-price">${fmtPrice(r.price_usd)}</div>
-              ${r.price_note?`<div class="hr-row-price-note">${esc(r.price_note)}</div>`:''}
-              <div class="hr-row-actions">
-                <button class="hr-btn-sm${sel?' added':''}" onclick="toggleCompare('${esc(r.slug)}',event)">${sel?'✓ 比較中':'+ 比較'}</button>
-                <button class="hr-btn-sm" onclick="toggleDetail('${esc(r.slug)}',event)">詳細</button>
+        const sc=r.scores||{};
+        const rkClass='hr-rank-'+(sc.rank||'d').toLowerCase();
+        const imgHtml=r.image_url?`<img src="${esc(r.image_url)}" alt="${esc(r.name)}" loading="lazy">`:`<span class="ph">🤖</span>`;
+        const barColor=sc.overall>=75?'#f59e0b':sc.overall>=60?'#10b981':sc.overall>=45?'#3b82f6':'#6b7280';
+
+        h+=`<div class="hr-card" id="card-${esc(r.slug)}">
+          <div class="hr-card-top">
+            <div class="hr-card-img">${imgHtml}</div>
+            <div class="hr-card-info">
+              <div class="hr-card-header">
+                <div class="hr-rank ${rkClass}">${sc.rank||'?'}</div>
+                <div class="hr-card-header-text">
+                  <div class="hr-card-name">${esc(r.name)}</div>
+                  <div class="hr-card-maker-line">
+                    <span class="hr-card-flag">${FLAGS[r.country]||''}</span>
+                    <span class="hr-card-maker">${esc(r.manufacturer)}</span>
+                    <span class="hr-badge hr-badge-${r.status}">${STATUS_JA[r.status]}</span>
+                  </div>
+                </div>
+                <div style="text-align:center;margin-left:auto;">
+                  <div class="hr-score-num">${sc.overall||0}<span style="font-size:.75rem;font-weight:400;color:var(--color-text-muted);">/100</span></div>
+                  <div class="hr-score-bar"><div class="hr-score-bar-fill" style="width:${sc.overall||0}%;background:${barColor};"></div></div>
+                </div>
               </div>
+              <div class="hr-card-liner">${esc(r.one_liner)}</div>
+              <div class="hr-card-price">${fmtPrice(r.price_usd)} ${r.price_note?'<span class="hr-card-price-note">'+esc(r.price_note)+'</span>':''}</div>
             </div>
           </div>
-          <div class="hr-row-detail" id="detail-${esc(r.slug)}">
+          <div class="hr-card-mid">
+            <div class="hr-card-specs">
+              <div class="hr-spec-item"><div class="hr-spec-label">DoF</div><div class="hr-spec-val">${fmtDof(r.dof_total)}</div></div>
+              <div class="hr-spec-item"><div class="hr-spec-label">積載量</div><div class="hr-spec-val">${fmtNum(r.payload_kg,'kg')}</div></div>
+              <div class="hr-spec-item"><div class="hr-spec-label">稼働時間</div><div class="hr-spec-val">${fmtNum(r.runtime_hours,'h')}</div></div>
+              <div class="hr-spec-item"><div class="hr-spec-label">速度</div><div class="hr-spec-val">${fmtNum(r.max_speed_ms,'m/s')}</div></div>
+              <div class="hr-spec-item"><div class="hr-spec-label">身長</div><div class="hr-spec-val">${fmtNum(r.height_cm,'cm')}</div></div>
+              <div class="hr-spec-item"><div class="hr-spec-label">SDK</div><div class="hr-spec-val">${r.sdk_openness==='full'?'Full Open':r.sdk_openness==='partial'?'Partial':'—'}</div></div>
+            </div>
+            <div class="hr-card-radar">${miniRadar(sc,180)}</div>
+          </div>
+          <div class="hr-card-actions">
+            <button class="hr-btn${sel?' added':''}" onclick="toggleCompare('${esc(r.slug)}',event)">${sel?'✓ 比較中':'+ 比較に追加'}</button>
+            ${r.youtube_id?`<button class="hr-btn hr-btn-yt" onclick="toggleVideo('${esc(r.slug)}',event)">▶ 動画を見る</button>`:''}
+            <button class="hr-btn" onclick="toggleDetail('${esc(r.slug)}',event)" style="margin-left:auto;">全スペック ▼</button>
+          </div>
+          ${r.youtube_id?`<div class="hr-card-video" id="video-${esc(r.slug)}"><iframe src="" data-src="https://www.youtube.com/embed/${esc(r.youtube_id)}?rel=0" allowfullscreen loading="lazy" title="${esc(r.name)} demo"></iframe></div>`:''}
+          <div class="hr-card-detail" id="detail-${esc(r.slug)}">
             <div class="hr-detail-grid">
               <div class="hr-detail-item"><span class="lbl">体重</span> <span class="val">${fmtNum(r.weight_kg,'kg')}</span></div>
               <div class="hr-detail-item"><span class="lbl">ハンドDoF</span> <span class="val">${fmtDof(r.dof_hands)}</span></div>
@@ -343,81 +399,67 @@
       el.innerHTML=h;
     }
 
-    window.toggleCompare=function(slug,e){if(e)e.stopPropagation();if(compareSet.has(slug))compareSet.delete(slug);else{if(compareSet.size>=4)return;compareSet.add(slug);}updateBar();refresh();syncUrl();};
-    window.toggleDetail=function(slug,e){if(e)e.stopPropagation();const d=document.getElementById('detail-'+slug);if(d)d.classList.toggle('open');};
+    window.toggleCompare=function(slug,e){if(e)e.stopPropagation();if(compareSet.has(slug))compareSet.delete(slug);else{if(compareSet.size>=4)return;compareSet.add(slug);}updateBar();refresh();};
+    window.toggleDetail=function(slug,e){if(e)e.stopPropagation();document.getElementById('detail-'+slug)?.classList.toggle('open');};
+    window.toggleVideo=function(slug,e){if(e)e.stopPropagation();const v=document.getElementById('video-'+slug);if(!v)return;v.classList.toggle('open');const iframe=v.querySelector('iframe');if(v.classList.contains('open')&&iframe&&!iframe.src){iframe.src=iframe.dataset.src;}};
     window.openDrawer=function(){if(compareSet.size<1)return;renderDrawer();document.getElementById('compare-drawer').classList.add('open');};
     window.closeDrawer=function(){document.getElementById('compare-drawer').classList.remove('open');};
-
-    function updateBar(){const bar=document.getElementById('compare-bar');document.getElementById('compare-count').textContent=compareSet.size;bar.style.display=compareSet.size>0?'flex':'none';}
+    function updateBar(){document.getElementById('compare-count').textContent=compareSet.size;document.getElementById('compare-bar').style.display=compareSet.size>0?'flex':'none';}
 
     function renderDrawer(){
       const sel=ROBOTS.filter(r=>compareSet.has(r.slug));
       const body=document.getElementById('drawer-body');
       const specs=[
+        {l:'ランク',fn:r=>(r.scores?.rank||'?')+' ('+( r.scores?.overall||0)+'点)'},
         {l:'価格',fn:r=>fmtPrice(r.price_usd),cmp:(a,b)=>getMinPrice(a)-getMinPrice(b)},
-        {l:'DoF',fn:r=>fmtDof(r.dof_total),cmp:(a,b)=>getMaxDof(b)-getMaxDof(a)},
-        {l:'積載(kg)',fn:r=>fmtNum(r.payload_kg,''),cmp:(a,b)=>getMaxPayload(b)-getMaxPayload(a)},
-        {l:'稼働(h)',fn:r=>fmtNum(r.runtime_hours,''),cmp:(a,b)=>(b.runtime_hours||0)-(a.runtime_hours||0)},
-        {l:'速度(m/s)',fn:r=>fmtNum(r.max_speed_ms,''),cmp:(a,b)=>(b.max_speed_ms||0)-(a.max_speed_ms||0)},
-        {l:'身長(cm)',fn:r=>fmtNum(r.height_cm,''),cmp:null},
-        {l:'体重(kg)',fn:r=>fmtNum(r.weight_kg,''),cmp:null},
-        {l:'バッテリー(Wh)',fn:r=>fmtNum(r.battery_wh,''),cmp:(a,b)=>(b.battery_wh||0)-(a.battery_wh||0)},
-        {l:'ハンドDoF',fn:r=>fmtDof(r.dof_hands),cmp:null},
-        {l:'ホットスワップ',fn:r=>r.hot_swap?'✓':'—',cmp:null},
-        {l:'SDK',fn:r=>r.sdk_openness==='full'?'Full':r.sdk_openness==='partial'?'Partial':'—',cmp:null},
-        {l:'出荷実績',fn:r=>r.units_shipped||'—',cmp:null},
+        {l:'DoF',fn:r=>fmtDof(r.dof_total),cmp:(a,b)=>num(b.dof_total)-num(a.dof_total)},
+        {l:'積載(kg)',fn:r=>fmtNum(r.payload_kg,''),cmp:(a,b)=>num(b.payload_kg)-num(a.payload_kg)},
+        {l:'稼働(h)',fn:r=>fmtNum(r.runtime_hours,''),cmp:(a,b)=>num(b.runtime_hours)-num(a.runtime_hours)},
+        {l:'速度(m/s)',fn:r=>fmtNum(r.max_speed_ms,''),cmp:(a,b)=>num(b.max_speed_ms)-num(a.max_speed_ms)},
+        {l:'バッテリー(Wh)',fn:r=>fmtNum(r.battery_wh,''),cmp:(a,b)=>num(b.battery_wh)-num(a.battery_wh)},
+        {l:'SDK',fn:r=>r.sdk_openness==='full'?'Full':r.sdk_openness==='partial'?'Partial':'—'},
       ];
-      const radar=buildRadar(sel);
+      // Compare radar
+      const radar=buildCompareRadar(sel);
       let h=radar+'<table class="hr-compare-table"><thead><tr><th></th>';
       for(const r of sel){
         const img=r.image_url?`<img class="robot-img" src="${esc(r.image_url)}" alt="${esc(r.name)}"><br>`:'';
-        h+=`<th>${img}${FLAGS[r.country]} ${esc(r.name)}<br><span style="font-weight:400;font-size:.5625rem;">${esc(r.manufacturer)}</span></th>`;
+        h+=`<th>${img}${FLAGS[r.country]} ${esc(r.name)}</th>`;
       }
       h+='</tr></thead><tbody>';
       for(const spec of specs){
         h+=`<tr><td>${spec.l}</td>`;
         let bestIdx=-1;
         if(spec.cmp&&sel.length>1){const sorted=[...sel].sort(spec.cmp);bestIdx=sel.indexOf(sorted[0]);}
-        sel.forEach((r,i)=>{const v=spec.fn(r);const best=i===bestIdx&&v!=='—';h+=`<td${best?' class="best"':''}>${esc(v)}</td>`;});
+        sel.forEach((r,i)=>{const v=spec.fn(r);const best=i===bestIdx&&v!=='—'&&v!=='非公開';h+=`<td${best?' class="best"':''}>${esc(v)}</td>`;});
         h+='</tr>';
       }
       h+='</tbody></table>';
       body.innerHTML=h;
     }
 
-    function buildRadar(sel){
+    function buildCompareRadar(sel){
       if(sel.length<2)return'';
-      const axes=[
-        {label:'DoF',fn:r=>Math.min(100,getMaxDof(r)/80*100)},
-        {label:'積載',fn:r=>{const p=getMaxPayload(r);return p?Math.min(100,p/50*100):0;}},
-        {label:'稼働',fn:r=>Math.min(100,(r.runtime_hours||0)/10*100)},
-        {label:'速度',fn:r=>Math.min(100,(r.max_speed_ms||0)/4*100)},
-        {label:'コスパ',fn:r=>{const p=getMinPrice(r);return p&&p<Infinity?Math.min(100,(1-p/300000)*100):0;}},
-      ];
-      const n=axes.length,cx=160,cy=130,R=95;
+      const n=AXES.length,cx=160,cy=130,R=90;
       const step=2*Math.PI/n,start=-Math.PI/2;
       const colors=['#E85D3A','#3b82f6','#10b981','#f59e0b'];
       function pol(i,r){const a=start+i*step;return[(cx+r*Math.cos(a)).toFixed(1),(cy+r*Math.sin(a)).toFixed(1)];}
-      let s='<svg viewBox="0 0 320 260" style="width:100%;max-width:300px;height:auto;" xmlns="http://www.w3.org/2000/svg">';
-      [25,50,75,100].forEach(p=>{const r=R*p/100;const pts=[];for(let i=0;i<n;i++)pts.push(pol(i,r).join(','));s+=`<polygon points="${pts.join(' ')}" fill="none" stroke="#e5e7eb" stroke-width="1"/>`;});
-      for(let i=0;i<n;i++){const[ex,ey]=pol(i,R);s+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="#e5e7eb"/>`;const lr=R+18;const[lx,ly]=pol(i,lr);const a=start+i*step;const anc=Math.abs(Math.cos(a))<.1?'middle':Math.cos(a)>0?'start':'end';const dy=Math.sin(a)<-.3?-2:Math.sin(a)>.3?12:4;s+=`<text x="${lx}" y="${+ly+dy}" text-anchor="${anc}" font-size="9" fill="#6b7280" font-family="system-ui">${axes[i].label}</text>`;}
-      sel.forEach((r,idx)=>{const pts=[];for(let i=0;i<n;i++){const v=Math.max(3,axes[i].fn(r));pts.push(pol(i,R*v/100).join(','));}s+=`<polygon points="${pts.join(' ')}" fill="${colors[idx%4]}22" stroke="${colors[idx%4]}" stroke-width="2"/>`;});
+      let s='<svg viewBox="0 0 320 260" style="width:100%;max-width:300px;" xmlns="http://www.w3.org/2000/svg">';
+      [50,100].forEach(p=>{const r=R*p/100;const pts=[];for(let i=0;i<n;i++)pts.push(pol(i,r).join(','));s+=`<polygon points="${pts.join(' ')}" fill="none" stroke="#e5e7eb" stroke-width="1"/>`;});
+      for(let i=0;i<n;i++){const[ex,ey]=pol(i,R);s+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="#e5e7eb"/>`;const lr=R+16;const[lx,ly]=pol(i,lr);const a=start+i*step;const anc=Math.abs(Math.cos(a))<.1?'middle':Math.cos(a)>0?'start':'end';const dy=Math.sin(a)<-.3?-1:Math.sin(a)>.3?10:4;s+=`<text x="${lx}" y="${+ly+dy}" text-anchor="${anc}" font-size="9" fill="#6b7280" font-family="system-ui">${AXES[i].label}</text>`;}
+      sel.forEach((r,idx)=>{const sc=r.scores||{};const pts=[];for(let i=0;i<n;i++){const v=Math.max(5,sc[AXES[i].key]||0);pts.push(pol(i,R*v/100).join(','));}s+=`<polygon points="${pts.join(' ')}" fill="${colors[idx%4]}22" stroke="${colors[idx%4]}" stroke-width="2"/>`;});
       sel.forEach((r,idx)=>{s+=`<rect x="10" y="${230+idx*14}" width="8" height="8" rx="2" fill="${colors[idx%4]}"/><text x="22" y="${237+idx*14}" font-size="8" fill="#6b7280" font-family="monospace">${esc(r.name)}</text>`;});
       s+='</svg>';
       return`<div class="hr-radar-wrap">${s}</div>`;
     }
-
-    function syncUrl(){const p=new URLSearchParams(location.search);if(compareSet.size>0)p.set('compare',[...compareSet].join(','));else p.delete('compare');history.replaceState(null,'',location.pathname+(p.toString()?'?'+p:''));}
-    function loadUrl(){const p=new URLSearchParams(location.search);const c=p.get('compare');if(c)c.split(',').forEach(s=>{if(ROBOTS.find(r=>r.slug===s))compareSet.add(s);});}
 
     function refresh(){const list=getFiltered();document.getElementById('result-count').textContent=list.length+'機種';renderList(list);}
 
     function init(){
       document.getElementById('robot-count').textContent=ROBOTS.length;
       document.getElementById('maker-count').textContent=new Set(ROBOTS.map(r=>r.manufacturer)).size;
-      loadUrl();updateBar();refresh();
-      ['f-cat','f-price','f-status','f-country','f-sort'].forEach(id=>document.getElementById(id).addEventListener('change',refresh));
-      if(compareSet.size>=2)setTimeout(openDrawer,500);
+      updateBar();refresh();
+      ['f-rank','f-cat','f-price','f-status','f-sort'].forEach(id=>document.getElementById(id).addEventListener('change',refresh));
     }
   })();
   </script>

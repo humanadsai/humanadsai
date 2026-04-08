@@ -54,7 +54,18 @@
       "ペイロード2kgと低い",
       "ベースモデルは23DoFでハンド無し"
     ],
-    "image_url": "/images/robots/unitree-g1.jpg"
+    "image_url": "/images/robots/unitree-g1.jpg",
+    "scores": {
+      "dof": 57,
+      "payload": 6,
+      "runtime": 25,
+      "speed": 57,
+      "intel": 90,
+      "market": 65,
+      "overall": 53,
+      "rank": "B"
+    },
+    "youtube_id": "dBs7m0gVT2E"
   },
   {
     "slug": "unitree-h1",
@@ -106,7 +117,18 @@
       "標準モデルにはデクステラスハンドなし",
       "稼働時間が2時間と短い"
     ],
-    "image_url": "/images/robots/unitree-h1.png"
+    "image_url": "/images/robots/unitree-h1.png",
+    "scores": {
+      "dof": 37,
+      "payload": 20,
+      "runtime": 25,
+      "speed": 94,
+      "intel": 90,
+      "market": 90,
+      "overall": 62,
+      "rank": "A"
+    },
+    "youtube_id": "0eLkBEULCbE"
   },
   {
     "slug": "unitree-h2",
@@ -158,7 +180,18 @@
       "デクステラスハンドは別売オプション",
       "70kgと重量が増加"
     ],
-    "image_url": "/images/robots/unitree-h2.png"
+    "image_url": "/images/robots/unitree-h2.png",
+    "scores": {
+      "dof": 41,
+      "payload": 70,
+      "runtime": 37,
+      "speed": 25,
+      "intel": 90,
+      "market": 50,
+      "overall": 55,
+      "rank": "B"
+    },
+    "youtube_id": "tAbA-DaQUCg"
   },
   {
     "slug": "unitree-r1",
@@ -213,7 +246,18 @@
       "バッテリー稼働1時間と短い",
       "ベースモデルは20DoFでハンドなし"
     ],
-    "image_url": "/images/robots/unitree-r1.png"
+    "image_url": "/images/robots/unitree-r1.png",
+    "scores": {
+      "dof": 34,
+      "payload": 20,
+      "runtime": 12,
+      "speed": 71,
+      "intel": 80,
+      "market": 50,
+      "overall": 45,
+      "rank": "B"
+    },
+    "youtube_id": "nPsK5Sx2pEI"
   },
   {
     "slug": "agility-digit",
@@ -262,7 +306,18 @@
       "価格が$250Kと高額",
       "SDKは非公開でカスタマイズ性が限定的"
     ],
-    "image_url": "/images/robots/agility-digit.jpg"
+    "image_url": "/images/robots/agility-digit.jpg",
+    "scores": {
+      "dof": 40,
+      "payload": 53,
+      "runtime": 100,
+      "speed": 40,
+      "intel": 50,
+      "market": 40,
+      "overall": 52,
+      "rank": "B"
+    },
+    "youtube_id": "gdGOWnz_3Pk"
   },
   {
     "slug": "1x-neo",
@@ -308,7 +363,18 @@
       "SDKは非公開で開発者アクセス限定",
       "出荷前で実際の性能は未検証"
     ],
-    "image_url": "/images/robots/1x-neo.webp"
+    "image_url": "/images/robots/1x-neo.webp",
+    "scores": {
+      "dof": 100,
+      "payload": 83,
+      "runtime": 50,
+      "speed": 100,
+      "intel": 30,
+      "market": 50,
+      "overall": 63,
+      "rank": "A"
+    },
+    "youtube_id": "bUrMbwkv1rs"
   },
   {
     "slug": "1x-neo-gamma",
@@ -354,7 +420,18 @@
       "SDKが非公開",
       "実稼働データが不足"
     ],
-    "image_url": null
+    "image_url": null,
+    "scores": {
+      "dof": 100,
+      "payload": 83,
+      "runtime": 50,
+      "speed": 25,
+      "intel": 30,
+      "market": 50,
+      "overall": 55,
+      "rank": "B"
+    },
+    "youtube_id": "kxhd24KBHIY"
   },
   {
     "slug": "figure-03",
@@ -397,7 +474,18 @@
       "SDK/APIが非公開",
       "60kgと家庭用としてはやや重い"
     ],
-    "image_url": "/images/robots/figure-03.jpg"
+    "image_url": "/images/robots/figure-03.jpg",
+    "scores": {
+      "dof": 58,
+      "payload": 66,
+      "runtime": 62,
+      "speed": 25,
+      "intel": 50,
+      "market": 35,
+      "overall": 49,
+      "rank": "B"
+    },
+    "youtube_id": "GrPl8YP5cKk"
   },
   {
     "slug": "ubtech-walker-s2",
@@ -446,7 +534,18 @@
       "価格$90Kで中小企業には高額",
       "歩行速度2m/sと平均的"
     ],
-    "image_url": "/images/robots/ubtech-walker-s2.png"
+    "image_url": "/images/robots/ubtech-walker-s2.png",
+    "scores": {
+      "dof": 69,
+      "payload": 50,
+      "runtime": 50,
+      "speed": 57,
+      "intel": 65,
+      "market": 85,
+      "overall": 65,
+      "rank": "A"
+    },
+    "youtube_id": "y2LG_GE0VR0"
   },
   {
     "slug": "agibot-a2",
@@ -499,7 +598,18 @@
       "重量が最大85kgと重い",
       "バッテリー稼働2時間と短い"
     ],
-    "image_url": "/images/robots/agibot-a2.png"
+    "image_url": "/images/robots/agibot-a2.png",
+    "scores": {
+      "dof": 53,
+      "payload": 50,
+      "runtime": 25,
+      "speed": 94,
+      "intel": 65,
+      "market": 85,
+      "overall": 62,
+      "rank": "A"
+    },
+    "youtube_id": "sSqjDPMCVzo"
   },
   {
     "slug": "agibot-a2w",
@@ -542,7 +652,18 @@
       "ペイロード5kgと片腕あたりの積載が低い",
       "二足歩行ではないため階段等に非対応"
     ],
-    "image_url": "/images/robots/agibot-a2w.png"
+    "image_url": "/images/robots/agibot-a2w.png",
+    "scores": {
+      "dof": 29,
+      "payload": 16,
+      "runtime": 62,
+      "speed": 25,
+      "intel": 65,
+      "market": 60,
+      "overall": 46,
+      "rank": "B"
+    },
+    "youtube_id": null
   },
   {
     "slug": "dobot-atom-max",
@@ -589,7 +710,18 @@
       "ペイロードが非公開",
       "ホットスワップバッテリー非対応"
     ],
-    "image_url": "/images/robots/dobot-atom-max.jpg"
+    "image_url": "/images/robots/dobot-atom-max.jpg",
+    "scores": {
+      "dof": 54,
+      "payload": 20,
+      "runtime": 15,
+      "speed": 42,
+      "intel": 65,
+      "market": 60,
+      "overall": 45,
+      "rank": "B"
+    },
+    "youtube_id": "3_WR5SZ1eHM"
   },
   {
     "slug": "booster-t1",
@@ -645,7 +777,18 @@
       "ペイロード5kgと低い",
       "歩行速度が非公開"
     ],
-    "image_url": null
+    "image_url": null,
+    "scores": {
+      "dof": 54,
+      "payload": 16,
+      "runtime": 25,
+      "speed": 25,
+      "intel": 100,
+      "market": 60,
+      "overall": 51,
+      "rank": "B"
+    },
+    "youtube_id": "gZ2QL5QULHE"
   },
   {
     "slug": "engineai-pm01",
@@ -694,7 +837,18 @@
       "ハンド/グリッパーなし",
       "ペイロードが非公開"
     ],
-    "image_url": "/images/robots/engineai-pm01.png"
+    "image_url": "/images/robots/engineai-pm01.png",
+    "scores": {
+      "dof": 32,
+      "payload": 20,
+      "runtime": 25,
+      "speed": 57,
+      "intel": 85,
+      "market": 60,
+      "overall": 49,
+      "rank": "B"
+    },
+    "youtube_id": "UHhfSWJJjmQ"
   },
   {
     "slug": "engineai-sa01",
@@ -742,7 +896,18 @@
       "ハンド/アームなし(脚のみ)",
       "ペイロード・速度が非公開"
     ],
-    "image_url": "/images/robots/engineai-sa01.png"
+    "image_url": "/images/robots/engineai-sa01.png",
+    "scores": {
+      "dof": 16,
+      "payload": 20,
+      "runtime": 25,
+      "speed": 25,
+      "intel": 65,
+      "market": 60,
+      "overall": 39,
+      "rank": "C"
+    },
+    "youtube_id": null
   },
   {
     "slug": "fourier-gr1",
@@ -789,7 +954,18 @@
       "バッテリー稼働時間が非公開",
       "価格$150K以上と高額"
     ],
-    "image_url": null
+    "image_url": null,
+    "scores": {
+      "dof": 53,
+      "payload": 100,
+      "runtime": 15,
+      "speed": 40,
+      "intel": 45,
+      "market": 65,
+      "overall": 54,
+      "rank": "B"
+    },
+    "youtube_id": "fhFsFqbiTzA"
   },
   {
     "slug": "fourier-gr2",
@@ -838,7 +1014,18 @@
       "価格$150K以上と高額",
       "バッテリー稼働2時間と短い"
     ],
-    "image_url": null
+    "image_url": null,
+    "scores": {
+      "dof": 70,
+      "payload": 20,
+      "runtime": 25,
+      "speed": 25,
+      "intel": 55,
+      "market": 40,
+      "overall": 40,
+      "rank": "C"
+    },
+    "youtube_id": null
   },
   {
     "slug": "fourier-n1",
@@ -880,7 +1067,18 @@
       "ハンドの仕様が不明",
       "バッテリー容量が非公開"
     ],
-    "image_url": null
+    "image_url": null,
+    "scores": {
+      "dof": 30,
+      "payload": 20,
+      "runtime": 25,
+      "speed": 100,
+      "intel": 55,
+      "market": 65,
+      "overall": 48,
+      "rank": "B"
+    },
+    "youtube_id": null
   },
   {
     "slug": "neura-4ne1",
@@ -936,7 +1134,18 @@
       "80kgと重量がある",
       "出荷実績がまだない"
     ],
-    "image_url": "/images/robots/neura-4ne1.webp"
+    "image_url": "/images/robots/neura-4ne1.webp",
+    "scores": {
+      "dof": 65,
+      "payload": 50,
+      "runtime": 100,
+      "speed": 23,
+      "intel": 45,
+      "market": 55,
+      "overall": 57,
+      "rank": "B"
+    },
+    "youtube_id": "LN0_HG8dPfQ"
   },
   {
     "slug": "tesla-optimus-gen3",
@@ -983,7 +1192,18 @@
       "SDKは完全非公開",
       "ペイロード9kgと軽作業向け"
     ],
-    "image_url": null
+    "image_url": null,
+    "scores": {
+      "dof": 96,
+      "payload": 30,
+      "runtime": 100,
+      "speed": 62,
+      "intel": 30,
+      "market": 30,
+      "overall": 53,
+      "rank": "B"
+    },
+    "youtube_id": "cpraXQnaOIc"
   },
   {
     "slug": "boston-dynamics-atlas",
@@ -1028,7 +1248,18 @@
       "2026年は全数Hyundai/Google向け",
       "SDKは非公開(Orbitプラットフォーム経由)"
     ],
-    "image_url": "/images/robots/boston-dynamics-atlas.jpg"
+    "image_url": "/images/robots/boston-dynamics-atlas.jpg",
+    "scores": {
+      "dof": 74,
+      "payload": 100,
+      "runtime": 50,
+      "speed": 25,
+      "intel": 30,
+      "market": 30,
+      "overall": 49,
+      "rank": "B"
+    },
+    "youtube_id": "W6onTk0GRsI"
   },
   {
     "slug": "apptronik-apollo",
@@ -1072,7 +1303,18 @@
       "価格が非公開で高額の可能性",
       "ハンドのDoFが非公開"
     ],
-    "image_url": "/images/robots/apptronik-apollo.png"
+    "image_url": "/images/robots/apptronik-apollo.png",
+    "scores": {
+      "dof": 56,
+      "payload": 83,
+      "runtime": 50,
+      "speed": 25,
+      "intel": 65,
+      "market": 40,
+      "overall": 53,
+      "rank": "B"
+    },
+    "youtube_id": "wW_5xMDjfIA"
   },
   {
     "slug": "xpeng-iron",
@@ -1116,7 +1358,18 @@
       "SDK/APIが未公開",
       "バッテリー稼働時間が非公開"
     ],
-    "image_url": null
+    "image_url": null,
+    "scores": {
+      "dof": 100,
+      "payload": 66,
+      "runtime": 15,
+      "speed": 25,
+      "intel": 50,
+      "market": 20,
+      "overall": 44,
+      "rank": "C"
+    },
+    "youtube_id": "FQMH8FShNxs"
   },
   {
     "slug": "sanctuary-ai-phoenix",
@@ -1158,6 +1411,17 @@
       "ボディは20DoFのみで全身動作が限定的",
       "バッテリー稼働時間が非公開"
     ],
-    "image_url": "/images/robots/sanctuary-ai-phoenix.jpg"
+    "image_url": "/images/robots/sanctuary-ai-phoenix.jpg",
+    "scores": {
+      "dof": 26,
+      "payload": 83,
+      "runtime": 15,
+      "speed": 23,
+      "intel": 30,
+      "market": 40,
+      "overall": 36,
+      "rank": "C"
+    },
+    "youtube_id": "9y2YdUrkpNQ"
   }
 ]
