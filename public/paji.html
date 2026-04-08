@@ -274,6 +274,22 @@
     .faq-label-check{background:rgba(251,191,36,.12);color:var(--yellow);}
     .faq-label-ent{background:rgba(167,139,250,.12);color:var(--purple);}
 
+    /* Limits section — 人間に残る領域 */
+    .limits{background:var(--bg-2);border-top:1px solid var(--border);}
+    .limits-intro{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin-bottom:32px;}
+    .limits-intro p{font-size:.9375rem;color:var(--text-mute);line-height:1.8;margin-bottom:8px;}
+    .limits-intro strong{color:var(--text);font-weight:700;}
+    .limits-quote{font-family:var(--font-mono);font-size:.875rem;color:var(--accent);border-left:3px solid var(--accent);padding:8px 0 8px 14px;margin-top:12px;background:var(--accent-glow);border-radius:0 8px 8px 0;}
+    .limits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+    .limit-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;transition:border-color .2s;}
+    .limit-card:hover{border-color:var(--accent);}
+    .limit-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .limit-icon{width:34px;height:34px;border-radius:9px;background:var(--accent-glow);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .limit-title{font-size:1rem;font-weight:700;color:var(--text);}
+    .limit-list{list-style:none;}
+    .limit-list li{font-size:.8125rem;color:var(--text-mute);padding:5px 0 5px 18px;position:relative;line-height:1.6;}
+    .limit-list li::before{content:'★';position:absolute;left:0;color:var(--accent);font-size:.6875rem;top:7px;}
+
     /* Final CTA */
     .final-cta{text-align:center;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%);}
     .final-cta h2{font-size:clamp(1.75rem,4vw,2.75rem);font-weight:900;line-height:1.3;margin-bottom:16px;}
@@ -295,6 +311,7 @@
         <a href="#foundation">法人運用</a>
         <a href="#pricing">料金</a>
         <a href="#faq">FAQ</a>
+        <a href="#limits">責任分界</a>
         <a href="#cta" class="nav-cta">無料で始める</a>
       </div>
     </div>
@@ -507,6 +524,101 @@
       <p class="section-sub">サービス概要から、法人設立、税務、労務、契約、運用、投資家論点まで。150問でほぼ全ての疑問に答えます。</p>
       <div class="faq-tabs" id="faq-tabs"></div>
       <div class="faq-list" id="faq-list"></div>
+    </div>
+  </section>
+
+  <!-- AIで対応不可能な箇所 -->
+  <section id="limits" class="limits">
+    <div class="container">
+      <span class="section-label">AIで対応不可能な領域</span>
+      <h2 class="section-title">AIがやらないこと、<br>人間に残る領域</h2>
+      <p class="section-sub">始は「AIが全部やる」サービスではありません。夢のある演出ではなく、責任分界を明示することで、実務としての信頼性を担保します。</p>
+
+      <div class="limits-intro">
+        <p><strong>始の設計原則はひとつ。</strong>書類・計画・叩き台・運用整理はAIが全力で進めるが、法的・実務的な最終責任が伴う手続きは、必ず代表取締役が判断する。</p>
+        <p>この境界を曖昧にしないことが、日本での信頼性を高めます。</p>
+        <div class="limits-quote">書類・計画・叩き台・運用整理 → AI　／　署名・申請・契約・資金移動・重大判断 → 人間</div>
+      </div>
+
+      <div class="limits-grid">
+        <div class="limit-card">
+          <div class="limit-head"><div class="limit-icon">⚖️</div><div class="limit-title">法務・登記の正式手続き</div></div>
+          <ul class="limit-list">
+            <li>法人登記の正式申請と署名</li>
+            <li>公証役場・法務局での手続き</li>
+            <li>電子定款の公証・電子署名</li>
+            <li>商標出願（弁理士の領域）</li>
+            <li>重要契約の締結</li>
+          </ul>
+        </div>
+
+        <div class="limit-card">
+          <div class="limit-head"><div class="limit-icon">🏦</div><div class="limit-title">資金・財務の重要操作</div></div>
+          <ul class="limit-list">
+            <li>法人口座の開設・申込</li>
+            <li>口座振込・引落設定</li>
+            <li>法人カード発行・利用枠変更</li>
+            <li>資金調達の判断・交渉</li>
+            <li>大型支出の決裁、資金移動</li>
+          </ul>
+        </div>
+
+        <div class="limit-card">
+          <div class="limit-head"><div class="limit-icon">🧾</div><div class="limit-title">税務の最終責任</div></div>
+          <ul class="limit-list">
+            <li>税務申告の最終提出</li>
+            <li>消費税・会計方針の最終決定</li>
+            <li>役員報酬の最終決定</li>
+            <li>税理士との最終協議</li>
+          </ul>
+        </div>
+
+        <div class="limit-card">
+          <div class="limit-head"><div class="limit-icon">🎯</div><div class="limit-title">経営の重大判断</div></div>
+          <ul class="limit-list">
+            <li>事業方針変更、大型投資</li>
+            <li>採用計画の最終決定</li>
+            <li>ブランドの根本変更</li>
+            <li>SLA変更、主要パートナー契約</li>
+          </ul>
+        </div>
+
+        <div class="limit-card">
+          <div class="limit-head"><div class="limit-icon">🔒</div><div class="limit-title">技術・セキュリティの承認</div></div>
+          <ul class="limit-list">
+            <li>大規模アーキテクチャ変更</li>
+            <li>セキュリティポリシー変更</li>
+            <li>重要な本番環境の承認</li>
+          </ul>
+        </div>
+
+        <div class="limit-card">
+          <div class="limit-head"><div class="limit-icon">👥</div><div class="limit-title">労務・契約の締結</div></div>
+          <ul class="limit-list">
+            <li>社会保険・雇用保険の正式届出</li>
+            <li>労働条件通知書の最終確認</li>
+            <li>業務委託契約の締結</li>
+          </ul>
+        </div>
+
+        <div class="limit-card">
+          <div class="limit-head"><div class="limit-icon">📋</div><div class="limit-title">業種特有の許認可</div></div>
+          <ul class="limit-list">
+            <li>EC・食品・医療・金融・人材等の許認可</li>
+            <li>業種特有のコンプライアンス確認</li>
+            <li>専門家の個別確認が必要な領域</li>
+          </ul>
+        </div>
+
+        <div class="limit-card">
+          <div class="limit-head"><div class="limit-icon">⚠️</div><div class="limit-title">構造的に不可能</div></div>
+          <ul class="limit-list">
+            <li>完全放置での会社経営</li>
+            <li>重大判断を人間ゼロで行うこと</li>
+            <li>法的・実務的な最終責任の代替</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </section>
 
