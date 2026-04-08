@@ -420,7 +420,7 @@
       "SDKが非公開",
       "実稼働データが不足"
     ],
-    "image_url": null,
+    "image_url": "/images/robots/1x-neo-gamma.png",
     "scores": {
       "dof": 100,
       "payload": 83,
@@ -777,7 +777,7 @@
       "ペイロード5kgと低い",
       "歩行速度が非公開"
     ],
-    "image_url": null,
+    "image_url": "/images/robots/booster-t1.webp",
     "scores": {
       "dof": 54,
       "payload": 16,
@@ -837,7 +837,7 @@
       "ハンド/グリッパーなし",
       "ペイロードが非公開"
     ],
-    "image_url": "/images/robots/engineai-pm01.png",
+    "image_url": "/images/robots/engineai-pm01.jpg",
     "scores": {
       "dof": 32,
       "payload": 20,
@@ -896,7 +896,7 @@
       "ハンド/アームなし(脚のみ)",
       "ペイロード・速度が非公開"
     ],
-    "image_url": "/images/robots/engineai-sa01.png",
+    "image_url": "/images/robots/engineai-sa01.jpg",
     "scores": {
       "dof": 16,
       "payload": 20,
@@ -954,7 +954,7 @@
       "バッテリー稼働時間が非公開",
       "価格$150K以上と高額"
     ],
-    "image_url": null,
+    "image_url": "/images/robots/fourier-gr1.png",
     "scores": {
       "dof": 53,
       "payload": 100,
@@ -1014,7 +1014,7 @@
       "価格$150K以上と高額",
       "バッテリー稼働2時間と短い"
     ],
-    "image_url": null,
+    "image_url": "/images/robots/fourier-gr2.jpg",
     "scores": {
       "dof": 70,
       "payload": 20,
@@ -1067,7 +1067,7 @@
       "ハンドの仕様が不明",
       "バッテリー容量が非公開"
     ],
-    "image_url": null,
+    "image_url": "/images/robots/fourier-n1.jpg",
     "scores": {
       "dof": 30,
       "payload": 20,
@@ -1192,7 +1192,7 @@
       "SDKは完全非公開",
       "ペイロード9kgと軽作業向け"
     ],
-    "image_url": null,
+    "image_url": "/images/robots/tesla-optimus-gen3.jpg",
     "scores": {
       "dof": 96,
       "payload": 30,
@@ -1358,7 +1358,7 @@
       "SDK/APIが未公開",
       "バッテリー稼働時間が非公開"
     ],
-    "image_url": null,
+    "image_url": "/images/robots/xpeng-iron.jpg",
     "scores": {
       "dof": 100,
       "payload": 66,
