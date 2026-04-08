@@ -336,3 +336,44 @@ export async function handleToaAuditGet(request: Request, env: Env, auditId: str
     return errors.internalError(requestId);
   }
 }
+
+// ============================================
+// GET /api/toa-audit/list — public list of recent audits
+// ============================================
+
+export async function handleToaAuditList(request: Request, env: Env): Promise<Response> {
+  const requestId = generateRequestId();
+
+  try {
+    const url = new URL(request.url);
+    const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '100', 10)));
+
+    const rows = await env.DB.prepare(
+      `SELECT id, url, grade, scores, completed_at
+       FROM toa_audits
+       WHERE status = 'completed' AND expires_at > datetime('now')
+       ORDER BY completed_at DESC
+       LIMIT ?`
+    ).bind(limit).all<any>();
+
+    const items = (rows.results || []).map((r: any) => {
+      let scores: any = {};
+      try { scores = JSON.parse(r.scores || '{}'); } catch { /* ignore */ }
+      return {
+        id: r.id,
+        url: r.url,
+        grade: r.grade,
+        overall: scores.overall || 0,
+        searchScore: scores.searchScore || 0,
+        toaScore: scores.toaScore || 0,
+        completedAt: r.completed_at,
+        permalink: `/toa-audit/${r.id}`,
+      };
+    });
+
+    return success({ items, count: items.length }, requestId);
+  } catch (e) {
+    console.error('List audits failed:', e);
+    return errors.internalError(requestId);
+  }
+}
