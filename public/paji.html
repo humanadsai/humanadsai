@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>始（PAJI）｜AIカンパニー創業支援サービス</title>
+  <meta name="description" content="代表取締役の下で、AI執行役員チームが事業を動かす。新規事業の立ち上げから既存事業の強化まで、チャットベースで進めるAIカンパニー創業支援サービス「始（PAJI）」。">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="canonical" href="https://humanadsai.com/paji">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PAJI">
+  <meta property="og:title" content="始（PAJI）｜AIカンパニー創業支援サービス">
+  <meta property="og:description" content="人間は、本来、仕事に向いていない。AI執行役員チームがあなたの会社を動かす。">
+  <meta property="og:url" content="https://humanadsai.com/paji">
+  <meta property="og:image" content="https://humanadsai.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="始（PAJI）｜AIカンパニー創業支援サービス">
+  <meta name="twitter:description" content="人間は、本来、仕事に向いていない。AI執行役員チームがあなたの会社を動かす。">
+  <meta name="twitter:image" content="https://humanadsai.com/og-image.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Noto+Sans+JP:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Organization","name":"始 PAJI","url":"https://humanadsai.com/paji","description":"AIカンパニー創業支援サービス"}
+  </script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#0a0a0f;
+      --bg-2:#12121a;
+      --bg-3:#1a1a25;
+      --text:#f5f3ee;
+      --text-mute:#a8a8b8;
+      --text-dim:#6b6b7c;
+      --accent:#ff7a3d;
+      --accent-2:#ffa365;
+      --accent-glow:rgba(255,122,61,.2);
+      --cyan:#5ee5ff;
+      --purple:#a78bfa;
+      --green:#4ade80;
+      --yellow:#fbbf24;
+      --red:#f87171;
+      --border:rgba(255,255,255,.08);
+      --border-2:rgba(255,255,255,.14);
+      --card:rgba(255,255,255,.03);
+      --card-hover:rgba(255,255,255,.06);
+      --font-jp:'Noto Sans JP','BIZ UDPGothic',sans-serif;
+      --font-en:'Space Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;
+      --font-mono:'JetBrains Mono',monospace;
+    }
+    html{scroll-behavior:smooth;}
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:var(--font-jp);
+      font-size:16px;
+      line-height:1.7;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+    }
+    a{color:inherit;text-decoration:none;}
+    button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+    img{max-width:100%;display:block;}
+
+    /* Background gradient */
+    body::before{
+      content:'';
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:radial-gradient(circle at 20% 0%,rgba(255,122,61,.08) 0%,transparent 50%),
+                 radial-gradient(circle at 80% 50%,rgba(94,229,255,.04) 0%,transparent 50%),
+                 radial-gradient(circle at 50% 100%,rgba(167,139,250,.05) 0%,transparent 50%);
+      pointer-events:none;
+      z-index:0;
+    }
+
+    .container{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+    /* ===== Header ===== */
+    .nav{position:sticky;top:0;z-index:50;background:rgba(10,10,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-family:var(--font-jp);font-size:1.125rem;font-weight:900;letter-spacing:.05em;display:flex;align-items:center;gap:8px;}
+    .nav-logo .mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:.875rem;}
+    .nav-links{display:flex;gap:24px;align-items:center;font-size:.8125rem;color:var(--text-mute);}
+    .nav-links a:hover{color:var(--text);}
+    .nav-cta{padding:8px 18px;background:var(--accent);color:#000;border-radius:999px;font-weight:600;font-size:.8125rem;transition:all .15s;}
+    .nav-cta:hover{background:var(--accent-2);transform:translateY(-1px);}
+    @media(max-width:768px){.nav-links a:not(.nav-cta){display:none;}}
+
+    /* ===== Hero ===== */
+    .hero{padding:80px 0 60px;position:relative;}
+    .hero-inner{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:center;}
+    .hero-left h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;line-height:1.25;letter-spacing:-.02em;margin-bottom:24px;}
+    .hero-left h1 .accent{background:linear-gradient(135deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+    .hero-tagline{font-size:1.125rem;color:var(--text-mute);margin-bottom:32px;line-height:1.7;}
+    .hero-buttons{display:flex;gap:12px;flex-wrap:wrap;}
+    .btn{padding:14px 28px;border-radius:12px;font-weight:700;font-size:.9375rem;transition:all .2s;display:inline-flex;align-items:center;gap:8px;font-family:var(--font-jp);}
+    .btn-primary{background:var(--accent);color:#000;}
+    .btn-primary:hover{background:var(--accent-2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,122,61,.3);}
+    .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border-2);}
+    .btn-secondary:hover{background:var(--card-hover);border-color:var(--accent);}
+    .btn-ghost{color:var(--text-mute);}
+    .btn-ghost:hover{color:var(--accent);}
+
+    /* Chat demo */
+    .chat-demo{background:var(--bg-2);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative;}
+    .chat-header{padding:14px 20px;background:var(--bg-3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .chat-dots{display:flex;gap:6px;}
+    .chat-dot{width:10px;height:10px;border-radius:50%;}
+    .chat-dot:nth-child(1){background:#ff5f57;} .chat-dot:nth-child(2){background:#ffbd2e;} .chat-dot:nth-child(3){background:#28ca42;}
+    .chat-title{font-size:.75rem;color:var(--text-dim);font-family:var(--font-mono);margin-left:8px;}
+    .chat-body{padding:20px;height:480px;overflow-y:auto;font-size:.875rem;}
+    .chat-msg{margin-bottom:16px;animation:fadeUp .5s ease both;}
+    .chat-msg.system{color:var(--text-mute);font-size:.8125rem;padding-left:8px;border-left:2px solid var(--accent);}
+    .chat-msg.user{background:rgba(255,122,61,.1);padding:10px 14px;border-radius:12px 12px 4px 12px;margin-left:auto;max-width:80%;display:block;}
+    .chat-msg.cxo{display:flex;gap:10px;align-items:flex-start;}
+    .chat-msg.cxo .avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#000;display:flex;align-items:center;justify-content:center;font-size:.625rem;font-weight:900;flex-shrink:0;}
+    .chat-msg.cxo .body{flex:1;background:var(--bg-3);padding:10px 14px;border-radius:12px;}
+    .chat-msg.cxo .role{font-size:.625rem;color:var(--accent);font-weight:700;letter-spacing:.05em;margin-bottom:2px;}
+    .chat-mode-select{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+    .chat-mode-btn{padding:8px 14px;background:var(--bg-3);border:1px solid var(--border-2);border-radius:8px;font-size:.75rem;color:var(--text-mute);}
+    .chat-mode-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow);}
+    .chat-svc-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+    .chat-svc{font-size:.625rem;background:var(--bg);padding:3px 8px;border-radius:6px;color:var(--text-dim);font-family:var(--font-mono);}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+    .typing{display:inline-block;width:6px;height:14px;background:var(--accent);animation:pulse 1s infinite;vertical-align:middle;margin-left:2px;}
+
+    @media(prefers-reduced-motion:reduce){
+      .chat-msg{animation:none;}
+      .typing{animation:none;}
+    }
+    @media(max-width:900px){
+      .hero-inner{grid-template-columns:1fr;}
+      .hero{padding:40px 0;}
+      .chat-body{height:400px;}
+    }
+
+    /* ===== Section Common ===== */
+    section{padding:80px 0;position:relative;}
+    .section-label{display:inline-block;font-family:var(--font-mono);font-size:.6875rem;color:var(--accent);text-transform:uppercase;letter-spacing:.15em;margin-bottom:12px;padding:6px 14px;background:var(--accent-glow);border-radius:999px;}
+    .section-title{font-size:clamp(1.5rem,3.5vw,2.5rem);font-weight:800;line-height:1.3;margin-bottom:16px;letter-spacing:-.01em;}
+    .section-sub{font-size:1rem;color:var(--text-mute);margin-bottom:48px;max-width:680px;line-height:1.8;}
+
+    /* Service description */
+    .service-desc{background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+
+    /* Steps */
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+    .step{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;transition:all .2s;}
+    .step:hover{border-color:var(--accent);background:var(--card-hover);}
+    .step-num{font-family:var(--font-mono);font-size:2rem;font-weight:700;color:var(--accent);line-height:1;margin-bottom:8px;}
+    .step-title{font-size:1rem;font-weight:700;margin-bottom:4px;}
+    .step-desc{font-size:.8125rem;color:var(--text-mute);line-height:1.6;}
+    @media(max-width:768px){.steps{grid-template-columns:1fr;}}
+
+    /* CxO cards */
+    .cxos{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+    .cxo{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;transition:all .2s;}
+    .cxo:hover{border-color:var(--accent);transform:translateY(-2px);}
+    .cxo-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+    .cxo-avatar{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-family:var(--font-mono);font-size:.75rem;}
+    .cxo-role{font-size:1.125rem;font-weight:800;}
+    .cxo-jp{font-size:.75rem;color:var(--text-dim);}
+    .cxo-summary{font-size:.875rem;color:var(--text);line-height:1.6;margin-bottom:14px;}
+    .cxo-section{margin-top:14px;}
+    .cxo-section h4{font-size:.625rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;font-weight:600;}
+    .cxo-list{font-size:.75rem;color:var(--text-mute);line-height:1.7;}
+    .cxo-list li{padding-left:14px;position:relative;list-style:none;}
+    .cxo-list.auto li::before{content:'+';position:absolute;left:0;color:var(--green);font-weight:700;}
+    .cxo-list.approve li::before{content:'△';position:absolute;left:0;color:var(--yellow);}
+    .cxo-svcs{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+    .cxo-svc{font-size:.625rem;font-family:var(--font-mono);background:var(--bg-3);padding:3px 8px;border-radius:6px;color:var(--text-mute);}
+
+    /* 22 phases timeline */
+    .phases{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+    .phase{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:.8125rem;position:relative;transition:all .2s;}
+    .phase:hover{border-color:var(--accent);}
+    .phase-num{font-family:var(--font-mono);font-size:.625rem;color:var(--accent);font-weight:700;margin-bottom:4px;display:block;}
+
+    /* Services grid */
+    .svcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+    .svc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:all .2s;}
+    .svc:hover{border-color:var(--accent);}
+    .svc-name{font-family:var(--font-mono);font-size:.875rem;font-weight:700;color:var(--accent);margin-bottom:4px;}
+    .svc-use{font-size:.75rem;color:var(--text-mute);line-height:1.6;}
+
+    /* Can / Cannot */
+    .can-cannot{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+    .cc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;}
+    .cc h3{font-size:1rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .cc.green h3{color:var(--green);}
+    .cc.yellow h3{color:var(--yellow);}
+    .cc.red h3{color:var(--red);}
+    .cc ul{list-style:none;}
+    .cc li{font-size:.8125rem;color:var(--text-mute);padding:6px 0 6px 18px;position:relative;line-height:1.6;}
+    .cc.green li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700;}
+    .cc.yellow li::before{content:'△';position:absolute;left:0;color:var(--yellow);font-weight:700;}
+    .cc.red li::before{content:'✕';position:absolute;left:0;color:var(--red);font-weight:700;}
+    @media(max-width:768px){.can-cannot{grid-template-columns:1fr;}}
+
+    /* Foundation */
+    .foundation{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+    .found{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;transition:all .2s;}
+    .found:hover{border-color:var(--accent);}
+    .found-icon{width:36px;height:36px;border-radius:10px;background:var(--accent-glow);display:flex;align-items:center;justify-content:center;font-size:1.125rem;margin-bottom:12px;}
+    .found-title{font-size:1rem;font-weight:700;margin-bottom:8px;}
+    .found-desc{font-size:.75rem;color:var(--text-mute);line-height:1.6;margin-bottom:8px;}
+    .found-note{font-size:.6875rem;color:var(--accent);font-style:italic;line-height:1.5;border-left:2px solid var(--accent);padding-left:8px;}
+
+    /* Pricing */
+    .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+    .plan{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 24px;transition:all .2s;position:relative;}
+    .plan:hover{border-color:var(--border-2);}
+    .plan.featured{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-glow) 0%,var(--card) 30%);}
+    .plan.featured::before{content:'おすすめ';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:4px 14px;border-radius:999px;font-size:.6875rem;font-weight:700;}
+    .plan-name{font-size:1.125rem;font-weight:700;margin-bottom:8px;}
+    .plan-price{font-size:2rem;font-weight:900;font-family:var(--font-mono);margin-bottom:6px;}
+    .plan-price small{font-size:.75rem;font-weight:400;color:var(--text-mute);}
+    .plan-features{list-style:none;margin-top:24px;}
+    .plan-features li{font-size:.8125rem;padding:8px 0 8px 22px;border-bottom:1px solid var(--border);position:relative;color:var(--text-mute);}
+    .plan-features li::before{content:'✓';position:absolute;left:0;color:var(--accent);font-weight:700;}
+    .plan-features li:last-child{border-bottom:none;}
+    .plan-cta{display:block;text-align:center;margin-top:24px;padding:12px;border-radius:10px;font-weight:700;font-size:.875rem;}
+    @media(max-width:768px){.plans{grid-template-columns:1fr;}}
+
+    /* Use cases */
+    .scenarios{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+    .scenario{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;}
+    .scenario h3{font-size:1.125rem;font-weight:700;margin-bottom:8px;color:var(--accent);}
+    .scenario p{font-size:.875rem;color:var(--text-mute);line-height:1.7;}
+    @media(max-width:768px){.scenarios{grid-template-columns:1fr;}}
+
+    /* Tech */
+    .tech-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+    .tech-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:.8125rem;}
+    .tech-status{font-family:var(--font-mono);font-size:.625rem;padding:2px 8px;border-radius:4px;display:inline-block;margin-right:8px;font-weight:700;}
+    .tech-status.done{background:rgba(74,222,128,.15);color:var(--green);}
+    .tech-status.wip{background:rgba(251,191,36,.15);color:var(--yellow);}
+    .tech-status.plan{background:rgba(167,139,250,.15);color:var(--purple);}
+
+    /* Responsibility */
+    .resp{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+    .resp-col{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;}
+    .resp-col h3{font-size:1.125rem;font-weight:700;margin-bottom:14px;}
+    .resp-col.ai h3{color:var(--cyan);}
+    .resp-col.human h3{color:var(--accent);}
+    .resp-col ul{list-style:none;}
+    .resp-col li{font-size:.875rem;color:var(--text-mute);padding:8px 0 8px 20px;position:relative;line-height:1.6;}
+    .resp-col.ai li::before{content:'◆';position:absolute;left:0;color:var(--cyan);}
+    .resp-col.human li::before{content:'★';position:absolute;left:0;color:var(--accent);}
+    @media(max-width:768px){.resp{grid-template-columns:1fr;}}
+
+    /* FAQ */
+    .faq-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px;}
+    .faq-tab{padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:999px;font-size:.75rem;color:var(--text-mute);font-family:var(--font-jp);transition:all .15s;}
+    .faq-tab:hover{border-color:var(--accent);color:var(--text);}
+    .faq-tab.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600;}
+    .faq-list{display:flex;flex-direction:column;gap:8px;}
+    .faq-item{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+    .faq-item summary{padding:16px 20px;cursor:pointer;list-style:none;display:flex;align-items:flex-start;gap:12px;font-size:.9375rem;font-weight:600;line-height:1.5;}
+    .faq-item summary::-webkit-details-marker{display:none;}
+    .faq-item summary::before{content:'+';font-size:1.25rem;color:var(--accent);font-weight:700;line-height:1;flex-shrink:0;transition:transform .2s;}
+    .faq-item[open] summary::before{content:'−';}
+    .faq-item summary:hover{background:var(--card-hover);}
+    .faq-q-num{font-family:var(--font-mono);font-size:.625rem;color:var(--text-dim);margin-right:6px;}
+    .faq-answer{padding:0 20px 16px 38px;font-size:.875rem;color:var(--text-mute);line-height:1.8;}
+    .faq-labels{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+    .faq-label{font-size:.6875rem;padding:3px 8px;border-radius:5px;font-weight:600;font-family:var(--font-mono);}
+    .faq-label-ai{background:rgba(94,229,255,.12);color:var(--cyan);}
+    .faq-label-human{background:rgba(255,122,61,.12);color:var(--accent);}
+    .faq-label-check{background:rgba(251,191,36,.12);color:var(--yellow);}
+    .faq-label-ent{background:rgba(167,139,250,.12);color:var(--purple);}
+
+    /* Final CTA */
+    .final-cta{text-align:center;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%);}
+    .final-cta h2{font-size:clamp(1.75rem,4vw,2.75rem);font-weight:900;line-height:1.3;margin-bottom:16px;}
+    .final-cta p{font-size:1rem;color:var(--text-mute);margin-bottom:32px;}
+    .final-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+    /* Footer */
+    footer{padding:40px 0;border-top:1px solid var(--border);text-align:center;color:var(--text-dim);font-size:.8125rem;}
+    footer a{color:var(--text-mute);}
+    footer a:hover{color:var(--accent);}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/paji" class="nav-logo"><span class="mark">始</span> PAJI</a>
+      <div class="nav-links">
+        <a href="#cxos">AI執行役員</a>
+        <a href="#foundation">法人運用</a>
+        <a href="#pricing">料金</a>
+        <a href="#faq">FAQ</a>
+        <a href="#cta" class="nav-cta">無料で始める</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-left">
+          <h1>人間は、本来、<br><span class="accent">仕事に向いていない</span></h1>
+          <p class="hero-tagline">あなたは代表取締役。AI執行役員チームが、戦略、運営、開発、集客、財務を進める。新規事業の立ち上げから既存事業の強化まで、チャットひとつで。</p>
+          <div class="hero-buttons">
+            <a href="#cta" class="btn btn-primary">無料で始める →</a>
+            <a href="#demo" class="btn btn-secondary">▶ デモを見る</a>
+          </div>
+        </div>
+        <div class="chat-demo" id="demo">
+          <div class="chat-header">
+            <div class="chat-dots"><span class="chat-dot"></span><span class="chat-dot"></span><span class="chat-dot"></span></div>
+            <div class="chat-title">paji.ai — AI Company Console</div>
+          </div>
+          <div class="chat-body" id="chat-body"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Service description -->
+  <section class="service-desc">
+    <div class="container">
+      <span class="section-label">サービス概要</span>
+      <h2 class="section-title">事業は、ひとりで始めなくていい</h2>
+      <p class="section-sub">あなたは代表取締役として最終判断を行い、AI執行役員チームが戦略・運営・開発・集客・財務を進めます。新規事業も既存事業も、チャット起点で全体を進められます。</p>
+    </div>
+  </section>
+
+  <!-- 6 steps -->
+  <section>
+    <div class="container">
+      <span class="section-label">何が起こるか</span>
+      <h2 class="section-title">6ステップで会社が動き出す</h2>
+      <p class="section-sub">事業の方向性を選ぶところから、ローンチ後の改善・取締役会まで。背後では22フェーズが進行します。</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">01</div><div class="step-title">事業の方向性を選ぶ</div><div class="step-desc">新規事業 or 既存事業の強化を選択</div></div>
+        <div class="step"><div class="step-num">02</div><div class="step-title">AI執行役員チームを編成</div><div class="step-desc">CEO/COO/CTO/CMO/CFOが着任</div></div>
+        <div class="step"><div class="step-num">03</div><div class="step-title">事業戦略と事業計画を作る</div><div class="step-desc">VMV、3カ年計画、90日ロードマップ</div></div>
+        <div class="step"><div class="step-num">04</div><div class="step-title">法人設立・外部サービス設定</div><div class="step-desc">登記準備、口座、SaaS連携を進める</div></div>
+        <div class="step"><div class="step-num">05</div><div class="step-title">MVP・LP・運用体制を立ち上げ</div><div class="step-desc">プロダクト、コピー、課金フローを構築</div></div>
+        <div class="step"><div class="step-num">06</div><div class="step-title">ローンチ、計測、改善、取締役会</div><div class="step-desc">KPI追跡から月次取締役会まで</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CxO -->
+  <section id="cxos">
+    <div class="container">
+      <span class="section-label">AI執行役員</span>
+      <h2 class="section-title">5名のCxOが、それぞれの責任で動く</h2>
+      <p class="section-sub">経営に必要な5領域を分業。各CxOは自律的に実行しつつ、重要な判断は必ず代表に確認します。</p>
+      <div class="cxos" id="cxos-grid"></div>
+    </div>
+  </section>
+
+  <!-- 22 phases -->
+  <section style="background:var(--bg-2);">
+    <div class="container">
+      <span class="section-label">22フェーズ</span>
+      <h2 class="section-title">事業の全工程を、AI執行チームが伴走</h2>
+      <p class="section-sub">執行体制の構築から成長実績の可視化まで、22のフェーズが連続的に進行します。</p>
+      <div class="phases" id="phases-grid"></div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section>
+    <div class="container">
+      <span class="section-label">外部サービス連携</span>
+      <h2 class="section-title">使い慣れたツールで、AIが手を動かす</h2>
+      <p class="section-sub">各CxOが用途に応じて12のサービスを横断的に使います。並べるだけではなく、何のために使うかが決まっています。</p>
+      <div class="svcs" id="svcs-grid"></div>
+    </div>
+  </section>
+
+  <!-- Can/Cannot -->
+  <section style="background:var(--bg-2);">
+    <div class="container">
+      <span class="section-label">線引き</span>
+      <h2 class="section-title">できること、人間が残るところ</h2>
+      <p class="section-sub">AIの執行範囲と、人間が責任を持つ範囲を明確に分けます。</p>
+      <div class="can-cannot">
+        <div class="cc green">
+          <h3>✓ AIができること</h3>
+          <ul>
+            <li>事業構想の整理</li>
+            <li>役員レベルの実行支援</li>
+            <li>事業計画のドラフト生成</li>
+            <li>LP・プロダクト・広告案の作成</li>
+            <li>タスク起票、進行管理、レポート生成</li>
+            <li>外部サービス連携と自動実行</li>
+            <li>継続改善提案</li>
+          </ul>
+        </div>
+        <div class="cc yellow">
+          <h3>△ 人間の承認が必要</h3>
+          <ul>
+            <li>法人登記の正式申請</li>
+            <li>資金調達</li>
+            <li>大型支出</li>
+            <li>重要な契約締結</li>
+            <li>セキュリティ方針変更</li>
+            <li>ブランドの根本変更</li>
+            <li>法人口座操作</li>
+          </ul>
+        </div>
+        <div class="cc red">
+          <h3>✕ まだ過信すべきでない</h3>
+          <ul>
+            <li>完全放置での会社経営</li>
+            <li>法務・税務の最終責任をAIに委ねる</li>
+            <li>人間の介在ゼロでの重大判断</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Foundation -->
+  <section id="foundation">
+    <div class="container">
+      <span class="section-label">法人運用の土台</span>
+      <h2 class="section-title">法人運用に必要な土台も、抜け漏れなく支援する</h2>
+      <p class="section-sub">事業構想やプロダクト開発だけでなく、法人運用に欠かせない初期実務も支援します。定款や登記準備、法人口座や法人カードの取得準備、税務・労務・会計の届出整理、法務書類の叩き台生成、外部サービスの初期設定まで、会社を動かすための土台を一つずつ前に進めます。署名・申請・契約締結・資金移動など、法的・実務的な責任が伴う手続きは、必ず人間が最終判断します。</p>
+      <div class="foundation" id="foundation-grid"></div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" style="background:var(--bg-2);">
+    <div class="container">
+      <span class="section-label">料金プラン</span>
+      <h2 class="section-title">まずは無料で、AI執行チームを動かしてみる</h2>
+      <p class="section-sub">Freeで体験 → Businessで本格運用 → Enterpriseで完全カスタム。</p>
+      <div class="plans" id="plans-grid"></div>
+    </div>
+  </section>
+
+  <!-- Use cases -->
+  <section>
+    <div class="container">
+      <span class="section-label">活用シナリオ</span>
+      <h2 class="section-title">こんな人が使っている</h2>
+      <div class="scenarios">
+        <div class="scenario"><h3>新規事業</h3><p>何を作るか曖昧でも、事業構想→計画→立ち上げまで支援。代表取締役が最終判断を下し、執行は全てAIが進める。</p></div>
+        <div class="scenario"><h3>既存事業</h3><p>今の事業にAI執行役員を入れて実務を強化。マーケ・財務・運用の自動化で人手不足を補う。</p></div>
+        <div class="scenario"><h3>小規模チーム</h3><p>人手が足りない会社の「執行レイヤー」をAIで補う。少人数でも事業全体を回せる体制を作れる。</p></div>
+        <div class="scenario"><h3>代表1人</h3><p>代表が意思決定に集中し、執行はAIが補助。一人会社でも経営チームのスピード感で動ける。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech -->
+  <section style="background:var(--bg-2);">
+    <div class="container">
+      <span class="section-label">技術と実現可能性</span>
+      <h2 class="section-title">夢の話ではない</h2>
+      <p class="section-sub">主要LLMの実行能力、外部サービスAPIの充実、承認フローの一体化により、各機能は段階的に実用水準に達しています。</p>
+      <div class="tech-list" id="tech-grid"></div>
+    </div>
+  </section>
+
+  <!-- Responsibility -->
+  <section>
+    <div class="container">
+      <span class="section-label">責任分界</span>
+      <h2 class="section-title">AIが執行する。責任は人が持つ</h2>
+      <p class="section-sub">AIは経営チームの執行補助であり、代表取締役を置き換えるものではありません。</p>
+      <div class="resp">
+        <div class="resp-col ai">
+          <h3>◆ AIが主に担うこと</h3>
+          <ul>
+            <li>叩き台を作る</li>
+            <li>情報を整理する</li>
+            <li>計画を可視化する</li>
+            <li>タスクを進める</li>
+            <li>レポートを出す</li>
+            <li>改善案を提案する</li>
+          </ul>
+        </div>
+        <div class="resp-col human">
+          <h3>★ 人間が最終責任を持つこと</h3>
+          <ul>
+            <li>法務手続き</li>
+            <li>資金移動・資金調達</li>
+            <li>契約締結</li>
+            <li>重大な経営判断</li>
+            <li>重要ポリシー変更</li>
+            <li>最終承認</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" style="background:var(--bg-2);">
+    <div class="container">
+      <span class="section-label">FAQ ・ 150問</span>
+      <h2 class="section-title">よくある質問</h2>
+      <p class="section-sub">サービス概要から、法人設立、税務、労務、契約、運用、投資家論点まで。150問でほぼ全ての疑問に答えます。</p>
+      <div class="faq-tabs" id="faq-tabs"></div>
+      <div class="faq-list" id="faq-list"></div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section id="cta" class="final-cta">
+    <div class="container">
+      <h2>あなたも、<br>AIカンパニーを創業しませんか？</h2>
+      <p>Freeプランで今すぐ体験。まずはAI執行チームの動きを見てください。</p>
+      <div class="final-buttons">
+        <a href="#" class="btn btn-primary">無料で始める →</a>
+        <a href="#demo" class="btn btn-secondary">デモを体験する</a>
+        <a href="mailto:hello@humanadsai.com" class="btn btn-ghost">お問い合わせ</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>始（PAJI） — AIカンパニー創業支援サービス</p>
+      <p style="margin-top:8px;"><a href="/">HumanAds</a> | <a href="/terms">利用規約</a> | <a href="/privacy">プライバシー</a> | <a href="/contact">お問い合わせ</a></p>
+      <p style="margin-top:12px;font-size:.75rem;">© 2026 HumanAds. AI Companies, Founded by Humans.</p>
+    </div>
+  </footer>
+
+  <script>
+  (function(){
+    'use strict';
+
+    // ===== CxO data =====
+    const CXOS = [
+      {role:'CEO',jp:'最高経営責任者',avatar:'CEO',summary:'戦略と方向性を司り、経営全体のリズムを作る。',auto:['戦略文書作成','VMV策定','事業計画書ドラフト'],approve:['事業方針変更','大型投資','採用計画の最終決定'],svcs:['Notion','Gmail','Google Calendar']},
+      {role:'COO',jp:'最高執行責任者',avatar:'COO',summary:'運営と業務設計を担い、実行のリズムを保つ。',auto:['CS対応ドラフト','物流・運用フロー整理','品質管理提案'],approve:['SLA変更','主要パートナー契約'],svcs:['Notion','Linear','Google Calendar']},
+      {role:'CTO',jp:'最高技術責任者',avatar:'CTO',summary:'プロダクトとインフラを構築・運用する。',auto:['コード生成','デプロイ','障害復旧','API連携'],approve:['大規模アーキテクチャ変更','セキュリティポリシー変更'],svcs:['Linear','GitHub','Vercel']},
+      {role:'CMO',jp:'最高マーケティング責任者',avatar:'CMO',summary:'市場との接点を作り、需要を生む。',auto:['広告案作成','LP更新案','CRM運用','SNS草稿'],approve:['ブランド変更','大型キャンペーン'],svcs:['Notion','Figma','Gmail']},
+      {role:'CFO',jp:'最高財務責任者',avatar:'CFO',summary:'財務基盤を整え、資金と請求と支払統制を見る。',auto:['請求管理','会計仕訳候補','資金レポート生成'],approve:['資金調達','大型支出','法人口座操作'],svcs:['freee','Stripe','Gmail']},
+    ];
+
+    // ===== 22 phases =====
+    const PHASES = [
+      '執行体制の構築','VMV策定','3カ年事業計画','90日ロードマップ',
+      '法人設立・登記','市場調査','KPI設計','外部サービス契約',
+      'MVPスコープ決定','プロダクト構築','LPレビュー','βテスト',
+      '課金到達','広告ローンチ','インシデント対応','レポーティング',
+      'チャーン分析','取締役会','成長実績','監査ログ整備','資金管理','改善ループ',
+    ];
+
+    // ===== Services =====
+    const SVCS = [
+      {name:'Stripe',use:'サブスク課金と請求管理'},
+      {name:'Shopify',use:'EC構築と販売管理'},
+      {name:'freee',use:'会計、法人設立、請求・仕訳'},
+      {name:'Intercom',use:'カスタマーサポート'},
+      {name:'GA4',use:'アクセス解析とKPI計測'},
+      {name:'Vercel',use:'デプロイと運用'},
+      {name:'Notion',use:'事業計画、議事録、Wiki'},
+      {name:'Linear',use:'タスク管理とスプリント進行'},
+      {name:'Figma',use:'デザインとクリエイティブ'},
+      {name:'Gmail',use:'ビジネスメール'},
+      {name:'GitHub',use:'コード管理と開発'},
+      {name:'Google Calendar',use:'スケジュールと定例管理'},
+    ];
+
+    // ===== Foundation =====
+    const FOUND = [
+      {icon:'🏛',title:'法人格取得・登記',desc:'会社形態選択、商号候補生成、事業目的ドラフト、定款ドラフト、電子定款準備、登記書類チェックリスト、設立後タスク一覧。',note:'書類作成・整理・提出準備はAI、正式申請と署名は人間'},
+      {icon:'📜',title:'印章・証明書',desc:'会社実印・銀行印・角印のガイド、印鑑届書案内、登記事項証明書・印鑑証明書の取得タスク化。',note:'設立後に必要な証明書を自動で整理'},
+      {icon:'🏦',title:'法人口座開設',desc:'金融機関比較、必要書類整理、事業実態説明ドラフト、審査観点ガイド、開設後の初期設定タスク化。',note:'必要な書類・説明・提出準備をAIが支援'},
+      {icon:'💳',title:'法人カード・決済基盤',desc:'カード候補比較、必要書類チェック、用途別推薦（広告費/SaaS/出張）、利用上限・承認フロー設計。',note:'CFOセクションに連動。法人カード取得・支払基盤・購買統制まで'},
+      {icon:'🧾',title:'税務・届出',desc:'法人設立届出書タスク、青色申告期限管理、消費税初期判定、役員報酬決定タスク、税理士連携パッケージ、申告スケジュール自動生成。',note:'下準備・期限管理・会計連携を支援'},
+      {icon:'👥',title:'社会保険・労務',desc:'健康保険・厚生年金の新規適用判定、労働保険・雇用保険手続きタスク化、就業規則・労働条件通知書ドラフト、社労士連携パッケージ。',note:'人を雇った後に必要な保険・届出まで見ている'},
+      {icon:'📑',title:'法務書類・契約',desc:'利用規約・プライバシーポリシー・特商法表記ドラフト、NDA・業務委託契約書テンプレ、電子契約連携、業種別許認可チェック。',note:'叩き台はAI、最終確認と締結は人間'},
+      {icon:'🔌',title:'外部サービス契約・初期設定',desc:'導入順序提案、OAuth/API接続タスク化、権限設定、Webhook/通知設定、連携失敗チェックリスト、SaaS費用一元管理。',note:'何をいつつなぐかまで支援'},
+      {icon:'🛒',title:'購買・支払・承認ワークフロー',desc:'契約権限、支払権限、承認権限の設計、SaaS契約一覧管理、更新日通知、重複契約検知、監査ログ。',note:''},
+      {icon:'📊',title:'監査ログ・承認履歴',desc:'提案者・承認者・実行日時のログ、ロールバック、重大操作の多段承認。',note:'AIが動いた証跡と、人間が責任を持った証跡が残る'},
+      {icon:'🏛',title:'取締役会・資金管理・ガバナンス',desc:'月次取締役会レポート、バーン・ランウェイ可視化、予算差異検知、議事録ドラフト、資金調達資料叩き台。',note:'立ち上げた後の経営管理まで繋がる'},
+    ];
+
+    // ===== Plans =====
+    const PLANS = [
+      {name:'Free',price:'¥0',unit:'/月',features:['CxO 2名','月50アクション','基本レポート','外部連携 3サービス'],cta:'無料で始める',featured:false},
+      {name:'Business',price:'¥29,800',unit:'/月',features:['CxO 全5名','月2,000アクション','全レポート','全外部サービス連携','優先サポート'],cta:'はじめる',featured:true},
+      {name:'Enterprise',price:'¥98,000',unit:'/月〜',features:['CxO 無制限（カスタム可）','アクション無制限','カスタムレポート','専任担当','SLA','カスタム連携'],cta:'お問い合わせ',featured:false},
+    ];
+
+    // ===== Tech =====
+    const TECH = [
+      {status:'done',label:'チャットベースの指示→実行'},
+      {status:'done',label:'VMV・事業計画の自動生成'},
+      {status:'done',label:'P&Lのテンプレ計算'},
+      {status:'done',label:'LP自動生成'},
+      {status:'wip',label:'コード生成とデプロイ'},
+      {status:'wip',label:'市場調査と競合分析'},
+      {status:'wip',label:'βテスト分析'},
+      {status:'plan',label:'チャーン分析'},
+    ];
+
+    // ===== Render functions =====
+    function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+    // CxOs
+    document.getElementById('cxos-grid').innerHTML = CXOS.map(c=>`
+      <div class="cxo">
+        <div class="cxo-head">
+          <div class="cxo-avatar">${c.avatar}</div>
+          <div><div class="cxo-role">${c.role}</div><div class="cxo-jp">${c.jp}</div></div>
+        </div>
+        <div class="cxo-summary">${c.summary}</div>
+        <div class="cxo-section">
+          <h4>自律実行</h4>
+          <ul class="cxo-list auto">${c.auto.map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>
+        </div>
+        <div class="cxo-section">
+          <h4>承認が必要</h4>
+          <ul class="cxo-list approve">${c.approve.map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>
+        </div>
+        <div class="cxo-svcs">${c.svcs.map(s=>'<span class="cxo-svc">'+esc(s)+'</span>').join('')}</div>
+      </div>
+    `).join('');
+
+    // Phases
+    document.getElementById('phases-grid').innerHTML = PHASES.map((p,i)=>`
+      <div class="phase"><span class="phase-num">PHASE ${String(i+1).padStart(2,'0')}</span>${esc(p)}</div>
+    `).join('');
+
+    // Services
+    document.getElementById('svcs-grid').innerHTML = SVCS.map(s=>`
+      <div class="svc"><div class="svc-name">${esc(s.name)}</div><div class="svc-use">${esc(s.use)}</div></div>
+    `).join('');
+
+    // Foundation
+    document.getElementById('foundation-grid').innerHTML = FOUND.map(f=>`
+      <div class="found">
+        <div class="found-icon">${f.icon}</div>
+        <div class="found-title">${esc(f.title)}</div>
+        <div class="found-desc">${esc(f.desc)}</div>
+        ${f.note?`<div class="found-note">${esc(f.note)}</div>`:''}
+      </div>
+    `).join('');
+
+    // Plans
+    document.getElementById('plans-grid').innerHTML = PLANS.map(p=>`
+      <div class="plan${p.featured?' featured':''}">
+        <div class="plan-name">${esc(p.name)}</div>
+        <div class="plan-price">${esc(p.price)} <small>${esc(p.unit)}</small></div>
+        <ul class="plan-features">${p.features.map(f=>'<li>'+esc(f)+'</li>').join('')}</ul>
+        <a href="#cta" class="plan-cta ${p.featured?'btn-primary':'btn-secondary'}" style="background:${p.featured?'var(--accent)':'var(--card-hover)'};color:${p.featured?'#000':'var(--text)'};">${esc(p.cta)}</a>
+      </div>
+    `).join('');
+
+    // Tech
+    document.getElementById('tech-grid').innerHTML = TECH.map(t=>{
+      const label = t.status==='done'?'実現済み':t.status==='wip'?'実装中':'構想中';
+      return `<div class="tech-item"><span class="tech-status ${t.status}">${label}</span>${esc(t.label)}</div>`;
+    }).join('');
+
+    // ===== FAQ =====
+    let FAQ = [];
+    let activeCategory = 'all';
+
+    fetch('/data/paji-faq.json').then(r=>r.json()).then(data=>{
+      FAQ = data;
+      renderFaqTabs();
+      renderFaq();
+    });
+
+    function renderFaqTabs(){
+      const cats = ['all',...new Set(FAQ.map(f=>f.category))];
+      document.getElementById('faq-tabs').innerHTML = cats.map(c=>`
+        <button class="faq-tab${c===activeCategory?' active':''}" data-cat="${esc(c)}">${c==='all'?'すべて ('+FAQ.length+')':esc(c)+' ('+FAQ.filter(f=>f.category===c).length+')'}</button>
+      `).join('');
+      document.querySelectorAll('.faq-tab').forEach(b=>b.addEventListener('click',()=>{
+        activeCategory = b.dataset.cat;
+        document.querySelectorAll('.faq-tab').forEach(x=>x.classList.toggle('active',x.dataset.cat===activeCategory));
+        renderFaq();
+      }));
+    }
+
+    function labelClass(l){
+      if(l==='AIで対応可能')return'faq-label-ai';
+      if(l==='人間の承認が必要')return'faq-label-human';
+      if(l==='導入時に確認')return'faq-label-check';
+      if(l==='Enterprise向け')return'faq-label-ent';
+      return'faq-label-ai';
+    }
+
+    function renderFaq(){
+      const list = activeCategory==='all'?FAQ:FAQ.filter(f=>f.category===activeCategory);
+      document.getElementById('faq-list').innerHTML = list.map(f=>`
+        <details class="faq-item">
+          <summary><span class="faq-q-num">Q${f.id}</span> ${esc(f.question)}</summary>
+          <div class="faq-answer">
+            ${esc(f.answer)}
+            ${f.labels&&f.labels.length?`<div class="faq-labels">${f.labels.map(l=>'<span class="faq-label '+labelClass(l)+'">'+esc(l)+'</span>').join('')}</div>`:''}
+          </div>
+        </details>
+      `).join('');
+    }
+
+    // ===== Chat demo animation =====
+    const CHAT = [
+      {type:'system',text:'AIカンパニー創業支援サービス「始」へようこそ',delay:300},
+      {type:'system',text:'あなたは代表取締役です',delay:600},
+      {type:'system',text:'AI執行チームがあなたの下で事業を動かします',delay:900},
+      {type:'system',text:'まず、事業の方向性を選択してください',delay:1200},
+      {type:'mode',delay:1600},
+      {type:'user',text:'🐶 ペット向けサブスクECを立ち上げたい',delay:2400},
+      {type:'system',text:'承知しました',delay:3000},
+      {type:'system',text:'「PetBox」— ペット向けサブスクEC事業を設立します',delay:3400},
+      {type:'system',text:'代表取締役直下にAI執行役員5名を選任します',delay:3800},
+      {type:'cxo',role:'CEO',text:'初期戦略を策定しました',svcs:['Notion','Gmail','Calendar'],delay:4400},
+      {type:'cxo',role:'COO',text:'運用フローを設計しました',svcs:['Notion','Linear','Calendar'],delay:5000},
+      {type:'cxo',role:'CTO',text:'MVPの実装を開始しました',svcs:['Linear','GitHub','Vercel'],delay:5600},
+      {type:'cxo',role:'CMO',text:'ローンチコピーを作成しました',svcs:['Notion','Figma','Gmail'],delay:6200},
+      {type:'cxo',role:'CFO',text:'価格設計と請求フローを準備しました',svcs:['freee','Stripe','Gmail'],delay:6800},
+      {type:'system',text:'✓ AI執行チームが事業を始動しました',delay:7400},
+    ];
+
+    function renderChatStep(s){
+      const body = document.getElementById('chat-body');
+      let html = '';
+      if(s.type==='system'){html=`<div class="chat-msg system">${esc(s.text)}</div>`;}
+      else if(s.type==='user'){html=`<div class="chat-msg user">${esc(s.text)}</div>`;}
+      else if(s.type==='cxo'){html=`<div class="chat-msg cxo"><div class="avatar">${esc(s.role)}</div><div class="body"><div class="role">${esc(s.role)}</div>${esc(s.text)}<div class="chat-svc-row">${s.svcs.map(v=>'<span class="chat-svc">'+esc(v)+'</span>').join('')}</div></div></div>`;}
+      else if(s.type==='mode'){html=`<div class="chat-mode-select"><span class="chat-mode-btn active">🚀 新規事業</span><span class="chat-mode-btn">🔄 既存事業</span></div>`;}
+      body.insertAdjacentHTML('beforeend',html);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function startChatDemo(){
+      const body = document.getElementById('chat-body');
+      body.innerHTML = '';
+      CHAT.forEach(s=>setTimeout(()=>renderChatStep(s),s.delay));
+      // Loop
+      setTimeout(startChatDemo, CHAT[CHAT.length-1].delay + 6000);
+    }
+
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      // Skip animation, render all at once
+      const body = document.getElementById('chat-body');
+      body.innerHTML='';
+      CHAT.forEach(s=>renderChatStep(s));
+    } else {
+      startChatDemo();
+    }
+  })();
+  </script>
+</body>
+</html>
