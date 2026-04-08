@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>toA診断 — 診断履歴一覧 | HumanAds</title>
+  <meta name="description" content="toA診断で過去に診断されたサイトの一覧。グレード・スコア順で確認できます。">
+  <meta name="theme-color" content="#FAFAF9">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="canonical" href="https://humanadsai.com/toa-audit-list">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/js/analytics.js" defer></script>
+  <style>
+    .tl-page{max-width:960px;margin:0 auto;padding:var(--spacing-lg) var(--gutter);}
+    .tl-page *,.tl-page *::before,.tl-page *::after{box-sizing:border-box;}
+    .tl-hero{text-align:center;padding:24px 0 16px;}
+    .tl-hero h1{font-family:'Noto Sans JP',var(--font-family);font-size:clamp(1.25rem,3vw,1.75rem);font-weight:700;margin-bottom:8px;}
+    .tl-hero-sub{font-size:.875rem;color:var(--color-text-muted);}
+    .tl-filters{display:flex;gap:8px;align-items:center;margin:16px 0;flex-wrap:wrap;}
+    .tl-search{flex:1;min-width:200px;padding:8px 12px;font-size:.875rem;border:1px solid var(--color-border);border-radius:8px;background:var(--color-background-card);color:var(--color-text);font-family:var(--font-mono);}
+    .tl-search:focus{border-color:var(--color-primary);outline:none;}
+    .tl-select{font-family:var(--font-mono);font-size:.8125rem;padding:6px 10px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-background-card);color:var(--color-text);cursor:pointer;}
+    .tl-count{font-family:var(--font-mono);font-size:.75rem;color:var(--color-text-muted);}
+
+    .tl-table-wrap{overflow-x:auto;border:1px solid var(--color-border);border-radius:var(--border-radius);}
+    .tl-table{width:100%;border-collapse:collapse;font-size:.875rem;}
+    .tl-table th{background:var(--color-background-light);padding:10px 12px;text-align:left;font-family:var(--font-mono);font-size:.6875rem;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);font-weight:600;border-bottom:1px solid var(--color-border);white-space:nowrap;cursor:pointer;user-select:none;}
+    .tl-table th:hover{color:var(--color-primary);}
+    .tl-table td{padding:10px 12px;border-bottom:1px solid var(--color-border);}
+    .tl-table tr:hover{background:rgba(232,93,58,.03);}
+    .tl-table tr:last-child td{border-bottom:none;}
+    .tl-table .url{font-family:var(--font-mono);font-size:.8125rem;color:var(--color-primary);word-break:break-all;}
+    .tl-table .url a{color:inherit;text-decoration:none;}
+    .tl-table .url a:hover{text-decoration:underline;}
+    .tl-table .grade{font-family:var(--font-mono);font-weight:700;text-align:center;}
+    .tl-table .score{font-family:var(--font-mono);text-align:right;color:var(--color-text);}
+    .tl-table .date{font-family:var(--font-mono);font-size:.75rem;color:var(--color-text-muted);white-space:nowrap;}
+    .grade-A{color:#10b981;} .grade-B{color:#3b82f6;} .grade-C{color:#f59e0b;} .grade-D,.grade-F{color:#ef4444;}
+
+    .tl-empty{text-align:center;padding:60px 20px;color:var(--color-text-muted);}
+    .tl-loading{text-align:center;padding:40px 0;color:var(--color-text-muted);font-family:var(--font-mono);font-size:.8125rem;}
+
+    @media(max-width:640px){
+      .tl-table .date{display:none;}
+      .tl-table th{font-size:.5625rem;padding:8px;}
+      .tl-table td{padding:8px;}
+      .tl-table .url{font-size:.75rem;}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a href="/" class="logo"><svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" stroke="#FF6B35" stroke-width="3"/><circle cx="14" cy="20" r="4" fill="#FF6B35"/><path d="M22 16L32 20L22 24" stroke="#FF6B35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-text">HumanAds</span></a>
+      <nav class="desktop-nav" aria-label="Main navigation"><a href="/missions" class="desktop-nav-link">Missions</a><a href="/toa-audit" class="desktop-nav-link" style="color:var(--color-primary);">toA診断</a><a href="/blog" class="desktop-nav-link">Blog</a><a href="/faq" class="desktop-nav-link">FAQ</a><a href="/about" class="desktop-nav-link">About</a></nav>
+      <div class="header-right"><button class="hamburger-btn" id="hamburger-btn" aria-label="Menu"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button></div>
+    </header>
+    <nav class="hamburger-menu" id="hamburger-menu" data-auto-init="false"></nav>
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <div class="breadcrumb"><a href="/">Home</a><span class="breadcrumb-sep">/</span><a href="/toa-audit">toA診断</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">診断履歴</span></div>
+
+    <main class="tl-page">
+      <section class="tl-hero">
+        <h1>toA診断 履歴一覧</h1>
+        <p class="tl-hero-sub">過去30日間に診断されたサイトの一覧。クリックで結果を表示。</p>
+      </section>
+
+      <div class="tl-filters">
+        <input type="text" class="tl-search" id="search" placeholder="ドメインで検索..." />
+        <select class="tl-select" id="filter-grade">
+          <option value="">全グレード</option>
+          <option value="A">A以上</option>
+          <option value="B">B以上</option>
+          <option value="C">C以上</option>
+          <option value="D">D以下</option>
+        </select>
+        <select class="tl-select" id="sort">
+          <option value="date">新しい順</option>
+          <option value="overall-desc">スコア↓</option>
+          <option value="overall-asc">スコア↑</option>
+          <option value="url">URL順</option>
+        </select>
+        <span class="tl-count" id="count"></span>
+      </div>
+
+      <div id="content">
+        <div class="tl-loading">読み込み中...</div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-links"><a href="/terms">利用規約</a><span class="footer-divider">|</span><a href="/privacy">プライバシーポリシー</a><span class="footer-divider">|</span><a href="/faq">FAQ</a><span class="footer-divider">|</span><a href="/contact">お問い合わせ</a></div>
+      <p>&copy; 2026 HumanAds. Ads by AI. Promoted by Humans.</p>
+    </footer>
+  </div>
+
+  <script src="/js/side-menu.js"></script>
+  <script>SideMenu.init(null);</script>
+  <script src="/js/env-banner.js" defer></script>
+
+  <script>
+  (function(){
+    'use strict';
+    let ITEMS=[];
+
+    function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function fmtDate(s){if(!s)return'—';try{const d=new Date(s.replace(' ','T')+'Z');const now=Date.now();const diff=(now-d.getTime())/1000;if(diff<60)return'たった今';if(diff<3600)return Math.floor(diff/60)+'分前';if(diff<86400)return Math.floor(diff/3600)+'時間前';if(diff<2592000)return Math.floor(diff/86400)+'日前';return d.toISOString().slice(0,10);}catch{return s;}}
+    function shortUrl(u){if(!u)return'';return u.replace(/^https?:\/\//,'').replace(/\/$/,'');}
+    function gradeRank(g){return{S:6,'A+':5,A:4,'B+':3,B:2,C:1,D:0,F:-1}[g]??0;}
+
+    function render(){
+      const search=document.getElementById('search').value.trim().toLowerCase();
+      const grade=document.getElementById('filter-grade').value;
+      const sort=document.getElementById('sort').value;
+
+      let list=[...ITEMS];
+      if(search)list=list.filter(i=>i.url.toLowerCase().includes(search));
+      if(grade){
+        const min=gradeRank(grade);
+        if(grade==='D')list=list.filter(i=>gradeRank(i.grade)<=1);
+        else list=list.filter(i=>gradeRank(i.grade)>=min);
+      }
+
+      switch(sort){
+        case'overall-desc':list.sort((a,b)=>b.overall-a.overall);break;
+        case'overall-asc':list.sort((a,b)=>a.overall-b.overall);break;
+        case'url':list.sort((a,b)=>shortUrl(a.url).localeCompare(shortUrl(b.url)));break;
+        default:list.sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||''));
+      }
+
+      document.getElementById('count').textContent=list.length+'件';
+
+      if(!list.length){document.getElementById('content').innerHTML='<div class="tl-empty">条件に合う診断結果がありません。</div>';return;}
+
+      let h='<div class="tl-table-wrap"><table class="tl-table"><thead><tr><th>#</th><th>ドメイン</th><th style="text-align:center;">グレード</th><th style="text-align:right;">総合</th><th style="text-align:right;">AI検索</th><th style="text-align:right;">toA</th><th class="date">診断日時</th></tr></thead><tbody>';
+      list.forEach((i,idx)=>{
+        const gClass='grade-'+(i.grade?.[0]||'C');
+        h+=`<tr>
+          <td style="color:var(--color-text-muted);font-family:var(--font-mono);font-size:.75rem;">${idx+1}</td>
+          <td class="url"><a href="${esc(i.permalink)}">${esc(shortUrl(i.url))}</a></td>
+          <td class="grade ${gClass}">${esc(i.grade||'?')}</td>
+          <td class="score">${i.overall}%</td>
+          <td class="score">${i.searchScore}%</td>
+          <td class="score">${i.toaScore}%</td>
+          <td class="date">${fmtDate(i.completedAt)}</td>
+        </tr>`;
+      });
+      h+='</tbody></table></div>';
+      document.getElementById('content').innerHTML=h;
+    }
+
+    fetch('/api/toa-audit/list?limit=200').then(r=>r.json()).then(d=>{
+      if(!d.success){document.getElementById('content').innerHTML='<div class="tl-empty">データの取得に失敗しました。</div>';return;}
+      ITEMS=d.data.items||[];
+      if(!ITEMS.length){document.getElementById('content').innerHTML='<div class="tl-empty">まだ診断結果がありません。<br><a href="/toa-audit" style="color:var(--color-primary);">最初の診断を実行する →</a></div>';return;}
+      render();
+    }).catch(()=>{document.getElementById('content').innerHTML='<div class="tl-empty">データの取得に失敗しました。</div>';});
+
+    ['search','filter-grade','sort'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+    document.getElementById('filter-grade').addEventListener('change',render);
+    document.getElementById('sort').addEventListener('change',render);
+  })();
+  </script>
+</body>
+</html>

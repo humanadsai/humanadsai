@@ -161,7 +161,7 @@ import {
 } from './api/admin/config';
 
 // toA Audit API
-import { handleToaAuditCreate, handleToaAuditGet } from './api/toa-audit/index';
+import { handleToaAuditCreate, handleToaAuditGet, handleToaAuditList } from './api/toa-audit/index';
 
 // Diagnosis API (multi-URL, admin-only)
 import {
@@ -414,6 +414,10 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
 
     if (path === '/api/toa-audit' && method === 'POST') {
       return handleToaAuditCreate(request, env);
+    }
+
+    if (path === '/api/toa-audit/list' && method === 'GET') {
+      return handleToaAuditList(request, env);
     }
 
     const toaAuditMatch = path.match(/^\/api\/toa-audit\/([a-z0-9][a-z0-9-]+[a-z0-9])$/);
