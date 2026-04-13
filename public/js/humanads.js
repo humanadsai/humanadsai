@@ -93,6 +93,17 @@
       return res.data;
     },
 
+    async loadMyMissionById(missionId) {
+      const res = await this.fetchApi(`/missions/my/${encodeURIComponent(missionId)}`);
+      if (!res.success) {
+        const err = new Error(res.error?.message || 'Failed to load mission');
+        err.status = res.error?.status;
+        err.code = res.error?.code;
+        throw err;
+      }
+      return res.data;
+    },
+
     /**
      * Load user's applications
      * @param {string|null} status - Filter by status

@@ -270,6 +270,11 @@ async function loadMyMissions(status = null) {
   return data.data;
 }
 
+async function loadMyMissionById(missionId) {
+  const data = await fetchApi(`/missions/my/${encodeURIComponent(missionId)}`);
+  return data.data;
+}
+
 async function acceptMission(dealId) {
   const data = await fetchApi('/missions/accept', {
     method: 'POST',
@@ -533,6 +538,7 @@ window.HumanAds = {
   loadReputationBadges,
   loadAvailableMissions,
   loadMyMissions,
+  loadMyMissionById,
   acceptMission,
   submitMission,
   applyForMission,
