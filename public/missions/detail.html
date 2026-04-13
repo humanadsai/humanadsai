@@ -805,9 +805,23 @@
       }
 
       try {
-        const data = await HumanAds.loadMyMissions();
-        const missions = data.missions || [];
-        const mission = missions.find(m => m.id === missionId || m.deal_id === missionId);
+        let mission = null;
+
+        // Direct lookup by mission ID (bypasses pagination/visibility).
+        // Falls back to the list scan for the deal_id case below.
+        try {
+          const direct = await HumanAds.loadMyMissionById(missionId);
+          mission = direct.mission || null;
+        } catch (e) {
+          if (e.status === 401) throw e;
+          // 404 / other → fall through to list-based lookup
+        }
+
+        if (!mission) {
+          const data = await HumanAds.loadMyMissions();
+          const missions = data.missions || [];
+          mission = missions.find(m => m.id === missionId || m.deal_id === missionId);
+        }
 
         if (!mission) {
           // If ID looks like a deal ID, check if the deal exists and redirect to apply page

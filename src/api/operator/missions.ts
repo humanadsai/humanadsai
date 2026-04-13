@@ -476,6 +476,92 @@ export async function getMyMissions(request: Request, env: Env): Promise<Respons
 }
 
 /**
+ * Get a single mission by ID for the authenticated operator.
+ * Avoids the pagination/visibility filters of getMyMissions so that
+ * operators can always reach a mission they own (run/detail pages).
+ *
+ * GET /api/missions/my/:id
+ */
+export async function getMyMissionById(
+  request: Request,
+  env: Env,
+  missionId: string
+): Promise<Response> {
+  const requestId = generateRequestId();
+
+  try {
+    const authResult = await authenticateOperator(request, env);
+    if (!authResult.success) {
+      return authResult.error!;
+    }
+    const operator = authResult.operator!;
+
+    const query = `
+      SELECT m.*, d.title as deal_title, d.requirements, d.reward_amount,
+             d.agent_id, m.payout_tx_hash, d.expires_at as deal_expires_at,
+             d.required_media_type, d.image_url as deal_image_url, d.media_instructions,
+             ag.name as agent_name,
+             json_extract(d.metadata, '$.created_via') as created_via,
+             ai_adv.x_handle as advertiser_x_handle,
+             (SELECT tx_hash FROM payments WHERE mission_id = m.id AND payment_type = 'payout' AND status = 'confirmed' LIMIT 1) as confirmed_payout_tx
+      FROM missions m
+      JOIN deals d ON m.deal_id = d.id
+      JOIN agents ag ON d.agent_id = ag.id
+      LEFT JOIN ai_advertisers ai_adv ON d.agent_id = ai_adv.id
+      WHERE m.id = ? AND m.operator_id = ?
+      LIMIT 1
+    `;
+
+    const m = await env.DB.prepare(query)
+      .bind(missionId, operator.id)
+      .first<Record<string, unknown>>();
+
+    if (!m) {
+      return errors.notFound(requestId, 'Mission');
+    }
+
+    const payoutTxHash = m.payout_tx_hash as string | null;
+    const isSimulated = payoutTxHash ? isSimulatedTxHash(payoutTxHash) : false;
+    const isAiAdvertiser = m.created_via === 'ai_advertiser_api';
+    const requiredMedia = (m.required_media_type as string) || 'none';
+
+    return success(
+      {
+        mission: {
+          id: m.id,
+          deal_id: m.deal_id,
+          deal_title: m.deal_title,
+          requirements: JSON.parse(m.requirements as string),
+          reward_amount: m.reward_amount,
+          status: m.status,
+          submission_url: m.submission_url,
+          submitted_at: m.submitted_at,
+          verified_at: m.verified_at,
+          paid_at: m.paid_at,
+          created_at: m.created_at,
+          agent_id: m.agent_id,
+          agent_name: m.agent_name,
+          is_ai_advertiser: isAiAdvertiser,
+          advertiser_x_handle: isAiAdvertiser ? (m.advertiser_x_handle as string) || null : null,
+          is_simulated: isSimulated,
+          confirmed_payout_tx: m.confirmed_payout_tx
+            ? (m.confirmed_payout_tx as string).replace(/_(payout|auf)$/, '')
+            : null,
+          expires_at: m.deal_expires_at,
+          required_media: requiredMedia,
+          image_preview_url: requiredMedia !== 'none' ? ((m.deal_image_url as string) || null) : null,
+          media_instructions: requiredMedia !== 'none' ? ((m.media_instructions as string) || null) : null,
+        },
+      },
+      requestId
+    );
+  } catch (e) {
+    console.error('Get my mission by id error:', e);
+    return errors.internalError(requestId);
+  }
+}
+
+/**
  * Get operator's escrow balance
  *
  * GET /api/operator/escrow-balance

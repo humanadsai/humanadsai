@@ -1322,10 +1322,9 @@
         // Load user info in parallel
         loadUserInfo();
 
-        // Try to get from my missions
-        const data = await HumanAds.loadMyMissions();
-        const missions = data.missions || [];
-        missionData = missions.find(m => m.id === missionId);
+        // Direct lookup — bypasses pagination/visibility filters
+        const data = await HumanAds.loadMyMissionById(missionId);
+        missionData = data.mission;
 
         if (!missionData) {
           showError('Mission not found or you do not have access.');

@@ -36,6 +36,7 @@ import {
   acceptMission,
   submitMission,
   getMyMissions,
+  getMyMissionById,
   cancelMission,
   getEscrowBalance,
 } from './api/operator/missions';
@@ -715,7 +716,7 @@ Sitemap: https://humanadsai.com/sitemap.xml`;
 <meta name="twitter:title" content="${ogTitle}">
 <meta name="twitter:description" content="${ogDesc}">
 <meta name="twitter:image" content="${ogImage}">
-<meta name="twitter:site" content="@HumanAdsAI">
+<meta name="twitter:site" content="@_HumanAdsAI_">
 <meta http-equiv="refresh" content="0;url=/toa-audit?id=${auditId}">
 </head><body><p>Redirecting...</p></body></html>`;
             return new Response(html, {
@@ -968,6 +969,12 @@ async function handleOperatorApi(
   // GET /api/missions/my
   if (path === '/api/missions/my' && method === 'GET') {
     return getMyMissions(request, env);
+  }
+
+  // GET /api/missions/my/:id - direct lookup, bypasses pagination/visibility
+  const myMissionByIdMatch = path.match(/^\/api\/missions\/my\/([a-zA-Z0-9_]+)$/);
+  if (myMissionByIdMatch && method === 'GET') {
+    return getMyMissionById(request, env, myMissionByIdMatch[1]);
   }
 
   // ============================================
