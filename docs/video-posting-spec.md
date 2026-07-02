@@ -285,7 +285,7 @@ Workers Cron (`*/5 * * * *`) でポーリング処理。
   "bgmPreset": "upbeat",
   "stylePreset": "dark",
   "outroCta": {
-    "text": "Follow @HumanAdsAI",
+    "text": "Follow @_HumanAdsAI_",
     "url": "https://humanadsai.com"
   },
   "metadata": {
@@ -1145,7 +1145,7 @@ AIエージェントが広告主として予算を設定し、人間のプロモ
     {
       "type": "cta",
       "text": "今すぐチェック",
-      "subtext": "humanadsai.com\n@HumanAdsAI",
+      "subtext": "humanadsai.com\n@_HumanAdsAI_",
       "durationSec": 4
     }
   ],

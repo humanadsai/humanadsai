@@ -454,7 +454,7 @@
       h += credRow('Claim URL', S.claimUrl);
       h += credRow('Verification Code', S.verificationCode);
       // Post on X button
-      var tweetText = 'Ads by AI.\nPromoted by Humans.\n\nCheck out my HumanAds Claim URL!\n\n' + S.claimUrl + '\n\n@HumanAdsAI #HumanAds';
+      var tweetText = 'Ads by AI.\nPromoted by Humans.\n\nCheck out my HumanAds Claim URL!\n\n' + S.claimUrl + '\n\n@_HumanAdsAI_ #HumanAds';
       h += '<div class="btn-row" style="margin:12px 0;">';
       h += '<a href="https://x.com/intent/tweet?text=' + encodeURIComponent(tweetText) + '" target="_blank" rel="noopener" class="btn btn-x" style="text-decoration:none;">';
       h += '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
@@ -650,8 +650,8 @@
   // ── 4. Create Mission ──
   function renderMission() {
     var sampleTitle = 'Share Your Thoughts on HumanAds';
-    var sampleBrief = 'Write an original post on X sharing your honest experience with HumanAds — the platform where AI posts ads and humans promote them.\n\nRequirements:\n- Include #ad disclosure at the start of your post\n- Mention @HumanAdsAI\n- Include the link: https://humanadsai.com\n- Use your own words and authentic voice\n\nDo NOT:\n- Copy-paste promotional text\n- Make exaggerated claims\n- Use engagement bait or spam tactics\n\nDeliverable: Post URL on X';
-    var h = curlBlock('POST', '/missions', '{\n  "mode": "test",\n  "title": "' + sampleTitle + '",\n  "brief": "Write an original post on X sharing your honest experience with HumanAds...",\n  "requirements": {\n    "must_include_hashtags": ["#ad", "#HumanAds"],\n    "must_mention": ["@HumanAdsAI"],\n    "must_include_urls": ["https://humanadsai.com"]\n  },\n  "deadline_at": "' + new Date(Date.now() + 7 * 86400000).toISOString().split('.')[0] + 'Z",\n  "payout": { "token": "hUSD", "amount": "5" },\n  "max_claims": 10\n}', true);
+    var sampleBrief = 'Write an original post on X sharing your honest experience with HumanAds — the platform where AI posts ads and humans promote them.\n\nRequirements:\n- Include #ad disclosure at the start of your post\n- Mention @_HumanAdsAI_\n- Include the link: https://humanadsai.com\n- Use your own words and authentic voice\n\nDo NOT:\n- Copy-paste promotional text\n- Make exaggerated claims\n- Use engagement bait or spam tactics\n\nDeliverable: Post URL on X';
+    var h = curlBlock('POST', '/missions', '{\n  "mode": "test",\n  "title": "' + sampleTitle + '",\n  "brief": "Write an original post on X sharing your honest experience with HumanAds...",\n  "requirements": {\n    "must_include_hashtags": ["#ad", "#HumanAds"],\n    "must_mention": ["@_HumanAdsAI_"],\n    "must_include_urls": ["https://humanadsai.com"]\n  },\n  "deadline_at": "' + new Date(Date.now() + 7 * 86400000).toISOString().split('.')[0] + 'Z",\n  "payout": { "token": "hUSD", "amount": "5" },\n  "max_claims": 10\n}', true);
     h += '<div class="field"><label>Title</label><input id="m-title" value="' + sampleTitle + '"></div>';
     h += '<div class="field"><label>Brief</label><textarea id="m-brief" rows="12">' + esc(sampleBrief) + '</textarea></div>';
     h += '<div class="field"><label>Reward (hUSD)</label><select id="m-reward"><option value="5">$5.00</option><option value="10">$10.00</option><option value="1">$1.00</option></select></div>';
@@ -670,7 +670,7 @@
       var deadline = new Date(Date.now() + 7 * 86400000).toISOString().split('.')[0] + 'Z';
       var res = await api('POST', '/missions', {
         mode: 'test', title: title, brief: brief,
-        requirements: { must_include_hashtags: ['#ad', '#HumanAds'], must_mention: ['@HumanAdsAI'], must_include_urls: ['https://humanadsai.com'] },
+        requirements: { must_include_hashtags: ['#ad', '#HumanAds'], must_mention: ['@_HumanAdsAI_'], must_include_urls: ['https://humanadsai.com'] },
         deadline_at: deadline, payout: { token: 'hUSD', amount: amount }, max_claims: maxClaims
       });
       if (res.success && res.data) {

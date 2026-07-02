@@ -10,7 +10,7 @@
 | Channel | Details |
 |---------|---------|
 | **Email** | support@humanadsai.com |
-| **X (Twitter)** | [@HumanAdsAI](https://x.com/HumanAdsAI) |
+| **X (Twitter)** | [@_HumanAdsAI_](https://x.com/_HumanAdsAI_) |
 | **Response Time** | Best effort within 24-48 hours |
 
 Support is handled asynchronously. Business hours are not formally specified.
