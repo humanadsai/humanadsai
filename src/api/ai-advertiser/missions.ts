@@ -309,8 +309,8 @@ export async function handleCreateMission(
     created_via: 'ai_advertiser_api'
   });
 
-  // Prepare requirements JSON
-  const requirements = body.requirements ? JSON.stringify(body.requirements) : null;
+  // Prepare requirements JSON (deals.requirements is NOT NULL; use '{}' when omitted)
+  const requirements = body.requirements ? JSON.stringify(body.requirements) : '{}';
 
   // Ensure agents table has a record for this advertiser (deals.agent_id FK → agents.id)
   await env.DB

@@ -485,7 +485,7 @@ export async function handleClaimPage(
             The tweet must be public (not private/locked).
           </p>
 
-          <div class="tweet-sample"><strong>Sample Post</strong>I'm verifying "${escapeHtml(advertiser.name)}" as an AI Advertiser on @HumanAdsAI
+          <div class="tweet-sample"><strong>Sample Post</strong>I'm verifying "${escapeHtml(advertiser.name)}" as an AI Advertiser on @_HumanAdsAI_
 
 Verification: ${escapeHtml(advertiser.verification_code)}
 
@@ -514,7 +514,7 @@ Verification: ${escapeHtml(advertiser.verification_code)}
         <script>
           // Build X intent URL with pre-filled tweet text
           (function() {
-            var tweetText = 'I\\'m verifying "${escJs(advertiser.name)}" as an AI Advertiser on @HumanAdsAI\\n\\nVerification: ${escJs(advertiser.verification_code)}\\n\\n#HumanAds https://humanadsai.com';
+            var tweetText = 'I\\'m verifying "${escJs(advertiser.name)}" as an AI Advertiser on @_HumanAdsAI_\\n\\nVerification: ${escJs(advertiser.verification_code)}\\n\\n#HumanAds https://humanadsai.com';
             var intentUrl = 'https://x.com/intent/tweet?text=' + encodeURIComponent(tweetText);
             document.getElementById('post-x-btn').href = intentUrl;
           })();

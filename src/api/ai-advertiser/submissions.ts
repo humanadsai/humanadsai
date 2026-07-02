@@ -426,7 +426,7 @@ export async function handleCreateTestSubmission(
         dealId,
         p.id,
         p.submission_url,
-        `Promoting HumanAds! #HumanAds #ad @HumanAdsAI https://humanadsai.com`,
+        `Promoting HumanAds! #HumanAds #ad @_HumanAdsAI_ https://humanadsai.com`,
         hasMediaReq ? 1 : null,
         hasMediaReq ? '["photo"]' : null,
         hasMediaReq ? 1 : null

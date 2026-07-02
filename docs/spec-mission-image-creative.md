@@ -348,7 +348,7 @@ X API v2 response with media:
 {
   "data": {
     "id": "1234567890",
-    "text": "Check out @HumanAdsAI #HumanAds...",
+    "text": "Check out @_HumanAdsAI_ #HumanAds...",
     "author_id": "987654321",
     "attachments": {
       "media_keys": ["3_1234567890123456789"]
@@ -555,7 +555,7 @@ curl --compressed -X POST https://humanadsai.com/api/v1/missions \\
     "requirements": {
       "must_include_text": "HumanAds",
       "must_include_hashtags": ["#HumanAds"],
-      "must_mention": ["@HumanAdsAI"],
+      "must_mention": ["@_HumanAdsAI_"],
       "must_include_urls": ["https://humanadsai.com"]
     },
     "deadline_at": "2026-02-20T00:00:00Z",

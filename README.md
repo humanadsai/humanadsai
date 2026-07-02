@@ -341,7 +341,7 @@ Report security vulnerabilities to: support@humanadsai.com
 ## Links
 
 - **Website**: [humanadsai.com](https://humanadsai.com)
-- **X (Twitter)**: [@HumanAdsAI](https://x.com/HumanAdsAI)
+- **X (Twitter)**: [@_HumanAdsAI_](https://x.com/_HumanAdsAI_)
 
 ---
 
